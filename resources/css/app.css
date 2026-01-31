@@ -3,6 +3,7 @@
 @import 'tw-animate-css';
 
 @source '../views';
+@source '../js';
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 
 @custom-variant dark (&:is(.dark *));
@@ -12,6 +13,7 @@
         'Instrument Sans', ui-sans-serif, system-ui, sans-serif,
         'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
         'Noto Color Emoji';
+    --font-display: 'Lexend', ui-sans-serif, system-ui, sans-serif;
 
     --radius-lg: var(--radius);
     --radius-md: calc(var(--radius) - 2px);
@@ -28,6 +30,10 @@
 
     --color-primary: var(--primary);
     --color-primary-foreground: var(--primary-foreground);
+    --color-background-dark: #221810;
+    --color-surface-dark: #2c2018;
+    --color-input-dark: #483323;
+    --color-text-secondary: #caaa91;
 
     --color-secondary: var(--secondary);
     --color-secondary-foreground: var(--secondary-foreground);
@@ -140,4 +146,29 @@
     body {
         @apply bg-background text-foreground;
     }
+}
+
+.gta-alerts-theme {
+    --primary: #ee7111;
+    --primary-foreground: #ffffff;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+    display: none;
+}
+
+.no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+.glass-header {
+    background-color: rgba(34, 24, 16, 0.95);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+}
+
+.mask-linear-fade {
+    -webkit-mask-image: linear-gradient(90deg, transparent, black 12%, black 88%, transparent);
+    mask-image: linear-gradient(90deg, transparent, black 12%, black 88%, transparent);
 }
