@@ -34,15 +34,15 @@ class FetchFireIncidentsCommand extends Command
             FireIncident::updateOrCreate(
                 ['event_num' => $event['event_num']],
                 [
-                    'event_type'       => $event['event_type'],
-                    'prime_street'     => $event['prime_street'],
-                    'cross_streets'    => $event['cross_streets'],
-                    'dispatch_time'    => Carbon::parse($event['dispatch_time']),
-                    'alarm_level'      => $event['alarm_level'],
-                    'beat'             => $event['beat'],
+                    'event_type' => $event['event_type'],
+                    'prime_street' => $event['prime_street'],
+                    'cross_streets' => $event['cross_streets'],
+                    'dispatch_time' => Carbon::parse($event['dispatch_time']),
+                    'alarm_level' => $event['alarm_level'],
+                    'beat' => $event['beat'],
                     'units_dispatched' => $event['units_dispatched'],
-                    'is_active'        => true,
-                    'feed_updated_at'  => $feedUpdatedAt,
+                    'is_active' => true,
+                    'feed_updated_at' => $feedUpdatedAt,
                 ]
             );
         }

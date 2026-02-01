@@ -43,20 +43,20 @@ class TorontoFireFeedService
 
         foreach ($xml->event as $event) {
             $events[] = [
-                'event_num'        => (string) $event->event_num,
-                'event_type'       => (string) $event->event_type,
-                'prime_street'     => trim((string) $event->prime_street) ?: null,
-                'cross_streets'    => trim((string) $event->cross_streets) ?: null,
-                'dispatch_time'    => (string) $event->dispatch_time,
-                'alarm_level'      => (int) $event->alarm_lev,
-                'beat'             => (string) $event->beat,
+                'event_num' => (string) $event->event_num,
+                'event_type' => (string) $event->event_type,
+                'prime_street' => trim((string) $event->prime_street) ?: null,
+                'cross_streets' => trim((string) $event->cross_streets) ?: null,
+                'dispatch_time' => (string) $event->dispatch_time,
+                'alarm_level' => (int) $event->alarm_lev,
+                'beat' => (string) $event->beat,
                 'units_dispatched' => trim((string) $event->units_disp) ?: null,
             ];
         }
 
         return [
             'updated_at' => $updatedAt,
-            'events'     => $events,
+            'events' => $events,
         ];
     }
 }
