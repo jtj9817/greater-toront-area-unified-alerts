@@ -16,6 +16,14 @@ test('it has correct casts', function () {
     ]);
 });
 
+test('it uses default timestamps', function () {
+    $call = new PoliceCall;
+
+    // Eloquent's `getCasts()` doesn't include created_at/updated_at by default, but they are still treated as dates.
+    expect($call->usesTimestamps())->toBeTrue();
+    expect($call->getDates())->toContain('created_at', 'updated_at');
+});
+
 test('it has correct fillable attributes', function () {
     $call = new PoliceCall;
 
