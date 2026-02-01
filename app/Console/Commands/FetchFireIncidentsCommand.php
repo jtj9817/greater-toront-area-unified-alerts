@@ -19,17 +19,25 @@ class FetchFireIncidentsCommand extends Command
 
         try {
             $data = $service->fetch();
+            $feedUpdatedAt = Carbon::parse($data['updated_at'], 'America/Toronto')->utc();
         } catch (\Throwable $e) {
             $this->error("Feed fetch failed: {$e->getMessage()}");
 
             return self::FAILURE;
         }
 
-        $feedUpdatedAt = Carbon::parse($data['updated_at']);
         $activeEventNums = [];
 
         foreach ($data['events'] as $event) {
             $activeEventNums[] = $event['event_num'];
+
+            try {
+                $dispatchTime = Carbon::parse($event['dispatch_time'], 'America/Toronto')->utc();
+            } catch (\Throwable $e) {
+                $this->error("Failed to parse dispatch_time for event {$event['event_num']}: {$e->getMessage()}");
+
+                return self::FAILURE;
+            }
 
             FireIncident::updateOrCreate(
                 ['event_num' => $event['event_num']],
@@ -37,7 +45,7 @@ class FetchFireIncidentsCommand extends Command
                     'event_type' => $event['event_type'],
                     'prime_street' => $event['prime_street'],
                     'cross_streets' => $event['cross_streets'],
-                    'dispatch_time' => Carbon::parse($event['dispatch_time']),
+                    'dispatch_time' => $dispatchTime,
                     'alarm_level' => $event['alarm_level'],
                     'beat' => $event['beat'],
                     'units_dispatched' => $event['units_dispatched'],

@@ -8,5 +8,5 @@ Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote');
 
-Schedule::command('fire:fetch-incidents')->everyFiveMinutes();
+Schedule::command('fire:fetch-incidents')->everyFiveMinutes()->withoutOverlapping();
 Schedule::command('police:fetch-calls')->everyTenMinutes();
