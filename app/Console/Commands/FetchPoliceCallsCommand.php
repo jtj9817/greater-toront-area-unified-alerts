@@ -37,10 +37,11 @@ class FetchPoliceCallsCommand extends Command
         } catch (Exception $e) {
             $this->error("Failed to fetch police calls: {$e->getMessage()}");
             Log::error("Police Feed Error: {$e->getMessage()}");
+
             return self::FAILURE;
         }
 
-        $this->info('Found ' . count($calls) . ' calls in the feed. Updating database...');
+        $this->info('Found '.count($calls).' calls in the feed. Updating database...');
 
         $objectIdsInFeed = [];
         $feedUpdatedAt = Carbon::now();

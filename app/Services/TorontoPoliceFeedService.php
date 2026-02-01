@@ -23,7 +23,7 @@ class TorontoPoliceFeedService
 
         do {
             $response = Http::timeout(15)
-                ->retry(2, 100)
+                ->retry(2, 100, throw: false)
                 ->acceptJson()
                 ->get(self::API_URL, [
                     'f' => 'json',
@@ -36,12 +36,12 @@ class TorontoPoliceFeedService
                 ]);
 
             if ($response->failed()) {
-                throw new RuntimeException("Failed to fetch police calls: " . $response->status());
+                throw new RuntimeException('Failed to fetch police calls: '.$response->status());
             }
 
             $data = $response->json();
 
-            if (!isset($data['features'])) {
+            if (! isset($data['features'])) {
                 throw new RuntimeException("Unexpected API response format: 'features' key missing.");
             }
 
@@ -60,7 +60,7 @@ class TorontoPoliceFeedService
     /**
      * Parse a single feature attribute array into a normalized format.
      *
-     * @param array<string, mixed> $attributes
+     * @param  array<string, mixed>  $attributes
      * @return array<string, mixed>
      */
     protected function parseFeature(array $attributes): array

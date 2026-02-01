@@ -2,7 +2,6 @@
 
 namespace Database\Factories;
 
-use App\Models\PoliceCall;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -27,17 +26,17 @@ class PoliceCallFactory extends Factory
             ['code' => 'SUSP', 'type' => 'SUSPICIOUS PERSON'],
         ];
 
-        $callType = $this->faker->randomElement($callTypes);
+        $callType = fake()->randomElement($callTypes);
 
         return [
-            'object_id' => $this->faker->unique()->numberBetween(100000, 999999),
+            'object_id' => fake()->unique()->numberBetween(100000, 999999),
             'call_type_code' => $callType['code'],
             'call_type' => $callType['type'],
-            'division' => 'D' . $this->faker->numberBetween(11, 55),
-            'cross_streets' => $this->faker->streetName . ' - ' . $this->faker->streetName,
-            'latitude' => $this->faker->latitude(43.58, 43.85),
-            'longitude' => $this->faker->longitude(-79.63, -79.12),
-            'occurrence_time' => $this->faker->dateTimeBetween('-2 hours', 'now'),
+            'division' => 'D'.fake()->numberBetween(11, 55),
+            'cross_streets' => fake()->streetName().' - '.fake()->streetName(),
+            'latitude' => fake()->latitude(43.58, 43.85),
+            'longitude' => fake()->longitude(-79.63, -79.12),
+            'occurrence_time' => fake()->dateTimeBetween('-2 hours', 'now'),
             'is_active' => true,
             'feed_updated_at' => now(),
         ];
