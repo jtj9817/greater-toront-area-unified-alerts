@@ -1,22 +1,21 @@
 <?php
 
-namespace Tests\Feature\Jobs;
-
 use App\Jobs\FetchPoliceCallsJob;
 use Illuminate\Support\Facades\Artisan;
-use Tests\TestCase;
 
-class FetchPoliceCallsJobTest extends TestCase
-{
-    /** @test */
-    public function it_calls_the_police_fetch_calls_command()
-    {
-        Artisan::shouldReceive('call')
-            ->once()
-            ->with('police:fetch-calls')
-            ->andReturn(0);
+test('it calls the police fetch-calls artisan command', function () {
+    Artisan::shouldReceive('call')
+        ->once()
+        ->with('police:fetch-calls')
+        ->andReturn(0);
 
-        $job = new FetchPoliceCallsJob();
-        $job->handle();
-    }
-}
+    $job = new FetchPoliceCallsJob;
+    $job->handle();
+});
+
+test('it has correct retry configuration', function () {
+    $job = new FetchPoliceCallsJob;
+
+    expect($job->tries)->toBe(3);
+    expect($job->backoff)->toBe(30);
+});

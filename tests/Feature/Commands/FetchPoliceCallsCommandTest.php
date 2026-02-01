@@ -1,127 +1,132 @@
 <?php
 
-namespace Tests\Feature\Commands;
-
 use App\Models\PoliceCall;
 use App\Services\TorontoPoliceFeedService;
 use Carbon\Carbon;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Mockery\MockInterface;
-use Tests\TestCase;
 
-class FetchPoliceCallsCommandTest extends TestCase
-{
-    use RefreshDatabase;
+uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
 
-    /** @test */
-    public function it_creates_new_records_from_feed_data()
-    {
-        $this->mock(TorontoPoliceFeedService::class, function (MockInterface $mock) {
-            $mock->shouldReceive('fetch')->once()->andReturn([
-                [
-                    'object_id' => 123,
-                    'call_type_code' => 'BREPR',
-                    'call_type' => 'BREAK & ENTER IN PROGRESS',
-                    'division' => 'D42',
-                    'cross_streets' => 'BAY ST - YORK ST',
-                    'latitude' => 43.65,
-                    'longitude' => -79.38,
-                    'occurrence_time' => Carbon::now(),
-                ]
-            ]);
-        });
-
-        $this->artisan('police:fetch-calls')
-            ->expectsOutputToContain('Found 1 calls in the feed')
-            ->expectsOutputToContain('Successfully updated police calls')
-            ->assertExitCode(0);
-
-        $this->assertDatabaseHas('police_calls', [
-            'object_id' => 123,
-            'is_active' => true,
+test('it creates new records from feed data', function () {
+    $this->mock(TorontoPoliceFeedService::class, function (MockInterface $mock) {
+        $mock->shouldReceive('fetch')->once()->andReturn([
+            [
+                'object_id' => 123,
+                'call_type_code' => 'BREPR',
+                'call_type' => 'BREAK & ENTER IN PROGRESS',
+                'division' => 'D42',
+                'cross_streets' => 'BAY ST - YORK ST',
+                'latitude' => 43.65,
+                'longitude' => -79.38,
+                'occurrence_time' => Carbon::now(),
+            ],
         ]);
-    }
+    });
 
-    /** @test */
-    public function it_updates_existing_records()
-    {
-        PoliceCall::factory()->create([
-            'object_id' => 123,
-            'call_type' => 'OLD TYPE',
-            'is_active' => true,
+    $this->artisan('police:fetch-calls')
+        ->expectsOutputToContain('Found 1 calls in the feed')
+        ->expectsOutputToContain('Successfully updated police calls')
+        ->assertExitCode(0);
+
+    $this->assertDatabaseHas('police_calls', [
+        'object_id' => 123,
+        'is_active' => true,
+    ]);
+});
+
+test('it updates existing records on re-fetch', function () {
+    PoliceCall::factory()->create([
+        'object_id' => 123,
+        'call_type' => 'OLD TYPE',
+        'is_active' => true,
+    ]);
+
+    $this->mock(TorontoPoliceFeedService::class, function (MockInterface $mock) {
+        $mock->shouldReceive('fetch')->once()->andReturn([
+            [
+                'object_id' => 123,
+                'call_type_code' => 'BREPR',
+                'call_type' => 'NEW TYPE',
+                'division' => 'D42',
+                'cross_streets' => 'BAY ST - YORK ST',
+                'latitude' => 43.65,
+                'longitude' => -79.38,
+                'occurrence_time' => Carbon::now(),
+            ],
         ]);
+    });
 
-        $this->mock(TorontoPoliceFeedService::class, function (MockInterface $mock) {
-            $mock->shouldReceive('fetch')->once()->andReturn([
-                [
-                    'object_id' => 123,
-                    'call_type_code' => 'BREPR',
-                    'call_type' => 'NEW TYPE',
-                    'division' => 'D42',
-                    'cross_streets' => 'BAY ST - YORK ST',
-                    'latitude' => 43.65,
-                    'longitude' => -79.38,
-                    'occurrence_time' => Carbon::now(),
-                ]
-            ]);
-        });
+    $this->artisan('police:fetch-calls')->assertExitCode(0);
 
-        $this->artisan('police:fetch-calls')->assertExitCode(0);
+    $this->assertDatabaseHas('police_calls', [
+        'object_id' => 123,
+        'call_type' => 'NEW TYPE',
+        'is_active' => true,
+    ]);
+    expect(PoliceCall::count())->toBe(1);
+});
 
-        $this->assertDatabaseHas('police_calls', [
-            'object_id' => 123,
-            'call_type' => 'NEW TYPE',
-            'is_active' => true,
+test('it deactivates calls no longer in the feed', function () {
+    PoliceCall::factory()->create([
+        'object_id' => 111,
+        'is_active' => true,
+    ]);
+
+    $this->mock(TorontoPoliceFeedService::class, function (MockInterface $mock) {
+        $mock->shouldReceive('fetch')->once()->andReturn([
+            [
+                'object_id' => 222,
+                'call_type_code' => 'BREPR',
+                'call_type' => 'BREAK & ENTER IN PROGRESS',
+                'division' => 'D42',
+                'cross_streets' => 'BAY ST - YORK ST',
+                'latitude' => 43.65,
+                'longitude' => -79.38,
+                'occurrence_time' => Carbon::now(),
+            ],
         ]);
-        $this->assertEquals(1, PoliceCall::count());
-    }
+    });
 
-    /** @test */
-    public function it_deactivates_calls_no_longer_in_the_feed()
-    {
-        PoliceCall::factory()->create([
-            'object_id' => 111,
-            'is_active' => true,
-        ]);
+    $this->artisan('police:fetch-calls')
+        ->expectsOutputToContain('Deactivated 1 stale calls')
+        ->assertExitCode(0);
 
-        $this->mock(TorontoPoliceFeedService::class, function (MockInterface $mock) {
-            $mock->shouldReceive('fetch')->once()->andReturn([
-                [
-                    'object_id' => 222,
-                    'call_type_code' => 'BREPR',
-                    'call_type' => 'BREAK & ENTER IN PROGRESS',
-                    'division' => 'D42',
-                    'cross_streets' => 'BAY ST - YORK ST',
-                    'latitude' => 43.65,
-                    'longitude' => -79.38,
-                    'occurrence_time' => Carbon::now(),
-                ]
-            ]);
-        });
+    $this->assertDatabaseHas('police_calls', [
+        'object_id' => 111,
+        'is_active' => false,
+    ]);
+    $this->assertDatabaseHas('police_calls', [
+        'object_id' => 222,
+        'is_active' => true,
+    ]);
+});
 
-        $this->artisan('police:fetch-calls')
-            ->expectsOutputToContain('Deactivated 1 stale calls')
-            ->assertExitCode(0);
+test('it handles empty feed gracefully', function () {
+    PoliceCall::factory()->create(['is_active' => true]);
 
-        $this->assertDatabaseHas('police_calls', [
-            'object_id' => 111,
-            'is_active' => false,
-        ]);
-        $this->assertDatabaseHas('police_calls', [
-            'object_id' => 222,
-            'is_active' => true,
-        ]);
-    }
+    $this->mock(TorontoPoliceFeedService::class, function (MockInterface $mock) {
+        $mock->shouldReceive('fetch')->once()->andReturn([]);
+    });
 
-    /** @test */
-    public function it_returns_failure_on_service_exception()
-    {
-        $this->mock(TorontoPoliceFeedService::class, function (MockInterface $mock) {
-            $mock->shouldReceive('fetch')->once()->andThrow(new \RuntimeException('API Down'));
-        });
+    $this->artisan('police:fetch-calls')->assertExitCode(0);
 
-        $this->artisan('police:fetch-calls')
-            ->expectsOutputToContain('Failed to fetch police calls: API Down')
-            ->assertExitCode(1);
-    }
-}
+    expect(PoliceCall::where('is_active', true)->count())->toBe(0);
+});
+
+test('active scope returns only active records', function () {
+    PoliceCall::factory()->count(3)->create(['is_active' => true]);
+    PoliceCall::factory()->count(2)->create(['is_active' => false]);
+
+    expect(PoliceCall::active()->count())->toBe(3);
+    expect(PoliceCall::count())->toBe(5);
+});
+
+test('it returns failure on service exception', function () {
+    $this->mock(TorontoPoliceFeedService::class, function (MockInterface $mock) {
+        $mock->shouldReceive('fetch')->once()->andThrow(new RuntimeException('API Down'));
+    });
+
+    $this->artisan('police:fetch-calls')
+        ->expectsOutputToContain('Failed to fetch police calls: API Down')
+        ->assertExitCode(1);
+});
