@@ -24,4 +24,14 @@ export default defineConfig({
     esbuild: {
         jsx: 'automatic',
     },
+    test: {
+        globals: true,
+        environment: 'jsdom',
+        setupFiles: './resources/js/tests/setup.ts',
+        include: ['resources/js/**/*.test.{ts,tsx}'],
+        coverage: {
+            provider: 'v8',
+            reporter: ['text', 'json', 'html'],
+        },
+    },
 });
