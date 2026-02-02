@@ -30,14 +30,16 @@ type DashboardProps = SharedData & {
     latest_feed_updated_at: string | null;
 };
 
+const torontoDateTimeFormatter = new Intl.DateTimeFormat('en-CA', {
+    dateStyle: 'medium',
+    timeStyle: 'short',
+    timeZone: 'America/Toronto',
+});
+
 function formatTorontoDateTime(value: string | null) {
     if (!value) return '—';
 
-    return new Intl.DateTimeFormat('en-CA', {
-        dateStyle: 'medium',
-        timeStyle: 'short',
-        timeZone: 'America/Toronto',
-    }).format(new Date(value));
+    return torontoDateTimeFormatter.format(new Date(value));
 }
 
 function formatLocation(incident: FireIncident) {
@@ -153,8 +155,7 @@ export default function Dashboard() {
                                                     {incident.alarm_level >
                                                         0 && (
                                                         <Badge variant="destructive">
-                                                            {incident.alarm_level}
-                                                            -alarm
+                                                            {`${incident.alarm_level}-alarm`}
                                                         </Badge>
                                                     )}
                                                 </div>
