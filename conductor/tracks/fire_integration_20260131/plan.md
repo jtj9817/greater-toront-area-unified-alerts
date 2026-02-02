@@ -16,7 +16,7 @@
 - [x] Task: Configure Scheduled Ingestion.
     - [x] Write tests for `FetchFireIncidentsCommand`.
     - [x] Finalize command logic and scheduling.
-- [ ] Task: Conductor - User Manual Verification 'Phase 2: Backend Pipeline' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 2: Backend Pipeline' (Protocol in workflow.md) (f8d2e5a)
 
 ## Phase 3: Frontend - Inertia Integration & Dashboard Refinement
 - [x] Task: Implement Data Handoff via Laravel Controller. (7fc4a1d)
