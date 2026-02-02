@@ -17,7 +17,11 @@ test('fire incident factory supports inactive state', function () {
 test('unified alerts test seeder seeds mixed history data for fire and police', function () {
     Carbon::setTestNow(Carbon::parse('2026-02-02 12:00:00'));
 
-    $this->seed(UnifiedAlertsTestSeeder::class);
+    try {
+        $this->seed(UnifiedAlertsTestSeeder::class);
+    } finally {
+        Carbon::setTestNow();
+    }
 
     expect(FireIncident::count())->toBeGreaterThan(0);
     expect(FireIncident::where('is_active', true)->count())->toBeGreaterThan(0);
@@ -32,4 +36,3 @@ test('unified alerts test seeder seeds mixed history data for fire and police', 
 
     expect($oldestFire->dispatch_time)->not->toEqual($newestFire->dispatch_time);
 });
-
