@@ -90,12 +90,23 @@ app/
 │   └── FetchFireIncidentsCommand.php   # fire:fetch-incidents artisan command
 ├── Jobs/
 │   └── FetchFireIncidentsJob.php       # ShouldQueue wrapper for async dispatch
+├── Http/
+│   ├── Controllers/
+│   │   └── DashboardController.php      # Dashboard query + Inertia props
+│   └── Resources/
+│       └── FireIncidentResource.php    # Frontend data contract
 ├── Models/
 │   └── FireIncident.php                # Eloquent model with active scope
 database/migrations/
 │   └── 2026_01_31_185634_create_fire_incidents_table.php
+database/factories/
+│   └── FireIncidentFactory.php         # Test factory for incidents
 routes/
 │   └── console.php                     # Schedule: every 5 minutes
+resources/js/pages/
+│   └── dashboard.tsx                   # Renders live incidents from DB
+resources/js/types/models/
+│   └── fire-incident.ts                # TS types matching backend resource
 ```
 
 ### Database Schema
@@ -131,7 +142,7 @@ Single method `fetch()` that:
 2. Appends a random 6-character cache-busting query parameter
 3. Parses the response body with `simplexml_load_string()`
 4. Returns a structured array with `updated_at` (string) and `events` (list of associative arrays)
-5. Throws `RequestException` on HTTP failures, `RuntimeException` on parse failures
+5. Throws `RuntimeException` on HTTP failures and parse failures
 
 Empty or whitespace-only string fields are normalized to `null`.
 
@@ -183,6 +194,39 @@ sail artisan schedule:work
 ```
 
 ---
+
+## Dashboard Integration (Inertia + React)
+
+The dashboard now renders **live** incident data from the database rather than hard-coded placeholder content.
+
+### Route
+
+**File:** `routes/web.php`
+
+- `GET /dashboard` routes to `DashboardController::class` and requires `auth` + `verified`
+
+### Controller
+
+**File:** `app/Http/Controllers/DashboardController.php`
+
+Inertia props provided to `resources/js/pages/dashboard.tsx`:
+
+- `active_incidents`: newest-first active incidents (limited to 100)
+- `active_incidents_count`: count of all active incidents
+- `active_counts_by_type`: grouped active counts by `event_type`
+- `latest_feed_updated_at`: latest known `feed_updated_at` timestamp
+
+### Resource (data contract)
+
+**File:** `app/Http/Resources/FireIncidentResource.php`
+
+Defines the serialized shape passed to the frontend. Date fields are returned as ISO 8601 strings.
+
+### Frontend types
+
+**File:** `resources/js/types/models/fire-incident.ts`
+
+Defines `FireIncident` and `FireIncidentTypeCount` to match the backend props.
 
 ## Usage
 
