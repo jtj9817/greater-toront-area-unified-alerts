@@ -66,6 +66,15 @@ test('it throws exception on invalid xml', function () {
     $service->fetch();
 })->throws(RuntimeException::class, 'Failed to parse Toronto Fire XML feed');
 
+test('it throws exception on connection timeout', function () {
+    Http::fake([
+        '*' => Http::response('Timeout', 408),
+    ]);
+
+    $service = new TorontoFireFeedService;
+    $service->fetch();
+})->throws(RuntimeException::class, 'Toronto Fire feed request failed: 408');
+
 test('it throws exception when update_from_db_time is missing', function () {
     $xml = <<<'XML'
     <tfs_active_incidents>
