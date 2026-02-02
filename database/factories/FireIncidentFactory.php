@@ -29,4 +29,14 @@ class FireIncidentFactory extends Factory
             'feed_updated_at' => $dispatchTime,
         ];
     }
+
+    /**
+     * Indicate that the incident is inactive.
+     */
+    public function inactive(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'is_active' => false,
+        ]);
+    }
 }
