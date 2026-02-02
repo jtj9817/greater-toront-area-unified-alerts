@@ -1,4 +1,5 @@
 export type * from './auth';
+export type * from './models/fire-incident';
 export type * from './navigation';
 export type * from './ui';
 
