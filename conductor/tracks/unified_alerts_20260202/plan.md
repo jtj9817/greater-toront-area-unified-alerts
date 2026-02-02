@@ -8,9 +8,9 @@
     - [x] Create `App\Services\Alerts\DTOs\AlertLocation.php`.
     - [x] Create `App\Services\Alerts\DTOs\UnifiedAlert.php`.
     - [x] Write unit tests for DTO instantiation and data integrity.
-- [x] (0cbec96) Task: Define Provider Contract.
+- [ ] (0cbec96) Task: Define Provider Contract.
     - [x] Create `App\Services\Alerts\Contracts\AlertSelectProvider.php` interface.
-- [ ] Task: Conductor - User Manual Verification 'Phase 1: Test Foundations' (Protocol in workflow.md)
+- [~] Task: Conductor - User Manual Verification 'Phase 1: Test Foundations' (Protocol in workflow.md)
 
 ## Phase 2: Provider Implementations
 - [ ] Task: Implement Fire Alert Provider.
