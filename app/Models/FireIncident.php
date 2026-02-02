@@ -2,10 +2,14 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class FireIncident extends Model
 {
+    use HasFactory;
+
     protected $fillable = [
         'event_num',
         'event_type',
@@ -29,8 +33,8 @@ class FireIncident extends Model
         ];
     }
 
-    public function scopeActive($query)
+    public function scopeActive(Builder $query): void
     {
-        return $query->where('is_active', true);
+        $query->where('is_active', true);
     }
 }
