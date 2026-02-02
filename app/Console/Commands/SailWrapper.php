@@ -20,7 +20,7 @@ class SailWrapper extends Command
             return 0;
         }
 
-        $sailPath = base_path('sail');
+        $sailPath = base_path('vendor/bin/sail');
 
         if (!file_exists($sailPath)) {
             $this->error('Sail script not found at: ' . $sailPath);
