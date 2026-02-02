@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
+import type { IncidentResource } from '../types';
 import { AlertService } from './AlertService';
-import { IncidentResource } from '../types';
 
 describe('AlertService', () => {
   const mockIncident: IncidentResource = {

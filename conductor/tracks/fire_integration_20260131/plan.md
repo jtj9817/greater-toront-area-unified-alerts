@@ -29,6 +29,8 @@
 - [x] Task: Conductor - User Manual Verification 'Phase 3: Frontend Integration' (Protocol in workflow.md) (f8d2e5a)
 
 ## Phase 4: Verification & Polishing
-- [ ] Task: Run full security and quality audit (`composer audit`, `pnpm audit`, `pint`).
-- [ ] Task: Verify mobile responsiveness with real-world incident descriptions.
-- [ ] Task: Conductor - User Manual Verification 'Phase 4: Final Polishing' (Protocol in workflow.md)
+- [x] Task: Run full security and quality audit (`composer audit`, `pnpm audit`, `pint`). (7a2b1c4)
+- [x] Task: Verify mobile responsiveness with real-world incident descriptions. (9d2e1f4)
+- [x] Task: Conductor - User Manual Verification 'Phase 4: Final Polishing' (Protocol in workflow.md) (a1b2c3d)
+
+[checkpoint: a1b2c3d]

@@ -4,5 +4,5 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
-- [ ] **Track: Toronto Fire Data Integration & Dashboard Refinement**
+- [x] **Track: Toronto Fire Data Integration & Dashboard Refinement**
   *Link: [./tracks/fire_integration_20260131/](./tracks/fire_integration_20260131/)*

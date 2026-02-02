@@ -1,10 +1,10 @@
 import React, { useState, useMemo } from 'react';
-import { AlertCard } from './AlertCard';
-import { Icon } from './Icon';
+import { formatTimeAgo } from '@/lib/utils';
 import type { AlertFilterOptions } from '../services/AlertService';
 import { AlertService } from '../services/AlertService';
-import { AlertItem } from '../types';
-import { formatTimeAgo } from '@/lib/utils';
+import type { AlertItem } from '../types';
+import { AlertCard } from './AlertCard';
+import { Icon } from './Icon';
 
 interface FeedViewProps {
   searchQuery: string;

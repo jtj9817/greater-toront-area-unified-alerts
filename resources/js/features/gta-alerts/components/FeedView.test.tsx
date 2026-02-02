@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import { describe, it, expect } from 'vitest';
+import type { AlertItem } from '../types';
 import { FeedView } from './FeedView';
-import { AlertItem } from '../types';
 
 describe('FeedView', () => {
   const mockAlerts: AlertItem[] = [

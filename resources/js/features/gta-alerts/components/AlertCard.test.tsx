@@ -1,7 +1,7 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
+import type { AlertItem } from '../types';
 import { AlertCard } from './AlertCard';
-import { AlertItem } from '../types';
 
 describe('AlertCard', () => {
   const mockItem: AlertItem = {
