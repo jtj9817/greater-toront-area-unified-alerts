@@ -37,7 +37,7 @@ class DashboardController extends Controller
         $latestFeedUpdatedAt = FireIncident::query()
             ->whereNotNull('feed_updated_at')
             ->orderByDesc('feed_updated_at')
-            ->first()
+            ->first(['feed_updated_at'])
             ?->feed_updated_at;
 
         return Inertia::render('dashboard', [
