@@ -1,6 +1,6 @@
 # Implementation Plan: Unified Alerts Architecture
 
-## Phase 1: Test Data Preparation & DTOs
+## Phase 1: Test Data Preparation & DTOs [checkpoint: 670ffd3]
 - [x] (0cbec96) Task: Refine Factories & Create Test Seeders.
     - [x] Add `inactive()` state to `FireIncidentFactory` (similar to `PoliceCallFactory`).
     - [x] Create `database/seeders/UnifiedAlertsTestSeeder.php` to generate mixed datasets (active/cleared, mixed timestamps) for integration testing.
@@ -8,9 +8,9 @@
     - [x] Create `App\Services\Alerts\DTOs\AlertLocation.php`.
     - [x] Create `App\Services\Alerts\DTOs\UnifiedAlert.php`.
     - [x] Write unit tests for DTO instantiation and data integrity.
-- [ ] (0cbec96) Task: Define Provider Contract.
+- [x] (0cbec96) Task: Define Provider Contract.
     - [x] Create `App\Services\Alerts\Contracts\AlertSelectProvider.php` interface.
-- [~] Task: Conductor - User Manual Verification 'Phase 1: Test Foundations' (Protocol in workflow.md)
+- [x] (670ffd3) Task: Conductor - User Manual Verification 'Phase 1: Test Foundations' (Protocol in workflow.md)
 
 ## Phase 2: Provider Implementations
 - [ ] Task: Implement Fire Alert Provider.
