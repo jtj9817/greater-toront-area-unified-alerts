@@ -7,7 +7,7 @@ uses(Tests\TestCase::class, RefreshDatabase::class);
 
 test('it has correct fillable attributes', function () {
     $incident = new FireIncident;
-    
+
     $expectedFillable = [
         'event_num',
         'event_type',
