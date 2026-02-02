@@ -9,15 +9,16 @@ GTA Alerts aims to be the definitive, real-time intelligence hub for the Greater
 - **Open Data Enthusiasts & Developers:** Technical users who value the normalization of fragmented regional data and may use the platform as a reference for regional data aggregation best practices.
 
 ## Core Goals
-- **Unified Low-Latency Dashboard:** To eliminate the need for checking multiple fragmented sources by providing a single, consolidated "source of truth" for fire, police, and transit alerts, updated in near real-time.
+- **Unified Low-Latency Dashboard:** To eliminate the need for checking multiple fragmented sources by providing a single, consolidated "source of truth" for fire, police, and transit alerts. The system features a robust real-time synchronization engine that handles live CAD feeds and incident state management (Active vs. Resolved).
 - **Historical Reporting & Trend Analysis:** Beyond immediate alerts, the platform will archive incident data to provide insights into regional patterns, helping users and researchers understand frequency and location trends of various alert types.
 
 ## MVP Features
 - **Real-Time Unified Alert Feed:**
     - A centralized stream of alerts aggregated from multiple GTA sources.
     - Advanced filtering capabilities by category (e.g., Fire, Police, Transit) and data source (e.g., Toronto Fire CAD, TTC).
-- **Detailed Incident Visualization:**
-    - Dedicated views for individual incidents providing granular data such as event type, alarm levels, and unit assignments.
+- **Detailed Incident Visualization:** 
+    - Dedicated views for individual incidents providing granular data such as event type, alarm levels, unit assignments, and beat information.
+    - Real-time "Data Freshness" indicators and status management to ensure users are viewing current situational data.
     - Integration of geographic location data to help users contextualize incidents relative to their position.
 - **Searchable Historical Archive:**
     - A robust search interface allowing users to find specific past incidents.
