@@ -15,7 +15,7 @@ export const AlertCard: React.FC<AlertCardProps> = ({ item, onViewDetails, isSav
       className={`
         h-full bg-surface-dark rounded-lg p-4 relative overflow-hidden group transition-all cursor-pointer hover:-translate-y-0.5
         ${isSaved 
-          ? 'border border-primary/50 shadow-[0_0_15px_rgba(238,113,17,0.15)]' 
+          ? 'border border-primary/50 shadow-[0_0_15px_rgba(216,70,79,0.15)]'
           : 'border border-white/5 shadow-lg shadow-black/20 hover:border-primary/40'
         }
       `}
@@ -31,7 +31,7 @@ export const AlertCard: React.FC<AlertCardProps> = ({ item, onViewDetails, isSav
         <div className="flex justify-between items-start mb-2">
           <div className="pr-8">
              <div className="flex items-center gap-2 mb-1">
-                <span className={`w-2 h-2 rounded-full ${item.severity === 'high' ? 'animate-pulse bg-red-500' : 'bg-gray-500'}`}></span>
+                <span className={`w-2 h-2 rounded-full ${item.severity === 'high' ? 'animate-pulse bg-coral' : 'bg-gray-500'}`}></span>
                 <span className="text-primary text-[10px] font-bold uppercase tracking-wider">{item.type}</span>
                 {isSaved && (
                   <span className="bg-primary text-white text-[9px] font-bold px-1.5 py-0.5 rounded ml-1 animate-in fade-in slide-in-from-left-2">SAVED</span>

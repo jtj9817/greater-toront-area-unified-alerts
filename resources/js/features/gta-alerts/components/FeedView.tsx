@@ -127,7 +127,7 @@ export const FeedView: React.FC<FeedViewProps> = ({ searchQuery, onSelectAlert, 
             {(timeFilter !== null || activeCategory !== 'all' || dateFilter !== 'today') && (
                 <button 
                     onClick={handleReset}
-                    className="ml-auto text-xs font-medium text-red-400 hover:text-red-300 flex items-center gap-1 transition-colors px-2 py-1 rounded hover:bg-red-500/10"
+                    className="ml-auto text-xs font-medium text-coral hover:text-amber flex items-center gap-1 transition-colors px-2 py-1 rounded hover:bg-coral/10"
                 >
                     <Icon name="restart_alt" className="text-sm" />
                     Reset
@@ -142,7 +142,7 @@ export const FeedView: React.FC<FeedViewProps> = ({ searchQuery, onSelectAlert, 
           {latestFeedUpdatedAt && (
             <div className="flex items-center justify-between mb-2 px-1">
               <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-text-secondary">
-                <span className="flex h-1.5 w-1.5 rounded-full bg-green-500 animate-pulse"></span>
+                <span className="flex h-1.5 w-1.5 rounded-full bg-forest animate-pulse"></span>
                 Live Feed Active
               </div>
               <div className="text-[10px] text-text-secondary flex items-center gap-1.5 bg-white/5 px-2.5 py-1 rounded-full border border-white/5">

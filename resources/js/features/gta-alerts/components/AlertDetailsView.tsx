@@ -108,12 +108,12 @@ abstract class AlertDetailTemplate extends Component<DetailsProps> {
 class FireAlertDetail extends AlertDetailTemplate {
   renderHeader(): React.ReactNode {
     return (
-      <div className="relative overflow-hidden rounded-3xl bg-red-950/20 border border-red-500/20 p-8 flex flex-col md:flex-row items-center gap-6">
-        <div className="w-20 h-20 rounded-2xl bg-red-500 flex items-center justify-center text-white shadow-2xl shadow-red-500/40">
+      <div className="relative overflow-hidden rounded-3xl bg-crimson/20 border border-coral/20 p-8 flex flex-col md:flex-row items-center gap-6">
+        <div className="w-20 h-20 rounded-2xl bg-coral flex items-center justify-center text-white shadow-2xl shadow-coral/40">
            <Icon name="local_fire_department" className="text-4xl" />
         </div>
         <div>
-          <span className="bg-red-500 text-white text-[10px] font-bold px-2 py-1 rounded-md uppercase mb-2 inline-block">High Severity Response</span>
+          <span className="bg-crimson text-white text-[10px] font-bold px-2 py-1 rounded-md uppercase mb-2 inline-block">High Severity Response</span>
           <h1 className="text-3xl md:text-4xl font-bold text-white tracking-tight">{this.props.alert.title}</h1>
         </div>
       </div>
@@ -150,7 +150,7 @@ class FireAlertDetail extends AlertDetailTemplate {
             <Icon name="map" className="text-sm" /> Location Map
           </h4>
           <div className="aspect-video bg-white/5 rounded-lg flex items-center justify-center border border-dashed border-white/10 overflow-hidden relative">
-             <div className="absolute inset-0 bg-[radial-gradient(#ee711133_1px,transparent_1px)] [background-size:16px_16px] opacity-20"></div>
+             <div className="absolute inset-0 bg-[radial-gradient(#d8464f33_1px,transparent_1px)] [background-size:16px_16px] opacity-20"></div>
              <Icon name="location_on" className="text-primary text-4xl animate-bounce" />
              <span className="text-text-secondary text-xs absolute bottom-4">Interactive Map Loading...</span>
           </div>
@@ -162,7 +162,7 @@ class FireAlertDetail extends AlertDetailTemplate {
           <ul className="space-y-3">
              {['Hydrant confirmed operational', 'Search of Floor 1 complete', 'Command established - Pumper 12'].map((intel, i) => (
                <li key={i} className="flex gap-3 text-sm text-gray-400">
-                  <span className="text-red-500 font-bold">•</span>
+                  <span className="text-coral font-bold">•</span>
                   {intel}
                </li>
              ))}

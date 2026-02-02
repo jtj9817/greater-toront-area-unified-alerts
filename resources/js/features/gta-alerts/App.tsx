@@ -171,7 +171,7 @@ const App: React.FC<AppProps> = ({ incidents, filters, latestFeedUpdatedAt }) =>
                         <div className="h-6 w-px bg-white/10 mx-1"></div>
                         <button className="w-10 h-10 rounded-full bg-surface-dark border border-white/5 flex items-center justify-center text-text-secondary hover:text-white hover:border-primary/30 hover:bg-white/5 transition-all relative">
                             <Icon name="notifications" />
-                            <span className="absolute top-2 right-2.5 w-2 h-2 bg-primary rounded-full border-2 border-surface-dark"></span>
+                            <span className="absolute top-2 right-2.5 w-2 h-2 bg-amber rounded-full border-2 border-surface-dark"></span>
                         </button>
                     </div>
                 </div>

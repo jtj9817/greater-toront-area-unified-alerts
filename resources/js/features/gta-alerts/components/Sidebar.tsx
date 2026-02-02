@@ -32,7 +32,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   return (
     <aside className={`
       fixed inset-y-0 left-0 z-[100] w-[75%] max-w-[280px] md:relative md:translate-x-0
-      bg-[#1a120b] border-r border-white/5 pt-6 pb-6 flex-none flex flex-col
+      bg-[#140b0c] border-r border-white/5 pt-6 pb-6 flex-none flex flex-col
       transition-all duration-300 ease-in-out shadow-2xl md:shadow-none
       ${mobileTranslate} ${sidebarWidth}
     `}>
@@ -47,7 +47,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
       {/* Logo Section */}
       <div className={`px-6 mb-8 flex items-center gap-3 overflow-hidden ${isCollapsed ? 'md:px-4 justify-center' : ''}`}>
-        <div className="flex-none w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-orange-600 flex items-center justify-center text-white shadow-lg shadow-primary/20">
+        <div className="flex-none w-8 h-8 rounded-lg bg-gradient-to-br from-[#d8464f] to-[#e2751f] flex items-center justify-center text-white shadow-lg shadow-primary/20">
           <Icon name="emergency_home" className="text-xl" />
         </div>
         {!isCollapsed && (
@@ -106,7 +106,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           <button className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-400 hover:bg-white/5 hover:text-white transition-all ${isCollapsed ? 'md:justify-center' : ''}`}>
             <Icon name="dns" />
             {!isCollapsed && <span className="font-medium text-sm flex-1 text-left">Status</span>}
-            {!isCollapsed && <span className="w-2 h-2 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]"></span>}
+            {!isCollapsed && <span className="w-2 h-2 rounded-full bg-forest shadow-[0_0_8px_rgba(61,88,75,0.8)]"></span>}
           </button>
         </div>
       </nav>
@@ -129,7 +129,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         {/* Desktop Collapse Toggle */}
         <button 
           onClick={onToggleCollapse}
-          className="hidden md:flex w-full items-center justify-center py-2.5 rounded-lg bg-white/5 text-text-secondary hover:text-white hover:bg-primary/20 transition-all border border-transparent hover:border-primary/30"
+          className="hidden md:flex w-full items-center justify-center py-2.5 rounded-lg bg-white/5 text-text-secondary hover:text-white hover:bg-crimson/20 transition-all border border-transparent hover:border-crimson/30"
           title={isCollapsed ? "Expand Sidebar" : "Collapse Sidebar"}
         >
           <Icon name={isCollapsed ? "chevron_right" : "chevron_left"} />

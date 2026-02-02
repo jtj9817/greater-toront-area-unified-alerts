@@ -68,7 +68,7 @@ export const SettingsView: React.FC = () => {
         
         <div className="pt-6">
             <button className="w-full md:w-auto px-6 py-3 bg-white/5 hover:bg-white/10 text-white rounded-lg border border-white/10 text-sm font-medium transition-colors flex items-center justify-center gap-2">
-                <Icon name="logout" className="text-red-400" />
+                <Icon name="logout" className="text-coral" />
                 Sign Out
             </button>
         </div>

@@ -2,12 +2,12 @@ import React from 'react';
 import { Icon } from './Icon';
 
 const ZONES = [
-  { id: 1, name: 'Downtown Core', status: 'High Activity', color: 'text-red-500', bg: 'bg-red-500/10', count: 12 },
-  { id: 2, name: 'Scarborough', status: 'Moderate', color: 'text-orange-500', bg: 'bg-orange-500/10', count: 5 },
-  { id: 3, name: 'North York', status: 'Low Activity', color: 'text-green-500', bg: 'bg-green-500/10', count: 2 },
-  { id: 4, name: 'Etobicoke', status: 'Normal', color: 'text-blue-500', bg: 'bg-blue-500/10', count: 1 },
-  { id: 5, name: 'Peel Region', status: 'Monitoring', color: 'text-gray-400', bg: 'bg-white/5', count: 0 },
-  { id: 6, name: 'York Region', status: 'Monitoring', color: 'text-gray-400', bg: 'bg-white/5', count: 0 },
+  { id: 1, name: 'Downtown Core', status: 'High Activity', color: 'text-coral', bg: 'bg-coral/10', dotColor: 'bg-coral', count: 12 },
+  { id: 2, name: 'Scarborough', status: 'Moderate', color: 'text-burnt-orange', bg: 'bg-burnt-orange/10', dotColor: 'bg-burnt-orange', count: 5 },
+  { id: 3, name: 'North York', status: 'Low Activity', color: 'text-forest', bg: 'bg-forest/10', dotColor: 'bg-forest', count: 2 },
+  { id: 4, name: 'Etobicoke', status: 'Normal', color: 'text-amber', bg: 'bg-amber/10', dotColor: 'bg-amber', count: 1 },
+  { id: 5, name: 'Peel Region', status: 'Monitoring', color: 'text-gray-400', bg: 'bg-white/5', dotColor: 'bg-gray-500', count: 0 },
+  { id: 6, name: 'York Region', status: 'Monitoring', color: 'text-gray-400', bg: 'bg-white/5', dotColor: 'bg-gray-500', count: 0 },
 ];
 
 export const ZonesView: React.FC = () => {
@@ -40,7 +40,7 @@ export const ZonesView: React.FC = () => {
             <h3 className="text-white font-bold text-lg mb-1 group-hover:text-primary transition-colors">{zone.name}</h3>
             
             <div className="flex items-center gap-2">
-                <span className={`w-2 h-2 rounded-full ${zone.color === 'text-gray-400' ? 'bg-gray-500' : zone.color.replace('text-', 'bg-')}`}></span>
+                <span className={`w-2 h-2 rounded-full ${zone.dotColor}`}></span>
                 <span className={`text-xs font-medium ${zone.color}`}>{zone.status}</span>
             </div>
           </div>

@@ -90,14 +90,14 @@ export class AlertService {
    * Returns Tailwind accent color class based on type and severity
    */
   private static getAccentColorForType(type: AlertItem['type'], severity: string): string {
-    if (severity === 'high') return 'bg-red-500';
-    
+    if (severity === 'high') return 'bg-[#d8464f]';
+
     switch (type) {
-      case 'fire': return 'bg-orange-500';
+      case 'fire': return 'bg-[#e2751f]';
       case 'police': return 'bg-blue-500';
-      case 'hazard': return 'bg-yellow-500';
-      case 'transit': return 'bg-green-500';
-      case 'medical': return 'bg-pink-500';
+      case 'hazard': return 'bg-[#feb457]';
+      case 'transit': return 'bg-[#3d584b]';
+      case 'medical': return 'bg-[#d8464f]';
       default: return 'bg-gray-500';
     }
   }

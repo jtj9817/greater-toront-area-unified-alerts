@@ -30,10 +30,15 @@
 
     --color-primary: var(--primary);
     --color-primary-foreground: var(--primary-foreground);
-    --color-background-dark: #221810;
-    --color-surface-dark: #2c2018;
-    --color-input-dark: #483323;
-    --color-text-secondary: #caaa91;
+    --color-background-dark: #1a0f10;
+    --color-surface-dark: #261518;
+    --color-input-dark: #3a1e22;
+    --color-text-secondary: #c4a89b;
+    --color-crimson: #7e0c0f;
+    --color-coral: #d8464f;
+    --color-amber: #feb457;
+    --color-burnt-orange: #e2751f;
+    --color-forest: #3d584b;
 
     --color-secondary: var(--secondary);
     --color-secondary-foreground: var(--secondary-foreground);
@@ -149,7 +154,7 @@
 }
 
 .gta-alerts-theme {
-    --primary: #ee7111;
+    --primary: #d8464f;
     --primary-foreground: #ffffff;
 }
 
@@ -163,7 +168,7 @@
 }
 
 .glass-header {
-    background-color: rgba(34, 24, 16, 0.95);
+    background-color: rgba(26, 15, 16, 0.95);
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
 }
