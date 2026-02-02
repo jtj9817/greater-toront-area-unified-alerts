@@ -32,4 +32,3 @@ class FireIncidentResource extends JsonResource
         ];
     }
 }
-

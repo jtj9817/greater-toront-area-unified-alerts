@@ -193,6 +193,17 @@ sail artisan schedule:work
 * * * * * cd /path-to-project && php artisan schedule:run >> /dev/null 2>&1
 ```
 
+### Production (Docker scheduler container)
+
+This repo includes a production-friendly scheduler image that bakes in cron and logs scheduler output to Laravel logs:
+
+- Dockerfile: `docker/scheduler/Dockerfile`
+- Cron entry: `docker/scheduler/laravel-scheduler` (runs `php artisan scheduler:run-and-log` every minute)
+- Startup report + readiness checks: `docker/scheduler/entrypoint.sh`
+- Health check (stale/missing heartbeat): `docker/scheduler/healthcheck.sh` (calls `php artisan scheduler:status`)
+
+Scheduler logs land in the normal Laravel log output (typically `storage/logs/laravel.log` in file-based logging).
+
 ---
 
 ## Dashboard Integration (Inertia + React)

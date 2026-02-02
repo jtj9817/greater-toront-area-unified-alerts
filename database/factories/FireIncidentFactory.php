@@ -30,4 +30,3 @@ class FireIncidentFactory extends Factory
         ];
     }
 }
-
