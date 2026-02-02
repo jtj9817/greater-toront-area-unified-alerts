@@ -1,13 +1,13 @@
 # Implementation Plan: Toronto Fire Data Integration & Dashboard Refinement
 
 ## Phase 1: Code Discovery & Finalization of Tasks
-- [ ] Task: Inspect existing `TorontoFireFeedService` and `FireIncident` model for schema completeness.
-- [ ] Task: Audit `AlertService.ts` and React components to identify all mock data dependencies.
-- [ ] Task: Finalize concrete implementation steps for backend-to-frontend data handoff.
+- [x] Task: Inspect existing `TorontoFireFeedService` and `FireIncident` model for schema completeness.
+- [x] Task: Audit `AlertService.ts` and React components to identify all mock data dependencies.
+- [x] Task: Finalize concrete implementation steps for backend-to-frontend data handoff.
 - [ ] Task: Conductor - User Manual Verification 'Phase 1: Discovery' (Protocol in workflow.md)
 
 ## Phase 2: Backend - Fire Incident Pipeline
-- [ ] Task: Finalize `FireIncident` Migration and Model.
+- [~] Task: Finalize `FireIncident` Migration and Model.
     - [ ] Write Migration tests.
     - [ ] Implement/Refine migration and model logic.
 - [ ] Task: Refine `TorontoFireFeedService` for production robustness.
