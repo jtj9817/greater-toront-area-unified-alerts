@@ -1,12 +1,10 @@
 <?php
 
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\GtaAlertsController;
 use Illuminate\Support\Facades\Route;
-use Inertia\Inertia;
 
-Route::get('/', function () {
-    return Inertia::render('gta-alerts');
-})->name('home');
+Route::get('/', GtaAlertsController::class)->name('home');
 
 Route::get('dashboard', DashboardController::class)
     ->middleware(['auth', 'verified'])

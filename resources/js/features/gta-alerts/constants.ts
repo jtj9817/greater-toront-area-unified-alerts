@@ -1,4 +1,4 @@
-import { AlertSectionData } from './types';
+import type { AlertSectionData } from './types';
 
 export const ALERT_DATA: AlertSectionData[] = [
   {

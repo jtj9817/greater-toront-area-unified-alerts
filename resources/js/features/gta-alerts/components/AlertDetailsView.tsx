@@ -1,7 +1,6 @@
 import React, { Component } from 'react';
-import { AlertItem } from '../types';
+import type { AlertItem } from '../types';
 import { Icon } from './Icon';
-import { AlertService } from '../services/AlertService';
 
 interface DetailsProps {
   alert: AlertItem;
@@ -24,7 +23,7 @@ abstract class AlertDetailTemplate extends Component<DetailsProps> {
   // Explicitly typing the return value of the main render method
   render(): React.ReactNode {
     const { alert, onBack } = this.props;
-    const isSaved = AlertService.getSavedItems().some(i => i.id === alert.id);
+    const isSaved = false;
     
     return (
       <div className="flex flex-col h-full bg-background-dark animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -122,15 +121,22 @@ class FireAlertDetail extends AlertDetailTemplate {
   }
 
   renderMetadata(): React.ReactNode {
+    const { alert } = this.props;
     return (
       <React.Fragment>
         <div className="bg-white/5 p-4 rounded-xl">
           <p className="text-text-secondary text-[10px] uppercase font-bold mb-1">Response Tier</p>
-          <p className="text-white text-sm">Level 2 (Alarm)</p>
+          <p className="text-white text-sm">
+            {alert.metadata?.alarmLevel && alert.metadata.alarmLevel > 0 
+              ? `Level ${alert.metadata.alarmLevel} (Alarm)` 
+              : 'Standard Response'}
+          </p>
         </div>
         <div className="bg-white/5 p-4 rounded-xl">
           <p className="text-text-secondary text-[10px] uppercase font-bold mb-1">Units Dispatched</p>
-          <p className="text-white text-sm">4 Pumpers, 1 Aerial</p>
+          <p className="text-white text-sm">
+            {alert.metadata?.unitsDispatched || 'None reported'}
+          </p>
         </div>
       </React.Fragment>
     );

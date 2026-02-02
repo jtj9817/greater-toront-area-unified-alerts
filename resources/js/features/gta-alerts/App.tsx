@@ -1,28 +1,45 @@
-
 import React, { useState, useMemo } from 'react';
-import { Sidebar } from './components/Sidebar';
-import { BottomNav } from './components/BottomNav';
-import { Icon } from './components/Icon';
-import { FeedView } from './components/FeedView';
-import { SavedView } from './components/SavedView';
-import { ZonesView } from './components/ZonesView';
-import { SettingsView } from './components/SettingsView';
 import { AlertDetailsView } from './components/AlertDetailsView';
+import { BottomNav } from './components/BottomNav';
+import { FeedView } from './components/FeedView';
+import { Icon } from './components/Icon';
+import { SavedView } from './components/SavedView';
+import { SettingsView } from './components/SettingsView';
+import { Sidebar } from './components/Sidebar';
+import { ZonesView } from './components/ZonesView';
 import { AlertService } from './services/AlertService';
+import type { IncidentResource } from './types';
 
-const App: React.FC = () => {
+interface AppProps {
+  incidents: {
+    data: IncidentResource[];
+    links: Record<string, string | null>;
+    meta: Record<string, unknown>;
+  };
+  filters: {
+    search: string;
+  };
+  latestFeedUpdatedAt: string | null;
+}
+
+const App: React.FC<AppProps> = ({ incidents, filters, latestFeedUpdatedAt }) => {
   const [currentView, setCurrentView] = useState('feed');
   const [activeAlertId, setActiveAlertId] = useState<string | null>(null);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState(filters.search || '');
   
   // Sidebar states
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  // Use the service to find the active alert
+  // Map backend incidents to frontend AlertItems
+  const allAlerts = useMemo(() => {
+    return incidents.data.map(i => AlertService.mapIncidentToAlertItem(i));
+  }, [incidents.data]);
+
+  // Use the local alerts to find the active alert
   const activeAlert = useMemo(() => {
-    return activeAlertId ? AlertService.getAlertById(activeAlertId) : null;
-  }, [activeAlertId]);
+    return activeAlertId ? allAlerts.find(item => item.id === activeAlertId) : null;
+  }, [activeAlertId, allAlerts]);
 
   const handleNavigate = (view: string) => {
     setCurrentView(view);
@@ -42,14 +59,21 @@ const App: React.FC = () => {
 
     switch (currentView) {
       case 'saved':
-        return <SavedView onSelectAlert={setActiveAlertId} />;
+        return <SavedView onSelectAlert={setActiveAlertId} allAlerts={allAlerts} />;
       case 'zones':
         return <ZonesView />;
       case 'settings':
         return <SettingsView />;
       case 'feed':
       default:
-        return <FeedView searchQuery={searchQuery} onSelectAlert={setActiveAlertId} />;
+        return (
+          <FeedView 
+            searchQuery={searchQuery} 
+            onSelectAlert={setActiveAlertId} 
+            allAlerts={allAlerts} 
+            latestFeedUpdatedAt={latestFeedUpdatedAt}
+          />
+        );
     }
   };
 

@@ -1,5 +1,5 @@
 import React from 'react';
-import { AlertItem } from '../types';
+import type { AlertItem } from '../types';
 import { Icon } from './Icon';
 
 interface AlertCardProps {

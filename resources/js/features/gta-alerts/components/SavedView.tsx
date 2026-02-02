@@ -1,15 +1,16 @@
 import React, { useMemo } from 'react';
-import { Icon } from './Icon';
+import type { AlertItem } from '../types';
 import { AlertCard } from './AlertCard';
-import { AlertService } from '../services/AlertService';
+import { Icon } from './Icon';
 
 interface SavedViewProps {
   onSelectAlert: (id: string) => void;
+  allAlerts?: AlertItem[];
 }
 
 export const SavedView: React.FC<SavedViewProps> = ({ onSelectAlert }) => {
-  // Use the service to get saved items
-  const savedItems = useMemo(() => AlertService.getSavedItems(), []);
+  // Use the service to get saved items (Mocked for now as empty)
+  const savedItems = useMemo<AlertItem[]>(() => [], []);
 
   return (
     <div className="p-4 md:p-6">

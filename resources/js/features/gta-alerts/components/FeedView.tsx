@@ -1,18 +1,23 @@
 import React, { useState, useMemo } from 'react';
 import { AlertCard } from './AlertCard';
 import { Icon } from './Icon';
-import { AlertService, AlertFilterOptions } from '../services/AlertService';
+import type { AlertFilterOptions } from '../services/AlertService';
+import { AlertService } from '../services/AlertService';
+import { AlertItem } from '../types';
+import { formatTimeAgo } from '@/lib/utils';
 
 interface FeedViewProps {
   searchQuery: string;
   onSelectAlert: (id: string) => void;
+  allAlerts: AlertItem[];
+  latestFeedUpdatedAt: string | null;
 }
 
-export const FeedView: React.FC<FeedViewProps> = ({ searchQuery, onSelectAlert }) => {
+export const FeedView: React.FC<FeedViewProps> = ({ searchQuery, onSelectAlert, allAlerts, latestFeedUpdatedAt }) => {
   // State for Filters
   const [activeCategory, setActiveCategory] = useState<string>('all');
   const [timeFilter, setTimeFilter] = useState<number | null>(null);
-  const [dateFilter, setDateFilter] = useState<'today' | 'yesterday' | 'all'>('today');
+  const [dateFilter, setDateFilter] = useState<'today' | 'yesterday' | 'all'>('all'); // Default to 'all' for live data initially
 
   // Compute filtered items using the Service
   const filteredItems = useMemo(() => {
@@ -22,11 +27,11 @@ export const FeedView: React.FC<FeedViewProps> = ({ searchQuery, onSelectAlert }
         timeLimit: timeFilter,
         dateScope: dateFilter
     };
-    return AlertService.search(options);
-  }, [searchQuery, activeCategory, timeFilter, dateFilter]);
+    return AlertService.search(allAlerts, options);
+  }, [searchQuery, activeCategory, timeFilter, dateFilter, allAlerts]);
 
   // Get Set of Saved IDs for efficient lookup
-  const savedIds = useMemo(() => new Set(AlertService.getSavedItems().map(i => i.id)), []);
+  const savedIds = useMemo(() => new Set<string>([]), []); // Temporary empty until saved logic implemented
 
   // Handler for Reset
   const handleReset = () => {
@@ -85,7 +90,7 @@ export const FeedView: React.FC<FeedViewProps> = ({ searchQuery, onSelectAlert }
                 </div>
                 <select 
                     value={dateFilter}
-                    onChange={(e) => setDateFilter(e.target.value as any)}
+                    onChange={(e) => setDateFilter(e.target.value as 'today' | 'yesterday' | 'all')}
                     className="pl-8 pr-8 py-1.5 bg-surface-dark border border-white/10 rounded-lg text-xs text-white focus:ring-1 focus:ring-primary focus:border-primary outline-none appearance-none hover:border-white/20 cursor-pointer transition-colors w-32"
                 >
                     <option value="today">Today</option>
@@ -134,6 +139,19 @@ export const FeedView: React.FC<FeedViewProps> = ({ searchQuery, onSelectAlert }
       {/* List Container */}
       <div className="p-4 md:p-6 flex-1 overflow-y-auto">
         <div className="flex flex-col gap-4 md:gap-5 w-full max-w-3xl mx-auto">
+          {latestFeedUpdatedAt && (
+            <div className="flex items-center justify-between mb-2 px-1">
+              <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-text-secondary">
+                <span className="flex h-1.5 w-1.5 rounded-full bg-green-500 animate-pulse"></span>
+                Live Feed Active
+              </div>
+              <div className="text-[10px] text-text-secondary flex items-center gap-1.5 bg-white/5 px-2.5 py-1 rounded-full border border-white/5">
+                <Icon name="history" className="text-sm opacity-50" />
+                Updated: {formatTimeAgo(latestFeedUpdatedAt)}
+              </div>
+            </div>
+          )}
+
           {filteredItems.map(item => (
             <AlertCard 
               key={item.id} 
