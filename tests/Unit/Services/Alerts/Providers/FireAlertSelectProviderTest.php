@@ -3,6 +3,9 @@
 use App\Models\FireIncident;
 use App\Services\Alerts\Providers\FireAlertSelectProvider;
 use Carbon\CarbonImmutable;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+
+uses(Tests\TestCase::class, RefreshDatabase::class);
 
 test('fire alert select provider maps unified columns', function () {
     $incident = FireIncident::factory()->create([

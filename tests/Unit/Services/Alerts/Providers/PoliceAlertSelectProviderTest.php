@@ -3,6 +3,9 @@
 use App\Models\PoliceCall;
 use App\Services\Alerts\Providers\PoliceAlertSelectProvider;
 use Carbon\CarbonImmutable;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+
+uses(Tests\TestCase::class, RefreshDatabase::class);
 
 test('police alert select provider maps unified columns', function () {
     $call = PoliceCall::factory()->create([
