@@ -29,6 +29,7 @@ use App\Models\FireIncident;
 use App\Models\PoliceCall;
 use Carbon\Carbon;
 use Database\Seeders\UnifiedAlertsTestSeeder;
+use Illuminate\Contracts\Http\Kernel as HttpKernel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
@@ -142,13 +143,20 @@ try {
 
     $expectedLatest = Carbon::now()->subMinutes(5)->toIso8601String();
 
-    $httpKernel = app(Illuminate\Contracts\Http\Kernel::class);
+    $httpKernel = app(HttpKernel::class);
+    $inertiaMiddleware = app(App\Http\Middleware\HandleInertiaRequests::class);
 
-    $makeInertiaRequest = function (array $query = []) use ($httpKernel): array {
+    $makeInertiaRequest = function (array $query = []) use ($httpKernel, $inertiaMiddleware): array {
         $request = Request::create('/', 'GET', $query, [], [], [
             'HTTP_X_INERTIA' => 'true',
+            'HTTP_X_REQUESTED_WITH' => 'XMLHttpRequest',
             'HTTP_ACCEPT' => 'application/json',
         ]);
+
+        $version = $inertiaMiddleware->version($request);
+        if (is_string($version) && $version !== '') {
+            $request->headers->set('X-Inertia-Version', $version);
+        }
 
         $response = $httpKernel->handle($request);
 
@@ -156,9 +164,26 @@ try {
             $httpKernel->terminate($request, $response);
         }
 
+        if ($response->getStatusCode() === 409) {
+            $location = $response->headers->get('X-Inertia-Location') ?? $response->headers->get('Location');
+
+            $suffix = $location ? " Location: {$location}" : '';
+
+            throw new \RuntimeException("Inertia asset version mismatch (409).{$suffix}");
+        }
+
         $payload = json_decode($response->getContent() ?: 'null', true);
         if (! is_array($payload)) {
-            throw new \RuntimeException('Expected Inertia JSON payload but got non-JSON response.');
+            $contentType = $response->headers->get('Content-Type');
+            $body = $response->getContent() ?? '';
+            $bodySnippet = mb_substr(trim($body), 0, 500);
+
+            throw new \RuntimeException(
+                'Expected Inertia JSON payload but got non-JSON response.'
+                ." status={$response->getStatusCode()}"
+                .($contentType ? " content_type={$contentType}" : '')
+                .($bodySnippet !== '' ? " body_snippet={$bodySnippet}" : '')
+            );
         }
 
         return $payload;
