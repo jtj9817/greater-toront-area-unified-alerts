@@ -3,11 +3,15 @@
 /**
  * Manual Test: Phase 5 Quality Gate & Finalization
  * Generated: 2026-02-03
- * Purpose: Run the final quality gates for the Unified Alerts Architecture track:
- * - Backend tests + coverage gates (>= 90% on unified alerts related code)
- * - Pint (check mode)
- * - Frontend format/lint/types/tests + coverage smoke check (~50% on gta-alerts feature)
- * - Dependency audits (composer + pnpm)
+ * Purpose: Manual verification for Phase 5 of the Unified Alerts Architecture track.
+ *
+ * This script focuses on verifying the user-facing contract and controller behavior:
+ * - `GET /` returns the `gta-alerts` Inertia component
+ * - `alerts` prop exists and `incidents` prop is absent (hard switch)
+ * - Status filtering works (`all`, `active`, `cleared`)
+ * - `latest_feed_updated_at` is correctly computed from both feeds
+ *
+ * Optional: run command-based quality gates by setting `RUN_COMMAND_GATES=1`.
  */
 
 require __DIR__.'/../../vendor/autoload.php';
@@ -21,7 +25,13 @@ if (app()->environment('production')) {
     exit("Error: Cannot run manual tests in production!\n");
 }
 
+use App\Models\FireIncident;
+use App\Models\PoliceCall;
 use Carbon\Carbon;
+use Database\Seeders\UnifiedAlertsTestSeeder;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Symfony\Component\Process\Process;
 
@@ -51,6 +61,28 @@ function logError(string $msg, array $ctx = []): void
     echo "[ERROR] {$msg}\n";
 }
 
+function assertTrue(bool $condition, string $label, array $ctx = []): void
+{
+    if (! $condition) {
+        $message = "Assertion failed: {$label}.";
+        logError($message, $ctx);
+        throw new \RuntimeException($message);
+    }
+
+    logInfo("Assertion passed: {$label}");
+}
+
+function assertEqual(mixed $actual, mixed $expected, string $label): void
+{
+    if ($actual !== $expected) {
+        $message = "Assertion failed for {$label}.";
+        logError($message, ['expected' => $expected, 'actual' => $actual]);
+        throw new \RuntimeException($message);
+    }
+
+    logInfo("Assertion passed: {$label}");
+}
+
 function runCommand(string $label, string $command): void
 {
     logInfo("Running: {$label}", ['command' => $command]);
@@ -78,44 +110,135 @@ function runCommand(string $label, string $command): void
 }
 
 $exitCode = 0;
+$txStarted = false;
 
 try {
-    logInfo('=== Starting Manual Test: Phase 5 Quality Gate & Finalization ===');
+    // Manual scripts are usually executed via Sail (MySQL host = "mysql").
+    // Provide a clearer error if Docker/Sail isn't running.
+    try {
+        DB::connection()->getPdo();
+    } catch (\Throwable $e) {
+        throw new \RuntimeException(
+            "Database connection failed. If you're using Sail, ensure Docker is running and execute: ./vendor/bin/sail php tests/manual/verify_phase_5_quality_gate.php",
+            previous: $e
+        );
+    }
 
-    logInfo('Step 1: Pint (check mode)');
-    runCommand('pint --test', './vendor/bin/pint --test');
+    DB::beginTransaction();
+    $txStarted = true;
 
-    logInfo('Step 2: Backend tests (no coverage)');
-    runCommand('php artisan test', 'php artisan test');
+    logInfo('=== Starting Manual Test: Phase 5 Manual Verification ===');
 
-    logInfo('Step 3: Backend coverage gates (unified alerts related code only)');
-    runCommand(
-        'pest coverage (app/Services/Alerts)',
-        'XDEBUG_MODE=coverage ./vendor/bin/pest --coverage --min=90 --coverage-filter app/Services/Alerts'
-    );
-    runCommand(
-        'pest coverage (GtaAlertsController)',
-        'XDEBUG_MODE=coverage ./vendor/bin/pest --coverage --min=90 --coverage-filter app/Http/Controllers/GtaAlertsController.php'
-    );
-    runCommand(
-        'pest coverage (UnifiedAlertResource)',
-        'XDEBUG_MODE=coverage ./vendor/bin/pest --coverage --min=90 --coverage-filter app/Http/Resources/UnifiedAlertResource.php'
-    );
+    logInfo('Step 1: Seeding deterministic dataset (UnifiedAlertsTestSeeder)');
 
-    logInfo('Step 4: Frontend quality checks');
-    runCommand('corepack enable (best effort)', 'corepack enable || true');
-    runCommand('prettier (check)', 'pnpm run format:check');
-    runCommand('eslint (check)', 'pnpm run lint:check');
-    runCommand('tsc (noEmit)', 'pnpm run types');
-    runCommand('vitest', 'pnpm run test');
-    runCommand('vitest coverage (gta-alerts smoke check)', 'pnpm run coverage');
+    FireIncident::query()->delete();
+    PoliceCall::query()->delete();
 
-    logInfo('Step 5: Dependency audits (optional)');
-    if (getenv('SKIP_AUDITS') === '1') {
-        logInfo('Skipping audits because SKIP_AUDITS=1');
+    Carbon::setTestNow(Carbon::parse('2026-02-03 12:00:00'));
+    Artisan::call('db:seed', ['--class' => UnifiedAlertsTestSeeder::class]);
+
+    assertEqual(FireIncident::count(), 4, 'fire_incidents count');
+    assertEqual(PoliceCall::count(), 4, 'police_calls count');
+
+    $expectedLatest = Carbon::now()->subMinutes(5)->toIso8601String();
+
+    $httpKernel = app(Illuminate\Contracts\Http\Kernel::class);
+
+    $makeInertiaRequest = function (array $query = []) use ($httpKernel): array {
+        $request = Request::create('/', 'GET', $query, [], [], [
+            'HTTP_X_INERTIA' => 'true',
+            'HTTP_ACCEPT' => 'application/json',
+        ]);
+
+        $response = $httpKernel->handle($request);
+
+        if (method_exists($httpKernel, 'terminate')) {
+            $httpKernel->terminate($request, $response);
+        }
+
+        $payload = json_decode($response->getContent() ?: 'null', true);
+        if (! is_array($payload)) {
+            throw new \RuntimeException('Expected Inertia JSON payload but got non-JSON response.');
+        }
+
+        return $payload;
+    };
+
+    $extractAlertIds = function (array $payload): array {
+        $data = $payload['props']['alerts']['data'] ?? null;
+        if (! is_array($data)) {
+            throw new \RuntimeException('Expected props.alerts.data to be an array.');
+        }
+
+        return array_map(fn (array $row) => $row['id'] ?? null, $data);
+    };
+
+    logInfo('Step 2: Verifying home page inertia payload (status=all)');
+
+    $allPayload = $makeInertiaRequest();
+    assertEqual($allPayload['component'] ?? null, 'gta-alerts', 'component = gta-alerts');
+    assertTrue(isset($allPayload['props']['alerts']), 'props contains alerts');
+    assertTrue(! isset($allPayload['props']['incidents']), 'props does not contain incidents');
+
+    $allIds = $extractAlertIds($allPayload);
+    assertEqual(count($allIds), 8, 'alerts count (status=all)');
+    assertEqual($allIds[0], 'fire:FIRE-0001', 'first alert id ordering (status=all)');
+
+    $sources = collect($allPayload['props']['alerts']['data'])->pluck('source')->unique()->sort()->values()->all();
+    assertEqual($sources, ['fire', 'police'], 'alerts include fire + police sources');
+
+    assertEqual($allPayload['props']['filters']['status'] ?? null, 'all', 'filters.status = all');
+    assertEqual($allPayload['props']['latest_feed_updated_at'] ?? null, $expectedLatest, 'latest_feed_updated_at');
+
+    logInfo('Step 3: Verifying status filters');
+
+    $activePayload = $makeInertiaRequest(['status' => 'active']);
+    assertEqual($activePayload['props']['filters']['status'] ?? null, 'active', 'filters.status = active');
+    $activeRows = $activePayload['props']['alerts']['data'] ?? [];
+    assertEqual(count($activeRows), 4, 'alerts count (status=active)');
+    assertTrue(collect($activeRows)->every(fn (array $row) => $row['is_active'] === true), 'all active alerts have is_active=true');
+
+    $clearedPayload = $makeInertiaRequest(['status' => 'cleared']);
+    assertEqual($clearedPayload['props']['filters']['status'] ?? null, 'cleared', 'filters.status = cleared');
+    $clearedRows = $clearedPayload['props']['alerts']['data'] ?? [];
+    assertEqual(count($clearedRows), 4, 'alerts count (status=cleared)');
+    assertTrue(collect($clearedRows)->every(fn (array $row) => $row['is_active'] === false), 'all cleared alerts have is_active=false');
+
+    if (getenv('RUN_COMMAND_GATES') === '1') {
+        logInfo('Step 4: Optional command-based gates (RUN_COMMAND_GATES=1)');
+
+        logInfo('Backend: Pint + test suite');
+        runCommand('pint --test', './vendor/bin/pint --test');
+        runCommand('php artisan test', 'php artisan test');
+
+        logInfo('Backend: coverage (unified alerts targets)');
+        runCommand(
+            'pest coverage (app/Services/Alerts)',
+            'XDEBUG_MODE=coverage ./vendor/bin/pest --coverage --min=90 --coverage-filter app/Services/Alerts'
+        );
+        runCommand(
+            'pest coverage (GtaAlertsController)',
+            'XDEBUG_MODE=coverage ./vendor/bin/pest --coverage --min=90 --coverage-filter app/Http/Controllers/GtaAlertsController.php'
+        );
+        runCommand(
+            'pest coverage (UnifiedAlertResource)',
+            'XDEBUG_MODE=coverage ./vendor/bin/pest --coverage --min=90 --coverage-filter app/Http/Resources/UnifiedAlertResource.php'
+        );
+
+        logInfo('Frontend: quality checks + coverage smoke check');
+        runCommand('corepack enable (best effort)', 'corepack enable || true');
+        runCommand('pnpm quality:check', 'pnpm run quality:check');
+        runCommand('pnpm coverage', 'pnpm run coverage');
+
+        logInfo('Dependency audits (optional)');
+        if (getenv('SKIP_AUDITS') === '1') {
+            logInfo('Skipping audits because SKIP_AUDITS=1');
+        } else {
+            runCommand('composer audit', 'composer audit');
+            runCommand('pnpm audit (high+)', 'pnpm audit --audit-level high');
+        }
     } else {
-        runCommand('composer audit', 'composer audit');
-        runCommand('pnpm audit (high+)', 'pnpm audit --audit-level high');
+        logInfo('Skipping command-based gates (set RUN_COMMAND_GATES=1 to enable).');
     }
 
     logInfo('=== Manual Test Completed Successfully ===');
@@ -126,6 +249,21 @@ try {
         'trace' => $e->getTraceAsString(),
     ]);
 } finally {
+    try {
+        Carbon::setTestNow();
+    } catch (\Throwable) {
+    }
+
+    if ($txStarted) {
+        try {
+            if (DB::connection()->transactionLevel() > 0) {
+                DB::rollBack();
+                logInfo('Transaction rolled back (Database preserved).');
+            }
+        } catch (\Throwable) {
+        }
+    }
+
     logInfo('=== Test Run Finished ===');
 
     if ($exitCode === 0) {
