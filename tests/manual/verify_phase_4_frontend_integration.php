@@ -107,7 +107,7 @@ try {
 
     $controller = app(GtaAlertsController::class);
     $request = Request::create('/', 'GET');
-    $response = $controller($request);
+    $response = app()->call($controller, ['request' => $request]);
 
     $reflection = new ReflectionClass($response);
     $property = $reflection->getProperty('props');
@@ -131,7 +131,7 @@ try {
 
     Paginator::currentPageResolver(fn () => 1);
     $activeRequest = Request::create('/', 'GET', ['status' => 'active']);
-    $activeResponse = $controller($activeRequest);
+    $activeResponse = app()->call($controller, ['request' => $activeRequest]);
 
     $activeReflection = new ReflectionClass($activeResponse);
     $activePropsProperty = $activeReflection->getProperty('props');
