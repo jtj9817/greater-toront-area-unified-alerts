@@ -34,16 +34,16 @@
 - [x] (7bdd684) Task: Conductor - User Manual Verification 'Phase 3: Unified Querying' (Protocol in workflow.md)
 
 ## Phase 4: Controller & Frontend Integration (The Hard Switch)
-- [ ] Task: Refactor GtaAlertsController.
-    - [ ] Write tests for `GtaAlertsController` verifying the replacement of `incidents` with `alerts`.
-    - [ ] Update `GtaAlertsController` to use `UnifiedAlertsQuery` and `UnifiedAlertResource`.
-- [ ] Task: Update Frontend Types & Service.
-    - [ ] Update `resources/js/features/gta-alerts/types.ts` with `UnifiedAlertResource`.
-    - [ ] Write unit tests for `AlertService.mapUnifiedAlertToAlertItem()`.
-    - [ ] Implement `mapUnifiedAlertToAlertItem` in `AlertService.ts`.
-- [ ] Task: Update UI Components.
-    - [ ] Write component tests for `FeedView` and `AlertCard` using unified alert data.
-    - [ ] Refactor components to consume the `alerts` prop and handle the new data structure.
+- [x] (97ceba3) Task: Refactor GtaAlertsController.
+    - [x] Write tests for `GtaAlertsController` verifying the replacement of `incidents` with `alerts`.
+    - [x] Update `GtaAlertsController` to use `UnifiedAlertsQuery` and `UnifiedAlertResource`.
+- [x] (97ceba3) Task: Update Frontend Types & Service.
+    - [x] Update `resources/js/features/gta-alerts/types.ts` with `UnifiedAlertResource`.
+    - [x] Write unit tests for `AlertService.mapUnifiedAlertToAlertItem()`.
+    - [x] Implement `mapUnifiedAlertToAlertItem` in `AlertService.ts`.
+- [x] (97ceba3) Task: Update UI Components.
+    - [x] Write component tests for `FeedView` and `AlertCard` using unified alert data.
+    - [x] Refactor components to consume the `alerts` prop and handle the new data structure.
 - [ ] Task: Conductor - User Manual Verification 'Phase 4: Frontend Integration' (Protocol in workflow.md)
 
 ## Phase 5: Quality Gate & Finalization
