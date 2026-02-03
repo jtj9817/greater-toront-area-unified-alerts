@@ -1,0 +1,45 @@
+<?php
+
+use App\Models\FireIncident;
+use App\Services\Alerts\Providers\FireAlertSelectProvider;
+use Carbon\CarbonImmutable;
+
+test('fire alert select provider maps unified columns', function () {
+    $incident = FireIncident::factory()->create([
+        'event_num' => 'F12345',
+        'event_type' => 'STRUCTURE FIRE',
+        'prime_street' => 'Yonge St',
+        'cross_streets' => 'Dundas St',
+        'dispatch_time' => CarbonImmutable::parse('2026-02-02 12:34:00'),
+        'alarm_level' => 2,
+        'beat' => '12A',
+        'units_dispatched' => 'P1, P2',
+        'is_active' => true,
+    ]);
+
+    $row = (new FireAlertSelectProvider())->select()->first();
+
+    expect($row)->not->toBeNull();
+    expect($row->id)->toBe('fire:F12345');
+    expect($row->source)->toBe('fire');
+    expect((string) $row->external_id)->toBe('F12345');
+    expect((int) $row->is_active)->toBe(1);
+    expect((string) $row->timestamp)->toBe($incident->dispatch_time->format('Y-m-d H:i:s'));
+    expect($row->title)->toBe('STRUCTURE FIRE');
+    expect($row->location_name)->toBe('Yonge St / Dundas St');
+    expect($row->lat)->toBeNull();
+    expect($row->lng)->toBeNull();
+
+    $decodeMeta = fn (mixed $value): array => is_array($value)
+        ? $value
+        : (is_string($value) && $value !== ''
+            ? json_decode($value, true, 512, JSON_THROW_ON_ERROR)
+            : []);
+
+    $meta = $decodeMeta($row->meta);
+
+    expect($meta['alarm_level'])->toBe(2);
+    expect($meta['units_dispatched'])->toBe('P1, P2');
+    expect($meta['beat'])->toBe('12A');
+    expect($meta['event_num'])->toBe('F12345');
+});

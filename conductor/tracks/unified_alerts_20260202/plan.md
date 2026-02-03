@@ -13,15 +13,15 @@
 - [x] (670ffd3) Task: Conductor - User Manual Verification 'Phase 1: Test Foundations' (Protocol in workflow.md)
 
 ## Phase 2: Provider Implementations
-- [ ] Task: Implement Fire Alert Provider.
-    - [ ] Write tests for `FireAlertSelectProvider` ensuring correct column mapping (use `FireIncidentFactory`).
-    - [ ] Implement `App\Services\Alerts\Providers\FireAlertSelectProvider`.
-- [ ] Task: Implement Police Alert Provider.
-    - [ ] Write tests for `PoliceAlertSelectProvider` ensuring correct column mapping (use `PoliceCallFactory`).
-    - [ ] Implement `App\Services\Alerts\Providers\PoliceAlertSelectProvider`.
-- [ ] Task: Implement Transit Alert Provider (Placeholder).
-    - [ ] Write tests for `TransitAlertSelectProvider` ensuring it handles empty/placeholder state.
-    - [ ] Implement `App\Services\Alerts\Providers\TransitAlertSelectProvider`.
+- [x] Task: Implement Fire Alert Provider.
+    - [x] Write tests for `FireAlertSelectProvider` ensuring correct column mapping (use `FireIncidentFactory`).
+    - [x] Implement `App\Services\Alerts\Providers\FireAlertSelectProvider`.
+- [x] Task: Implement Police Alert Provider.
+    - [x] Write tests for `PoliceAlertSelectProvider` ensuring correct column mapping (use `PoliceCallFactory`).
+    - [x] Implement `App\Services\Alerts\Providers\PoliceAlertSelectProvider`.
+- [x] Task: Implement Transit Alert Provider (Placeholder).
+    - [x] Write tests for `TransitAlertSelectProvider` ensuring it handles empty/placeholder state.
+    - [x] Implement `App\Services\Alerts\Providers\TransitAlertSelectProvider`.
 - [ ] Task: Conductor - User Manual Verification 'Phase 2: Provider Implementations' (Protocol in workflow.md)
 
 ## Phase 3: Unified Querying & API Transformation
