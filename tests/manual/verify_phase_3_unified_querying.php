@@ -28,6 +28,7 @@ use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\{Artisan, DB, Log};
 
 $testRunId = 'phase_3_unified_querying_' . Carbon::now()->format('Y_m_d_His');
+$logFileRelative = "storage/logs/manual_tests/{$testRunId}.log";
 $logFile = storage_path("logs/manual_tests/{$testRunId}.log");
 
 if (! is_dir(dirname($logFile))) {
@@ -169,9 +170,9 @@ try {
     logInfo('=== Test Run Finished ===');
 
     if ($exitCode === 0) {
-        echo "\nResult: PASS\nLogs at: {$logFile}\n";
+        echo "\nResult: PASS\nLogs at: {$logFileRelative}\n";
     } else {
-        echo "\nResult: FAIL\nLogs at: {$logFile}\n";
+        echo "\nResult: FAIL\nLogs at: {$logFileRelative}\n";
     }
 
     exit($exitCode);

@@ -26,6 +26,7 @@ use App\Services\Alerts\Providers\PoliceAlertSelectProvider;
 use App\Services\Alerts\Providers\TransitAlertSelectProvider;
 
 $testRunId = 'phase_2_providers_' . Carbon::now()->format('Y_m_d_His');
+$logFileRelative = "storage/logs/manual_tests/{$testRunId}.log";
 $logFile = storage_path("logs/manual_tests/{$testRunId}.log");
 
 if (!is_dir(dirname($logFile))) {
@@ -175,5 +176,5 @@ try {
     DB::rollBack();
     logInfo('Transaction rolled back (Database preserved).');
     logInfo('=== Test Run Finished ===');
-    echo "\n✓ Full logs at: {$logFile}\n";
+    echo "\n✓ Full logs at: {$logFileRelative}\n";
 }

@@ -25,6 +25,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 $testRunId = 'verify_frontend_'.Carbon::now()->format('Y_m_d_His');
+$logFileRelative = "storage/logs/manual_tests/{$testRunId}.log";
 $logFile = storage_path("logs/manual_tests/{$testRunId}.log");
 
 if (! is_dir(dirname($logFile))) {
@@ -169,5 +170,5 @@ try {
     DB::rollBack();
     logInfo('Database changes rolled back.');
     logInfo('=== Test Run Finished ===');
-    echo "\n✓ Full logs at: {$logFile}\n";
+    echo "\n✓ Full logs at: {$logFileRelative}\n";
 }

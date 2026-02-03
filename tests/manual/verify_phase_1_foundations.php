@@ -25,6 +25,7 @@ use App\Models\PoliceCall;
 use Database\Seeders\UnifiedAlertsTestSeeder;
 
 $testRunId = 'phase_1_verify_' . Carbon::now()->format('Y_m_d_His');
+$logFileRelative = "storage/logs/manual_tests/{$testRunId}.log";
 $logFile = storage_path("logs/manual_tests/{$testRunId}.log");
 
 if (!is_dir(dirname($logFile))) {
@@ -119,5 +120,5 @@ try {
     DB::rollBack();
     logInfo("Transaction rolled back (Database preserved).");
     logInfo("=== Test Run Finished ===");
-    echo "\n✓ Full logs at: {$logFile}\n";
+    echo "\n✓ Full logs at: {$logFileRelative}\n";
 }
