@@ -44,7 +44,7 @@
 - [x] (97ceba3) Task: Update UI Components.
     - [x] Write component tests for `FeedView` and `AlertCard` using unified alert data.
     - [x] Refactor components to consume the `alerts` prop and handle the new data structure.
-- [ ] Task: Conductor - User Manual Verification 'Phase 4: Frontend Integration' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 4: Frontend Integration' (Protocol in workflow.md)
 
 ## Phase 5: Quality Gate & Finalization
 - [ ] Task: Final Coverage & Audit.
