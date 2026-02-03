@@ -2,42 +2,62 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Resources\FireIncidentResource;
+use App\Http\Resources\UnifiedAlertResource;
 use App\Models\FireIncident;
+use App\Models\PoliceCall;
+use App\Services\Alerts\UnifiedAlertsQuery;
+use Illuminate\Validation\Rule;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class GtaAlertsController extends Controller
 {
-    public function __invoke(Request $request): Response
+    public function __invoke(Request $request, UnifiedAlertsQuery $alerts): Response
     {
-        $query = FireIncident::query()
-            ->active()
-            ->orderByDesc('dispatch_time');
+        $validated = $request->validate([
+            'status' => ['nullable', Rule::in(['all', 'active', 'cleared'])],
+        ]);
 
-        if ($request->filled('search')) {
-            $search = $request->input('search');
-            $query->where(function ($q) use ($search) {
-                $q->where('prime_street', 'like', "%{$search}%")
-                    ->orWhere('cross_streets', 'like', "%{$search}%")
-                    ->orWhere('event_num', 'like', "%{$search}%")
-                    ->orWhere('event_type', 'like', "%{$search}%");
-            });
-        }
+        /** @var 'all'|'active'|'cleared' $status */
+        $status = $validated['status'] ?? 'all';
 
-        $incidents = $query->paginate(50)->withQueryString();
+        $paginator = $alerts->paginate(perPage: 50, status: $status);
+        $paginator->withQueryString();
 
-        $latestFeedUpdatedAt = FireIncident::query()
+        $latestFeedUpdatedAt = $this->latestFeedUpdatedAt();
+
+        return Inertia::render('gta-alerts', [
+            'alerts' => UnifiedAlertResource::collection($paginator),
+            'filters' => [
+                'status' => $status,
+            ],
+            'latest_feed_updated_at' => $latestFeedUpdatedAt?->toIso8601String(),
+        ]);
+    }
+
+    private function latestFeedUpdatedAt(): ?\Carbon\CarbonInterface
+    {
+        $fire = FireIncident::query()
             ->whereNotNull('feed_updated_at')
             ->orderByDesc('feed_updated_at')
             ->first(['feed_updated_at'])
             ?->feed_updated_at;
 
-        return Inertia::render('gta-alerts', [
-            'incidents' => FireIncidentResource::collection($incidents),
-            'filters' => $request->only(['search']),
-            'latest_feed_updated_at' => $latestFeedUpdatedAt?->toIso8601String(),
-        ]);
+        $police = PoliceCall::query()
+            ->whereNotNull('feed_updated_at')
+            ->orderByDesc('feed_updated_at')
+            ->first(['feed_updated_at'])
+            ?->feed_updated_at;
+
+        if ($fire === null) {
+            return $police;
+        }
+
+        if ($police === null) {
+            return $fire;
+        }
+
+        return $fire->greaterThan($police) ? $fire : $police;
     }
 }

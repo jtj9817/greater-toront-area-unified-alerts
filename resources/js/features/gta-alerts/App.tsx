@@ -8,33 +8,44 @@ import { SettingsView } from './components/SettingsView';
 import { Sidebar } from './components/Sidebar';
 import { ZonesView } from './components/ZonesView';
 import { AlertService } from './services/AlertService';
-import type { IncidentResource } from './types';
+import type { UnifiedAlertResource } from './types';
 
 interface AppProps {
-  incidents: {
-    data: IncidentResource[];
+  alerts: {
+    data: UnifiedAlertResource[];
     links: Record<string, string | null>;
     meta: Record<string, unknown>;
   };
   filters: {
-    search: string;
+    status: 'all' | 'active' | 'cleared';
   };
   latestFeedUpdatedAt: string | null;
 }
 
-const App: React.FC<AppProps> = ({ incidents, filters, latestFeedUpdatedAt }) => {
+const App: React.FC<AppProps> = ({ alerts, filters, latestFeedUpdatedAt }) => {
   const [currentView, setCurrentView] = useState('feed');
   const [activeAlertId, setActiveAlertId] = useState<string | null>(null);
-  const [searchQuery, setSearchQuery] = useState(filters.search || '');
+  const [searchQuery, setSearchQuery] = useState('');
   
   // Sidebar states
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  // Map backend incidents to frontend AlertItems
+  // Map backend unified alerts to frontend AlertItems
   const allAlerts = useMemo(() => {
-    return incidents.data.map(i => AlertService.mapIncidentToAlertItem(i));
-  }, [incidents.data]);
+    return alerts.data.map((a) => AlertService.mapUnifiedAlertToAlertItem(a));
+  }, [alerts.data]);
+
+  const pagination = useMemo(() => {
+    const meta = alerts.meta as Record<string, unknown>;
+    return {
+      prevUrl: alerts.links?.prev ?? null,
+      nextUrl: alerts.links?.next ?? null,
+      currentPage: typeof meta.current_page === 'number' ? meta.current_page : null,
+      lastPage: typeof meta.last_page === 'number' ? meta.last_page : null,
+      total: typeof meta.total === 'number' ? meta.total : null,
+    };
+  }, [alerts.links, alerts.meta]);
 
   // Use the local alerts to find the active alert
   const activeAlert = useMemo(() => {
@@ -72,13 +83,15 @@ const App: React.FC<AppProps> = ({ incidents, filters, latestFeedUpdatedAt }) =>
             onSelectAlert={setActiveAlertId} 
             allAlerts={allAlerts} 
             latestFeedUpdatedAt={latestFeedUpdatedAt}
+            status={filters.status}
+            pagination={pagination}
           />
         );
     }
   };
 
   const getBreadcrumbTitle = () => {
-    if (activeAlert) return 'Incident Details';
+    if (activeAlert) return 'Alert Details';
     switch (currentView) {
       case 'saved': return 'Saved Alerts';
       case 'zones': return 'Active Zones';
@@ -159,7 +172,7 @@ const App: React.FC<AppProps> = ({ incidents, filters, latestFeedUpdatedAt }) =>
                             </div>
                             <input 
                               className="flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-primary/50 border border-transparent focus:border-primary/50 bg-input-dark h-full placeholder:text-text-secondary px-4 pl-12 text-sm md:text-base font-normal leading-normal transition-all shadow-inner"
-                              placeholder="Search incidents, streets, or categories..." 
+                              placeholder="Search alerts, streets, or categories..." 
                               value={searchQuery}
                               onChange={(e) => setSearchQuery(e.target.value)}
                             />

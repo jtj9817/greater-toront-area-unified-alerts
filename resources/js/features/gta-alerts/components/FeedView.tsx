@@ -1,4 +1,6 @@
 import React, { useState, useMemo } from 'react';
+import { Link } from '@inertiajs/react';
+import { home } from '@/routes';
 import { formatTimeAgo } from '@/lib/utils';
 import type { AlertFilterOptions } from '../services/AlertService';
 import { AlertService } from '../services/AlertService';
@@ -6,14 +8,24 @@ import type { AlertItem } from '../types';
 import { AlertCard } from './AlertCard';
 import { Icon } from './Icon';
 
+type FeedPagination = {
+  prevUrl: string | null;
+  nextUrl: string | null;
+  currentPage: number | null;
+  lastPage: number | null;
+  total: number | null;
+};
+
 interface FeedViewProps {
   searchQuery: string;
   onSelectAlert: (id: string) => void;
   allAlerts: AlertItem[];
   latestFeedUpdatedAt: string | null;
+  status?: 'all' | 'active' | 'cleared';
+  pagination?: FeedPagination;
 }
 
-export const FeedView: React.FC<FeedViewProps> = ({ searchQuery, onSelectAlert, allAlerts, latestFeedUpdatedAt }) => {
+export const FeedView: React.FC<FeedViewProps> = ({ searchQuery, onSelectAlert, allAlerts, latestFeedUpdatedAt, status = 'all', pagination }) => {
   // State for Filters
   const [activeCategory, setActiveCategory] = useState<string>('all');
   const [timeFilter, setTimeFilter] = useState<number | null>(null);
@@ -57,10 +69,49 @@ export const FeedView: React.FC<FeedViewProps> = ({ searchQuery, onSelectAlert, 
       { label: 'Last 12h', value: 720 },
   ];
 
+  const statusOptions: Array<{ id: 'all' | 'active' | 'cleared'; label: string; icon: string }> = [
+    { id: 'all', label: 'All', icon: 'history' },
+    { id: 'active', label: 'Active', icon: 'play_circle' },
+    { id: 'cleared', label: 'Cleared', icon: 'check_circle' },
+  ];
+
   return (
     <div className="flex flex-col h-full">
       {/* Sticky Header: Filters */}
       <div className="sticky top-0 z-30 bg-background-dark/95 backdrop-blur-md border-b border-white/5 shadow-lg">
+        {/* Row 0: Status */}
+        <div className="py-2 px-4 md:px-6 border-b border-white/5 bg-surface-dark/20">
+          <div className="flex items-center gap-2">
+            <span className="text-[10px] font-bold uppercase tracking-widest text-text-secondary/70 mr-1">Status</span>
+            <div className="flex gap-2">
+              {statusOptions.map((opt) => (
+                <Link
+                  key={opt.id}
+                  href={home({
+                    query: {
+                      status: opt.id === 'all' ? null : opt.id,
+                    },
+                  }).url}
+                  preserveScroll
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-bold transition-all whitespace-nowrap border ${
+                    status === opt.id
+                      ? 'bg-white/10 border-white/20 text-white'
+                      : 'bg-transparent border-white/10 text-text-secondary hover:border-white/20 hover:text-white hover:bg-white/5'
+                  }`}
+                >
+                  <Icon name={opt.icon} className="text-sm" />
+                  {opt.label}
+                </Link>
+              ))}
+            </div>
+            {pagination?.total !== null && (
+              <span className="ml-auto text-[10px] text-text-secondary bg-white/5 px-2.5 py-1 rounded-full border border-white/5">
+                {pagination.total} total
+              </span>
+            )}
+          </div>
+        </div>
+
         {/* Row 1: Categories */}
         <div className="py-3 px-4 md:px-6 border-b border-white/5">
             <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1 mask-linear-fade justify-start w-full">
@@ -160,6 +211,45 @@ export const FeedView: React.FC<FeedViewProps> = ({ searchQuery, onSelectAlert, 
               isSaved={savedIds.has(item.id)}
             />
           ))}
+
+          {pagination && (pagination.prevUrl || pagination.nextUrl) && (
+            <div className="flex items-center justify-between pt-4 mt-2 border-t border-white/5">
+              <div className="text-xs text-text-secondary">
+                {pagination.currentPage !== null && pagination.lastPage !== null
+                  ? `Page ${pagination.currentPage} of ${pagination.lastPage}`
+                  : null}
+              </div>
+              <div className="flex gap-2">
+                {pagination.prevUrl ? (
+                  <Link
+                    href={pagination.prevUrl}
+                    preserveScroll
+                    className="px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-xs font-bold text-white/80 hover:text-white hover:border-white/20 hover:bg-white/10 transition-colors"
+                  >
+                    Previous
+                  </Link>
+                ) : (
+                  <span className="px-3 py-2 rounded-lg bg-white/5 border border-white/5 text-xs font-bold text-white/20 select-none">
+                    Previous
+                  </span>
+                )}
+
+                {pagination.nextUrl ? (
+                  <Link
+                    href={pagination.nextUrl}
+                    preserveScroll
+                    className="px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-xs font-bold text-white/80 hover:text-white hover:border-white/20 hover:bg-white/10 transition-colors"
+                  >
+                    Next
+                  </Link>
+                ) : (
+                  <span className="px-3 py-2 rounded-lg bg-white/5 border border-white/5 text-xs font-bold text-white/20 select-none">
+                    Next
+                  </span>
+                )}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Empty State */}

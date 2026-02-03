@@ -1,5 +1,5 @@
 import { formatTimeAgo } from '@/lib/utils';
-import type { AlertItem, IncidentResource } from '../types';
+import type { AlertItem, UnifiedAlertResource } from '../types';
 
 export interface AlertFilterOptions {
   query: string;
@@ -30,28 +30,105 @@ export class AlertService {
   }
 
   /**
-   * Maps backend Incident resource to frontend AlertItem interface
+   * Maps backend UnifiedAlert resource to frontend AlertItem interface
    */
-  static mapIncidentToAlertItem(incident: IncidentResource): AlertItem {
-    const type = this.normalizeType(incident.event_type);
-    const severity: AlertItem['severity'] = incident.alarm_level > 1 ? 'high' : (incident.alarm_level === 1 ? 'medium' : 'low');
-    
+  static mapUnifiedAlertToAlertItem(alert: UnifiedAlertResource): AlertItem {
+    const type = this.getAlertItemType(alert);
+    const severity = this.getSeverity(alert, type);
+    const { description, metadata } = this.getDescriptionAndMetadata(alert);
+
     return {
-      id: String(incident.id),
-      title: incident.event_type,
-      location: incident.prime_street + (incident.cross_streets ? ` / ${incident.cross_streets}` : ''),
-      timeAgo: formatTimeAgo(incident.dispatch_time),
-      description: `Event #${incident.event_num}. Units: ${incident.units_dispatched || 'None'}. Beat: ${incident.beat || 'N/A'}.`,
+      id: alert.id,
+      title: alert.title,
+      location: alert.location?.name ?? 'Unknown location',
+      timeAgo: formatTimeAgo(alert.timestamp),
+      description,
       type: type,
       severity: severity,
-      iconName: this.getIconForType(type, incident.event_type),
+      iconName: this.getIconForType(type, alert.title),
       accentColor: this.getAccentColorForType(type, severity),
-      metadata: {
-        eventNum: incident.event_num,
-        alarmLevel: incident.alarm_level,
-        unitsDispatched: incident.units_dispatched,
-        beat: incident.beat,
-      },
+      metadata,
+    };
+  }
+
+  private static getAlertItemType(alert: UnifiedAlertResource): AlertItem['type'] {
+    if (alert.source === 'police') {
+      return 'police';
+    }
+
+    if (alert.source === 'transit') {
+      return 'transit';
+    }
+
+    return this.normalizeType(alert.title);
+  }
+
+  private static getSeverity(alert: UnifiedAlertResource, type: AlertItem['type']): AlertItem['severity'] {
+    if (alert.source === 'fire') {
+      const alarmLevel = Number((alert.meta as Record<string, unknown>)['alarm_level'] ?? 0);
+      if (alarmLevel > 1) return 'high';
+      if (alarmLevel === 1) return 'medium';
+      return 'low';
+    }
+
+    if (alert.source === 'police') {
+      const title = alert.title.toUpperCase();
+      if (title.includes('IN PROGRESS')) return 'high';
+      if (title.includes('COLLISION')) return 'medium';
+      return 'low';
+    }
+
+    if (type === 'hazard') return 'high';
+
+    return 'low';
+  }
+
+  private static getDescriptionAndMetadata(alert: UnifiedAlertResource): Pick<AlertItem, 'description' | 'metadata'> {
+    const meta = alert.meta as Record<string, unknown>;
+
+    if (alert.source === 'fire') {
+      const eventNum = String((meta['event_num'] ?? alert.external_id) as string);
+      const alarmLevel = Number(meta['alarm_level'] ?? 0);
+      const unitsDispatched = (meta['units_dispatched'] as string | null | undefined) ?? null;
+      const beat = (meta['beat'] as string | null | undefined) ?? null;
+
+      return {
+        description: `Event #${eventNum}. Units: ${unitsDispatched || 'None'}. Beat: ${beat || 'N/A'}.`,
+        metadata: {
+          eventNum,
+          alarmLevel,
+          unitsDispatched,
+          beat,
+        },
+      };
+    }
+
+    if (alert.source === 'police') {
+      const objectId = String((meta['object_id'] ?? alert.external_id) as string);
+      const division = (meta['division'] as string | null | undefined) ?? null;
+      const callTypeCode = (meta['call_type_code'] as string | null | undefined) ?? null;
+
+      const suffix = [
+        division ? `Division: ${division}` : null,
+        callTypeCode ? `Code: ${callTypeCode}` : null,
+      ]
+        .filter(Boolean)
+        .join(' • ');
+
+      return {
+        description: suffix ? `Call #${objectId}. ${suffix}.` : `Call #${objectId}.`,
+        metadata: {
+          eventNum: objectId,
+          alarmLevel: 0,
+          unitsDispatched: null,
+          beat: division,
+        },
+      };
+    }
+
+    return {
+      description: alert.external_id ? `Alert #${alert.external_id}.` : 'Alert details unavailable.',
+      metadata: undefined,
     };
   }
 

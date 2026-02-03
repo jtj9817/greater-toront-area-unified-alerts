@@ -1,6 +1,8 @@
 <?php
 
 use App\Models\FireIncident;
+use App\Models\PoliceCall;
+use Illuminate\Support\Carbon;
 use Inertia\Testing\AssertableInertia as Assert;
 
 uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
@@ -14,43 +16,67 @@ test('the home page renders the gta-alerts component', function () {
     );
 });
 
-test('the home page provides fire incidents data', function () {
+test('the home page provides unified alerts data', function () {
+    Carbon::setTestNow(Carbon::parse('2026-02-03 12:00:00'));
+
     FireIncident::factory()->create([
         'event_num' => 'E1',
         'is_active' => true,
-        'dispatch_time' => now()->subMinutes(10),
+        'dispatch_time' => Carbon::now()->subMinutes(10),
     ]);
 
     FireIncident::factory()->create([
         'event_num' => 'E2',
         'is_active' => false,
+        'dispatch_time' => Carbon::now()->subHour(),
+    ]);
+
+    $latest = Carbon::now()->subMinutes(2);
+    PoliceCall::factory()->create([
+        'object_id' => 123,
+        'is_active' => true,
+        'occurrence_time' => Carbon::now()->subMinutes(5),
+        'feed_updated_at' => $latest,
     ]);
 
     $this->get(route('home'))
         ->assertInertia(fn (Assert $page) => $page
             ->component('gta-alerts')
-            ->has('incidents')
-            ->has('incidents.data', 1)
-            ->where('incidents.data.0.event_num', 'E1')
+            ->has('alerts')
+            ->has('alerts.data', 3)
+            ->where('alerts.data.0.id', 'police:123')
+            ->where('alerts.data.1.id', 'fire:E1')
+            ->where('alerts.data.2.id', 'fire:E2')
+            ->where('latest_feed_updated_at', $latest->toIso8601String())
         );
 });
 
-test('the home page allows filtering by search query', function () {
+test('the home page allows filtering by status', function () {
+    Carbon::setTestNow(Carbon::parse('2026-02-03 12:00:00'));
+
     FireIncident::factory()->create([
         'event_num' => 'E1',
-        'prime_street' => 'MAIN ST',
         'is_active' => true,
+        'dispatch_time' => Carbon::now()->subMinutes(10),
     ]);
 
     FireIncident::factory()->create([
         'event_num' => 'E2',
-        'prime_street' => 'OTHER ST',
-        'is_active' => true,
+        'is_active' => false,
+        'dispatch_time' => Carbon::now()->subMinutes(5),
     ]);
 
-    $this->get(route('home', ['search' => 'MAIN']))
+    PoliceCall::factory()->create([
+        'object_id' => 555,
+        'is_active' => true,
+        'occurrence_time' => Carbon::now()->subMinutes(1),
+    ]);
+
+    $this->get(route('home', ['status' => 'active']))
         ->assertInertia(fn (Assert $page) => $page
-            ->has('incidents.data', 1)
-            ->where('incidents.data.0.event_num', 'E1')
+            ->where('filters.status', 'active')
+            ->has('alerts.data', 2)
+            ->where('alerts.data.0.id', 'police:555')
+            ->where('alerts.data.1.id', 'fire:E1')
         );
 });

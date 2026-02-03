@@ -18,18 +18,19 @@ export interface AlertItem {
   };
 }
 
-export interface IncidentResource {
-  id: number;
-  event_num: string;
-  event_type: string;
-  prime_street: string;
-  cross_streets: string | null;
-  dispatch_time: string;
-  alarm_level: number;
-  beat: string | null;
-  units_dispatched: string | null;
+export interface UnifiedAlertResource {
+  id: string;
+  source: 'fire' | 'police' | 'transit';
+  external_id: string;
   is_active: boolean;
-  feed_updated_at: string;
+  timestamp: string;
+  title: string;
+  location: {
+    name: string | null;
+    lat: number | null;
+    lng: number | null;
+  } | null;
+  meta: Record<string, unknown>;
 }
 
 export interface AlertSectionData {
