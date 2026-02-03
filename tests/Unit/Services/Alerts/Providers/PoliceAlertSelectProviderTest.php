@@ -20,7 +20,7 @@ test('police alert select provider maps unified columns', function () {
         'is_active' => false,
     ]);
 
-    $row = (new PoliceAlertSelectProvider())->select()->first();
+    $row = (new PoliceAlertSelectProvider)->select()->first();
 
     expect($row)->not->toBeNull();
     expect($row->id)->toBe('police:4242');

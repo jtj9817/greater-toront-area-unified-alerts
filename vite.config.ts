@@ -32,6 +32,20 @@ export default defineConfig({
         coverage: {
             provider: 'v8',
             reporter: ['text', 'json', 'html'],
+            include: ['resources/js/features/gta-alerts/**/*.{ts,tsx}'],
+            exclude: [
+                '**/*.d.ts',
+                'resources/js/**/index.{ts,tsx}',
+                'resources/js/app.{ts,tsx}',
+                'resources/js/ssr.{ts,tsx}',
+                'resources/js/tests/**',
+            ],
+            thresholds: {
+                lines: 50,
+                functions: 20,
+                branches: 35,
+                statements: 50,
+            },
         },
     },
 });

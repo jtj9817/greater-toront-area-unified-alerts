@@ -2,50 +2,115 @@ import React from 'react';
 import { Icon } from './Icon';
 
 const ZONES = [
-  { id: 1, name: 'Downtown Core', status: 'High Activity', color: 'text-coral', bg: 'bg-coral/10', dotColor: 'bg-coral', count: 12 },
-  { id: 2, name: 'Scarborough', status: 'Moderate', color: 'text-burnt-orange', bg: 'bg-burnt-orange/10', dotColor: 'bg-burnt-orange', count: 5 },
-  { id: 3, name: 'North York', status: 'Low Activity', color: 'text-forest', bg: 'bg-forest/10', dotColor: 'bg-forest', count: 2 },
-  { id: 4, name: 'Etobicoke', status: 'Normal', color: 'text-amber', bg: 'bg-amber/10', dotColor: 'bg-amber', count: 1 },
-  { id: 5, name: 'Peel Region', status: 'Monitoring', color: 'text-gray-400', bg: 'bg-white/5', dotColor: 'bg-gray-500', count: 0 },
-  { id: 6, name: 'York Region', status: 'Monitoring', color: 'text-gray-400', bg: 'bg-white/5', dotColor: 'bg-gray-500', count: 0 },
+    {
+        id: 1,
+        name: 'Downtown Core',
+        status: 'High Activity',
+        color: 'text-coral',
+        bg: 'bg-coral/10',
+        dotColor: 'bg-coral',
+        count: 12,
+    },
+    {
+        id: 2,
+        name: 'Scarborough',
+        status: 'Moderate',
+        color: 'text-burnt-orange',
+        bg: 'bg-burnt-orange/10',
+        dotColor: 'bg-burnt-orange',
+        count: 5,
+    },
+    {
+        id: 3,
+        name: 'North York',
+        status: 'Low Activity',
+        color: 'text-forest',
+        bg: 'bg-forest/10',
+        dotColor: 'bg-forest',
+        count: 2,
+    },
+    {
+        id: 4,
+        name: 'Etobicoke',
+        status: 'Normal',
+        color: 'text-amber',
+        bg: 'bg-amber/10',
+        dotColor: 'bg-amber',
+        count: 1,
+    },
+    {
+        id: 5,
+        name: 'Peel Region',
+        status: 'Monitoring',
+        color: 'text-gray-400',
+        bg: 'bg-white/5',
+        dotColor: 'bg-gray-500',
+        count: 0,
+    },
+    {
+        id: 6,
+        name: 'York Region',
+        status: 'Monitoring',
+        color: 'text-gray-400',
+        bg: 'bg-white/5',
+        dotColor: 'bg-gray-500',
+        count: 0,
+    },
 ];
 
 export const ZonesView: React.FC = () => {
-  return (
-    <div className="p-4 md:p-6">
-      <div className="mb-6 flex justify-between items-end">
-        <div>
-            <h2 className="text-2xl font-bold text-white mb-2 flex items-center gap-3">
-            <Icon name="map" className="text-primary" />
-            Active Zones
-            </h2>
-            <p className="text-text-secondary text-sm">Real-time status by geographic region.</p>
-        </div>
-        <button className="hidden md:flex items-center gap-2 text-primary hover:text-white transition-colors text-sm font-medium">
-            <Icon name="add_location_alt" />
-            Manage Zones
-        </button>
-      </div>
+    return (
+        <div className="p-4 md:p-6">
+            <div className="mb-6 flex items-end justify-between">
+                <div>
+                    <h2 className="mb-2 flex items-center gap-3 text-2xl font-bold text-white">
+                        <Icon name="map" className="text-primary" />
+                        Active Zones
+                    </h2>
+                    <p className="text-sm text-text-secondary">
+                        Real-time status by geographic region.
+                    </p>
+                </div>
+                <button className="hidden items-center gap-2 text-sm font-medium text-primary transition-colors hover:text-white md:flex">
+                    <Icon name="add_location_alt" />
+                    Manage Zones
+                </button>
+            </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {ZONES.map((zone) => (
-          <div key={zone.id} className="bg-surface-dark border border-white/5 rounded-xl p-5 hover:border-white/20 transition-all cursor-pointer group">
-            <div className="flex justify-between items-start mb-4">
-              <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${zone.bg} ${zone.color}`}>
-                <Icon name="location_on" />
-              </div>
-              <span className="text-2xl font-bold text-white">{zone.count}</span>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                {ZONES.map((zone) => (
+                    <div
+                        key={zone.id}
+                        className="group cursor-pointer rounded-xl border border-white/5 bg-surface-dark p-5 transition-all hover:border-white/20"
+                    >
+                        <div className="mb-4 flex items-start justify-between">
+                            <div
+                                className={`flex h-10 w-10 items-center justify-center rounded-lg ${zone.bg} ${zone.color}`}
+                            >
+                                <Icon name="location_on" />
+                            </div>
+                            <span className="text-2xl font-bold text-white">
+                                {zone.count}
+                            </span>
+                        </div>
+
+                        <h3 className="mb-1 text-lg font-bold text-white transition-colors group-hover:text-primary">
+                            {zone.name}
+                        </h3>
+
+                        <div className="flex items-center gap-2">
+                            <span
+                                className={`h-2 w-2 rounded-full ${zone.dotColor}`}
+                            ></span>
+                            <span
+                                className={`text-xs font-medium ${zone.color}`}
+                            >
+                                {zone.status}
+                            </span>
+                        </div>
+                    </div>
+                ))}
             </div>
-            
-            <h3 className="text-white font-bold text-lg mb-1 group-hover:text-primary transition-colors">{zone.name}</h3>
-            
-            <div className="flex items-center gap-2">
-                <span className={`w-2 h-2 rounded-full ${zone.dotColor}`}></span>
-                <span className={`text-xs font-medium ${zone.color}`}>{zone.status}</span>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
+        </div>
+    );
 };

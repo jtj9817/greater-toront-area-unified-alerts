@@ -86,3 +86,9 @@ test('the home page allows filtering by status', function () {
             ->where('alerts.data.1.id', 'fire:E1')
         );
 });
+
+test('the home page rejects invalid status values', function () {
+    $this->get(route('home', ['status' => 'invalid-status']))
+        ->assertRedirect()
+        ->assertSessionHasErrors(['status']);
+});

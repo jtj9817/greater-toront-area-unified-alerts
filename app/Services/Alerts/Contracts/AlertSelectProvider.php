@@ -8,4 +8,3 @@ interface AlertSelectProvider
 {
     public function select(): Builder;
 }
-

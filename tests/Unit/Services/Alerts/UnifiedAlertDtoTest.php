@@ -59,4 +59,3 @@ test('unified alert dto allows null location and empty meta', function () {
     expect($alert->location)->toBeNull();
     expect($alert->meta)->toBeArray()->toBeEmpty();
 });
-

@@ -37,4 +37,3 @@ class UnifiedAlertResource extends JsonResource
         ];
     }
 }
-

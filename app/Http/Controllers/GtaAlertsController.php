@@ -6,8 +6,8 @@ use App\Http\Resources\UnifiedAlertResource;
 use App\Models\FireIncident;
 use App\Models\PoliceCall;
 use App\Services\Alerts\UnifiedAlertsQuery;
-use Illuminate\Validation\Rule;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
 

@@ -25,6 +25,8 @@ class UnifiedAlertsTestSeeder extends Seeder
             FireIncident::factory()->create([
                 'event_num' => $row['event_num'],
                 'event_type' => $row['event_type'],
+                'prime_street' => null,
+                'cross_streets' => null,
                 'dispatch_time' => $timestamp,
                 'alarm_level' => $row['alarm_level'],
                 'is_active' => $row['is_active'],
@@ -48,9 +50,11 @@ class UnifiedAlertsTestSeeder extends Seeder
                 'call_type' => $row['call_type'],
                 'occurrence_time' => $timestamp,
                 'is_active' => $row['is_active'],
+                'cross_streets' => null,
+                'latitude' => null,
+                'longitude' => null,
                 'feed_updated_at' => $timestamp,
             ]);
         }
     }
 }
-

@@ -22,8 +22,8 @@ This track implements the "Provider & Adapter" architecture to unify disparate e
     - Implement `AlertService.mapUnifiedAlertToAlertItem()` to map the new transport DTO to the existing UI view-model (`AlertItem`).
     - Update the dashboard components to consume the new `alerts` prop.
 - **Comprehensive Test Coverage:** 
-    - Achieve >90% code coverage for all new and modified backend services, providers, and mappers (Pest PHP).
-    - Achieve >90% component/logic coverage for the modified frontend components and the new `AlertService` mapping logic (Vitest/Jest).
+    - Achieve >=90% unit test coverage for all new and modified backend services, providers, and mappers (Pest PHP). Coverage should be verified in Sail/CI where a PHP coverage driver (e.g., Xdebug) is available.
+    - Frontend coverage is a smoke check only for this track (target ~50% overall across the GTA Alerts feature area).
 
 ## Non-Functional Requirements
 - **Low Latency:** The UNION query must remain efficient for real-time dashboard updates.
@@ -40,8 +40,8 @@ This track implements the "Provider & Adapter" architecture to unify disparate e
 - [ ] The "Hard Switch" is complete: the old `incidents` prop is removed, and all components successfully consume the `alerts` prop.
 - [ ] The `TransitAlertSelectProvider` placeholder is in place and verified by tests.
 - [ ] **Test Coverage Gate:**
-    - Backend: >90% coverage for `UnifiedAlertsQuery`, all `*Provider` classes, and DTOs.
-    - Frontend: >90% coverage for `AlertService` (new mapping logic) and updated `FeedView` integration.
+    - Backend: >=90% unit test coverage for `UnifiedAlertsQuery`, all `*Provider` classes, and DTOs (verify in Sail/CI with a coverage driver).
+    - Frontend: ~50% smoke-check coverage for GTA Alerts (not a strict 90% gate for this track).
 
 ## Out of Scope
 - Real implementation of the Transit (TTC) scraper (this track only adds the provider placeholder).

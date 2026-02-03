@@ -26,6 +26,10 @@ class UnifiedAlertsQuery
         int $perPage = 50,
         string $status = 'all',
     ): LengthAwarePaginator {
+        if (! in_array($status, ['all', 'active', 'cleared'], true)) {
+            throw new \InvalidArgumentException("Invalid status '{$status}'. Expected one of: all, active, cleared.");
+        }
+
         $union = $this->fire->select()
             ->unionAll($this->police->select())
             ->unionAll($this->transit->select());
@@ -91,4 +95,3 @@ class UnifiedAlertsQuery
         return [];
     }
 }
-

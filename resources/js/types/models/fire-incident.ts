@@ -16,4 +16,3 @@ export type FireIncidentTypeCount = {
     event_type: string;
     count: number;
 };
-

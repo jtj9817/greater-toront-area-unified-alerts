@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Manual Test: Phase 4 Frontend Integration (GtaAlertsController hard switch)
  * Generated: 2026-02-03
@@ -6,15 +7,15 @@
  * supports status filtering, and includes a mixed feed suitable for the GTA Alerts Inertia page.
  */
 
-require __DIR__ . '/../../vendor/autoload.php';
+require __DIR__.'/../../vendor/autoload.php';
 
-$app = require_once __DIR__ . '/../../bootstrap/app.php';
+$app = require_once __DIR__.'/../../bootstrap/app.php';
 $kernel = $app->make(Illuminate\Contracts\Console\Kernel::class);
 $kernel->bootstrap();
 
 // Prevent production execution
 if (app()->environment('production')) {
-    die("Error: Cannot run manual tests in production!\n");
+    exit("Error: Cannot run manual tests in production!\n");
 }
 
 use App\Http\Controllers\GtaAlertsController;
@@ -24,9 +25,11 @@ use Carbon\Carbon;
 use Database\Seeders\UnifiedAlertsTestSeeder;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\Paginator;
-use Illuminate\Support\Facades\{Artisan, DB, Log};
+use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
-$testRunId = 'phase_4_frontend_integration_' . Carbon::now()->format('Y_m_d_His');
+$testRunId = 'phase_4_frontend_integration_'.Carbon::now()->format('Y_m_d_His');
 $logFileRelative = "storage/logs/manual_tests/{$testRunId}.log";
 $logFile = storage_path("logs/manual_tests/{$testRunId}.log");
 

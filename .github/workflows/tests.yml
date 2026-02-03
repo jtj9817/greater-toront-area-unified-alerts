@@ -19,7 +19,11 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        php-version: ['8.4', '8.5']
+        include:
+          - php-version: '8.4'
+            run_quality_gate: true
+          - php-version: '8.5'
+            run_quality_gate: false
 
     steps:
       - name: Checkout code
@@ -36,9 +40,13 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '22'
+          cache: 'pnpm'
+
+      - name: Enable Corepack
+        run: corepack enable
 
       - name: Install Node Dependencies
-        run: npm i
+        run: pnpm install --frozen-lockfile
 
       - name: Install Dependencies
         run: composer install --no-interaction --prefer-dist --optimize-autoloader
@@ -50,7 +58,22 @@ jobs:
         run: php artisan key:generate
 
       - name: Build Assets
-        run: npm run build
+        run: pnpm run build
 
-      - name: Tests
+      - name: Frontend Types
+        run: pnpm run types
+
+      - name: Frontend Tests
+        run: pnpm run test
+
+      - name: Backend Tests
+        if: ${{ !matrix.run_quality_gate }}
         run: ./vendor/bin/pest
+
+      - name: Quality Gate (Coverage + Audits)
+        if: ${{ matrix.run_quality_gate }}
+        run: |
+          XDEBUG_MODE=coverage composer test:coverage:unified-alerts
+          pnpm run coverage
+          composer audit
+          pnpm audit --audit-level high

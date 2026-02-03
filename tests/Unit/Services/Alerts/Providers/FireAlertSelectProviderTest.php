@@ -20,7 +20,7 @@ test('fire alert select provider maps unified columns', function () {
         'is_active' => true,
     ]);
 
-    $row = (new FireAlertSelectProvider())->select()->first();
+    $row = (new FireAlertSelectProvider)->select()->first();
 
     expect($row)->not->toBeNull();
     expect($row->id)->toBe('fire:F12345');

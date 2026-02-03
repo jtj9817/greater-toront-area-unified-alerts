@@ -57,15 +57,27 @@
             "npx concurrently -c \"#93c5fd,#c4b5fd,#fb7185,#fdba74\" \"php artisan serve\" \"php artisan queue:listen --tries=1\" \"php artisan pail --timeout=0\" \"php artisan inertia:start-ssr\" --names=server,queue,logs,ssr --kill-others"
         ],
         "lint": [
-            "pint --parallel"
+            "pint"
         ],
         "test:lint": [
-            "pint --parallel --test"
+            "pint --test"
         ],
         "test": [
             "@php artisan config:clear --ansi",
             "@test:lint",
             "@php artisan test"
+        ],
+        "test:coverage:unified-alerts": [
+            "XDEBUG_MODE=coverage ./vendor/bin/pest --coverage --min=90 --coverage-filter app/Services/Alerts",
+            "XDEBUG_MODE=coverage ./vendor/bin/pest --coverage --min=90 --coverage-filter app/Http/Controllers",
+            "XDEBUG_MODE=coverage ./vendor/bin/pest --coverage --min=90 --coverage-filter app/Http/Resources"
+        ],
+        "quality:unified-alerts": [
+            "@test",
+            "@test:coverage:unified-alerts",
+            "npm run quality:check",
+            "composer audit",
+            "pnpm audit --audit-level high"
         ],
         "post-autoload-dump": [
             "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump",

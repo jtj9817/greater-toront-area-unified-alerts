@@ -1,35 +1,37 @@
 <?php
+
 /**
  * Manual Test: Phase 2 Provider Implementations
  * Generated: 2026-02-03
  * Purpose: Verify Fire, Police, and Transit providers map unified columns correctly.
  */
 
-require __DIR__ . '/../../vendor/autoload.php';
+require __DIR__.'/../../vendor/autoload.php';
 
-$app = require_once __DIR__ . '/../../bootstrap/app.php';
+$app = require_once __DIR__.'/../../bootstrap/app.php';
 $kernel = $app->make(Illuminate\Contracts\Console\Kernel::class);
 $kernel->bootstrap();
 
 // Prevent production execution
 if (app()->environment('production')) {
-    die("Error: Cannot run manual tests in production!\n");
+    exit("Error: Cannot run manual tests in production!\n");
 }
 
-use Illuminate\Support\Facades\{DB, Log};
-use Carbon\Carbon;
-use Carbon\CarbonImmutable;
 use App\Models\FireIncident;
 use App\Models\PoliceCall;
 use App\Services\Alerts\Providers\FireAlertSelectProvider;
 use App\Services\Alerts\Providers\PoliceAlertSelectProvider;
 use App\Services\Alerts\Providers\TransitAlertSelectProvider;
+use Carbon\Carbon;
+use Carbon\CarbonImmutable;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
-$testRunId = 'phase_2_providers_' . Carbon::now()->format('Y_m_d_His');
+$testRunId = 'phase_2_providers_'.Carbon::now()->format('Y_m_d_His');
 $logFileRelative = "storage/logs/manual_tests/{$testRunId}.log";
 $logFile = storage_path("logs/manual_tests/{$testRunId}.log");
 
-if (!is_dir(dirname($logFile))) {
+if (! is_dir(dirname($logFile))) {
     mkdir(dirname($logFile), 0755, true);
 }
 
@@ -115,7 +117,7 @@ try {
 
     logInfo('Step 2: Verifying FireAlertSelectProvider');
 
-    $fireRow = (new FireAlertSelectProvider())->select()->first();
+    $fireRow = (new FireAlertSelectProvider)->select()->first();
     if ($fireRow === null) {
         throw new \RuntimeException('Fire provider returned no rows.');
     }
@@ -138,7 +140,7 @@ try {
 
     logInfo('Step 3: Verifying PoliceAlertSelectProvider');
 
-    $policeRow = (new PoliceAlertSelectProvider())->select()->first();
+    $policeRow = (new PoliceAlertSelectProvider)->select()->first();
     if ($policeRow === null) {
         throw new \RuntimeException('Police provider returned no rows.');
     }
@@ -160,7 +162,7 @@ try {
 
     logInfo('Step 4: Verifying TransitAlertSelectProvider placeholder');
 
-    $transitRows = (new TransitAlertSelectProvider())->select()->get();
+    $transitRows = (new TransitAlertSelectProvider)->select()->get();
     if ($transitRows->isNotEmpty()) {
         throw new \RuntimeException('Transit provider returned rows when it should be empty.');
     }

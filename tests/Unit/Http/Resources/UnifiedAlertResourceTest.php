@@ -68,4 +68,3 @@ test('unified alert resource returns null location and empty meta when missing',
     expect($data['location'])->toBeNull();
     expect($data['meta'])->toBe([]);
 });
-

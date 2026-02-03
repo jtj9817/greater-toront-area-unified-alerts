@@ -173,7 +173,8 @@ export default function Dashboard() {
 
                                         {incident.units_dispatched && (
                                             <div className="text-xs text-muted-foreground">
-                                                Units: {incident.units_dispatched}
+                                                Units:{' '}
+                                                {incident.units_dispatched}
                                             </div>
                                         )}
                                     </div>

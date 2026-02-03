@@ -17,4 +17,3 @@ readonly class UnifiedAlert
         public array $meta = [],
     ) {}
 }
-

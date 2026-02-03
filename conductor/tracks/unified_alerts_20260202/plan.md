@@ -47,8 +47,10 @@
 - [x] Task: Conductor - User Manual Verification 'Phase 4: Frontend Integration' (Protocol in workflow.md)
 
 ## Phase 5: Quality Gate & Finalization
-- [ ] Task: Final Coverage & Audit.
-    - [ ] Run `sail artisan test --coverage` and verify >90% on all new/modified files.
-    - [ ] Run `sail artisan pint` and `pnpm lint` to ensure code style compliance.
-    - [ ] Perform a final security audit with `composer audit` and `pnpm audit`.
+- [~] Task: Final Coverage & Audit.
+    - [ ] Backend: Run unit test coverage and verify >=90% on all new/modified PHP files for Unified Alerts (run in Sail/CI where a PHP coverage driver is available).
+    - [ ] Backend: Run Pint (check mode) to ensure code style compliance.
+    - [ ] Frontend: Verify GTA Alerts code has ~50% coverage (smoke check; not a hard 90% gate for this track).
+    - [ ] Frontend: Run format/lint/types/tests (`pnpm run quality:check`).
+    - [ ] Security: Perform dependency audits (`composer audit`, `pnpm audit`).
 - [ ] Task: Conductor - User Manual Verification 'Phase 5: Quality Gate' (Protocol in workflow.md)

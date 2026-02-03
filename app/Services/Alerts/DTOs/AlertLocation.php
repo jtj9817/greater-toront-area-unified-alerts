@@ -11,4 +11,3 @@ readonly class AlertLocation
         public ?string $postalCode = null,
     ) {}
 }
-
