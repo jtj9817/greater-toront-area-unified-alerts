@@ -1,7 +1,7 @@
-import React, { useState, useMemo } from 'react';
 import { Link } from '@inertiajs/react';
-import { home } from '@/routes';
+import React, { useState, useMemo } from 'react';
 import { formatTimeAgo } from '@/lib/utils';
+import { home } from '@/routes';
 import type { AlertFilterOptions } from '../services/AlertService';
 import { AlertService } from '../services/AlertService';
 import type { AlertItem } from '../types';
@@ -93,6 +93,7 @@ export const FeedView: React.FC<FeedViewProps> = ({ searchQuery, onSelectAlert, 
                     },
                   }).url}
                   preserveScroll
+                  preserveState
                   className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-bold transition-all whitespace-nowrap border ${
                     status === opt.id
                       ? 'bg-white/10 border-white/20 text-white'
@@ -224,6 +225,7 @@ export const FeedView: React.FC<FeedViewProps> = ({ searchQuery, onSelectAlert, 
                   <Link
                     href={pagination.prevUrl}
                     preserveScroll
+                    preserveState
                     className="px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-xs font-bold text-white/80 hover:text-white hover:border-white/20 hover:bg-white/10 transition-colors"
                   >
                     Previous
@@ -238,6 +240,7 @@ export const FeedView: React.FC<FeedViewProps> = ({ searchQuery, onSelectAlert, 
                   <Link
                     href={pagination.nextUrl}
                     preserveScroll
+                    preserveState
                     className="px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-xs font-bold text-white/80 hover:text-white hover:border-white/20 hover:bg-white/10 transition-colors"
                   >
                     Next

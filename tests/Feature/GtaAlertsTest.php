@@ -7,6 +7,10 @@ use Inertia\Testing\AssertableInertia as Assert;
 
 uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
 
+afterEach(function () {
+    Carbon::setTestNow();
+});
+
 test('the home page renders the gta-alerts component', function () {
     $response = $this->get(route('home'));
 
@@ -23,12 +27,14 @@ test('the home page provides unified alerts data', function () {
         'event_num' => 'E1',
         'is_active' => true,
         'dispatch_time' => Carbon::now()->subMinutes(10),
+        'feed_updated_at' => Carbon::now()->subMinutes(9),
     ]);
 
     FireIncident::factory()->create([
         'event_num' => 'E2',
         'is_active' => false,
         'dispatch_time' => Carbon::now()->subHour(),
+        'feed_updated_at' => Carbon::now()->subMinutes(59),
     ]);
 
     $latest = Carbon::now()->subMinutes(2);
