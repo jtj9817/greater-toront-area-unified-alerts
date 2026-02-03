@@ -24,14 +24,14 @@
     - [x] Implement `App\Services\Alerts\Providers\TransitAlertSelectProvider`.
 - [x] (1c39470) Task: Conductor - User Manual Verification 'Phase 2: Provider Implementations' (Protocol in workflow.md)
 
-## Phase 3: Unified Querying & API Transformation
+## Phase 3: Unified Querying & API Transformation [checkpoint: 7bdd684]
 - [x] (c444f5a) Task: Implement Unified Alerts Query Logic.
     - [x] Write tests for `UnifiedAlertsQuery` covering UNION logic, pagination, and status filtering (use `UnifiedAlertsTestSeeder`).
     - [x] Implement `App\Services\Alerts\UnifiedAlertsQuery`.
 - [x] (4369acb) Task: Create API Resource for Unified Alerts.
     - [x] Write tests for `UnifiedAlertResource` ensuring DTO-to-JSON mapping.
     - [x] Create `App\Http\Resources\UnifiedAlertResource`.
-- [~] Task: Conductor - User Manual Verification 'Phase 3: Unified Querying' (Protocol in workflow.md)
+- [x] (7bdd684) Task: Conductor - User Manual Verification 'Phase 3: Unified Querying' (Protocol in workflow.md)
 
 ## Phase 4: Controller & Frontend Integration (The Hard Switch)
 - [ ] Task: Refactor GtaAlertsController.
