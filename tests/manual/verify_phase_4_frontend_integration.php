@@ -119,7 +119,7 @@ try {
     assertTrue(! isset($props['incidents']), 'props does not contain incidents');
 
     $collection = $props['alerts'];
-    $payload = $collection->toArray($request);
+    $payload = $collection->toResponse($request)->getData(true);
 
     assertTrue(is_array($payload) && isset($payload['data']) && is_array($payload['data']), 'alerts payload has data');
     assertEqual(count($payload['data']), 8, 'alerts count (status=all)');
@@ -139,7 +139,7 @@ try {
     $activePropsProperty->setAccessible(true);
     $activeProps = $activePropsProperty->getValue($activeResponse);
 
-    $activePayload = $activeProps['alerts']->toArray($activeRequest);
+    $activePayload = $activeProps['alerts']->toResponse($activeRequest)->getData(true);
     assertEqual(count($activePayload['data']), 4, 'alerts count (status=active)');
     assertEqual($activeProps['filters']['status'] ?? null, 'active', 'filters.status = active');
 
