@@ -25,10 +25,10 @@
 - [x] (1c39470) Task: Conductor - User Manual Verification 'Phase 2: Provider Implementations' (Protocol in workflow.md)
 
 ## Phase 3: Unified Querying & API Transformation
-- [ ] Task: Implement Unified Alerts Query Logic.
-    - [ ] Write tests for `UnifiedAlertsQuery` covering UNION logic, pagination, and status filtering (use `UnifiedAlertsTestSeeder`).
-    - [ ] Implement `App\Services\Alerts\UnifiedAlertsQuery`.
-- [ ] Task: Create API Resource for Unified Alerts.
+- [x] (c444f5a) Task: Implement Unified Alerts Query Logic.
+    - [x] Write tests for `UnifiedAlertsQuery` covering UNION logic, pagination, and status filtering (use `UnifiedAlertsTestSeeder`).
+    - [x] Implement `App\Services\Alerts\UnifiedAlertsQuery`.
+- [~] Task: Create API Resource for Unified Alerts.
     - [ ] Write tests for `UnifiedAlertResource` ensuring DTO-to-JSON mapping.
     - [ ] Create `App\Http\Resources\UnifiedAlertResource`.
 - [ ] Task: Conductor - User Manual Verification 'Phase 3: Unified Querying' (Protocol in workflow.md)
