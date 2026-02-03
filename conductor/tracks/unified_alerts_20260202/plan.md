@@ -31,7 +31,7 @@
 - [x] (4369acb) Task: Create API Resource for Unified Alerts.
     - [x] Write tests for `UnifiedAlertResource` ensuring DTO-to-JSON mapping.
     - [x] Create `App\Http\Resources\UnifiedAlertResource`.
-- [ ] Task: Conductor - User Manual Verification 'Phase 3: Unified Querying' (Protocol in workflow.md)
+- [~] Task: Conductor - User Manual Verification 'Phase 3: Unified Querying' (Protocol in workflow.md)
 
 ## Phase 4: Controller & Frontend Integration (The Hard Switch)
 - [ ] Task: Refactor GtaAlertsController.
