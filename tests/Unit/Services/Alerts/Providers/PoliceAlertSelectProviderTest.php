@@ -4,6 +4,7 @@ use App\Models\PoliceCall;
 use App\Services\Alerts\Providers\PoliceAlertSelectProvider;
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 
 uses(Tests\TestCase::class, RefreshDatabase::class);
 
@@ -44,4 +45,16 @@ test('police alert select provider maps unified columns', function () {
     expect($meta['division'])->toBe('D51');
     expect($meta['call_type_code'])->toBe('THEFT');
     expect($meta['object_id'])->toBe(4242);
+});
+
+test('police alert select provider uses non-sqlite expressions when driver is not sqlite', function () {
+    DB::partialMock()
+        ->shouldReceive('getDriverName')
+        ->andReturn('mysql');
+
+    $sql = (new PoliceAlertSelectProvider)->select()->toSql();
+
+    expect($sql)->toContain("CONCAT('police:', object_id)");
+    expect($sql)->toContain('CAST(object_id AS CHAR)');
+    expect($sql)->toContain("JSON_OBJECT('division'");
 });

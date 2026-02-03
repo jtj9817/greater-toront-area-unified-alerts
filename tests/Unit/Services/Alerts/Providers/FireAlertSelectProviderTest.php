@@ -4,6 +4,7 @@ use App\Models\FireIncident;
 use App\Services\Alerts\Providers\FireAlertSelectProvider;
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 
 uses(Tests\TestCase::class, RefreshDatabase::class);
 
@@ -45,4 +46,16 @@ test('fire alert select provider maps unified columns', function () {
     expect($meta['units_dispatched'])->toBe('P1, P2');
     expect($meta['beat'])->toBe('12A');
     expect($meta['event_num'])->toBe('F12345');
+});
+
+test('fire alert select provider uses non-sqlite expressions when driver is not sqlite', function () {
+    DB::partialMock()
+        ->shouldReceive('getDriverName')
+        ->andReturn('mysql');
+
+    $sql = (new FireAlertSelectProvider)->select()->toSql();
+
+    expect($sql)->toContain("CONCAT('fire:', event_num)");
+    expect($sql)->toContain("NULLIF(CONCAT_WS(' / ', prime_street, cross_streets), '')");
+    expect($sql)->toContain("JSON_OBJECT('alarm_level'");
 });
