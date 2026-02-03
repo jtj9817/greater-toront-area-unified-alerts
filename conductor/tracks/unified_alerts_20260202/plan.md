@@ -22,7 +22,7 @@
 - [x] Task: Implement Transit Alert Provider (Placeholder).
     - [x] Write tests for `TransitAlertSelectProvider` ensuring it handles empty/placeholder state.
     - [x] Implement `App\Services\Alerts\Providers\TransitAlertSelectProvider`.
-- [ ] Task: Conductor - User Manual Verification 'Phase 2: Provider Implementations' (Protocol in workflow.md)
+- [~] Task: Conductor - User Manual Verification 'Phase 2: Provider Implementations' (Protocol in workflow.md)
 
 ## Phase 3: Unified Querying & API Transformation
 - [ ] Task: Implement Unified Alerts Query Logic.
