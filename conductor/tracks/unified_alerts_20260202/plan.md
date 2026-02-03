@@ -28,9 +28,9 @@
 - [x] (c444f5a) Task: Implement Unified Alerts Query Logic.
     - [x] Write tests for `UnifiedAlertsQuery` covering UNION logic, pagination, and status filtering (use `UnifiedAlertsTestSeeder`).
     - [x] Implement `App\Services\Alerts\UnifiedAlertsQuery`.
-- [~] Task: Create API Resource for Unified Alerts.
-    - [ ] Write tests for `UnifiedAlertResource` ensuring DTO-to-JSON mapping.
-    - [ ] Create `App\Http\Resources\UnifiedAlertResource`.
+- [x] (4369acb) Task: Create API Resource for Unified Alerts.
+    - [x] Write tests for `UnifiedAlertResource` ensuring DTO-to-JSON mapping.
+    - [x] Create `App\Http\Resources\UnifiedAlertResource`.
 - [ ] Task: Conductor - User Manual Verification 'Phase 3: Unified Querying' (Protocol in workflow.md)
 
 ## Phase 4: Controller & Frontend Integration (The Hard Switch)
