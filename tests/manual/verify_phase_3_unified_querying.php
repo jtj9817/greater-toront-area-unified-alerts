@@ -63,6 +63,9 @@ function assertEqual(mixed $actual, mixed $expected, string $label): void
     logInfo("Assertion passed: {$label}");
 }
 
+$exitCode = 0;
+$txStarted = false;
+
 try {
     // Manual scripts are usually executed via Sail (MySQL host = "mysql").
     // Provide a clearer error if Docker/Sail isn't running.
@@ -76,6 +79,7 @@ try {
     }
 
     DB::beginTransaction();
+    $txStarted = true;
     logInfo('=== Starting Manual Test: Phase 3 Unified Querying ===');
 
     logInfo('Step 1: Preparing mixed dataset via UnifiedAlertsTestSeeder');
@@ -134,16 +138,41 @@ try {
 
     logInfo('=== Manual Test Completed Successfully ===');
 } catch (\Throwable $e) {
+    $exitCode = 1;
     logError('Manual Test Failed', [
         'message' => $e->getMessage(),
         'trace' => $e->getTraceAsString(),
     ]);
 } finally {
-    Paginator::currentPageResolver(fn () => 1);
-    Carbon::setTestNow();
-    DB::rollBack();
+    // Best-effort cleanup; avoid masking the original failure with a cleanup exception.
+    try {
+        Paginator::currentPageResolver(fn () => 1);
+    } catch (\Throwable) {
+    }
 
-    logInfo('Transaction rolled back (Database preserved).');
+    try {
+        Carbon::setTestNow();
+    } catch (\Throwable) {
+    }
+
+    if ($txStarted) {
+        try {
+            if (DB::connection()->transactionLevel() > 0) {
+                DB::rollBack();
+                logInfo('Transaction rolled back (Database preserved).');
+            }
+        } catch (\Throwable) {
+            // Swallow rollback failures (e.g., DB unreachable) to preserve the original failure signal.
+        }
+    }
+
     logInfo('=== Test Run Finished ===');
-    echo "\n✓ Full logs at: {$logFile}\n";
+
+    if ($exitCode === 0) {
+        echo "\nResult: PASS\nLogs at: {$logFile}\n";
+    } else {
+        echo "\nResult: FAIL\nLogs at: {$logFile}\n";
+    }
+
+    exit($exitCode);
 }
