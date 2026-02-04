@@ -30,15 +30,16 @@ export default function Login({
             <Head title="Log in" />
 
             <Form
+                id="login-form"
                 {...store.form()}
                 resetOnSuccess={['password']}
                 className="flex flex-col gap-6"
             >
                 {({ processing, errors }) => (
                     <>
-                        <div className="grid gap-6">
-                            <div className="grid gap-2">
-                                <Label htmlFor="email">Email address</Label>
+                        <div id="login-form-fields" className="grid gap-6">
+                            <div id="login-email-group" className="grid gap-2">
+                                <Label id="login-email-label" htmlFor="email">Email address</Label>
                                 <Input
                                     id="email"
                                     type="email"
@@ -49,14 +50,15 @@ export default function Login({
                                     autoComplete="email"
                                     placeholder="email@example.com"
                                 />
-                                <InputError message={errors.email} />
+                                <InputError id="login-email-error" message={errors.email} />
                             </div>
 
-                            <div className="grid gap-2">
-                                <div className="flex items-center">
-                                    <Label htmlFor="password">Password</Label>
+                            <div id="login-password-group" className="grid gap-2">
+                                <div id="login-password-label-row" className="flex items-center">
+                                    <Label id="login-password-label" htmlFor="password">Password</Label>
                                     {canResetPassword && (
                                         <TextLink
+                                            id="login-forgot-password-link"
                                             href={request()}
                                             className="ml-auto text-sm"
                                             tabIndex={5}
@@ -74,19 +76,20 @@ export default function Login({
                                     autoComplete="current-password"
                                     placeholder="Password"
                                 />
-                                <InputError message={errors.password} />
+                                <InputError id="login-password-error" message={errors.password} />
                             </div>
 
-                            <div className="flex items-center space-x-3">
+                            <div id="login-remember-group" className="flex items-center space-x-3">
                                 <Checkbox
                                     id="remember"
                                     name="remember"
                                     tabIndex={3}
                                 />
-                                <Label htmlFor="remember">Remember me</Label>
+                                <Label id="login-remember-label" htmlFor="remember">Remember me</Label>
                             </div>
 
                             <Button
+                                id="login-submit-button"
                                 type="submit"
                                 className="mt-4 w-full"
                                 tabIndex={4}
@@ -99,9 +102,9 @@ export default function Login({
                         </div>
 
                         {canRegister && (
-                            <div className="text-center text-sm text-muted-foreground">
+                            <div id="login-register-prompt" className="text-center text-sm text-muted-foreground">
                                 Don't have an account?{' '}
-                                <TextLink href={register()} tabIndex={5}>
+                                <TextLink id="login-register-link" href={register()} tabIndex={5}>
                                     Sign up
                                 </TextLink>
                             </div>
@@ -111,7 +114,7 @@ export default function Login({
             </Form>
 
             {status && (
-                <div className="mb-4 text-center text-sm font-medium text-green-600">
+                <div id="login-status-message" className="mb-4 text-center text-sm font-medium text-green-600">
                     {status}
                 </div>
             )}

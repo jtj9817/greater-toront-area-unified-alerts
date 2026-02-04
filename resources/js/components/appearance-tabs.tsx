@@ -19,6 +19,7 @@ export default function AppearanceToggleTab({
 
     return (
         <div
+            id="appearance-tabs"
             className={cn(
                 'inline-flex gap-1 rounded-lg bg-neutral-100 p-1 dark:bg-neutral-800',
                 className,
@@ -27,6 +28,7 @@ export default function AppearanceToggleTab({
         >
             {tabs.map(({ value, icon: Icon, label }) => (
                 <button
+                    id={`appearance-tab-${value}`}
                     key={value}
                     onClick={() => updateAppearance(value)}
                     className={cn(
@@ -36,8 +38,8 @@ export default function AppearanceToggleTab({
                             : 'text-neutral-500 hover:bg-neutral-200/60 hover:text-black dark:text-neutral-400 dark:hover:bg-neutral-700/60',
                     )}
                 >
-                    <Icon className="-ml-1 h-4 w-4" />
-                    <span className="ml-1.5 text-sm">{label}</span>
+                    <Icon id={`appearance-tab-icon-${value}`} className="-ml-1 h-4 w-4" />
+                    <span id={`appearance-tab-label-${value}`} className="ml-1.5 text-sm">{label}</span>
                 </button>
             ))}
         </div>

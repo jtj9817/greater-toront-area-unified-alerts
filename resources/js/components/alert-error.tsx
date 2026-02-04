@@ -9,13 +9,13 @@ export default function AlertError({
     title?: string;
 }) {
     return (
-        <Alert variant="destructive">
-            <AlertCircleIcon />
-            <AlertTitle>{title || 'Something went wrong.'}</AlertTitle>
-            <AlertDescription>
-                <ul className="list-inside list-disc text-sm">
+        <Alert id="alert-error" variant="destructive">
+            <AlertCircleIcon id="alert-error-icon" />
+            <AlertTitle id="alert-error-title">{title || 'Something went wrong.'}</AlertTitle>
+            <AlertDescription id="alert-error-description">
+                <ul id="alert-error-list" className="list-inside list-disc text-sm">
                     {Array.from(new Set(errors)).map((error, index) => (
-                        <li key={index}>{error}</li>
+                        <li id={`alert-error-item-${index}`} key={index}>{error}</li>
                     ))}
                 </ul>
             </AlertDescription>

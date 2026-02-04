@@ -20,34 +20,36 @@ export default function DeleteUser() {
     const passwordInput = useRef<HTMLInputElement>(null);
 
     return (
-        <div className="space-y-6">
+        <div id="delete-user-section" className="space-y-6">
             <Heading
+                id="delete-user-heading"
                 variant="small"
                 title="Delete account"
                 description="Delete your account and all of its resources"
             />
-            <div className="space-y-4 rounded-lg border border-red-100 bg-red-50 p-4 dark:border-red-200/10 dark:bg-red-700/10">
-                <div className="relative space-y-0.5 text-red-600 dark:text-red-100">
-                    <p className="font-medium">Warning</p>
-                    <p className="text-sm">
+            <div id="delete-user-warning-box" className="space-y-4 rounded-lg border border-red-100 bg-red-50 p-4 dark:border-red-200/10 dark:bg-red-700/10">
+                <div id="delete-user-warning-text" className="relative space-y-0.5 text-red-600 dark:text-red-100">
+                    <p id="delete-user-warning-title" className="font-medium">Warning</p>
+                    <p id="delete-user-warning-message" className="text-sm">
                         Please proceed with caution, this cannot be undone.
                     </p>
                 </div>
 
                 <Dialog>
-                    <DialogTrigger asChild>
+                    <DialogTrigger id="delete-user-trigger" asChild>
                         <Button
+                            id="delete-user-button"
                             variant="destructive"
                             data-test="delete-user-button"
                         >
                             Delete account
                         </Button>
                     </DialogTrigger>
-                    <DialogContent>
-                        <DialogTitle>
+                    <DialogContent id="delete-user-dialog">
+                        <DialogTitle id="delete-user-dialog-title">
                             Are you sure you want to delete your account?
                         </DialogTitle>
-                        <DialogDescription>
+                        <DialogDescription id="delete-user-dialog-description">
                             Once your account is deleted, all of its resources
                             and data will also be permanently deleted. Please
                             enter your password to confirm you would like to
@@ -65,8 +67,9 @@ export default function DeleteUser() {
                         >
                             {({ resetAndClearErrors, processing, errors }) => (
                                 <>
-                                    <div className="grid gap-2">
+                                    <div id="delete-user-form-group" className="grid gap-2">
                                         <Label
+                                            id="delete-user-password-label"
                                             htmlFor="password"
                                             className="sr-only"
                                         >
@@ -82,12 +85,13 @@ export default function DeleteUser() {
                                             autoComplete="current-password"
                                         />
 
-                                        <InputError message={errors.password} />
+                                        <InputError id="delete-user-password-error" message={errors.password} />
                                     </div>
 
-                                    <DialogFooter className="gap-2">
-                                        <DialogClose asChild>
+                                    <DialogFooter id="delete-user-dialog-footer" className="gap-2">
+                                        <DialogClose id="delete-user-cancel-close" asChild>
                                             <Button
+                                                id="delete-user-cancel-button"
                                                 variant="secondary"
                                                 onClick={() =>
                                                     resetAndClearErrors()
@@ -98,6 +102,7 @@ export default function DeleteUser() {
                                         </DialogClose>
 
                                         <Button
+                                            id="delete-user-confirm-button"
                                             variant="destructive"
                                             disabled={processing}
                                             asChild

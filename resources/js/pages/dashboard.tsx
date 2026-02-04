@@ -64,54 +64,55 @@ export default function Dashboard() {
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Dashboard" />
-            <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
-                <div className="grid gap-4 md:grid-cols-3">
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Active Incidents</CardTitle>
-                            <CardDescription>
+            <div id="dashboard-container" className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
+                <div id="dashboard-stats-grid" className="grid gap-4 md:grid-cols-3">
+                    <Card id="dashboard-active-incidents-card">
+                        <CardHeader id="dashboard-active-incidents-header">
+                            <CardTitle id="dashboard-active-incidents-title">Active Incidents</CardTitle>
+                            <CardDescription id="dashboard-active-incidents-description">
                                 Currently active Toronto Fire incidents
                             </CardDescription>
                         </CardHeader>
-                        <CardContent>
-                            <div className="text-3xl font-semibold tabular-nums">
+                        <CardContent id="dashboard-active-incidents-content">
+                            <div id="dashboard-active-incidents-count" className="text-3xl font-semibold tabular-nums">
                                 {active_incidents_count}
                             </div>
                         </CardContent>
                     </Card>
 
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Feed Updated</CardTitle>
-                            <CardDescription>
+                    <Card id="dashboard-feed-updated-card">
+                        <CardHeader id="dashboard-feed-updated-header">
+                            <CardTitle id="dashboard-feed-updated-title">Feed Updated</CardTitle>
+                            <CardDescription id="dashboard-feed-updated-description">
                                 Latest successful scrape time
                             </CardDescription>
                         </CardHeader>
-                        <CardContent>
-                            <div className="text-sm text-muted-foreground">
+                        <CardContent id="dashboard-feed-updated-content">
+                            <div id="dashboard-feed-updated-time" className="text-sm text-muted-foreground">
                                 {formatTorontoDateTime(latest_feed_updated_at)}
                             </div>
                         </CardContent>
                     </Card>
 
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>By Type</CardTitle>
-                            <CardDescription>
+                    <Card id="dashboard-by-type-card">
+                        <CardHeader id="dashboard-by-type-header">
+                            <CardTitle id="dashboard-by-type-title">By Type</CardTitle>
+                            <CardDescription id="dashboard-by-type-description">
                                 Active incidents grouped by event type
                             </CardDescription>
                         </CardHeader>
-                        <CardContent>
+                        <CardContent id="dashboard-by-type-content">
                             {active_counts_by_type.length === 0 ? (
-                                <div className="text-sm text-muted-foreground">
+                                <div id="dashboard-by-type-empty" className="text-sm text-muted-foreground">
                                     —
                                 </div>
                             ) : (
-                                <div className="flex flex-wrap gap-2">
+                                <div id="dashboard-by-type-badges" className="flex flex-wrap gap-2">
                                     {active_counts_by_type
                                         .slice(0, 8)
                                         .map(({ event_type, count }) => (
                                             <Badge
+                                                id={`dashboard-by-type-badge-${event_type}`}
                                                 key={event_type}
                                                 variant="secondary"
                                             >

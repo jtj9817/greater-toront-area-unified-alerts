@@ -12,32 +12,34 @@ import type { BreadcrumbItem as BreadcrumbItemType } from '@/types';
 
 export function Breadcrumbs({
     breadcrumbs,
+    id,
 }: {
     breadcrumbs: BreadcrumbItemType[];
+    id?: string;
 }) {
     return (
         <>
             {breadcrumbs.length > 0 && (
-                <Breadcrumb>
-                    <BreadcrumbList>
+                <Breadcrumb id={id || 'breadcrumbs'}>
+                    <BreadcrumbList id={`${id || 'breadcrumbs'}-list`}>
                         {breadcrumbs.map((item, index) => {
                             const isLast = index === breadcrumbs.length - 1;
                             return (
                                 <Fragment key={index}>
-                                    <BreadcrumbItem>
+                                    <BreadcrumbItem id={`${id || 'breadcrumbs'}-item-${index}`}>
                                         {isLast ? (
-                                            <BreadcrumbPage>
+                                            <BreadcrumbPage id={`${id || 'breadcrumbs'}-page-${index}`}>
                                                 {item.title}
                                             </BreadcrumbPage>
                                         ) : (
-                                            <BreadcrumbLink asChild>
+                                            <BreadcrumbLink id={`${id || 'breadcrumbs'}-link-${index}`} asChild>
                                                 <Link href={item.href}>
                                                     {item.title}
                                                 </Link>
                                             </BreadcrumbLink>
                                         )}
                                     </BreadcrumbItem>
-                                    {!isLast && <BreadcrumbSeparator />}
+                                    {!isLast && <BreadcrumbSeparator id={`${id || 'breadcrumbs'}-separator-${index}`} />}
                                 </Fragment>
                             );
                         })}

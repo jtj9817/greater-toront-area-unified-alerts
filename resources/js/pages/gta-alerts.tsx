@@ -21,13 +21,13 @@ export default function GTAAlerts({
     latest_feed_updated_at,
 }: GTAAlertsProps) {
     return (
-        <>
+        <div id="gta-alerts-page">
             <Head title="GTA Alerts" />
             <AlertsApp
                 alerts={alerts}
                 filters={filters}
                 latestFeedUpdatedAt={latest_feed_updated_at}
             />
-        </>
+        </div>
     );
 }

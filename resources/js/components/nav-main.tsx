@@ -13,18 +13,19 @@ export function NavMain({ items = [] }: { items: NavItem[] }) {
     const { isCurrentUrl } = useCurrentUrl();
 
     return (
-        <SidebarGroup className="px-2 py-0">
-            <SidebarGroupLabel>Platform</SidebarGroupLabel>
-            <SidebarMenu>
-                {items.map((item) => (
-                    <SidebarMenuItem key={item.title}>
+        <SidebarGroup id="nav-main-group" className="px-2 py-0">
+            <SidebarGroupLabel id="nav-main-label">Platform</SidebarGroupLabel>
+            <SidebarMenu id="nav-main-menu">
+                {items.map((item, index) => (
+                    <SidebarMenuItem id={`nav-main-item-${index}`} key={item.title}>
                         <SidebarMenuButton
+                            id={`nav-main-button-${index}`}
                             asChild
                             isActive={isCurrentUrl(item.href)}
                             tooltip={{ children: item.title }}
                         >
-                            <Link href={item.href} prefetch>
-                                {item.icon && <item.icon />}
+                            <Link id={`nav-main-link-${index}`} href={item.href} prefetch>
+                                {item.icon && <item.icon id={`nav-main-icon-${index}`} />}
                                 <span>{item.title}</span>
                             </Link>
                         </SidebarMenuButton>

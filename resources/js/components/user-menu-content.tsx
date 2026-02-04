@@ -26,35 +26,37 @@ export function UserMenuContent({ user }: Props) {
 
     return (
         <>
-            <DropdownMenuLabel className="p-0 font-normal">
-                <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
+            <DropdownMenuLabel id="user-menu-label" className="p-0 font-normal">
+                <div id="user-menu-info" className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
                     <UserInfo user={user} showEmail={true} />
                 </div>
             </DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuGroup>
-                <DropdownMenuItem asChild>
+            <DropdownMenuSeparator id="user-menu-separator-1" />
+            <DropdownMenuGroup id="user-menu-group">
+                <DropdownMenuItem id="user-menu-settings-item" asChild>
                     <Link
+                        id="user-menu-settings-link"
                         className="block w-full cursor-pointer"
                         href={edit()}
                         prefetch
                         onClick={cleanup}
                     >
-                        <Settings className="mr-2" />
+                        <Settings id="user-menu-settings-icon" className="mr-2" />
                         Settings
                     </Link>
                 </DropdownMenuItem>
             </DropdownMenuGroup>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem asChild>
+            <DropdownMenuSeparator id="user-menu-separator-2" />
+            <DropdownMenuItem id="user-menu-logout-item" asChild>
                 <Link
+                    id="user-menu-logout-link"
                     className="block w-full cursor-pointer"
                     href={logout()}
                     as="button"
                     onClick={handleLogout}
                     data-test="logout-button"
                 >
-                    <LogOut className="mr-2" />
+                    <LogOut id="user-menu-logout-icon" className="mr-2" />
                     Log out
                 </Link>
             </DropdownMenuItem>

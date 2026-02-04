@@ -33,17 +33,19 @@ export default function Profile({
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Profile settings" />
 
-            <h1 className="sr-only">Profile Settings</h1>
+            <h1 id="profile-sr-title" className="sr-only">Profile Settings</h1>
 
             <SettingsLayout>
-                <div className="space-y-6">
+                <div id="profile-content" className="space-y-6">
                     <Heading
+                        id="profile-heading"
                         variant="small"
                         title="Profile information"
                         description="Update your name and email address"
                     />
 
                     <Form
+                        id="profile-form"
                         {...ProfileController.update.form()}
                         options={{
                             preserveScroll: true,
@@ -52,8 +54,8 @@ export default function Profile({
                     >
                         {({ processing, recentlySuccessful, errors }) => (
                             <>
-                                <div className="grid gap-2">
-                                    <Label htmlFor="name">Name</Label>
+                                <div id="profile-name-group" className="grid gap-2">
+                                    <Label id="profile-name-label" htmlFor="name">Name</Label>
 
                                     <Input
                                         id="name"
@@ -66,13 +68,14 @@ export default function Profile({
                                     />
 
                                     <InputError
+                                        id="profile-name-error"
                                         className="mt-2"
                                         message={errors.name}
                                     />
                                 </div>
 
-                                <div className="grid gap-2">
-                                    <Label htmlFor="email">Email address</Label>
+                                <div id="profile-email-group" className="grid gap-2">
+                                    <Label id="profile-email-label" htmlFor="email">Email address</Label>
 
                                     <Input
                                         id="email"
@@ -86,6 +89,7 @@ export default function Profile({
                                     />
 
                                     <InputError
+                                        id="profile-email-error"
                                         className="mt-2"
                                         message={errors.email}
                                     />
@@ -93,11 +97,12 @@ export default function Profile({
 
                                 {mustVerifyEmail &&
                                     auth.user.email_verified_at === null && (
-                                        <div>
-                                            <p className="-mt-4 text-sm text-muted-foreground">
+                                        <div id="profile-verification-notice">
+                                            <p id="profile-verification-text" className="-mt-4 text-sm text-muted-foreground">
                                                 Your email address is
                                                 unverified.{' '}
                                                 <Link
+                                                    id="profile-resend-link"
                                                     href={send()}
                                                     as="button"
                                                     className="text-foreground underline decoration-neutral-300 underline-offset-4 transition-colors duration-300 ease-out hover:decoration-current! dark:decoration-neutral-500"
@@ -109,7 +114,7 @@ export default function Profile({
 
                                             {status ===
                                                 'verification-link-sent' && (
-                                                <div className="mt-2 text-sm font-medium text-green-600">
+                                                <div id="profile-verification-sent" className="mt-2 text-sm font-medium text-green-600">
                                                     A new verification link has
                                                     been sent to your email
                                                     address.
@@ -118,8 +123,9 @@ export default function Profile({
                                         </div>
                                     )}
 
-                                <div className="flex items-center gap-4">
+                                <div id="profile-actions" className="flex items-center gap-4">
                                     <Button
+                                        id="profile-save-button"
                                         disabled={processing}
                                         data-test="update-profile-button"
                                     >
@@ -133,7 +139,7 @@ export default function Profile({
                                         leave="transition ease-in-out"
                                         leaveTo="opacity-0"
                                     >
-                                        <p className="text-sm text-neutral-600">
+                                        <p id="profile-saved-message" className="text-sm text-neutral-600">
                                             Saved
                                         </p>
                                     </Transition>
