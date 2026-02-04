@@ -75,7 +75,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                         onClick={() => onNavigate(item.id)}
                         className={`group relative flex w-full items-center gap-3 rounded-lg px-3 py-2.5 transition-all ${
                             currentView === item.id
-                                ? 'bg-primary text-white shadow-lg shadow-primary/20'
+                                ? 'text-white shadow-lg'
                                 : 'text-gray-400 hover:bg-white/5 hover:text-white'
                         } ${isCollapsed ? 'md:justify-center' : ''}`}
                         title={isCollapsed ? item.name : ''}

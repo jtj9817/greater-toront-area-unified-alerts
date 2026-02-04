@@ -153,7 +153,7 @@ export const FeedView: React.FC<FeedViewProps> = ({
                                 }
                                 className={`flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-medium whitespace-nowrap transition-all md:px-4 md:py-2 ${
                                     activeCategory === cat.id
-                                        ? 'border-primary bg-primary text-white shadow-lg shadow-primary/20'
+                                        ? 'border-white/20 bg-white/10 text-white shadow-lg'
                                         : 'border-white/5 bg-surface-dark text-text-secondary hover:border-white/20 hover:bg-white/5 hover:text-white'
                                 }`}
                             >
@@ -249,7 +249,7 @@ export const FeedView: React.FC<FeedViewProps> = ({
                                 onClick={() => setViewMode('cards')}
                                 className={`flex items-center gap-1.5 rounded-l-lg px-3 py-1.5 text-xs font-medium transition-all ${
                                     viewMode === 'cards'
-                                        ? 'bg-primary text-white'
+                                        ? 'bg-white/10 text-white'
                                         : 'text-text-secondary hover:text-white'
                                 }`}
                             >
@@ -260,7 +260,7 @@ export const FeedView: React.FC<FeedViewProps> = ({
                                 onClick={() => setViewMode('table')}
                                 className={`flex items-center gap-1.5 rounded-r-lg px-3 py-1.5 text-xs font-medium transition-all ${
                                     viewMode === 'table'
-                                        ? 'bg-primary text-white'
+                                        ? 'bg-white/10 text-white'
                                         : 'text-text-secondary hover:text-white'
                                 }`}
                             >

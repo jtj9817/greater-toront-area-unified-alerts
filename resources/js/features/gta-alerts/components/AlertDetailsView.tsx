@@ -95,14 +95,14 @@ abstract class AlertDetailTemplate extends Component<DetailsProps> {
 
                         {/* 4. Action Hook */}
                         <div className="flex gap-4 pt-4">
-                            <button className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-primary py-4 font-bold text-white shadow-lg shadow-primary/20 transition-all hover:bg-primary/80">
+                            <button className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-white/10 py-4 font-bold text-white shadow-lg transition-all hover:bg-white/20">
                                 <Icon name="share" />
                                 Broadcast Alert
                             </button>
                             <button
                                 className={`flex items-center justify-center gap-2 rounded-xl border px-6 transition-all ${
                                     isSaved
-                                        ? 'border-primary bg-primary text-white shadow-lg shadow-primary/20'
+                                        ? 'border-white/20 bg-white/10 text-white shadow-lg'
                                         : 'border-white/10 text-white hover:border-white/20'
                                 }`}
                             >
