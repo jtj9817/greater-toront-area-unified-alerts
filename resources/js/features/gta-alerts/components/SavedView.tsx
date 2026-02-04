@@ -24,7 +24,7 @@ export const SavedView: React.FC<SavedViewProps> = ({ onSelectAlert }) => {
                 </p>
             </div>
 
-            <div className="grid w-full grid-cols-1 gap-4 md:grid-cols-2 md:gap-6">
+            <div className="mx-auto flex w-full max-w-5xl flex-col gap-4 md:gap-6">
                 {savedItems.map((item) => (
                     <AlertCard
                         key={`saved-${item.id}`}

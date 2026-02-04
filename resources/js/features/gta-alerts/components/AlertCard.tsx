@@ -19,11 +19,11 @@ export const AlertCard: React.FC<AlertCardProps> = ({
             className={`group relative h-full cursor-pointer overflow-hidden rounded-lg bg-surface-dark p-4 transition-all duration-200 ${
                 isSaved
                     ? 'border border-primary/50 shadow-[0_0_15px_rgba(216,70,79,0.15)]'
-                    : 'border border-white/5 shadow-lg shadow-black/20 hover:border-white/15 hover:bg-white/[0.03] hover:shadow-xl hover:shadow-black/30'
+                    : 'border border-white/5 shadow-lg shadow-black/20 hover:border-white/10 hover:shadow-[0_0_15px_rgba(216,70,79,0.06)]'
             } `}
         >
             <div
-                className={`absolute top-0 bottom-0 left-0 w-1 ${item.accentColor} ${isSaved ? 'opacity-100' : 'opacity-80 group-hover:opacity-100'} transition-opacity`}
+                className={`absolute top-0 bottom-0 left-0 w-1 ${item.accentColor} ${isSaved ? 'opacity-100' : 'opacity-80 group-hover:w-1.5 group-hover:opacity-100'} transition-all`}
             ></div>
 
             {/* Saved Background Highlight */}
