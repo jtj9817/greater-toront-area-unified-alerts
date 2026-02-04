@@ -28,6 +28,13 @@
     - [x] Log: `storage/logs/manual_tests/query_refinement_phase_1_test_refinement_2026_02_04_205926.log` (also attached to checkpoint commit via git notes)
 
 ## Phase 2: Extract Mapping Into a Dedicated Mapper (Unit-Tested)
+- [ ] Task: Phase 2 Preflight - Mapper Contract Audit (no implementation).
+    - [ ] Decide/document timestamp contract (keep fail-fast vs filter-out) and where it is enforced (providers vs mapper vs query).
+    - [ ] Define unified row schema requirements (required columns, nullability expectations, and type normalization rules).
+    - [ ] Define `meta` decoding contract (null/empty/invalid JSON => `[]`; arrays pass-through; scalar JSON => `[]`) and align provider tests to it.
+    - [ ] Define location construction rules (name-only, coords-only, and `0.0` coords must remain floats).
+    - [ ] Define unit-test matrix for `UnifiedAlertMapper::fromRow()` and which mapping assertions remain in `UnifiedAlertsQueryTest`.
+    - [ ] Decide how provider unit tests will reuse mapper meta decoding (mapper helper vs shared test utility) to avoid drift.
 - [ ] Task: Implement `UnifiedAlertMapper` (or `UnifiedAlertHydrator`) and migrate mapping logic from `UnifiedAlertsQuery`.
     - [ ] Implement `App\Services\Alerts\Mappers\UnifiedAlertMapper` with `fromRow(object $row): UnifiedAlert`.
     - [ ] Ensure `decodeMeta()` and location/timestamp normalization rules live in the mapper and are pure/deterministic.
