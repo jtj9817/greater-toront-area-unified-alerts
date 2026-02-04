@@ -24,9 +24,9 @@ php artisan test --filter=AuthenticationTest  # Run a single test file
 ### Linting & Formatting
 ```bash
 composer run lint           # PHP: Pint auto-fix
-npm run lint                # JS/TS: ESLint auto-fix
-npm run format              # JS/TS: Prettier auto-format
-npm run types               # TypeScript type checking (tsc --noEmit)
+pnpm run lint                # JS/TS: ESLint auto-fix
+pnpm run format              # JS/TS: Prettier auto-format
+pnpm run types               # TypeScript type checking (tsc --noEmit)
 ```
 
 ### Data

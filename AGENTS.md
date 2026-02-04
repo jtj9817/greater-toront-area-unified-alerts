@@ -17,11 +17,11 @@
 ## Build, Test, and Development Commands
 - `composer setup`: One-time setup (installs deps, creates `.env`, generates key, migrates, builds assets).
 - `composer dev`: Runs Laravel server, queue, log tailing, and Vite dev server concurrently.
-- `npm run dev`: Frontend hot-reload only (Vite).
-- `npm run build`: Production asset build.
+- `pnpm run dev`: Frontend hot-reload only (Vite).
+- `pnpm run build`: Production asset build.
 - `composer test`: Clears config, runs Pint in test mode, then runs `php artisan test`.
-- `npm run lint`: ESLint with auto-fix across the repo.
-- `npm run format`: Prettier formatting for `resources/`.
+- `pnpm run lint`: ESLint with auto-fix across the repo.
+- `pnpm run format`: Prettier formatting for `resources/`.
 - `php artisan fire:fetch-incidents`: Manually syncs Toronto Fire feed to the database.
 
 ## Coding Style & Naming Conventions
