@@ -48,6 +48,7 @@ describe('AlertService', () => {
         expect(alertItem.iconName).toBe('local_fire_department');
         expect(alertItem.metadata?.eventNum).toBe('E1');
         expect(alertItem.metadata?.alarmLevel).toBe(2);
+        expect(alertItem.metadata?.source).toBe('Toronto Fire Services');
     });
 
     it('maps a backend unified police alert to an AlertItem correctly', () => {
@@ -59,6 +60,55 @@ describe('AlertService', () => {
         expect(alertItem.location).toBe('456 POLICE RD');
         expect(alertItem.metadata?.eventNum).toBe('123');
         expect(alertItem.metadata?.beat).toBe('D31');
+        expect(alertItem.metadata?.source).toBe('Toronto Police');
+    });
+
+    it('maps a backend unified transit alert to an AlertItem correctly', () => {
+        const mockTransitAlert: UnifiedAlertResource = {
+            id: 'transit:T1',
+            source: 'transit',
+            external_id: 'T1',
+            is_active: true,
+            timestamp,
+            title: 'Line 1 Delay',
+            location: { name: 'St Clair Station', lat: 43.7, lng: -79.4 },
+            meta: {
+                estimated_delay: '20-30 mins',
+                shuttle_info: 'Shuttle buses operating between St Clair and Lawrence.',
+            },
+        };
+
+        const alertItem =
+            AlertService.mapUnifiedAlertToAlertItem(mockTransitAlert);
+
+        expect(alertItem.type).toBe('transit');
+        expect(alertItem.location).toBe('St Clair Station');
+        expect(alertItem.metadata?.source).toBe('TTC Control');
+        expect(alertItem.metadata?.estimatedDelay).toBe('20-30 mins');
+        expect(alertItem.metadata?.shuttleInfo).toBe(
+            'Shuttle buses operating between St Clair and Lawrence.',
+        );
+    });
+
+    it('maps transit alert without optional metadata correctly', () => {
+        const mockTransitAlertMinimal: UnifiedAlertResource = {
+            id: 'transit:T2',
+            source: 'transit',
+            external_id: 'T2',
+            is_active: true,
+            timestamp,
+            title: 'Minor Delay',
+            location: { name: 'Union Station', lat: null, lng: null },
+            meta: {},
+        };
+
+        const alertItem =
+            AlertService.mapUnifiedAlertToAlertItem(mockTransitAlertMinimal);
+
+        expect(alertItem.type).toBe('transit');
+        expect(alertItem.metadata?.source).toBe('TTC Control');
+        expect(alertItem.metadata?.estimatedDelay).toBeUndefined();
+        expect(alertItem.metadata?.shuttleInfo).toBeUndefined();
     });
 
     it('filters items by search query', () => {

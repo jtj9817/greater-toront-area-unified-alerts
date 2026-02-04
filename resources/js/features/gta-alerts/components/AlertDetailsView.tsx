@@ -159,6 +159,14 @@ class FireAlertDetail extends AlertDetailTemplate {
             <React.Fragment>
                 <div className="rounded-xl bg-white/5 p-4">
                     <p className="mb-1 text-[10px] font-bold text-text-secondary uppercase">
+                        Alert Source
+                    </p>
+                    <p className="text-sm text-white">
+                        {alert.metadata?.source || 'Toronto Fire Services'}
+                    </p>
+                </div>
+                <div className="rounded-xl bg-white/5 p-4">
+                    <p className="mb-1 text-[10px] font-bold text-text-secondary uppercase">
                         Response Tier
                     </p>
                     <p className="text-sm text-white">
@@ -246,19 +254,24 @@ class PoliceAlertDetail extends AlertDetailTemplate {
     }
 
     renderMetadata(): React.ReactNode {
+        const { alert } = this.props;
         return (
             <React.Fragment>
                 <div className="rounded-xl bg-white/5 p-4">
                     <p className="mb-1 text-[10px] font-bold text-text-secondary uppercase">
-                        Divisional Unit
+                        Alert Source
                     </p>
-                    <p className="text-sm text-white">31 Division</p>
+                    <p className="text-sm text-white">
+                        {alert.metadata?.source || 'Toronto Police'}
+                    </p>
                 </div>
                 <div className="rounded-xl bg-white/5 p-4">
                     <p className="mb-1 text-[10px] font-bold text-text-secondary uppercase">
-                        Status
+                        Divisional Unit
                     </p>
-                    <p className="text-sm text-white">On-Scene</p>
+                    <p className="text-sm text-white">
+                        {alert.metadata?.beat || 'Not specified'}
+                    </p>
                 </div>
             </React.Fragment>
         );
@@ -285,22 +298,83 @@ class PoliceAlertDetail extends AlertDetailTemplate {
 }
 
 /**
- * Inheritance: Specialized Renderer for Transit/Default Alerts
+ * Inheritance: Specialized Renderer for Medical Alerts
  */
-class DefaultAlertDetail extends AlertDetailTemplate {
+class MedicalAlertDetail extends AlertDetailTemplate {
     renderHeader(): React.ReactNode {
         return (
-            <div className="relative flex flex-col items-center gap-6 overflow-hidden rounded-3xl border border-white/5 bg-surface-dark p-8 md:flex-row">
-                <div
-                    className={`h-20 w-20 rounded-2xl ${this.props.alert.accentColor} flex items-center justify-center text-white shadow-2xl`}
-                >
-                    <Icon
-                        name={this.props.alert.iconName}
-                        className="text-4xl"
-                    />
+            <div className="relative flex flex-col items-center gap-6 overflow-hidden rounded-3xl border border-pink-500/20 bg-pink-950/20 p-8 md:flex-row">
+                <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-pink-500 text-white shadow-2xl shadow-pink-500/40">
+                    <Icon name="medical_services" className="text-4xl" />
                 </div>
                 <div>
-                    <span className="mb-2 inline-block rounded-md bg-white/10 px-2 py-1 text-[10px] font-bold text-white/60 uppercase">
+                    <span className="mb-2 inline-block rounded-md bg-pink-600 px-2 py-1 text-[10px] font-bold text-white uppercase">
+                        Medical Emergency
+                    </span>
+                    <h1 className="text-3xl font-bold tracking-tight text-white md:text-4xl">
+                        {this.props.alert.title}
+                    </h1>
+                </div>
+            </div>
+        );
+    }
+
+    renderMetadata(): React.ReactNode {
+        const { alert } = this.props;
+        return (
+            <React.Fragment>
+                <div className="rounded-xl bg-white/5 p-4">
+                    <p className="mb-1 text-[10px] font-bold text-text-secondary uppercase">
+                        Alert Source
+                    </p>
+                    <p className="text-sm text-white">
+                        {alert.metadata?.source || 'Toronto Fire Services'}
+                    </p>
+                </div>
+                <div className="rounded-xl bg-white/5 p-4">
+                    <p className="mb-1 text-[10px] font-bold text-text-secondary uppercase">
+                        Units Dispatched
+                    </p>
+                    <p className="text-sm text-white">
+                        {alert.metadata?.unitsDispatched || 'None reported'}
+                    </p>
+                </div>
+            </React.Fragment>
+        );
+    }
+
+    renderSpecializedContent(): React.ReactNode {
+        return (
+            <div className="rounded-2xl border border-pink-500/20 bg-pink-500/5 p-6">
+                <h4 className="mb-4 flex items-center gap-2 text-xs font-bold text-pink-400 uppercase">
+                    <Icon name="medical_services" className="text-sm" />{' '}
+                    Medical Advisory
+                </h4>
+                <div className="flex items-start gap-4 rounded-xl border border-pink-500/20 bg-pink-600/10 p-4">
+                    <Icon name="info" className="text-pink-400" />
+                    <p className="text-sm font-medium text-pink-100">
+                        Emergency medical services are responding to this
+                        incident. Please clear the area to allow access for
+                        first responders.
+                    </p>
+                </div>
+            </div>
+        );
+    }
+}
+
+/**
+ * Inheritance: Specialized Renderer for Transit Alerts
+ */
+class TransitAlertDetail extends AlertDetailTemplate {
+    renderHeader(): React.ReactNode {
+        return (
+            <div className="relative flex flex-col items-center gap-6 overflow-hidden rounded-3xl border border-purple-500/20 bg-purple-950/20 p-8 md:flex-row">
+                <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-purple-500 text-white shadow-2xl shadow-purple-500/40">
+                    <Icon name="train" className="text-4xl" />
+                </div>
+                <div>
+                    <span className="mb-2 inline-block rounded-md bg-purple-600 px-2 py-1 text-[10px] font-bold text-white uppercase">
                         Service Notice
                     </span>
                     <h1 className="text-3xl font-bold tracking-tight text-white md:text-4xl">
@@ -312,33 +386,47 @@ class DefaultAlertDetail extends AlertDetailTemplate {
     }
 
     renderMetadata(): React.ReactNode {
+        const { alert } = this.props;
+        const hasDelay = alert.metadata?.estimatedDelay;
+
         return (
             <React.Fragment>
                 <div className="rounded-xl bg-white/5 p-4">
                     <p className="mb-1 text-[10px] font-bold text-text-secondary uppercase">
                         Alert Source
                     </p>
-                    <p className="text-sm text-white">TTC Control</p>
-                </div>
-                <div className="rounded-xl bg-white/5 p-4">
-                    <p className="mb-1 text-[10px] font-bold text-text-secondary uppercase">
-                        Estimated Delay
+                    <p className="text-sm text-white">
+                        {alert.metadata?.source || 'TTC Control'}
                     </p>
-                    <p className="text-sm text-white">20-30 mins</p>
                 </div>
+                {hasDelay && (
+                    <div className="rounded-xl bg-white/5 p-4">
+                        <p className="mb-1 text-[10px] font-bold text-text-secondary uppercase">
+                            Estimated Delay
+                        </p>
+                        <p className="text-sm text-white">
+                            {alert.metadata?.estimatedDelay}
+                        </p>
+                    </div>
+                )}
             </React.Fragment>
         );
     }
 
     renderSpecializedContent(): React.ReactNode {
+        const { alert } = this.props;
+
+        if (!alert.metadata?.shuttleInfo) {
+            return null;
+        }
+
         return (
-            <div className="rounded-2xl border border-white/10 bg-white/5 p-6">
-                <h4 className="mb-4 text-xs font-bold text-text-secondary uppercase">
+            <div className="rounded-2xl border border-purple-500/20 bg-purple-500/5 p-6">
+                <h4 className="mb-4 text-xs font-bold text-purple-400 uppercase">
                     Shuttle Bus Info
                 </h4>
-                <p className="text-sm text-white/60">
-                    Board shuttle buses at street level. Follow staff
-                    instructions. Extra travel time is required.
+                <p className="text-sm text-white/80">
+                    {alert.metadata.shuttleInfo}
                 </p>
             </div>
         );
@@ -358,6 +446,13 @@ export const AlertDetailsView: React.FC<DetailsProps> = (props) => {
     if (alert.type === 'police') {
         return <PoliceAlertDetail {...props} />;
     }
+    if (alert.type === 'medical') {
+        return <MedicalAlertDetail {...props} />;
+    }
+    if (alert.type === 'transit') {
+        return <TransitAlertDetail {...props} />;
+    }
 
-    return <DefaultAlertDetail {...props} />;
+    // Fallback for any unknown types - uses dynamic source from metadata
+    return <TransitAlertDetail {...props} />;
 };

@@ -92,10 +92,24 @@ export class AlertService {
         return 'low';
     }
 
+    private static getSourceName(source: UnifiedAlertResource['source']): string {
+        switch (source) {
+            case 'fire':
+                return 'Toronto Fire Services';
+            case 'police':
+                return 'Toronto Police';
+            case 'transit':
+                return 'TTC Control';
+            default:
+                return 'Unknown Source';
+        }
+    }
+
     private static getDescriptionAndMetadata(
         alert: UnifiedAlertResource,
     ): Pick<AlertItem, 'description' | 'metadata'> {
         const meta = alert.meta as Record<string, unknown>;
+        const sourceName = this.getSourceName(alert.source);
 
         if (alert.source === 'fire') {
             const eventNum = String(
@@ -113,6 +127,7 @@ export class AlertService {
                     alarmLevel,
                     unitsDispatched,
                     beat,
+                    source: sourceName,
                 },
             };
         }
@@ -142,6 +157,29 @@ export class AlertService {
                     alarmLevel: 0,
                     unitsDispatched: null,
                     beat: division,
+                    source: sourceName,
+                },
+            };
+        }
+
+        if (alert.source === 'transit') {
+            const estimatedDelay =
+                (meta['estimated_delay'] as string | null | undefined) ??
+                undefined;
+            const shuttleInfo =
+                (meta['shuttle_info'] as string | null | undefined) ??
+                undefined;
+
+            return {
+                description: alert.title || 'Transit service alert.',
+                metadata: {
+                    eventNum: alert.external_id,
+                    alarmLevel: 0,
+                    unitsDispatched: null,
+                    beat: null,
+                    source: sourceName,
+                    estimatedDelay,
+                    shuttleInfo,
                 },
             };
         }
@@ -150,7 +188,13 @@ export class AlertService {
             description: alert.external_id
                 ? `Alert #${alert.external_id}.`
                 : 'Alert details unavailable.',
-            metadata: undefined,
+            metadata: {
+                eventNum: alert.external_id,
+                alarmLevel: 0,
+                unitsDispatched: null,
+                beat: null,
+                source: sourceName,
+            },
         };
     }
 
