@@ -1,6 +1,6 @@
 # Implementation Plan: Unified Alerts Query Refinement & Robustness
 
-## Phase 1: Test Refinement (Specification First) [checkpoint: ]
+## Phase 1: Test Refinement (Specification First) [checkpoint: 6aec17c]
 - [x] (948eccc) Task: Audit `tests/Feature/UnifiedAlerts/UnifiedAlertsQueryTest.php` against `docs/Unified-Alerts-Query-Test-Refinement.md`.
     - [x] Ensure the suite explicitly covers: empty dataset, DTO integrity, ordering invariants, tie density across page boundaries, and invalid status handling.
     - [x] Audit findings snapshot (as of 2026-02-04):
@@ -23,8 +23,9 @@
         - [x] Missing/malformed timestamps: define expected behavior (prefer fail-fast exception) and test it.
         - [x] Provider output invariants (required columns + types) are asserted in at least one place (shared helper or contract test).
     - [ ] Optional: Reduce reliance on global pagination state by passing an explicit page number to `paginate()` (requires a service API adjustment).
-- [ ] Task: Conductor - User Manual Verification 'Phase 1: Test Refinement' (Protocol in workflow.md)
+- [x] (6aec17c) Task: Conductor - User Manual Verification 'Phase 1: Test Refinement' (Protocol in workflow.md)
     - [x] (ec2da56) Script: `tests/manual/verify_query_refinement_phase_1_test_refinement.php`
+    - [x] Log: `storage/logs/manual_tests/query_refinement_phase_1_test_refinement_2026_02_04_205926.log` (also attached to checkpoint commit via git notes)
 
 ## Phase 2: Extract Mapping Into a Dedicated Mapper (Unit-Tested)
 - [ ] Task: Implement `UnifiedAlertMapper` (or `UnifiedAlertHydrator`) and migrate mapping logic from `UnifiedAlertsQuery`.
