@@ -24,7 +24,7 @@
         - [x] Provider output invariants (required columns + types) are asserted in at least one place (shared helper or contract test).
     - [ ] Optional: Reduce reliance on global pagination state by passing an explicit page number to `paginate()` (requires a service API adjustment).
 - [ ] Task: Conductor - User Manual Verification 'Phase 1: Test Refinement' (Protocol in workflow.md)
-    - [x] (8c6c65e) Script: `tests/manual/verify_query_refinement_phase_1_test_refinement.php`
+    - [x] (ec2da56) Script: `tests/manual/verify_query_refinement_phase_1_test_refinement.php`
 
 ## Phase 2: Extract Mapping Into a Dedicated Mapper (Unit-Tested)
 - [ ] Task: Implement `UnifiedAlertMapper` (or `UnifiedAlertHydrator`) and migrate mapping logic from `UnifiedAlertsQuery`.
