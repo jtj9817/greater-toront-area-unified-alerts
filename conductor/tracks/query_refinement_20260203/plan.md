@@ -68,6 +68,8 @@
     - [x] Refactor `UnifiedAlertsQuery` to accept `iterable` providers via tagged injection (Open/Closed Principle).
     - [x] Update query logic to use `UnifiedAlertMapper` for DTO creation.
 - [ ] Task: Conductor - User Manual Verification 'Phase 3: Provider Extensibility' (Protocol in workflow.md)
+    - [ ] Script: `tests/manual/verify_query_refinement_phase_3_provider_extensibility.php`
+    - [ ] Log: `storage/logs/manual_tests/query_refinement_phase_3_provider_extensibility_<timestamp>.log`
 
 ## Phase 4: Cross-Driver Verification
 - [ ] Task: MySQL Testing Environment Setup.
