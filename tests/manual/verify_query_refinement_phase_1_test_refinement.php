@@ -24,11 +24,9 @@ if (app()->environment('production')) {
 
 use App\Models\FireIncident;
 use App\Models\PoliceCall;
+use App\Services\Alerts\Contracts\AlertSelectProvider;
 use App\Services\Alerts\DTOs\UnifiedAlert;
 use App\Services\Alerts\Mappers\UnifiedAlertMapper;
-use App\Services\Alerts\Providers\FireAlertSelectProvider;
-use App\Services\Alerts\Providers\PoliceAlertSelectProvider;
-use App\Services\Alerts\Providers\TransitAlertSelectProvider;
 use App\Services\Alerts\UnifiedAlertsQuery;
 use Carbon\Carbon;
 use Database\Seeders\UnifiedAlertsTestSeeder;
@@ -311,32 +309,37 @@ try {
 
     foreach ($metaCases as $label => [$meta, $expected]) {
         $query = new UnifiedAlertsQuery(
-            fire: new class extends FireAlertSelectProvider {
-                public function select(): Builder
+            providers: [
+                new class implements AlertSelectProvider
                 {
-                    return emptyUnifiedSelect('fire');
-                }
-            },
-            police: new class extends PoliceAlertSelectProvider {
-                public function select(): Builder
+                    public function select(): Builder
+                    {
+                        return emptyUnifiedSelect('fire');
+                    }
+                },
+                new class implements AlertSelectProvider
                 {
-                    return emptyUnifiedSelect('police');
-                }
-            },
-            transit: new class($meta) extends TransitAlertSelectProvider {
-                public function __construct(private readonly mixed $meta) {}
+                    public function select(): Builder
+                    {
+                        return emptyUnifiedSelect('police');
+                    }
+                },
+                new class($meta) implements AlertSelectProvider
+                {
+                    public function __construct(private readonly mixed $meta) {}
 
-                public function select(): Builder
-                {
-                    return singleRowUnifiedSelect([
-                        'id' => 'meta:1',
-                        'source' => 'fire',
-                        'external_id' => '1',
-                        'timestamp' => '2026-02-02 12:00:00',
-                        'meta' => $this->meta,
-                    ]);
-                }
-            },
+                    public function select(): Builder
+                    {
+                        return singleRowUnifiedSelect([
+                            'id' => 'meta:1',
+                            'source' => 'fire',
+                            'external_id' => '1',
+                            'timestamp' => '2026-02-02 12:00:00',
+                            'meta' => $this->meta,
+                        ]);
+                    }
+                },
+            ],
             mapper: new UnifiedAlertMapper,
         );
 
@@ -350,58 +353,68 @@ try {
     logInfo('Step 6: Verifying timestamp contract is fail-fast (missing/unparseable)');
 
     $missingTimestampQuery = new UnifiedAlertsQuery(
-        fire: new class extends FireAlertSelectProvider {
-            public function select(): Builder
+        providers: [
+            new class implements AlertSelectProvider
             {
-                return emptyUnifiedSelect('fire');
-            }
-        },
-        police: new class extends PoliceAlertSelectProvider {
-            public function select(): Builder
+                public function select(): Builder
+                {
+                    return emptyUnifiedSelect('fire');
+                }
+            },
+            new class implements AlertSelectProvider
             {
-                return emptyUnifiedSelect('police');
-            }
-        },
-        transit: new class extends TransitAlertSelectProvider {
-            public function select(): Builder
+                public function select(): Builder
+                {
+                    return emptyUnifiedSelect('police');
+                }
+            },
+            new class implements AlertSelectProvider
             {
-                return singleRowUnifiedSelect([
-                    'id' => 'ts:missing',
-                    'source' => 'fire',
-                    'external_id' => '1',
-                    'timestamp' => null,
-                ]);
-            }
-        },
+                public function select(): Builder
+                {
+                    return singleRowUnifiedSelect([
+                        'id' => 'ts:missing',
+                        'source' => 'fire',
+                        'external_id' => '1',
+                        'timestamp' => null,
+                    ]);
+                }
+            },
+        ],
         mapper: new UnifiedAlertMapper,
     );
 
     assertThrows('timestamp missing', fn () => $missingTimestampQuery->paginate(perPage: 50, status: 'all'), \InvalidArgumentException::class);
 
     $badTimestampQuery = new UnifiedAlertsQuery(
-        fire: new class extends FireAlertSelectProvider {
-            public function select(): Builder
+        providers: [
+            new class implements AlertSelectProvider
             {
-                return emptyUnifiedSelect('fire');
-            }
-        },
-        police: new class extends PoliceAlertSelectProvider {
-            public function select(): Builder
+                public function select(): Builder
+                {
+                    return emptyUnifiedSelect('fire');
+                }
+            },
+            new class implements AlertSelectProvider
             {
-                return emptyUnifiedSelect('police');
-            }
-        },
-        transit: new class extends TransitAlertSelectProvider {
-            public function select(): Builder
+                public function select(): Builder
+                {
+                    return emptyUnifiedSelect('police');
+                }
+            },
+            new class implements AlertSelectProvider
             {
-                return singleRowUnifiedSelect([
-                    'id' => 'ts:bad',
-                    'source' => 'fire',
-                    'external_id' => '1',
-                    'timestamp' => 'not-a-timestamp',
-                ]);
-            }
-        },
+                public function select(): Builder
+                {
+                    return singleRowUnifiedSelect([
+                        'id' => 'ts:bad',
+                        'source' => 'fire',
+                        'external_id' => '1',
+                        'timestamp' => 'not-a-timestamp',
+                    ]);
+                }
+            },
+        ],
         mapper: new UnifiedAlertMapper,
     );
 

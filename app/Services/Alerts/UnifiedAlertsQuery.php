@@ -2,20 +2,19 @@
 
 namespace App\Services\Alerts;
 
-use App\Services\Alerts\DTOs\UnifiedAlert;
+use App\Services\Alerts\Contracts\AlertSelectProvider;
 use App\Services\Alerts\Mappers\UnifiedAlertMapper;
-use App\Services\Alerts\Providers\FireAlertSelectProvider;
-use App\Services\Alerts\Providers\PoliceAlertSelectProvider;
-use App\Services\Alerts\Providers\TransitAlertSelectProvider;
+use Illuminate\Container\Attributes\Tag;
+use Illuminate\Database\Query\Builder;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\DB;
 
 class UnifiedAlertsQuery
 {
     public function __construct(
-        private readonly FireAlertSelectProvider $fire,
-        private readonly PoliceAlertSelectProvider $police,
-        private readonly TransitAlertSelectProvider $transit,
+        #[Tag('alerts.select-providers')]
+        private readonly iterable $providers,
         private readonly UnifiedAlertMapper $mapper,
     ) {}
 
@@ -30,9 +29,17 @@ class UnifiedAlertsQuery
             throw new \InvalidArgumentException("Invalid status '{$status}'. Expected one of: all, active, cleared.");
         }
 
-        $union = $this->fire->select()
-            ->unionAll($this->police->select())
-            ->unionAll($this->transit->select());
+        $union = $this->unionSelect();
+
+        if ($union === null) {
+            return new LengthAwarePaginator(
+                items: [],
+                total: 0,
+                perPage: $perPage,
+                currentPage: Paginator::resolveCurrentPage(),
+                options: ['path' => Paginator::resolveCurrentPath()],
+            );
+        }
 
         $query = DB::query()->fromSub($union, 'unified_alerts');
 
@@ -48,5 +55,33 @@ class UnifiedAlertsQuery
             ->orderByDesc('external_id')
             ->paginate($perPage)
             ->through(fn (object $row) => $this->mapper->fromRow($row));
+    }
+
+    private function unionSelect(): ?Builder
+    {
+        $providers = [];
+
+        foreach ($this->providers as $provider) {
+            if (! $provider instanceof AlertSelectProvider) {
+                $type = is_object($provider) ? get_class($provider) : gettype($provider);
+                throw new \InvalidArgumentException("Invalid provider type '{$type}'. Expected AlertSelectProvider.");
+            }
+
+            $providers[] = $provider;
+        }
+
+        if ($providers === []) {
+            return null;
+        }
+
+        /** @var AlertSelectProvider $first */
+        $first = array_shift($providers);
+        $union = $first->select();
+
+        foreach ($providers as $provider) {
+            $union->unionAll($provider->select());
+        }
+
+        return $union;
     }
 }

@@ -2,6 +2,9 @@
 
 namespace App\Providers;
 
+use App\Services\Alerts\Providers\FireAlertSelectProvider;
+use App\Services\Alerts\Providers\PoliceAlertSelectProvider;
+use App\Services\Alerts\Providers\TransitAlertSelectProvider;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
@@ -15,7 +18,11 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        $this->app->tag([
+            FireAlertSelectProvider::class,
+            PoliceAlertSelectProvider::class,
+            TransitAlertSelectProvider::class,
+        ], 'alerts.select-providers');
     }
 
     /**

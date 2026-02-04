@@ -51,6 +51,7 @@ test('fire alert select provider uses non-sqlite expressions when driver is not 
     $sql = (new FireAlertSelectProvider)->select()->toSql();
 
     expect($sql)->toContain("CONCAT('fire:', event_num)");
+    expect($sql)->toContain('CAST(event_num AS CHAR)');
     expect($sql)->toContain("NULLIF(CONCAT_WS(' / ', prime_street, cross_streets), '')");
     expect($sql)->toContain("JSON_OBJECT('alarm_level'");
 });

@@ -17,6 +17,10 @@ class FireAlertSelectProvider implements AlertSelectProvider
             ? "('fire:' || event_num)"
             : "CONCAT('fire:', event_num)";
 
+        $externalIdExpression = $driver === 'sqlite'
+            ? 'CAST(event_num AS TEXT)'
+            : 'CAST(event_num AS CHAR)';
+
         $locationExpression = $driver === 'sqlite'
             ? "CASE\n                WHEN prime_street IS NOT NULL AND cross_streets IS NOT NULL THEN prime_street || ' / ' || cross_streets\n                WHEN prime_street IS NOT NULL THEN prime_street\n                WHEN cross_streets IS NOT NULL THEN cross_streets\n                ELSE NULL\n            END"
             : "NULLIF(CONCAT_WS(' / ', prime_street, cross_streets), '')";
@@ -27,7 +31,7 @@ class FireAlertSelectProvider implements AlertSelectProvider
 
         return FireIncident::query()
             ->selectRaw(
-                "{$idExpression} as id,\n                'fire' as source,\n                event_num as external_id,\n                is_active,\n                dispatch_time as timestamp,\n                event_type as title,\n                {$locationExpression} as location_name,\n                NULL as lat,\n                NULL as lng,\n                {$metaExpression} as meta"
+                "{$idExpression} as id,\n                'fire' as source,\n                {$externalIdExpression} as external_id,\n                is_active,\n                dispatch_time as timestamp,\n                event_type as title,\n                {$locationExpression} as location_name,\n                NULL as lat,\n                NULL as lng,\n                {$metaExpression} as meta"
             )
             ->toBase();
     }
