@@ -1,29 +1,30 @@
 # Implementation Plan: Unified Alerts Query Refinement & Robustness
 
 ## Phase 1: Test Refinement (Specification First) [checkpoint: ]
-- [ ] Task: Audit `tests/Feature/UnifiedAlerts/UnifiedAlertsQueryTest.php` against `docs/Unified-Alerts-Query-Test-Refinement.md`.
-    - [ ] Ensure the suite explicitly covers: empty dataset, DTO integrity, ordering invariants, tie density across page boundaries, and invalid status handling.
-    - [ ] Audit findings snapshot (as of 2026-02-04):
+- [x] (948eccc) Task: Audit `tests/Feature/UnifiedAlerts/UnifiedAlertsQueryTest.php` against `docs/Unified-Alerts-Query-Test-Refinement.md`.
+    - [x] Ensure the suite explicitly covers: empty dataset, DTO integrity, ordering invariants, tie density across page boundaries, and invalid status handling.
+    - [x] Audit findings snapshot (as of 2026-02-04):
         - [x] Present: empty dataset baseline test.
         - [x] Present: DTO integrity assertions for representative Fire + Police rows (basic fields).
         - [x] Present: ordering invariant helper for `(timestamp desc, source asc, external_id desc)`.
         - [x] Present: deterministic pagination coverage (page 2) and high tie density across a page boundary (no duplicates, merged IDs match expected).
         - [x] Present: strict invalid status contract (throws) + test.
-        - [~] Partial: ordering invariants do not explicitly assert non-empty `id/source/externalId` per item, nor `id` uniqueness within a page.
-        - [~] Partial: status filtering validates IDs, but does not assert the invariant that all returned items satisfy `isActive === true/false`.
-        - [ ] Missing: meta decoding edge cases at the unified mapping level (`null`/missing/empty string/invalid JSON => `[]`, no exception leakage).
-        - [ ] Missing: timestamp parsing contract + tests for `timestamp` null/unparseable (fail-fast vs filter vs fallback).
-        - [ ] Missing: location edge cases (name null but lat/lng present; lat/lng = 0 must remain floats and not be treated as falsey).
+        - [x] Resolved: ordering invariants assert non-empty `id/source/externalId` per item + `id` uniqueness within a page.
+        - [x] Resolved: status filtering asserts `status=active/cleared` => all returned items satisfy `isActive === true/false`.
+        - [x] Present: meta decoding edge cases at the unified mapping level (`null`/missing/empty string/invalid JSON => `[]`, no exception leakage).
+        - [x] Present: timestamp parsing contract + tests for `timestamp` null/unparseable (fail-fast exception).
+        - [x] Present: location edge cases (name null but lat/lng present; lat/lng = 0 remains floats and is not treated as falsey).
         - [ ] Missing: cross-driver execution (actually running provider + unified query tests against MySQL; current tests only assert generated SQL strings).
         - [ ] Missing: performance/index assumptions (at least doc/notes, optionally lightweight assertions).
-    - [ ] Add missing edge-case tests (as needed):
-        - [ ] Add per-page uniqueness + non-empty identifier invariants (`id`, `source`, `externalId`) for unified results.
-        - [ ] Add status invariants: `status=active` => all `isActive === true`, `status=cleared` => all `isActive === false`.
-        - [ ] Invalid/empty `meta` JSON decodes to an empty array (no exceptions leak).
-        - [ ] Missing/malformed timestamps: define expected behavior (prefer fail-fast exception) and test it.
-        - [ ] Provider output invariants (required columns + types) are asserted in at least one place (shared helper or contract test).
+    - [x] Add missing edge-case tests (as needed):
+        - [x] Add per-page uniqueness + non-empty identifier invariants (`id`, `source`, `externalId`) for unified results.
+        - [x] Add status invariants: `status=active` => all `isActive === true`, `status=cleared` => all `isActive === false`.
+        - [x] Invalid/empty `meta` JSON decodes to an empty array (no exceptions leak).
+        - [x] Missing/malformed timestamps: define expected behavior (prefer fail-fast exception) and test it.
+        - [x] Provider output invariants (required columns + types) are asserted in at least one place (shared helper or contract test).
     - [ ] Optional: Reduce reliance on global pagination state by passing an explicit page number to `paginate()` (requires a service API adjustment).
 - [ ] Task: Conductor - User Manual Verification 'Phase 1: Test Refinement' (Protocol in workflow.md)
+    - [x] (8c6c65e) Script: `tests/manual/verify_query_refinement_phase_1_test_refinement.php`
 
 ## Phase 2: Extract Mapping Into a Dedicated Mapper (Unit-Tested)
 - [ ] Task: Implement `UnifiedAlertMapper` (or `UnifiedAlertHydrator`) and migrate mapping logic from `UnifiedAlertsQuery`.
