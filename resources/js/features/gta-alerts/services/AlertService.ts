@@ -42,6 +42,7 @@ export class AlertService {
             title: alert.title,
             location: alert.location?.name ?? 'Unknown location',
             timeAgo: formatTimeAgo(alert.timestamp),
+            timestamp: alert.timestamp,
             description,
             type: type,
             severity: severity,
@@ -211,19 +212,19 @@ export class AlertService {
         type: AlertItem['type'],
         severity: string,
     ): string {
-        if (severity === 'high') return 'bg-[#d8464f]';
+        if (severity === 'high') return 'bg-[#e05560]';
 
         switch (type) {
             case 'fire':
-                return 'bg-[#e2751f]';
+                return 'bg-[#e07830]';
             case 'police':
-                return 'bg-blue-500';
+                return 'bg-[#6890ff]';
             case 'hazard':
-                return 'bg-[#feb457]';
+                return 'bg-[#f0b040]';
             case 'transit':
-                return 'bg-[#3d584b]';
+                return 'bg-[#a78bfa]';
             case 'medical':
-                return 'bg-[#d8464f]';
+                return 'bg-[#f472b6]';
             default:
                 return 'bg-gray-500';
         }
@@ -236,19 +237,19 @@ export class AlertService {
         type: AlertItem['type'],
         severity: string,
     ): string {
-        if (severity === 'high') return 'text-[#d8464f]';
+        if (severity === 'high') return 'text-[#e05560]';
 
         switch (type) {
             case 'fire':
-                return 'text-[#e2751f]';
+                return 'text-[#e07830]';
             case 'police':
-                return 'text-blue-500';
+                return 'text-[#6890ff]';
             case 'hazard':
-                return 'text-[#feb457]';
+                return 'text-[#f0b040]';
             case 'transit':
-                return 'text-[#3d584b]';
+                return 'text-[#a78bfa]';
             case 'medical':
-                return 'text-[#d8464f]';
+                return 'text-[#f472b6]';
             default:
                 return 'text-gray-500';
         }
@@ -265,10 +266,11 @@ export class AlertService {
         let filtered = [...items];
         const { query, category, timeLimit, dateScope } = options;
 
-        // 1. Sort by recency
+        // 1. Sort by recency (newest first)
         filtered = filtered.sort(
             (a, b) =>
-                this.parseTimeAgo(a.timeAgo) - this.parseTimeAgo(b.timeAgo),
+                new Date(b.timestamp).getTime() -
+                new Date(a.timestamp).getTime(),
         );
 
         // 2. Category Filter

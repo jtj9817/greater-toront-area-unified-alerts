@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import { formatTimestampEST } from '@/lib/utils';
 import type { AlertItem } from '../types';
 import { Icon } from './Icon';
 
@@ -67,6 +68,11 @@ abstract class AlertDetailTemplate extends Component<DetailsProps> {
                                                 Time Reported
                                             </p>
                                             <p className="text-sm text-white">
+                                                {formatTimestampEST(
+                                                    alert.timestamp,
+                                                )}
+                                            </p>
+                                            <p className="mt-0.5 text-xs text-text-secondary">
                                                 {alert.timeAgo}
                                             </p>
                                         </div>
@@ -182,7 +188,7 @@ class FireAlertDetail extends AlertDetailTemplate {
                         <Icon name="map" className="text-sm" /> Location Map
                     </h4>
                     <div className="relative flex aspect-video items-center justify-center overflow-hidden rounded-lg border border-dashed border-white/10 bg-white/5">
-                        <div className="absolute inset-0 bg-[radial-gradient(#d8464f33_1px,transparent_1px)] [background-size:16px_16px] opacity-20"></div>
+                        <div className="absolute inset-0 bg-[radial-gradient(#e0556033_1px,transparent_1px)] [background-size:16px_16px] opacity-20"></div>
                         <Icon
                             name="location_on"
                             className="animate-bounce text-4xl text-primary"

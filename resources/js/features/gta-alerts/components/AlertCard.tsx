@@ -1,4 +1,5 @@
 import React from 'react';
+import { formatTimestampEST } from '@/lib/utils';
 import type { AlertItem } from '../types';
 import { Icon } from './Icon';
 
@@ -18,8 +19,8 @@ export const AlertCard: React.FC<AlertCardProps> = ({
             onClick={onViewDetails}
             className={`group relative h-full cursor-pointer overflow-hidden rounded-lg bg-surface-dark p-4 transition-all duration-200 ${
                 isSaved
-                    ? 'border border-primary/50 shadow-[0_0_15px_rgba(216,70,79,0.15)]'
-                    : 'border border-white/5 shadow-lg shadow-black/20 hover:border-white/10 hover:shadow-[0_0_15px_rgba(216,70,79,0.06)]'
+                    ? 'border border-primary/50 shadow-[0_0_15px_rgba(59,130,246,0.15)]'
+                    : 'border border-white/5 shadow-lg shadow-black/20 hover:border-white/10 hover:shadow-[0_0_15px_rgba(59,130,246,0.06)]'
             } `}
         >
             <div
@@ -72,7 +73,8 @@ export const AlertCard: React.FC<AlertCardProps> = ({
                     {item.location}
                     <span className="mx-1 h-1 w-1 rounded-full bg-white/20"></span>
                     <Icon name="schedule" className="text-[14px]" />
-                    {item.timeAgo}
+                    {formatTimestampEST(item.timestamp)}
+                    <span className="text-white/30">({item.timeAgo})</span>
                 </p>
 
                 <p className="mb-4 line-clamp-3 flex-1 text-sm leading-relaxed font-normal text-gray-300">

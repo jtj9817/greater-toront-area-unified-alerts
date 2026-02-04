@@ -32,7 +32,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
     return (
         <aside
-            className={`fixed inset-y-0 left-0 z-[100] flex w-[75%] max-w-[280px] flex-none flex-col border-r border-white/5 bg-[#140b0c] pt-6 pb-6 shadow-2xl transition-all duration-300 ease-in-out md:relative md:translate-x-0 md:shadow-none ${mobileTranslate} ${sidebarWidth} `}
+            className={`fixed inset-y-0 left-0 z-[100] flex w-[75%] max-w-[280px] flex-none flex-col border-r border-white/5 bg-[#0c1117] pt-6 pb-6 shadow-2xl transition-all duration-300 ease-in-out md:relative md:translate-x-0 md:shadow-none ${mobileTranslate} ${sidebarWidth} `}
         >
             {/* Mobile Close Button */}
             <button
@@ -46,7 +46,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <div
                 className={`mb-8 flex items-center gap-3 overflow-hidden px-6 ${isCollapsed ? 'justify-center md:px-4' : ''}`}
             >
-                <div className="flex h-8 w-8 flex-none items-center justify-center rounded-lg bg-gradient-to-br from-[#d8464f] to-[#e2751f] text-white shadow-lg shadow-primary/20">
+                <div className="flex h-8 w-8 flex-none items-center justify-center rounded-lg bg-gradient-to-br from-[#3b82f6] to-[#60a5fa] text-white shadow-lg shadow-primary/20">
                     <Icon name="emergency_home" className="text-xl" />
                 </div>
                 {!isCollapsed && (
@@ -158,7 +158,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 {/* Desktop Collapse Toggle */}
                 <button
                     onClick={onToggleCollapse}
-                    className="hidden w-full items-center justify-center rounded-lg border border-transparent bg-white/5 py-2.5 text-text-secondary transition-all hover:border-crimson/30 hover:bg-crimson/20 hover:text-white md:flex"
+                    className="hidden w-full items-center justify-center rounded-lg border border-transparent bg-white/5 py-2.5 text-text-secondary transition-all hover:border-white/20 hover:bg-white/10 hover:text-white md:flex"
                     title={isCollapsed ? 'Expand Sidebar' : 'Collapse Sidebar'}
                 >
                     <Icon
