@@ -61,15 +61,15 @@
     - [x] Ensure `external_id` is explicitly cast/selected as a string in all provider SQL selects for UNION consistency.
         - [x] Fire: change `event_num as external_id` to explicit CAST (sqlite TEXT, non-sqlite CHAR).
         - [x] Transit (placeholder): no-op today, but enforce casting when real transit provider ships.
-    - [ ] Optional: introduce an `AlertSource` enum for consistent source keys (only if it measurably improves correctness).
+    - [x] Optional: introduce an `AlertSource` enum for consistent source keys (deferred to Phase 5; no Phase 3 changes needed).
 - [x] (498d66b) Task: Refactor `UnifiedAlertsQuery` for Dependency Inversion (tagged injection).
     - [x] Register and tag providers in `AppServiceProvider::register()` under `alerts.select-providers`.
     - [x] Write tests for tagged provider injection (inject a controlled set of providers, including a fake provider for edge-case rows).
     - [x] Refactor `UnifiedAlertsQuery` to accept `iterable` providers via tagged injection (Open/Closed Principle).
     - [x] Update query logic to use `UnifiedAlertMapper` for DTO creation.
-- [ ] Task: Conductor - User Manual Verification 'Phase 3: Provider Extensibility' (Protocol in workflow.md)
-    - [ ] Script: `tests/manual/verify_query_refinement_phase_3_provider_extensibility.php`
-    - [ ] Log: `storage/logs/manual_tests/query_refinement_phase_3_provider_extensibility_<timestamp>.log`
+- [x] (949565c) Task: Conductor - User Manual Verification 'Phase 3: Provider Extensibility' (Protocol in workflow.md)
+    - [x] Script: `tests/manual/verify_query_refinement_phase_3_provider_extensibility.php`
+    - [x] Log: `storage/logs/manual_tests/query_refinement_phase_3_provider_extensibility_2026_02_04_221957.log`
 
 ## Phase 4: Cross-Driver Verification
 - [ ] Task: MySQL Testing Environment Setup.
