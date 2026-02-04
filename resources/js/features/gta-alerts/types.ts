@@ -3,6 +3,7 @@ export interface AlertItem {
     title: string;
     location: string; // Sometimes part of title in design, but good to separate conceptually
     timeAgo: string;
+    timestamp: string; // Raw ISO 8601 string from backend
     description: string;
     type: 'fire' | 'police' | 'transit' | 'hazard' | 'medical';
     severity: 'high' | 'medium' | 'low';

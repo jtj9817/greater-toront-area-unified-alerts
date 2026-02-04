@@ -6,6 +6,7 @@ import type { AlertFilterOptions } from '../services/AlertService';
 import { AlertService } from '../services/AlertService';
 import type { AlertItem } from '../types';
 import { AlertCard } from './AlertCard';
+import { AlertTableView } from './AlertTableView';
 import { Icon } from './Icon';
 
 type FeedPagination = {
@@ -39,6 +40,7 @@ export const FeedView: React.FC<FeedViewProps> = ({
     const [dateFilter, setDateFilter] = useState<'today' | 'yesterday' | 'all'>(
         'all',
     ); // Default to 'all' for live data initially
+    const [viewMode, setViewMode] = useState<'cards' | 'table'>('cards');
 
     // Compute filtered items using the Service
     const filteredItems = useMemo(() => {
@@ -162,76 +164,111 @@ export const FeedView: React.FC<FeedViewProps> = ({
                     </div>
                 </div>
 
-                {/* Row 2: Date & Time Selectors */}
+                {/* Row 2: Date & Time Selectors + View Toggle */}
                 <div className="flex flex-wrap items-center gap-3 bg-surface-dark/30 px-4 py-2 md:px-6">
-                    {/* Date Selector */}
-                    <div className="group relative">
-                        <div className="pointer-events-none absolute inset-y-0 left-2 flex items-center text-text-secondary">
-                            <Icon name="calendar_today" className="text-sm" />
+                    <div className="flex items-center gap-3">
+                        {/* Date Selector */}
+                        <div className="group relative">
+                            <div className="pointer-events-none absolute inset-y-0 left-2 flex items-center text-text-secondary">
+                                <Icon
+                                    name="calendar_today"
+                                    className="text-sm"
+                                />
+                            </div>
+                            <select
+                                value={dateFilter}
+                                onChange={(e) =>
+                                    setDateFilter(
+                                        e.target.value as
+                                            | 'today'
+                                            | 'yesterday'
+                                            | 'all',
+                                    )
+                                }
+                                className="w-32 cursor-pointer appearance-none rounded-lg border border-white/10 bg-surface-dark py-1.5 pr-8 pl-8 text-xs text-white transition-colors outline-none hover:border-white/20 focus:border-primary focus:ring-1 focus:ring-primary"
+                            >
+                                <option value="today">Today</option>
+                                <option value="yesterday">Yesterday</option>
+                                <option value="all">All Dates</option>
+                            </select>
+                            <div className="pointer-events-none absolute inset-y-0 right-2 flex items-center text-text-secondary">
+                                <Icon name="expand_more" className="text-sm" />
+                            </div>
                         </div>
-                        <select
-                            value={dateFilter}
-                            onChange={(e) =>
-                                setDateFilter(
-                                    e.target.value as
-                                        | 'today'
-                                        | 'yesterday'
-                                        | 'all',
-                                )
-                            }
-                            className="w-32 cursor-pointer appearance-none rounded-lg border border-white/10 bg-surface-dark py-1.5 pr-8 pl-8 text-xs text-white transition-colors outline-none hover:border-white/20 focus:border-primary focus:ring-1 focus:ring-primary"
-                        >
-                            <option value="today">Today</option>
-                            <option value="yesterday">Yesterday</option>
-                            <option value="all">All Dates</option>
-                        </select>
-                        <div className="pointer-events-none absolute inset-y-0 right-2 flex items-center text-text-secondary">
-                            <Icon name="expand_more" className="text-sm" />
+
+                        {/* Time Selector */}
+                        <div className="group relative">
+                            <div className="pointer-events-none absolute inset-y-0 left-2 flex items-center text-text-secondary">
+                                <Icon name="schedule" className="text-sm" />
+                            </div>
+                            <select
+                                value={
+                                    timeFilter === null ? 'null' : timeFilter
+                                }
+                                onChange={(e) =>
+                                    setTimeFilter(
+                                        e.target.value === 'null'
+                                            ? null
+                                            : Number(e.target.value),
+                                    )
+                                }
+                                className="w-36 cursor-pointer appearance-none rounded-lg border border-white/10 bg-surface-dark py-1.5 pr-8 pl-8 text-xs text-white transition-colors outline-none hover:border-white/20 focus:border-primary focus:ring-1 focus:ring-primary"
+                            >
+                                {timeOptions.map((opt) => (
+                                    <option
+                                        key={String(opt.value)}
+                                        value={String(opt.value)}
+                                    >
+                                        {opt.label}
+                                    </option>
+                                ))}
+                            </select>
+                            <div className="pointer-events-none absolute inset-y-0 right-2 flex items-center text-text-secondary">
+                                <Icon name="expand_more" className="text-sm" />
+                            </div>
                         </div>
                     </div>
 
-                    {/* Time Selector */}
-                    <div className="group relative">
-                        <div className="pointer-events-none absolute inset-y-0 left-2 flex items-center text-text-secondary">
-                            <Icon name="schedule" className="text-sm" />
-                        </div>
-                        <select
-                            value={timeFilter === null ? 'null' : timeFilter}
-                            onChange={(e) =>
-                                setTimeFilter(
-                                    e.target.value === 'null'
-                                        ? null
-                                        : Number(e.target.value),
-                                )
-                            }
-                            className="w-36 cursor-pointer appearance-none rounded-lg border border-white/10 bg-surface-dark py-1.5 pr-8 pl-8 text-xs text-white transition-colors outline-none hover:border-white/20 focus:border-primary focus:ring-1 focus:ring-primary"
-                        >
-                            {timeOptions.map((opt) => (
-                                <option
-                                    key={String(opt.value)}
-                                    value={String(opt.value)}
-                                >
-                                    {opt.label}
-                                </option>
-                            ))}
-                        </select>
-                        <div className="pointer-events-none absolute inset-y-0 right-2 flex items-center text-text-secondary">
-                            <Icon name="expand_more" className="text-sm" />
+                    <div className="ml-auto flex items-center gap-3">
+                        {/* Reset Button (Only shows if filters are active) */}
+                        {(timeFilter !== null ||
+                            activeCategory !== 'all' ||
+                            dateFilter !== 'today') && (
+                            <button
+                                onClick={handleReset}
+                                className="flex items-center gap-1 rounded px-2 py-1 text-xs font-medium text-coral transition-colors hover:bg-coral/10 hover:text-amber"
+                            >
+                                <Icon name="restart_alt" className="text-sm" />
+                                Reset
+                            </button>
+                        )}
+
+                        {/* View Mode Toggle */}
+                        <div className="flex items-center rounded-lg border border-white/10 bg-surface-dark">
+                            <button
+                                onClick={() => setViewMode('cards')}
+                                className={`flex items-center gap-1.5 rounded-l-lg px-3 py-1.5 text-xs font-medium transition-all ${
+                                    viewMode === 'cards'
+                                        ? 'bg-primary text-white'
+                                        : 'text-text-secondary hover:text-white'
+                                }`}
+                            >
+                                <Icon name="grid_view" className="text-sm" />
+                                Cards
+                            </button>
+                            <button
+                                onClick={() => setViewMode('table')}
+                                className={`flex items-center gap-1.5 rounded-r-lg px-3 py-1.5 text-xs font-medium transition-all ${
+                                    viewMode === 'table'
+                                        ? 'bg-primary text-white'
+                                        : 'text-text-secondary hover:text-white'
+                                }`}
+                            >
+                                <Icon name="table_rows" className="text-sm" />
+                                Table
+                            </button>
                         </div>
                     </div>
-
-                    {/* Reset Button (Only shows if filters are active) */}
-                    {(timeFilter !== null ||
-                        activeCategory !== 'all' ||
-                        dateFilter !== 'today') && (
-                        <button
-                            onClick={handleReset}
-                            className="ml-auto flex items-center gap-1 rounded px-2 py-1 text-xs font-medium text-coral transition-colors hover:bg-coral/10 hover:text-amber"
-                        >
-                            <Icon name="restart_alt" className="text-sm" />
-                            Reset
-                        </button>
-                    )}
                 </div>
             </div>
 
@@ -254,14 +291,22 @@ export const FeedView: React.FC<FeedViewProps> = ({
                         </div>
                     )}
 
-                    {filteredItems.map((item) => (
-                        <AlertCard
-                            key={item.id}
-                            item={item}
-                            onViewDetails={() => onSelectAlert(item.id)}
-                            isSaved={savedIds.has(item.id)}
+                    {viewMode === 'cards' ? (
+                        filteredItems.map((item) => (
+                            <AlertCard
+                                key={item.id}
+                                item={item}
+                                onViewDetails={() => onSelectAlert(item.id)}
+                                isSaved={savedIds.has(item.id)}
+                            />
+                        ))
+                    ) : (
+                        <AlertTableView
+                            items={filteredItems}
+                            onSelectAlert={onSelectAlert}
+                            savedIds={savedIds}
                         />
-                    ))}
+                    )}
 
                     {pagination &&
                         (pagination.prevUrl || pagination.nextUrl) && (
