@@ -46,10 +46,22 @@
 - [ ] Task: Conductor - User Manual Verification 'Phase 2: Mapper Extraction' (Protocol in workflow.md)
 
 ## Phase 3: Provider Extensibility + Query Refactor (Dependency Inversion)
+- [~] Task: Phase 3 Preflight - Provider Contract + Tagged Injection Audit (no implementation).
+    - [x] Audit provider unified schema for required columns and nullability expectations.
+    - [x] Audit `external_id` string-casting:
+        - [x] Police: already casts `external_id` (`CAST(object_id AS TEXT/CHAR)`).
+        - [x] Fire: does not explicitly cast `external_id` (should cast `event_num` to TEXT/CHAR).
+        - [x] Transit: placeholder returns no rows; real implementation must cast `external_id` too.
+    - [x] Confirm Laravel 12 supports tagged injection via `Illuminate\Container\Attributes\Tag`.
+    - [x] Decide tag key: `alerts.select-providers`.
+    - [x] Notes: `conductor/tracks/query_refinement_20260203/phase_3_preflight_provider_di_audit.md`
 - [ ] Task: Refactor Providers for Contract Compliance.
     - [ ] Ensure `external_id` is explicitly cast/selected as a string in all provider SQL selects for UNION consistency.
+        - [ ] Fire: change `event_num as external_id` to explicit CAST (sqlite TEXT, non-sqlite CHAR).
+        - [ ] Transit (placeholder): no-op today, but enforce casting when real transit provider ships.
     - [ ] Optional: introduce an `AlertSource` enum for consistent source keys (only if it measurably improves correctness).
 - [ ] Task: Refactor `UnifiedAlertsQuery` for Dependency Inversion (tagged injection).
+    - [ ] Register and tag providers in `AppServiceProvider::register()` under `alerts.select-providers`.
     - [ ] Write tests for tagged provider injection (inject a controlled set of providers, including a fake provider for edge-case rows).
     - [ ] Refactor `UnifiedAlertsQuery` to accept `iterable` providers via tagged injection (Open/Closed Principle).
     - [ ] Update query logic to use `UnifiedAlertMapper` for DTO creation.
