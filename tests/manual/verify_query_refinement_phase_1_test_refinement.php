@@ -305,7 +305,7 @@ try {
         'empty meta string' => ['', []],
         'invalid json string' => ['{', []],
         'valid json object string' => ['{"k":1}', ['k' => 1]],
-        'valid json scalar string' => ['\"k\"', []],
+        'valid json scalar string' => ['"k"', []],
     ];
 
     foreach ($metaCases as $label => [$meta, $expected]) {
@@ -443,4 +443,3 @@ try {
 
     exit($exitCode);
 }
-
