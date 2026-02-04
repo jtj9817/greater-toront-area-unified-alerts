@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\FireIncident;
+use App\Services\Alerts\Mappers\UnifiedAlertMapper;
 use App\Services\Alerts\Providers\FireAlertSelectProvider;
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -34,13 +35,7 @@ test('fire alert select provider maps unified columns', function () {
     expect($row->lat)->toBeNull();
     expect($row->lng)->toBeNull();
 
-    $decodeMeta = fn (mixed $value): array => is_array($value)
-        ? $value
-        : (is_string($value) && $value !== ''
-            ? json_decode($value, true, 512, JSON_THROW_ON_ERROR)
-            : []);
-
-    $meta = $decodeMeta($row->meta);
+    $meta = UnifiedAlertMapper::decodeMeta($row->meta);
 
     expect($meta['alarm_level'])->toBe(2);
     expect($meta['units_dispatched'])->toBe('P1, P2');

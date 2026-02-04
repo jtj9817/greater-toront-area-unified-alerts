@@ -19,6 +19,7 @@ if (app()->environment('production')) {
 
 use App\Models\FireIncident;
 use App\Models\PoliceCall;
+use App\Services\Alerts\Mappers\UnifiedAlertMapper;
 use App\Services\Alerts\Providers\FireAlertSelectProvider;
 use App\Services\Alerts\Providers\PoliceAlertSelectProvider;
 use App\Services\Alerts\Providers\TransitAlertSelectProvider;
@@ -66,15 +67,7 @@ function assertEqual(mixed $actual, mixed $expected, string $label): void
 
 function decodeMeta(mixed $value): array
 {
-    if (is_array($value)) {
-        return $value;
-    }
-
-    if (is_string($value) && $value !== '') {
-        return json_decode($value, true, 512, JSON_THROW_ON_ERROR);
-    }
-
-    return [];
+    return UnifiedAlertMapper::decodeMeta($value);
 }
 
 try {

@@ -25,6 +25,7 @@ if (app()->environment('production')) {
 use App\Models\FireIncident;
 use App\Models\PoliceCall;
 use App\Services\Alerts\DTOs\UnifiedAlert;
+use App\Services\Alerts\Mappers\UnifiedAlertMapper;
 use App\Services\Alerts\Providers\FireAlertSelectProvider;
 use App\Services\Alerts\Providers\PoliceAlertSelectProvider;
 use App\Services\Alerts\Providers\TransitAlertSelectProvider;
@@ -336,6 +337,7 @@ try {
                     ]);
                 }
             },
+            mapper: new UnifiedAlertMapper,
         );
 
         $results = $query->paginate(perPage: 50, status: 'all');
@@ -371,6 +373,7 @@ try {
                 ]);
             }
         },
+        mapper: new UnifiedAlertMapper,
     );
 
     assertThrows('timestamp missing', fn () => $missingTimestampQuery->paginate(perPage: 50, status: 'all'), \InvalidArgumentException::class);
@@ -399,6 +402,7 @@ try {
                 ]);
             }
         },
+        mapper: new UnifiedAlertMapper,
     );
 
     assertThrows('timestamp not parseable', fn () => $badTimestampQuery->paginate(perPage: 50, status: 'all'), \InvalidArgumentException::class);

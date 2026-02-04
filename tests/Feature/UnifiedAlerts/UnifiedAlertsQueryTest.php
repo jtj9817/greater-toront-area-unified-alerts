@@ -2,6 +2,7 @@
 
 use App\Models\FireIncident;
 use App\Models\PoliceCall;
+use App\Services\Alerts\Mappers\UnifiedAlertMapper;
 use App\Services\Alerts\Providers\FireAlertSelectProvider;
 use App\Services\Alerts\Providers\PoliceAlertSelectProvider;
 use App\Services\Alerts\Providers\TransitAlertSelectProvider;
@@ -447,6 +448,7 @@ test('unified alerts query decodes meta to an array and never leaks json excepti
                 ]);
             }
         },
+        mapper: new UnifiedAlertMapper,
     );
 
     $results = $query->paginate(perPage: 50, status: 'all');
@@ -462,18 +464,6 @@ test('unified alerts query decodes meta to an array and never leaks json excepti
     'valid json object string' => ['{"k":1}', ['k' => 1]],
     'valid json scalar string' => ['"k"', []],
 ]);
-
-test('unified alerts query returns meta arrays as-is (defensive path)', function () {
-    $query = app(UnifiedAlertsQuery::class);
-
-    $method = new \ReflectionMethod(UnifiedAlertsQuery::class, 'decodeMeta');
-    $method->setAccessible(true);
-
-    $value = ['a' => 1, 'b' => ['c' => 2]];
-    $decoded = $method->invoke($query, $value);
-
-    expect($decoded)->toBe($value);
-});
 
 test('unified alerts query throws when timestamp is missing', function () {
     $query = new UnifiedAlertsQuery(
@@ -500,6 +490,7 @@ test('unified alerts query throws when timestamp is missing', function () {
                 ]);
             }
         },
+        mapper: new UnifiedAlertMapper,
     );
 
     expect(fn () => $query->paginate(perPage: 50, status: 'all'))
@@ -531,6 +522,7 @@ test('unified alerts query throws when timestamp is not parseable', function () 
                 ]);
             }
         },
+        mapper: new UnifiedAlertMapper,
     );
 
     expect(fn () => $query->paginate(perPage: 50, status: 'all'))

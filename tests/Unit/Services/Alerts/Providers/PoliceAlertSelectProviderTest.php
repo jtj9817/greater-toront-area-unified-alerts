@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\PoliceCall;
+use App\Services\Alerts\Mappers\UnifiedAlertMapper;
 use App\Services\Alerts\Providers\PoliceAlertSelectProvider;
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -34,13 +35,7 @@ test('police alert select provider maps unified columns', function () {
     expect((float) $row->lat)->toBe(43.65);
     expect((float) $row->lng)->toBe(-79.38);
 
-    $decodeMeta = fn (mixed $value): array => is_array($value)
-        ? $value
-        : (is_string($value) && $value !== ''
-            ? json_decode($value, true, 512, JSON_THROW_ON_ERROR)
-            : []);
-
-    $meta = $decodeMeta($row->meta);
+    $meta = UnifiedAlertMapper::decodeMeta($row->meta);
 
     expect($meta['division'])->toBe('D51');
     expect($meta['call_type_code'])->toBe('THEFT');
