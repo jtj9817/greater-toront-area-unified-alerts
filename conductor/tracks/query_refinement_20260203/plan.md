@@ -46,7 +46,7 @@
 - [ ] Task: Conductor - User Manual Verification 'Phase 2: Mapper Extraction' (Protocol in workflow.md)
 
 ## Phase 3: Provider Extensibility + Query Refactor (Dependency Inversion)
-- [~] Task: Phase 3 Preflight - Provider Contract + Tagged Injection Audit (no implementation).
+- [x] (ae995e1) Task: Phase 3 Preflight - Provider Contract + Tagged Injection Audit (no implementation).
     - [x] Audit provider unified schema for required columns and nullability expectations.
     - [x] Audit `external_id` string-casting:
         - [x] Police: already casts `external_id` (`CAST(object_id AS TEXT/CHAR)`).
