@@ -158,4 +158,3 @@ test('unified alert mapper throws when required string fields are missing or emp
     'external_id empty' => ['external_id', ''],
     'title empty' => ['title', ''],
 ]);
-

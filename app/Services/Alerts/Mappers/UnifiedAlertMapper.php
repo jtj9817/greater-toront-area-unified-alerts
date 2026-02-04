@@ -100,4 +100,3 @@ class UnifiedAlertMapper
         return $row->{$property};
     }
 }
-
