@@ -18,6 +18,7 @@ export const ALERT_DATA: AlertSectionData[] = [
                 severity: 'high',
                 iconName: 'local_fire_department',
                 accentColor: 'bg-red-500',
+                iconColor: 'text-[#d8464f]',
             },
             {
                 id: 'f2',
@@ -30,6 +31,7 @@ export const ALERT_DATA: AlertSectionData[] = [
                 severity: 'high',
                 iconName: 'warning',
                 accentColor: 'bg-yellow-500',
+                iconColor: 'text-[#d8464f]',
             },
             {
                 id: 'f3',
@@ -42,6 +44,7 @@ export const ALERT_DATA: AlertSectionData[] = [
                 severity: 'medium',
                 iconName: 'local_fire_department',
                 accentColor: 'bg-orange-400',
+                iconColor: 'text-[#e2751f]',
             },
         ],
     },
@@ -62,6 +65,7 @@ export const ALERT_DATA: AlertSectionData[] = [
                 severity: 'high',
                 iconName: 'shield',
                 accentColor: 'bg-blue-500',
+                iconColor: 'text-[#d8464f]',
             },
             {
                 id: 'p2',
@@ -74,6 +78,7 @@ export const ALERT_DATA: AlertSectionData[] = [
                 severity: 'medium',
                 iconName: 'car_crash',
                 accentColor: 'bg-blue-500',
+                iconColor: 'text-blue-500',
             },
         ],
     },
@@ -94,6 +99,7 @@ export const ALERT_DATA: AlertSectionData[] = [
                 severity: 'low',
                 iconName: 'directions_subway',
                 accentColor: 'bg-green-500',
+                iconColor: 'text-[#3d584b]',
             },
         ],
     },

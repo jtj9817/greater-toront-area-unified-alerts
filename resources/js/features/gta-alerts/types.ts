@@ -7,7 +7,8 @@ export interface AlertItem {
     type: 'fire' | 'police' | 'transit' | 'hazard' | 'medical';
     severity: 'high' | 'medium' | 'low';
     iconName: string;
-    accentColor: string; // Tailwind color class or hex, used for the left border
+    accentColor: string; // Tailwind bg-* class, used for the left border
+    iconColor: string; // Tailwind text-* class, used for the category icon
 
     // Incident Metadata
     metadata?: {

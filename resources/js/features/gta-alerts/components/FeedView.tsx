@@ -237,9 +237,9 @@ export const FeedView: React.FC<FeedViewProps> = ({
 
             {/* List Container */}
             <div className="flex-1 overflow-y-auto p-4 md:p-6">
-                <div className="mx-auto flex w-full max-w-3xl flex-col gap-4 md:gap-5">
+                <div className="grid w-full grid-cols-1 gap-4 md:grid-cols-2 md:gap-5">
                     {latestFeedUpdatedAt && (
-                        <div className="mb-2 flex items-center justify-between px-1">
+                        <div className="col-span-full mb-2 flex items-center justify-between px-1">
                             <div className="flex items-center gap-2 text-[10px] font-bold tracking-widest text-text-secondary uppercase">
                                 <span className="flex h-1.5 w-1.5 animate-pulse rounded-full bg-forest"></span>
                                 Live Feed Active
@@ -265,7 +265,7 @@ export const FeedView: React.FC<FeedViewProps> = ({
 
                     {pagination &&
                         (pagination.prevUrl || pagination.nextUrl) && (
-                            <div className="mt-2 flex items-center justify-between border-t border-white/5 pt-4">
+                            <div className="col-span-full mt-2 flex items-center justify-between border-t border-white/5 pt-4">
                                 <div className="text-xs text-text-secondary">
                                     {pagination.currentPage !== null &&
                                     pagination.lastPage !== null

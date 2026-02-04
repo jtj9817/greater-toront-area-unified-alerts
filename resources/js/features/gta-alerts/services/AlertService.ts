@@ -47,6 +47,7 @@ export class AlertService {
             severity: severity,
             iconName: this.getIconForType(type, alert.title),
             accentColor: this.getAccentColorForType(type, severity),
+            iconColor: this.getIconColorForType(type, severity),
             metadata,
         };
     }
@@ -225,6 +226,31 @@ export class AlertService {
                 return 'bg-[#d8464f]';
             default:
                 return 'bg-gray-500';
+        }
+    }
+
+    /**
+     * Returns Tailwind text color class for the category icon
+     */
+    private static getIconColorForType(
+        type: AlertItem['type'],
+        severity: string,
+    ): string {
+        if (severity === 'high') return 'text-[#d8464f]';
+
+        switch (type) {
+            case 'fire':
+                return 'text-[#e2751f]';
+            case 'police':
+                return 'text-blue-500';
+            case 'hazard':
+                return 'text-[#feb457]';
+            case 'transit':
+                return 'text-[#3d584b]';
+            case 'medical':
+                return 'text-[#d8464f]';
+            default:
+                return 'text-gray-500';
         }
     }
 

@@ -16,10 +16,10 @@ export const AlertCard: React.FC<AlertCardProps> = ({
     return (
         <article
             onClick={onViewDetails}
-            className={`group relative h-full cursor-pointer overflow-hidden rounded-lg bg-surface-dark p-4 transition-all hover:-translate-y-0.5 ${
+            className={`group relative h-full cursor-pointer overflow-hidden rounded-lg bg-surface-dark p-4 transition-all duration-200 ${
                 isSaved
                     ? 'border border-primary/50 shadow-[0_0_15px_rgba(216,70,79,0.15)]'
-                    : 'border border-white/5 shadow-lg shadow-black/20 hover:border-primary/40'
+                    : 'border border-white/5 shadow-lg shadow-black/20 hover:border-white/15 hover:bg-white/[0.03] hover:shadow-xl hover:shadow-black/30'
             } `}
         >
             <div
@@ -58,7 +58,9 @@ export const AlertCard: React.FC<AlertCardProps> = ({
                                 <Icon name="bookmark" fill={true} />
                             </span>
                         ) : (
-                            <span className="rounded-lg bg-white/5 p-2 text-white/20 transition-colors group-hover:text-primary">
+                            <span
+                                className={`rounded-lg bg-white/5 p-2 ${item.iconColor} opacity-70 transition-opacity group-hover:opacity-100`}
+                            >
                                 <Icon name={item.iconName} />
                             </span>
                         )}
