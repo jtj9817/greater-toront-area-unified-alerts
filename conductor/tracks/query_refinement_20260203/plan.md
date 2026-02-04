@@ -72,6 +72,11 @@
     - [x] Log: `storage/logs/manual_tests/query_refinement_phase_3_provider_extensibility_2026_02_04_221957.log`
 
 ## Phase 4: Cross-Driver Verification
+- [x] (a03335b) Task: Phase 4 Preflight - Cross-Driver Verification Audit (no implementation).
+    - [x] Identify current test runner DB pinning and required config changes to run against MySQL.
+    - [x] Identify missing runtime prerequisites (Sail compose / MySQL container) and propose setup steps.
+    - [x] Document driver-specific risks to validate (JSON meta, casts, UNION type coercion, ordering/collation, pagination wrapping).
+    - [x] Notes: `conductor/tracks/query_refinement_20260203/phase_4_cross_driver_preflight_audit.md`
 - [ ] Task: MySQL Testing Environment Setup.
     - [ ] Configure a test environment/command to run PHPUnit/Pest against a MySQL instance (via Sail/Docker).
     - [ ] Optional but recommended: add CI coverage for MySQL for the provider + unified query tests.
