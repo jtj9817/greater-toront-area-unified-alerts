@@ -28,19 +28,21 @@
     - [x] Log: `storage/logs/manual_tests/query_refinement_phase_1_test_refinement_2026_02_04_205926.log` (also attached to checkpoint commit via git notes)
 
 ## Phase 2: Extract Mapping Into a Dedicated Mapper (Unit-Tested)
-- [ ] Task: Phase 2 Preflight - Mapper Contract Audit (no implementation).
-    - [ ] Decide/document timestamp contract (keep fail-fast vs filter-out) and where it is enforced (providers vs mapper vs query).
-    - [ ] Define unified row schema requirements (required columns, nullability expectations, and type normalization rules).
-    - [ ] Define `meta` decoding contract (null/empty/invalid JSON => `[]`; arrays pass-through; scalar JSON => `[]`) and align provider tests to it.
-    - [ ] Define location construction rules (name-only, coords-only, and `0.0` coords must remain floats).
-    - [ ] Define unit-test matrix for `UnifiedAlertMapper::fromRow()` and which mapping assertions remain in `UnifiedAlertsQueryTest`.
-    - [ ] Decide how provider unit tests will reuse mapper meta decoding (mapper helper vs shared test utility) to avoid drift.
-- [ ] Task: Implement `UnifiedAlertMapper` (or `UnifiedAlertHydrator`) and migrate mapping logic from `UnifiedAlertsQuery`.
-    - [ ] Implement `App\Services\Alerts\Mappers\UnifiedAlertMapper` with `fromRow(object $row): UnifiedAlert`.
-    - [ ] Ensure `decodeMeta()` and location/timestamp normalization rules live in the mapper and are pure/deterministic.
-    - [ ] Write unit tests covering meta decoding (null/empty/invalid/array), location creation rules, and timestamp parsing behavior.
-    - [ ] Reduce meta-decoding drift: update provider unit tests to decode via the mapper (or a shared helper used by both), instead of duplicating ad-hoc `json_decode` logic per test file.
+- [x] (3fe7223) Task: Phase 2 Preflight - Mapper Contract Audit (no implementation).
+    - [x] Decide/document timestamp contract (keep fail-fast vs filter-out) and where it is enforced (providers vs mapper vs query).
+    - [x] Define unified row schema requirements (required columns, nullability expectations, and type normalization rules).
+    - [x] Define `meta` decoding contract (null/empty/invalid JSON => `[]`; arrays pass-through; scalar JSON => `[]`) and align provider tests to it.
+    - [x] Define location construction rules (name-only, coords-only, and `0.0` coords must remain floats).
+    - [x] Define unit-test matrix for `UnifiedAlertMapper::fromRow()` and which mapping assertions remain in `UnifiedAlertsQueryTest`.
+    - [x] Decide how provider unit tests will reuse mapper meta decoding (mapper helper vs shared test utility) to avoid drift.
+    - [x] Notes: `conductor/tracks/query_refinement_20260203/phase_2_mapper_contract_audit.md`
+- [x] (3fe7223) Task: Implement `UnifiedAlertMapper` (or `UnifiedAlertHydrator`) and migrate mapping logic from `UnifiedAlertsQuery`.
+    - [x] Implement `App\Services\Alerts\Mappers\UnifiedAlertMapper` with `fromRow(object $row): UnifiedAlert`.
+    - [x] Ensure `decodeMeta()` and location/timestamp normalization rules live in the mapper and are pure/deterministic.
+    - [x] Write unit tests covering meta decoding (null/empty/invalid/array), location creation rules, and timestamp parsing behavior.
+    - [x] Reduce meta-decoding drift: update provider unit tests to decode via the mapper (or a shared helper used by both), instead of duplicating ad-hoc `json_decode` logic per test file.
     - [ ] Coverage gate: `UnifiedAlertMapper` should reach 100% unit test coverage.
+        - [ ] Note: coverage runner unavailable in this environment (no Xdebug/PCOV). `php artisan test` passes.
 - [ ] Task: Conductor - User Manual Verification 'Phase 2: Mapper Extraction' (Protocol in workflow.md)
 
 ## Phase 3: Provider Extensibility + Query Refactor (Dependency Inversion)
