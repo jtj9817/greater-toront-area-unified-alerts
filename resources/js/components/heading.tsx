@@ -10,7 +10,10 @@ export default function Heading({
     id?: string;
 }) {
     return (
-        <header id={id || 'heading'} className={variant === 'small' ? '' : 'mb-8 space-y-0.5'}>
+        <header
+            id={id || 'heading'}
+            className={variant === 'small' ? '' : 'mb-8 space-y-0.5'}
+        >
             <h2
                 id={`${id || 'heading'}-title`}
                 className={
@@ -22,7 +25,12 @@ export default function Heading({
                 {title}
             </h2>
             {description && (
-                <p id={`${id || 'heading'}-description`} className="text-sm text-muted-foreground">{description}</p>
+                <p
+                    id={`${id || 'heading'}-description`}
+                    className="text-sm text-muted-foreground"
+                >
+                    {description}
+                </p>
             )}
         </header>
     );

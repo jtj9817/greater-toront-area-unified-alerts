@@ -33,7 +33,9 @@ export default function Profile({
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Profile settings" />
 
-            <h1 id="profile-sr-title" className="sr-only">Profile Settings</h1>
+            <h1 id="profile-sr-title" className="sr-only">
+                Profile Settings
+            </h1>
 
             <SettingsLayout>
                 <div id="profile-content" className="space-y-6">
@@ -54,8 +56,16 @@ export default function Profile({
                     >
                         {({ processing, recentlySuccessful, errors }) => (
                             <>
-                                <div id="profile-name-group" className="grid gap-2">
-                                    <Label id="profile-name-label" htmlFor="name">Name</Label>
+                                <div
+                                    id="profile-name-group"
+                                    className="grid gap-2"
+                                >
+                                    <Label
+                                        id="profile-name-label"
+                                        htmlFor="name"
+                                    >
+                                        Name
+                                    </Label>
 
                                     <Input
                                         id="name"
@@ -74,8 +84,16 @@ export default function Profile({
                                     />
                                 </div>
 
-                                <div id="profile-email-group" className="grid gap-2">
-                                    <Label id="profile-email-label" htmlFor="email">Email address</Label>
+                                <div
+                                    id="profile-email-group"
+                                    className="grid gap-2"
+                                >
+                                    <Label
+                                        id="profile-email-label"
+                                        htmlFor="email"
+                                    >
+                                        Email address
+                                    </Label>
 
                                     <Input
                                         id="email"
@@ -98,7 +116,10 @@ export default function Profile({
                                 {mustVerifyEmail &&
                                     auth.user.email_verified_at === null && (
                                         <div id="profile-verification-notice">
-                                            <p id="profile-verification-text" className="-mt-4 text-sm text-muted-foreground">
+                                            <p
+                                                id="profile-verification-text"
+                                                className="-mt-4 text-sm text-muted-foreground"
+                                            >
                                                 Your email address is
                                                 unverified.{' '}
                                                 <Link
@@ -114,7 +135,10 @@ export default function Profile({
 
                                             {status ===
                                                 'verification-link-sent' && (
-                                                <div id="profile-verification-sent" className="mt-2 text-sm font-medium text-green-600">
+                                                <div
+                                                    id="profile-verification-sent"
+                                                    className="mt-2 text-sm font-medium text-green-600"
+                                                >
                                                     A new verification link has
                                                     been sent to your email
                                                     address.
@@ -123,7 +147,10 @@ export default function Profile({
                                         </div>
                                     )}
 
-                                <div id="profile-actions" className="flex items-center gap-4">
+                                <div
+                                    id="profile-actions"
+                                    className="flex items-center gap-4"
+                                >
                                     <Button
                                         id="profile-save-button"
                                         disabled={processing}
@@ -139,7 +166,10 @@ export default function Profile({
                                         leave="transition ease-in-out"
                                         leaveTo="opacity-0"
                                     >
-                                        <p id="profile-saved-message" className="text-sm text-neutral-600">
+                                        <p
+                                            id="profile-saved-message"
+                                            className="text-sm text-neutral-600"
+                                        >
                                             Saved
                                         </p>
                                     </Transition>

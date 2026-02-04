@@ -26,20 +26,31 @@ export function Breadcrumbs({
                             const isLast = index === breadcrumbs.length - 1;
                             return (
                                 <Fragment key={index}>
-                                    <BreadcrumbItem id={`${id || 'breadcrumbs'}-item-${index}`}>
+                                    <BreadcrumbItem
+                                        id={`${id || 'breadcrumbs'}-item-${index}`}
+                                    >
                                         {isLast ? (
-                                            <BreadcrumbPage id={`${id || 'breadcrumbs'}-page-${index}`}>
+                                            <BreadcrumbPage
+                                                id={`${id || 'breadcrumbs'}-page-${index}`}
+                                            >
                                                 {item.title}
                                             </BreadcrumbPage>
                                         ) : (
-                                            <BreadcrumbLink id={`${id || 'breadcrumbs'}-link-${index}`} asChild>
+                                            <BreadcrumbLink
+                                                id={`${id || 'breadcrumbs'}-link-${index}`}
+                                                asChild
+                                            >
                                                 <Link href={item.href}>
                                                     {item.title}
                                                 </Link>
                                             </BreadcrumbLink>
                                         )}
                                     </BreadcrumbItem>
-                                    {!isLast && <BreadcrumbSeparator id={`${id || 'breadcrumbs'}-separator-${index}`} />}
+                                    {!isLast && (
+                                        <BreadcrumbSeparator
+                                            id={`${id || 'breadcrumbs'}-separator-${index}`}
+                                        />
+                                    )}
                                 </Fragment>
                             );
                         })}

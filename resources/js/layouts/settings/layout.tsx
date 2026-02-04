@@ -50,8 +50,14 @@ export default function SettingsLayout({ children }: PropsWithChildren) {
                 description="Manage your profile and account settings"
             />
 
-            <div id="settings-container" className="flex flex-col lg:flex-row lg:space-x-12">
-                <aside id="settings-sidebar" className="w-full max-w-xl lg:w-48">
+            <div
+                id="settings-container"
+                className="flex flex-col lg:flex-row lg:space-x-12"
+            >
+                <aside
+                    id="settings-sidebar"
+                    className="w-full max-w-xl lg:w-48"
+                >
                     <nav
                         id="settings-nav"
                         className="flex flex-col space-y-1 space-x-0"
@@ -68,9 +74,15 @@ export default function SettingsLayout({ children }: PropsWithChildren) {
                                     'bg-muted': isCurrentUrl(item.href),
                                 })}
                             >
-                                <Link id={`settings-nav-link-${index}`} href={item.href}>
+                                <Link
+                                    id={`settings-nav-link-${index}`}
+                                    href={item.href}
+                                >
                                     {item.icon && (
-                                        <item.icon id={`settings-nav-icon-${index}`} className="h-4 w-4" />
+                                        <item.icon
+                                            id={`settings-nav-icon-${index}`}
+                                            className="h-4 w-4"
+                                        />
                                     )}
                                     {item.title}
                                 </Link>
@@ -82,7 +94,10 @@ export default function SettingsLayout({ children }: PropsWithChildren) {
                 <Separator id="settings-separator" className="my-6 lg:hidden" />
 
                 <div id="settings-content" className="flex-1 md:max-w-2xl">
-                    <section id="settings-section" className="max-w-xl space-y-12">
+                    <section
+                        id="settings-section"
+                        className="max-w-xl space-y-12"
+                    >
                         {children}
                     </section>
                 </div>

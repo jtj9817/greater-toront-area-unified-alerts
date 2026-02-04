@@ -55,8 +55,15 @@ export default function TwoFactorRecoveryCodes({
     return (
         <Card id="two-factor-recovery-codes-card">
             <CardHeader id="two-factor-recovery-codes-header">
-                <CardTitle id="two-factor-recovery-codes-title" className="flex gap-3">
-                    <LockKeyhole id="two-factor-recovery-codes-icon" className="size-4" aria-hidden="true" />
+                <CardTitle
+                    id="two-factor-recovery-codes-title"
+                    className="flex gap-3"
+                >
+                    <LockKeyhole
+                        id="two-factor-recovery-codes-icon"
+                        className="size-4"
+                        aria-hidden="true"
+                    />
                     2FA Recovery Codes
                 </CardTitle>
                 <CardDescription id="two-factor-recovery-codes-description">
@@ -65,7 +72,10 @@ export default function TwoFactorRecoveryCodes({
                 </CardDescription>
             </CardHeader>
             <CardContent id="two-factor-recovery-codes-content">
-                <div id="two-factor-recovery-codes-actions" className="flex flex-col gap-3 select-none sm:flex-row sm:items-center sm:justify-between">
+                <div
+                    id="two-factor-recovery-codes-actions"
+                    className="flex flex-col gap-3 select-none sm:flex-row sm:items-center sm:justify-between"
+                >
                     <Button
                         id="two-factor-recovery-codes-toggle"
                         onClick={toggleCodesVisibility}
@@ -95,7 +105,8 @@ export default function TwoFactorRecoveryCodes({
                                     disabled={processing}
                                     aria-describedby="regenerate-warning"
                                 >
-                                    <RefreshCw id="two-factor-recovery-codes-refresh-icon" /> Regenerate Codes
+                                    <RefreshCw id="two-factor-recovery-codes-refresh-icon" />{' '}
+                                    Regenerate Codes
                                 </Button>
                             )}
                         </Form>
@@ -106,7 +117,10 @@ export default function TwoFactorRecoveryCodes({
                     className={`relative overflow-hidden transition-all duration-300 ${codesAreVisible ? 'h-auto opacity-100' : 'h-0 opacity-0'}`}
                     aria-hidden={!codesAreVisible}
                 >
-                    <div id="two-factor-recovery-codes-list-container" className="mt-3 space-y-3">
+                    <div
+                        id="two-factor-recovery-codes-list-container"
+                        className="mt-3 space-y-3"
+                    >
                         {errors?.length ? (
                             <AlertError errors={errors} />
                         ) : (
@@ -150,12 +164,18 @@ export default function TwoFactorRecoveryCodes({
                                     )}
                                 </div>
 
-                                <div id="two-factor-recovery-codes-warning" className="text-xs text-muted-foreground select-none">
+                                <div
+                                    id="two-factor-recovery-codes-warning"
+                                    className="text-xs text-muted-foreground select-none"
+                                >
                                     <p id="regenerate-warning">
                                         Each recovery code can be used once to
                                         access your account and will be removed
                                         after use. If you need more, click{' '}
-                                        <span id="two-factor-recovery-codes-regenerate-text" className="font-bold">
+                                        <span
+                                            id="two-factor-recovery-codes-regenerate-text"
+                                            className="font-bold"
+                                        >
                                             Regenerate Codes
                                         </span>{' '}
                                         above.

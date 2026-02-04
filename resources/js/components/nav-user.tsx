@@ -33,7 +33,10 @@ export function NavUser() {
                             data-test="sidebar-menu-button"
                         >
                             <UserInfo user={auth.user} />
-                            <ChevronsUpDown id="nav-user-chevron" className="ml-auto size-4" />
+                            <ChevronsUpDown
+                                id="nav-user-chevron"
+                                className="ml-auto size-4"
+                            />
                         </SidebarMenuButton>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent

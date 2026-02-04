@@ -25,7 +25,10 @@ export function NavFooter({
             <SidebarGroupContent id="nav-footer-content">
                 <SidebarMenu id="nav-footer-menu">
                     {items.map((item, index) => (
-                        <SidebarMenuItem id={`nav-footer-item-${index}`} key={item.title}>
+                        <SidebarMenuItem
+                            id={`nav-footer-item-${index}`}
+                            key={item.title}
+                        >
                             <SidebarMenuButton
                                 id={`nav-footer-button-${index}`}
                                 asChild
@@ -38,7 +41,10 @@ export function NavFooter({
                                     rel="noopener noreferrer"
                                 >
                                     {item.icon && (
-                                        <item.icon id={`nav-footer-icon-${index}`} className="h-5 w-5" />
+                                        <item.icon
+                                            id={`nav-footer-icon-${index}`}
+                                            className="h-5 w-5"
+                                        />
                                     )}
                                     <span>{item.title}</span>
                                 </a>

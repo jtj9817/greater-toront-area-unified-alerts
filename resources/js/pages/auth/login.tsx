@@ -39,7 +39,9 @@ export default function Login({
                     <>
                         <div id="login-form-fields" className="grid gap-6">
                             <div id="login-email-group" className="grid gap-2">
-                                <Label id="login-email-label" htmlFor="email">Email address</Label>
+                                <Label id="login-email-label" htmlFor="email">
+                                    Email address
+                                </Label>
                                 <Input
                                     id="email"
                                     type="email"
@@ -50,12 +52,26 @@ export default function Login({
                                     autoComplete="email"
                                     placeholder="email@example.com"
                                 />
-                                <InputError id="login-email-error" message={errors.email} />
+                                <InputError
+                                    id="login-email-error"
+                                    message={errors.email}
+                                />
                             </div>
 
-                            <div id="login-password-group" className="grid gap-2">
-                                <div id="login-password-label-row" className="flex items-center">
-                                    <Label id="login-password-label" htmlFor="password">Password</Label>
+                            <div
+                                id="login-password-group"
+                                className="grid gap-2"
+                            >
+                                <div
+                                    id="login-password-label-row"
+                                    className="flex items-center"
+                                >
+                                    <Label
+                                        id="login-password-label"
+                                        htmlFor="password"
+                                    >
+                                        Password
+                                    </Label>
                                     {canResetPassword && (
                                         <TextLink
                                             id="login-forgot-password-link"
@@ -76,16 +92,27 @@ export default function Login({
                                     autoComplete="current-password"
                                     placeholder="Password"
                                 />
-                                <InputError id="login-password-error" message={errors.password} />
+                                <InputError
+                                    id="login-password-error"
+                                    message={errors.password}
+                                />
                             </div>
 
-                            <div id="login-remember-group" className="flex items-center space-x-3">
+                            <div
+                                id="login-remember-group"
+                                className="flex items-center space-x-3"
+                            >
                                 <Checkbox
                                     id="remember"
                                     name="remember"
                                     tabIndex={3}
                                 />
-                                <Label id="login-remember-label" htmlFor="remember">Remember me</Label>
+                                <Label
+                                    id="login-remember-label"
+                                    htmlFor="remember"
+                                >
+                                    Remember me
+                                </Label>
                             </div>
 
                             <Button
@@ -102,9 +129,16 @@ export default function Login({
                         </div>
 
                         {canRegister && (
-                            <div id="login-register-prompt" className="text-center text-sm text-muted-foreground">
+                            <div
+                                id="login-register-prompt"
+                                className="text-center text-sm text-muted-foreground"
+                            >
                                 Don't have an account?{' '}
-                                <TextLink id="login-register-link" href={register()} tabIndex={5}>
+                                <TextLink
+                                    id="login-register-link"
+                                    href={register()}
+                                    tabIndex={5}
+                                >
                                     Sign up
                                 </TextLink>
                             </div>
@@ -114,7 +148,10 @@ export default function Login({
             </Form>
 
             {status && (
-                <div id="login-status-message" className="mb-4 text-center text-sm font-medium text-green-600">
+                <div
+                    id="login-status-message"
+                    className="mb-4 text-center text-sm font-medium text-green-600"
+                >
                     {status}
                 </div>
             )}

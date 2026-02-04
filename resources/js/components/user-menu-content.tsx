@@ -27,7 +27,10 @@ export function UserMenuContent({ user }: Props) {
     return (
         <>
             <DropdownMenuLabel id="user-menu-label" className="p-0 font-normal">
-                <div id="user-menu-info" className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
+                <div
+                    id="user-menu-info"
+                    className="flex items-center gap-2 px-1 py-1.5 text-left text-sm"
+                >
                     <UserInfo user={user} showEmail={true} />
                 </div>
             </DropdownMenuLabel>
@@ -41,7 +44,10 @@ export function UserMenuContent({ user }: Props) {
                         prefetch
                         onClick={cleanup}
                     >
-                        <Settings id="user-menu-settings-icon" className="mr-2" />
+                        <Settings
+                            id="user-menu-settings-icon"
+                            className="mr-2"
+                        />
                         Settings
                     </Link>
                 </DropdownMenuItem>

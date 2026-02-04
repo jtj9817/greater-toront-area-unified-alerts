@@ -71,8 +71,14 @@ export function AppHeader({ breadcrumbs = [], id }: Props & { id?: string }) {
     const { isCurrentUrl, whenCurrentUrl } = useCurrentUrl();
     return (
         <>
-            <div id={id || 'app-header'} className="border-b border-sidebar-border/80">
-                <div id="app-header-container" className="mx-auto flex h-16 items-center px-4 md:max-w-7xl">
+            <div
+                id={id || 'app-header'}
+                className="border-b border-sidebar-border/80"
+            >
+                <div
+                    id="app-header-container"
+                    className="mx-auto flex h-16 items-center px-4 md:max-w-7xl"
+                >
                     {/* Mobile Menu */}
                     <div id="app-header-mobile-menu" className="lg:hidden">
                         <Sheet>
@@ -83,7 +89,10 @@ export function AppHeader({ breadcrumbs = [], id }: Props & { id?: string }) {
                                     size="icon"
                                     className="mr-2 h-[34px] w-[34px]"
                                 >
-                                    <Menu id="app-header-menu-icon" className="h-5 w-5" />
+                                    <Menu
+                                        id="app-header-menu-icon"
+                                        className="h-5 w-5"
+                                    />
                                 </Button>
                             </SheetTrigger>
                             <SheetContent
@@ -91,15 +100,33 @@ export function AppHeader({ breadcrumbs = [], id }: Props & { id?: string }) {
                                 side="left"
                                 className="flex h-full w-64 flex-col items-stretch justify-between bg-sidebar"
                             >
-                                <SheetTitle id="app-header-sheet-title" className="sr-only">
+                                <SheetTitle
+                                    id="app-header-sheet-title"
+                                    className="sr-only"
+                                >
                                     Navigation Menu
                                 </SheetTitle>
-                                <SheetHeader id="app-header-sheet-header" className="flex justify-start text-left">
-                                    <AppLogoIcon id="app-header-mobile-logo" className="h-6 w-6 fill-current text-black dark:text-white" />
+                                <SheetHeader
+                                    id="app-header-sheet-header"
+                                    className="flex justify-start text-left"
+                                >
+                                    <AppLogoIcon
+                                        id="app-header-mobile-logo"
+                                        className="h-6 w-6 fill-current text-black dark:text-white"
+                                    />
                                 </SheetHeader>
-                                <div id="app-header-mobile-nav" className="flex h-full flex-1 flex-col space-y-4 p-4">
-                                    <div id="app-header-mobile-nav-main" className="flex h-full flex-col justify-between text-sm">
-                                        <div id="app-header-mobile-nav-items" className="flex flex-col space-y-4">
+                                <div
+                                    id="app-header-mobile-nav"
+                                    className="flex h-full flex-1 flex-col space-y-4 p-4"
+                                >
+                                    <div
+                                        id="app-header-mobile-nav-main"
+                                        className="flex h-full flex-col justify-between text-sm"
+                                    >
+                                        <div
+                                            id="app-header-mobile-nav-items"
+                                            className="flex flex-col space-y-4"
+                                        >
                                             {mainNavItems.map((item) => (
                                                 <Link
                                                     id={`app-header-mobile-link-${item.title.toLowerCase()}`}
@@ -108,14 +135,20 @@ export function AppHeader({ breadcrumbs = [], id }: Props & { id?: string }) {
                                                     className="flex items-center space-x-2 font-medium"
                                                 >
                                                     {item.icon && (
-                                                        <item.icon id={`app-header-mobile-icon-${item.title.toLowerCase()}`} className="h-5 w-5" />
+                                                        <item.icon
+                                                            id={`app-header-mobile-icon-${item.title.toLowerCase()}`}
+                                                            className="h-5 w-5"
+                                                        />
                                                     )}
                                                     <span>{item.title}</span>
                                                 </Link>
                                             ))}
                                         </div>
 
-                                        <div id="app-header-mobile-nav-footer" className="flex flex-col space-y-4">
+                                        <div
+                                            id="app-header-mobile-nav-footer"
+                                            className="flex flex-col space-y-4"
+                                        >
                                             {rightNavItems.map((item) => (
                                                 <a
                                                     id={`app-header-mobile-external-${item.title.toLowerCase()}`}
@@ -126,7 +159,10 @@ export function AppHeader({ breadcrumbs = [], id }: Props & { id?: string }) {
                                                     className="flex items-center space-x-2 font-medium"
                                                 >
                                                     {item.icon && (
-                                                        <item.icon id={`app-header-mobile-external-icon-${item.title.toLowerCase()}`} className="h-5 w-5" />
+                                                        <item.icon
+                                                            id={`app-header-mobile-external-icon-${item.title.toLowerCase()}`}
+                                                            className="h-5 w-5"
+                                                        />
                                                     )}
                                                     <span>{item.title}</span>
                                                 </a>
@@ -148,9 +184,18 @@ export function AppHeader({ breadcrumbs = [], id }: Props & { id?: string }) {
                     </Link>
 
                     {/* Desktop Navigation */}
-                    <div id="app-header-desktop-nav" className="ml-6 hidden h-full items-center space-x-6 lg:flex">
-                        <NavigationMenu id="app-header-nav-menu" className="flex h-full items-stretch">
-                            <NavigationMenuList id="app-header-nav-list" className="flex h-full items-stretch space-x-2">
+                    <div
+                        id="app-header-desktop-nav"
+                        className="ml-6 hidden h-full items-center space-x-6 lg:flex"
+                    >
+                        <NavigationMenu
+                            id="app-header-nav-menu"
+                            className="flex h-full items-stretch"
+                        >
+                            <NavigationMenuList
+                                id="app-header-nav-list"
+                                className="flex h-full items-stretch space-x-2"
+                            >
                                 {mainNavItems.map((item, index) => (
                                     <NavigationMenuItem
                                         id={`app-header-nav-item-${index}`}
@@ -170,12 +215,18 @@ export function AppHeader({ breadcrumbs = [], id }: Props & { id?: string }) {
                                             )}
                                         >
                                             {item.icon && (
-                                                <item.icon id={`app-header-nav-icon-${index}`} className="mr-2 h-4 w-4" />
+                                                <item.icon
+                                                    id={`app-header-nav-icon-${index}`}
+                                                    className="mr-2 h-4 w-4"
+                                                />
                                             )}
                                             {item.title}
                                         </Link>
                                         {isCurrentUrl(item.href) && (
-                                            <div id={`app-header-nav-indicator-${index}`} className="absolute bottom-0 left-0 h-0.5 w-full translate-y-px bg-black dark:bg-white"></div>
+                                            <div
+                                                id={`app-header-nav-indicator-${index}`}
+                                                className="absolute bottom-0 left-0 h-0.5 w-full translate-y-px bg-black dark:bg-white"
+                                            ></div>
                                         )}
                                     </NavigationMenuItem>
                                 ))}
@@ -183,17 +234,29 @@ export function AppHeader({ breadcrumbs = [], id }: Props & { id?: string }) {
                         </NavigationMenu>
                     </div>
 
-                    <div id="app-header-actions" className="ml-auto flex items-center space-x-2">
-                        <div id="app-header-search-container" className="relative flex items-center space-x-1">
+                    <div
+                        id="app-header-actions"
+                        className="ml-auto flex items-center space-x-2"
+                    >
+                        <div
+                            id="app-header-search-container"
+                            className="relative flex items-center space-x-1"
+                        >
                             <Button
                                 id="app-header-search-button"
                                 variant="ghost"
                                 size="icon"
                                 className="group h-9 w-9 cursor-pointer"
                             >
-                                <Search id="app-header-search-icon" className="!size-5 opacity-80 group-hover:opacity-100" />
+                                <Search
+                                    id="app-header-search-icon"
+                                    className="!size-5 opacity-80 group-hover:opacity-100"
+                                />
                             </Button>
-                            <div id="app-header-right-nav" className="ml-1 hidden gap-1 lg:flex">
+                            <div
+                                id="app-header-right-nav"
+                                className="ml-1 hidden gap-1 lg:flex"
+                            >
                                 {rightNavItems.map((item) => (
                                     <TooltipProvider
                                         key={item.title}
@@ -208,15 +271,23 @@ export function AppHeader({ breadcrumbs = [], id }: Props & { id?: string }) {
                                                     rel="noopener noreferrer"
                                                     className="group inline-flex h-9 w-9 items-center justify-center rounded-md bg-transparent p-0 text-sm font-medium text-accent-foreground ring-offset-background transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50"
                                                 >
-                                                    <span id={`app-header-external-sr-${item.title.toLowerCase()}`} className="sr-only">
+                                                    <span
+                                                        id={`app-header-external-sr-${item.title.toLowerCase()}`}
+                                                        className="sr-only"
+                                                    >
                                                         {item.title}
                                                     </span>
                                                     {item.icon && (
-                                                        <item.icon id={`app-header-external-icon-${item.title.toLowerCase()}`} className="size-5 opacity-80 group-hover:opacity-100" />
+                                                        <item.icon
+                                                            id={`app-header-external-icon-${item.title.toLowerCase()}`}
+                                                            className="size-5 opacity-80 group-hover:opacity-100"
+                                                        />
                                                     )}
                                                 </a>
                                             </TooltipTrigger>
-                                            <TooltipContent id={`app-header-tooltip-content-${item.title.toLowerCase()}`}>
+                                            <TooltipContent
+                                                id={`app-header-tooltip-content-${item.title.toLowerCase()}`}
+                                            >
                                                 <p>{item.title}</p>
                                             </TooltipContent>
                                         </Tooltip>
@@ -231,19 +302,29 @@ export function AppHeader({ breadcrumbs = [], id }: Props & { id?: string }) {
                                     variant="ghost"
                                     className="size-10 rounded-full p-1"
                                 >
-                                    <Avatar id="app-header-user-avatar" className="size-8 overflow-hidden rounded-full">
+                                    <Avatar
+                                        id="app-header-user-avatar"
+                                        className="size-8 overflow-hidden rounded-full"
+                                    >
                                         <AvatarImage
                                             id="app-header-user-avatar-image"
                                             src={auth.user.avatar}
                                             alt={auth.user.name}
                                         />
-                                        <AvatarFallback id="app-header-user-avatar-fallback" className="rounded-lg bg-neutral-200 text-black dark:bg-neutral-700 dark:text-white">
+                                        <AvatarFallback
+                                            id="app-header-user-avatar-fallback"
+                                            className="rounded-lg bg-neutral-200 text-black dark:bg-neutral-700 dark:text-white"
+                                        >
                                             {getInitials(auth.user.name)}
                                         </AvatarFallback>
                                     </Avatar>
                                 </Button>
                             </DropdownMenuTrigger>
-                            <DropdownMenuContent id="app-header-user-dropdown" className="w-56" align="end">
+                            <DropdownMenuContent
+                                id="app-header-user-dropdown"
+                                className="w-56"
+                                align="end"
+                            >
                                 <UserMenuContent user={auth.user} />
                             </DropdownMenuContent>
                         </DropdownMenu>
@@ -251,9 +332,18 @@ export function AppHeader({ breadcrumbs = [], id }: Props & { id?: string }) {
                 </div>
             </div>
             {breadcrumbs.length > 1 && (
-                <div id="app-header-breadcrumbs-bar" className="flex w-full border-b border-sidebar-border/70">
-                    <div id="app-header-breadcrumbs-container" className="mx-auto flex h-12 w-full items-center justify-start px-4 text-neutral-500 md:max-w-7xl">
-                        <Breadcrumbs id="app-header-breadcrumbs" breadcrumbs={breadcrumbs} />
+                <div
+                    id="app-header-breadcrumbs-bar"
+                    className="flex w-full border-b border-sidebar-border/70"
+                >
+                    <div
+                        id="app-header-breadcrumbs-container"
+                        className="mx-auto flex h-12 w-full items-center justify-start px-4 text-neutral-500 md:max-w-7xl"
+                    >
+                        <Breadcrumbs
+                            id="app-header-breadcrumbs"
+                            breadcrumbs={breadcrumbs}
+                        />
                     </div>
                 </div>
             )}

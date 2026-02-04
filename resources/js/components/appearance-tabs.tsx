@@ -38,8 +38,16 @@ export default function AppearanceToggleTab({
                             : 'text-neutral-500 hover:bg-neutral-200/60 hover:text-black dark:text-neutral-400 dark:hover:bg-neutral-700/60',
                     )}
                 >
-                    <Icon id={`appearance-tab-icon-${value}`} className="-ml-1 h-4 w-4" />
-                    <span id={`appearance-tab-label-${value}`} className="ml-1.5 text-sm">{label}</span>
+                    <Icon
+                        id={`appearance-tab-icon-${value}`}
+                        className="-ml-1 h-4 w-4"
+                    />
+                    <span
+                        id={`appearance-tab-label-${value}`}
+                        className="ml-1.5 text-sm"
+                    >
+                        {label}
+                    </span>
                 </button>
             ))}
         </div>
