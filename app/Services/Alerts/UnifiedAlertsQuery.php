@@ -61,12 +61,23 @@ class UnifiedAlertsQuery
             );
         }
 
+        $rawTimestamp = $row->timestamp ?? null;
+        if ($rawTimestamp === null || $rawTimestamp === '') {
+            throw new \InvalidArgumentException('Unified alert timestamp is required.');
+        }
+
+        try {
+            $timestamp = CarbonImmutable::parse($rawTimestamp);
+        } catch (\Throwable $exception) {
+            throw new \InvalidArgumentException('Unified alert timestamp is not parseable.', previous: $exception);
+        }
+
         return new UnifiedAlert(
             id: (string) $row->id,
             source: (string) $row->source,
             externalId: (string) $row->external_id,
             isActive: (bool) $row->is_active,
-            timestamp: CarbonImmutable::parse($row->timestamp),
+            timestamp: $timestamp,
             title: (string) $row->title,
             location: $location,
             meta: $this->decodeMeta($row->meta ?? null),

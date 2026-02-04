@@ -2,12 +2,17 @@
 
 use App\Models\FireIncident;
 use App\Models\PoliceCall;
+use App\Services\Alerts\Providers\FireAlertSelectProvider;
+use App\Services\Alerts\Providers\PoliceAlertSelectProvider;
+use App\Services\Alerts\Providers\TransitAlertSelectProvider;
 use App\Services\Alerts\DTOs\UnifiedAlert;
 use App\Services\Alerts\UnifiedAlertsQuery;
 use Database\Seeders\UnifiedAlertsTestSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Database\Query\Builder;
 use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 
 uses(RefreshDatabase::class);
 
@@ -44,6 +49,86 @@ function expectAlertsOrderedByDeterministicTuple(array $items): void
     }
 }
 
+/**
+ * @param  array<int, UnifiedAlert>  $items
+ */
+function expectUnifiedAlertsHaveValidIdentifiers(array $items): void
+{
+    $ids = [];
+
+    foreach ($items as $item) {
+        expect($item)->toBeInstanceOf(UnifiedAlert::class);
+        expect($item->id)->not->toBeEmpty();
+        expect($item->source)->not->toBeEmpty();
+        expect($item->externalId)->not->toBeEmpty();
+        expect($item->isActive)->toBeBool();
+        expect($item->timestamp)->toBeInstanceOf(\Carbon\CarbonImmutable::class);
+        expect($item->meta)->toBeArray();
+
+        if ($item->location !== null) {
+            if ($item->location->name !== null) {
+                expect($item->location->name)->toBeString();
+            }
+
+            if ($item->location->lat !== null) {
+                expect($item->location->lat)->toBeFloat();
+            }
+
+            if ($item->location->lng !== null) {
+                expect($item->location->lng)->toBeFloat();
+            }
+        }
+
+        $ids[] = $item->id;
+    }
+
+    expect($ids)->toHaveCount(count(array_unique($ids)));
+}
+
+function emptyUnifiedSelect(string $source): Builder
+{
+    return DB::query()
+        ->selectRaw(
+            "NULL as id,\n            ? as source,\n            NULL as external_id,\n            0 as is_active,\n            NULL as timestamp,\n            NULL as title,\n            NULL as location_name,\n            NULL as lat,\n            NULL as lng,\n            NULL as meta",
+            [$source]
+        )
+        ->whereRaw('1 = 0');
+}
+
+function singleRowUnifiedSelect(array $overrides = []): Builder
+{
+    $defaults = [
+        'id' => 'test:1',
+        'source' => 'test',
+        'external_id' => '1',
+        'is_active' => 1,
+        'timestamp' => '2026-02-02 12:00:00',
+        'title' => 'TEST',
+        'location_name' => null,
+        'lat' => null,
+        'lng' => null,
+        'meta' => null,
+    ];
+
+    $data = array_merge($defaults, $overrides);
+
+    return DB::query()->selectRaw(
+        "? as id,\n        ? as source,\n        ? as external_id,\n        ? as is_active,\n        ? as timestamp,\n        ? as title,\n        ? as location_name,\n        ? as lat,\n        ? as lng,\n        ? as meta",
+        [
+            $data['id'],
+            $data['source'],
+            $data['external_id'],
+            $data['is_active'],
+            $data['timestamp'],
+            $data['title'],
+            $data['location_name'],
+            $data['lat'],
+            $data['lng'],
+            $data['meta'],
+        ],
+    );
+}
+
 test('unified alerts query returns empty results when there are no source rows', function () {
     $results = app(UnifiedAlertsQuery::class)->paginate(perPage: 50, status: 'all');
 
@@ -74,6 +159,7 @@ test('unified alerts query returns a mixed feed ordered by timestamp desc', func
     ]);
 
     expectAlertsOrderedByDeterministicTuple($results->items());
+    expectUnifiedAlertsHaveValidIdentifiers($results->items());
 });
 
 test('unified alerts query filters by status', function () {
@@ -82,6 +168,7 @@ test('unified alerts query filters by status', function () {
 
     $active = app(UnifiedAlertsQuery::class)->paginate(perPage: 50, status: 'active');
     expect($active->total())->toBe(4);
+    expect(collect($active->items())->every(fn (UnifiedAlert $a) => $a->isActive))->toBeTrue();
 
     $activeIds = collect($active->items())->map(fn (UnifiedAlert $a) => $a->id)->all();
     expect($activeIds)->toBe([
@@ -93,6 +180,7 @@ test('unified alerts query filters by status', function () {
 
     $cleared = app(UnifiedAlertsQuery::class)->paginate(perPage: 50, status: 'cleared');
     expect($cleared->total())->toBe(4);
+    expect(collect($cleared->items())->every(fn (UnifiedAlert $a) => ! $a->isActive))->toBeTrue();
 
     $clearedIds = collect($cleared->items())->map(fn (UnifiedAlert $a) => $a->id)->all();
     expect($clearedIds)->toBe([
@@ -158,6 +246,26 @@ test('unified alerts query creates a location dto when any location fields are p
         'is_active' => true,
     ]);
 
+    PoliceCall::factory()->create([
+        'object_id' => 778,
+        'call_type' => 'THEFT',
+        'cross_streets' => null,
+        'latitude' => 43.6500,
+        'longitude' => -79.3800,
+        'occurrence_time' => $policeTimestamp->copy()->addSecond(),
+        'is_active' => true,
+    ]);
+
+    PoliceCall::factory()->create([
+        'object_id' => 779,
+        'call_type' => 'THEFT',
+        'cross_streets' => null,
+        'latitude' => 0.0,
+        'longitude' => 0.0,
+        'occurrence_time' => $policeTimestamp->copy()->addSeconds(2),
+        'is_active' => true,
+    ]);
+
     $results = app(UnifiedAlertsQuery::class)->paginate(perPage: 50, status: 'all');
     $byId = collect($results->items())->keyBy(fn (UnifiedAlert $a) => $a->id);
 
@@ -176,6 +284,22 @@ test('unified alerts query creates a location dto when any location fields are p
     expect($police->location?->name)->toBe('Queen St - Spadina Ave');
     expect($police->location?->lat)->toBe(43.65);
     expect($police->location?->lng)->toBe(-79.38);
+
+    /** @var UnifiedAlert $coordsOnly */
+    $coordsOnly = $byId->get('police:778');
+    expect($coordsOnly)->not->toBeNull();
+    expect($coordsOnly->location)->not->toBeNull();
+    expect($coordsOnly->location?->name)->toBeNull();
+    expect($coordsOnly->location?->lat)->toBe(43.65);
+    expect($coordsOnly->location?->lng)->toBe(-79.38);
+
+    /** @var UnifiedAlert $zeroCoords */
+    $zeroCoords = $byId->get('police:779');
+    expect($zeroCoords)->not->toBeNull();
+    expect($zeroCoords->location)->not->toBeNull();
+    expect($zeroCoords->location?->name)->toBeNull();
+    expect($zeroCoords->location?->lat)->toBe(0.0);
+    expect($zeroCoords->location?->lng)->toBe(0.0);
 });
 
 test('unified alerts query paginates deterministically', function () {
@@ -197,6 +321,7 @@ test('unified alerts query paginates deterministically', function () {
     ]);
 
     expectAlertsOrderedByDeterministicTuple($page2->items());
+    expectUnifiedAlertsHaveValidIdentifiers($page2->items());
 });
 
 test('unified alerts query uses deterministic tie-breakers for identical timestamps', function () {
@@ -238,6 +363,7 @@ test('unified alerts query uses deterministic tie-breakers for identical timesta
     ]);
 
     expectAlertsOrderedByDeterministicTuple($results->items());
+    expectUnifiedAlertsHaveValidIdentifiers($results->items());
 });
 
 test('unified alerts query stays stable when ties cross a page boundary', function () {
@@ -283,9 +409,130 @@ test('unified alerts query stays stable when ties cross a page boundary', functi
 
     expectAlertsOrderedByDeterministicTuple($page1->items());
     expectAlertsOrderedByDeterministicTuple($page2->items());
+
+    expectUnifiedAlertsHaveValidIdentifiers($page1->items());
+    expectUnifiedAlertsHaveValidIdentifiers($page2->items());
 });
 
 test('unified alerts query throws for invalid status values', function () {
     expect(fn () => app(UnifiedAlertsQuery::class)->paginate(perPage: 50, status: 'invalid'))
+        ->toThrow(\InvalidArgumentException::class);
+});
+
+test('unified alerts query decodes meta to an array and never leaks json exceptions', function (mixed $meta, array $expected) {
+    $query = new UnifiedAlertsQuery(
+        fire: new class extends FireAlertSelectProvider {
+            public function select(): Builder
+            {
+                return emptyUnifiedSelect('fire');
+            }
+        },
+        police: new class extends PoliceAlertSelectProvider {
+            public function select(): Builder
+            {
+                return emptyUnifiedSelect('police');
+            }
+        },
+        transit: new class($meta) extends TransitAlertSelectProvider {
+            public function __construct(private readonly mixed $meta) {}
+
+            public function select(): Builder
+            {
+                return singleRowUnifiedSelect([
+                    'id' => 'meta:1',
+                    'source' => 'fire',
+                    'external_id' => '1',
+                    'timestamp' => '2026-02-02 12:00:00',
+                    'meta' => $this->meta,
+                ]);
+            }
+        },
+    );
+
+    $results = $query->paginate(perPage: 50, status: 'all');
+    expect($results->items())->toHaveCount(1);
+
+    /** @var UnifiedAlert $alert */
+    $alert = $results->items()[0];
+    expect($alert->meta)->toBe($expected);
+})->with([
+    'null meta' => [null, []],
+    'empty meta string' => ['', []],
+    'invalid json string' => ['{', []],
+    'valid json object string' => ['{"k":1}', ['k' => 1]],
+    'valid json scalar string' => ['"k"', []],
+]);
+
+test('unified alerts query returns meta arrays as-is (defensive path)', function () {
+    $query = app(UnifiedAlertsQuery::class);
+
+    $method = new \ReflectionMethod(UnifiedAlertsQuery::class, 'decodeMeta');
+    $method->setAccessible(true);
+
+    $value = ['a' => 1, 'b' => ['c' => 2]];
+    $decoded = $method->invoke($query, $value);
+
+    expect($decoded)->toBe($value);
+});
+
+test('unified alerts query throws when timestamp is missing', function () {
+    $query = new UnifiedAlertsQuery(
+        fire: new class extends FireAlertSelectProvider {
+            public function select(): Builder
+            {
+                return emptyUnifiedSelect('fire');
+            }
+        },
+        police: new class extends PoliceAlertSelectProvider {
+            public function select(): Builder
+            {
+                return emptyUnifiedSelect('police');
+            }
+        },
+        transit: new class extends TransitAlertSelectProvider {
+            public function select(): Builder
+            {
+                return singleRowUnifiedSelect([
+                    'id' => 'ts:missing',
+                    'source' => 'fire',
+                    'external_id' => '1',
+                    'timestamp' => null,
+                ]);
+            }
+        },
+    );
+
+    expect(fn () => $query->paginate(perPage: 50, status: 'all'))
+        ->toThrow(\InvalidArgumentException::class);
+});
+
+test('unified alerts query throws when timestamp is not parseable', function () {
+    $query = new UnifiedAlertsQuery(
+        fire: new class extends FireAlertSelectProvider {
+            public function select(): Builder
+            {
+                return emptyUnifiedSelect('fire');
+            }
+        },
+        police: new class extends PoliceAlertSelectProvider {
+            public function select(): Builder
+            {
+                return emptyUnifiedSelect('police');
+            }
+        },
+        transit: new class extends TransitAlertSelectProvider {
+            public function select(): Builder
+            {
+                return singleRowUnifiedSelect([
+                    'id' => 'ts:bad',
+                    'source' => 'fire',
+                    'external_id' => '1',
+                    'timestamp' => 'not-a-timestamp',
+                ]);
+            }
+        },
+    );
+
+    expect(fn () => $query->paginate(perPage: 50, status: 'all'))
         ->toThrow(\InvalidArgumentException::class);
 });
