@@ -89,13 +89,15 @@
 ## Phase 5: Type-Safe Service Boundary (Enums/Criteria)
 - [x] Task: Phase 5 Preflight - Type-Safe Boundary Audit (no implementation).
     - [x] Notes: `conductor/tracks/query_refinement_20260203/phase_5_type_safe_boundary_preflight_audit.md`
-- [ ] Task: Introduce type-safe query contracts.
-    - [ ] Create `App\Enums\AlertStatus` (all, active, cleared) and use it at the controller/service boundary.
-    - [ ] Create `App\Enums\AlertSource` (fire, police, transit) and use it as the canonical source identifier throughout the subsystem.
-    - [ ] Create `App\Services\Alerts\DTOs\UnifiedAlertsCriteria` to encapsulate query params (status, per-page, explicit page).
-    - [ ] Update `UnifiedAlertsQuery` + `GtaAlertsController` call sites to accept criteria (or equivalent) rather than string/int primitives.
-    - [ ] Update any affected frontend types under `resources/js/features/gta-alerts/` if transport changes occur.
-- [ ] Task: Conductor - User Manual Verification 'Phase 5: Type-Safe Boundary' (Protocol in workflow.md)
+- [x] Task: Introduce type-safe query contracts.
+    - [x] Create `App\Enums\AlertStatus` (all, active, cleared) and use it at the controller/service boundary.
+    - [x] Create `App\Enums\AlertSource` (fire, police, transit) and use it as the canonical source identifier throughout the subsystem.
+    - [x] Create `App\Services\Alerts\DTOs\UnifiedAlertsCriteria` to encapsulate query params (status, per-page, explicit page).
+    - [x] Update `UnifiedAlertsQuery` + `GtaAlertsController` call sites to accept criteria (or equivalent) rather than string/int primitives.
+    - [x] Update any affected frontend types under `resources/js/features/gta-alerts/` if transport changes occur (no transport changes required).
+- [x] Task: Conductor - User Manual Verification 'Phase 5: Type-Safe Boundary' (Protocol in workflow.md)
+    - [x] Script: `tests/manual/verify_query_refinement_phase_5_type_safe_boundary.php`
+    - [x] Log: `storage/logs/manual_tests/query_refinement_phase_5_type_safe_boundary_2026_02_05_044421.log`
 
 ## Phase 6: Quality Gate & Finalization
 - [ ] Task: Final Coverage & Audit.
