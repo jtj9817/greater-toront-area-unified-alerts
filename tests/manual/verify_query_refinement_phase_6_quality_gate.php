@@ -53,7 +53,7 @@ function logError(string $msg, array $ctx = []): void
     echo "[ERROR] {$msg}\n";
 }
 
-function runCommand(string $label, string $command): void
+function runCommand(string $label, string $command, array $env = []): void
 {
     logInfo("Running: {$label}", ['command' => $command]);
 
@@ -65,7 +65,7 @@ function runCommand(string $label, string $command): void
     $process->run(function (string $type, string $output) use (&$outputBuffer): void {
         $outputBuffer .= $output;
         echo $output;
-    });
+    }, $env);
 
     if (! $process->isSuccessful()) {
         logError("Command failed: {$label}", [
@@ -112,6 +112,25 @@ try {
 
         logInfo('Step 2: Coverage checks for Unified Alerts touchpoints (>=90%)');
 
+        $pestTestingEnv = [
+            // Ensure child Pest processes run in the "testing" environment even if this
+            // manual runner bootstraps Laravel with a local `.env` (which can leak APP_ENV
+            // and other variables into subprocesses via putenv()).
+            'APP_ENV' => 'testing',
+            'APP_MAINTENANCE_DRIVER' => 'file',
+            'BCRYPT_ROUNDS' => '4',
+            'BROADCAST_CONNECTION' => 'null',
+            'CACHE_STORE' => 'array',
+            'DB_CONNECTION' => 'sqlite',
+            'DB_DATABASE' => ':memory:',
+            'MAIL_MAILER' => 'array',
+            'QUEUE_CONNECTION' => 'sync',
+            'SESSION_DRIVER' => 'array',
+            'PULSE_ENABLED' => 'false',
+            'TELESCOPE_ENABLED' => 'false',
+            'NIGHTWATCH_ENABLED' => 'false',
+        ];
+
         $coverageTargets = [
             ['label' => 'UnifiedAlertMapper', 'path' => 'app/Services/Alerts/Mappers/UnifiedAlertMapper.php'],
             ['label' => 'UnifiedAlertsQuery', 'path' => 'app/Services/Alerts/UnifiedAlertsQuery.php'],
@@ -124,7 +143,8 @@ try {
         foreach ($coverageTargets as $target) {
             runCommand(
                 "pest coverage ({$target['label']})",
-                "XDEBUG_MODE=coverage ./vendor/bin/pest --coverage --min=90 --coverage-filter {$target['path']}"
+                "XDEBUG_MODE=coverage ./vendor/bin/pest --coverage --min=90 --coverage-filter {$target['path']}",
+                $pestTestingEnv
             );
         }
     }
