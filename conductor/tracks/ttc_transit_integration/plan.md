@@ -2,7 +2,7 @@
 
 **Created**: 2026-02-05  
 **Completed**: In Progress  
-**Status**: Not Started  
+**Status**: In Progress (Phase 1 Complete)  
 **Purpose**: Replace the transit placeholder path with full TTC ingestion and unified dashboard integration aligned with current backend/frontend architecture.
 
 ---
@@ -66,7 +66,7 @@ GtaAlertsController + AlertService.ts rendering
 
 ### Phase 1: Persistence Layer
 
-#### Task 1.1: Create `transit_alerts` migration
+#### [x] Task 1.1: Create `transit_alerts` migration (Completed 2026-02-05)
 **File**: `database/migrations/*_create_transit_alerts_table.php`
 
 Requirements:
@@ -80,7 +80,7 @@ Requirements:
   - `source_feed`
   - `route_type`
 
-#### Task 1.2: Add `TransitAlert` model
+#### [x] Task 1.2: Add `TransitAlert` model (Completed 2026-02-05)
 **File**: `app/Models/TransitAlert.php`
 
 Requirements:
@@ -89,14 +89,14 @@ Requirements:
 - Cast datetime/boolean fields consistently with `FireIncident` and `PoliceCall`.
 - Add `scopeActive()` convenience scope.
 
-#### Task 1.3: Add `TransitAlertFactory`
+#### [x] Task 1.3: Add `TransitAlertFactory` (Completed 2026-02-05)
 **File**: `database/factories/TransitAlertFactory.php`
 
 Requirements:
 - Provide sensible defaults for required fields.
 - Add states used by tests (`inactive`, `subway`, `elevator`, `sxa`).
 
-#### Task 1.4: Add model tests
+#### [x] Task 1.4: Add model tests (Completed 2026-02-05)
 **File**: `tests/Unit/Models/TransitAlertTest.php`
 
 Assertions:
@@ -233,10 +233,11 @@ Requirements:
 
 | File | Action | Status |
 | :--- | :--- | :--- |
-| `database/migrations/*_create_transit_alerts_table.php` | Create | TODO |
-| `app/Models/TransitAlert.php` | Create | TODO |
-| `database/factories/TransitAlertFactory.php` | Create | TODO |
-| `tests/Unit/Models/TransitAlertTest.php` | Create | TODO |
+| `database/migrations/*_create_transit_alerts_table.php` | Create | DONE |
+| `app/Models/TransitAlert.php` | Create | DONE |
+| `database/factories/TransitAlertFactory.php` | Create | DONE |
+| `tests/Unit/Models/TransitAlertTest.php` | Create | DONE |
+| `tests/Feature/TransitAlertMigrationTest.php` | Create | DONE |
 | `app/Services/TtcAlertsFeedService.php` | Create | TODO |
 | `app/Console/Commands/FetchTransitAlertsCommand.php` | Create | TODO |
 | `app/Jobs/FetchTransitAlertsJob.php` | Create | TODO |
