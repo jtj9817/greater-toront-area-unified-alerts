@@ -16,7 +16,7 @@ test('it fetches and normalizes TTC alerts from live API, SXA, and static source
                     'routeType' => 'Subway',
                     'route' => '1',
                     'title' => 'Line 1 service adjustment',
-                    'description' => '<p>Shuttle <strong>buses</strong> will operate.</p>',
+                    'description' => '&lt;script&gt;alert(1)&lt;/script&gt;<p>Shuttle <strong>buses</strong> will operate.</p>',
                     'severity' => 'Critical',
                     'effect' => 'REDUCED_SERVICE',
                     'causeDescription' => 'Other',
@@ -74,7 +74,8 @@ test('it fetches and normalizes TTC alerts from live API, SXA, and static source
     expect($apiAlert)->not->toBeNull();
     expect($apiAlert['source_feed'])->toBe('live-api');
     expect($apiAlert['route_type'])->toBe('Subway');
-    expect($apiAlert['description'])->toBe('Shuttle buses will operate.');
+    expect($apiAlert['description'])->toBe('alert(1)Shuttle buses will operate.');
+    expect($apiAlert['description'])->not->toContain('<script>');
     expect($apiAlert['active_period_end'])->toBeNull();
     expect($apiAlert['active_period_start'])->toBeInstanceOf(CarbonInterface::class);
 
@@ -86,6 +87,50 @@ test('it fetches and normalizes TTC alerts from live API, SXA, and static source
     expect($staticAlert)->not->toBeNull();
     expect($staticAlert['source_feed'])->toBe('static');
     expect($staticAlert['route_type'])->toBe('Streetcar');
+});
+
+test('it ignores non advisory static sections when parsing streetcar page', function () {
+    Http::fake([
+        'https://alerts.ttc.ca/api/alerts/live-alerts*' => Http::response([
+            'lastUpdated' => '2026-02-03T04:41:06.633Z',
+            'routes' => [],
+            'accessibility' => [],
+            'siteWideCustom' => [],
+            'generalCustom' => [],
+            'stops' => [],
+            'status' => 'success',
+        ], 200),
+        '*sxa/search/results*' => Http::sequence()
+            ->push(['Results' => []], 200)
+            ->push(['Results' => []], 200)
+            ->push(['Results' => []], 200)
+            ->push(['Results' => []], 200),
+        'https://www.ttc.ca/service-advisories/Streetcar-Service-Changes*' => Http::response(
+            <<<'HTML'
+            <html><body>
+            <section class="hero">
+              <h2>Welcome to TTC advisories</h2>
+              <p>General info for riders.</p>
+            </section>
+            <article class="streetcar-advisory">
+              <h3>504 Temporary service change overnight</h3>
+              <p>Streetcars replaced by buses due to track work.</p>
+              <a href="/service-advisories/Streetcar-Service-Changes">Details</a>
+            </article>
+            </body></html>
+            HTML,
+            200
+        ),
+    ]);
+
+    $result = (new TtcAlertsFeedService)->fetch();
+
+    $staticAlerts = collect($result['alerts'])
+        ->where('source_feed', 'static')
+        ->values();
+
+    expect($staticAlerts)->toHaveCount(1);
+    expect($staticAlerts[0]['title'])->toBe('504 Temporary service change overnight');
 });
 
 test('it throws when the TTC live API source fails', function () {

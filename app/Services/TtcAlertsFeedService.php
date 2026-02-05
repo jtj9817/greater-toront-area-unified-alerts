@@ -283,7 +283,13 @@ class TtcAlertsFeedService
         libxml_use_internal_errors($previous);
 
         $xpath = new \DOMXPath($document);
-        $containers = $xpath->query('//article | //section | //div[contains(@class, "advisory")]');
+        $containers = $xpath->query(
+            "//*[contains(concat(' ', normalize-space(@class), ' '), ' streetcar-advisory ') 
+                or contains(concat(' ', normalize-space(@class), ' '), ' service-advisory ')
+                or contains(concat(' ', normalize-space(@class), ' '), ' service-advisories ')
+                or contains(concat(' ', normalize-space(@class), ' '), ' advisory-item ')
+                or contains(concat(' ', normalize-space(@class), ' '), ' accordion-item ')]"
+        );
 
         if ($containers === false) {
             throw new RuntimeException('failed to parse static advisory HTML');
@@ -376,9 +382,9 @@ class TtcAlertsFeedService
             return null;
         }
 
-        $stripped = strip_tags($raw);
-        $decoded = html_entity_decode($stripped, ENT_QUOTES | ENT_HTML5, 'UTF-8');
-        $collapsed = preg_replace('/\s+/', ' ', trim($decoded));
+        $decoded = html_entity_decode($raw, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+        $stripped = strip_tags($decoded);
+        $collapsed = preg_replace('/\s+/', ' ', trim($stripped));
 
         return $collapsed === '' ? null : $collapsed;
     }
