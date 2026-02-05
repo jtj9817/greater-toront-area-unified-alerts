@@ -82,13 +82,15 @@ config(['logging.channels.manual_test' => [
 function logInfo(string $msg, array $ctx = []): void
 {
     Log::channel('manual_test')->info($msg, $ctx);
-    echo "[INFO] {$msg}\n";
+    $suffix = $ctx === [] ? '' : ' '.json_encode($ctx, JSON_UNESCAPED_SLASHES);
+    echo "[INFO] {$msg}{$suffix}\n";
 }
 
 function logError(string $msg, array $ctx = []): void
 {
     Log::channel('manual_test')->error($msg, $ctx);
-    echo "[ERROR] {$msg}\n";
+    $suffix = $ctx === [] ? '' : ' '.json_encode($ctx, JSON_UNESCAPED_SLASHES);
+    echo "[ERROR] {$msg}{$suffix}\n";
 }
 
 function assertTrue(bool $condition, string $label, array $ctx = []): void
@@ -116,6 +118,23 @@ function assertEqual(mixed $actual, mixed $expected, string $label): void
 function assertContains(string $haystack, string $needle, string $label): void
 {
     assertTrue(str_contains($haystack, $needle), $label, ['needle' => $needle, 'haystack' => $haystack]);
+}
+
+function isIndefiniteEndValue(mixed $value): bool
+{
+    if ($value === null) {
+        return true;
+    }
+
+    if ($value instanceof CarbonInterface) {
+        return (int) $value->year === 1;
+    }
+
+    if (is_string($value)) {
+        return str_starts_with(trim($value), '0001-01-01T00:00:00');
+    }
+
+    return false;
 }
 
 /**
@@ -246,7 +265,21 @@ try {
     assertEqual($apiAlert['source_feed'] ?? null, 'live-api', 'API alert source_feed');
     assertEqual($apiAlert['description'] ?? null, 'alert(1)Shuttle buses will operate.', 'description is sanitized');
     assertTrue(! str_contains((string) ($apiAlert['description'] ?? ''), '<script>'), 'description does not contain script tag');
-    assertTrue(($apiAlert['active_period_end'] ?? 'not-null') === null, 'sentinel end timestamp normalized to null');
+
+    $activePeriodEnd = $apiAlert['active_period_end'] ?? null;
+    $activePeriodEndValue = $activePeriodEnd instanceof CarbonInterface
+        ? $activePeriodEnd->toIso8601String()
+        : (is_scalar($activePeriodEnd) ? (string) $activePeriodEnd : get_debug_type($activePeriodEnd));
+
+    assertTrue(
+        isIndefiniteEndValue($activePeriodEnd),
+        'sentinel end timestamp normalized to indefinite/null equivalent',
+        [
+            'active_period_end_type' => get_debug_type($activePeriodEnd),
+            'active_period_end_value' => $activePeriodEndValue,
+        ]
+    );
+
     assertTrue(($apiAlert['active_period_start'] ?? null) instanceof CarbonInterface, 'active_period_start normalized to Carbon');
 
     $sxaAlert = collect($normalized['alerts'])->firstWhere('external_id', 'sxa:4976b805-daf7-43f7-96c1-c3da717a7877');
