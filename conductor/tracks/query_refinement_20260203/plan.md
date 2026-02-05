@@ -101,7 +101,7 @@
 
 ## Phase 6: Quality Gate & Finalization
 - [ ] Task: Final Coverage & Audit.
-    - Note: run `tests/manual/verify_query_refinement_phase_6_quality_gate.php` with `RUN_COMMAND_GATES=1` for the gate commands.
+    - Note: `tests/manual/verify_query_refinement_phase_6_quality_gate.php` runs gates by default; set `SKIP_COMMAND_GATES=1` or `RUN_COMMAND_GATES=0` to skip.
     - [ ] Verify >=90% coverage on all new/modified files (notably `UnifiedAlertMapper`, `UnifiedAlertsQuery`, `AlertStatus`, `AlertSource`, `UnifiedAlertsCriteria`).
     - [ ] Run Laravel Pint for style compliance.
     - [ ] Perform security audits (`composer audit`, `pnpm audit`).

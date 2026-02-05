@@ -8,8 +8,9 @@
  * - >=90% coverage for new/modified Unified Alerts files
  * - Security audits (composer + pnpm)
  *
- * Command gates run only when RUN_COMMAND_GATES=1 is set.
- * Use SKIP_COVERAGE=1 or SKIP_AUDITS=1 to skip subsets if needed.
+ * Command gates run by default. Set SKIP_COMMAND_GATES=1 or
+ * RUN_COMMAND_GATES=0 to skip. Use SKIP_COVERAGE=1 or SKIP_AUDITS=1
+ * to skip subsets if needed.
  */
 
 require __DIR__.'/../../vendor/autoload.php';
@@ -83,8 +84,11 @@ $exitCode = 0;
 try {
     logInfo('=== Starting Manual Test: Query Refinement Phase 6 (Quality Gate) ===');
 
-    if (getenv('RUN_COMMAND_GATES') !== '1') {
-        logInfo('Skipping command-based gates (set RUN_COMMAND_GATES=1 to enable).');
+    $runCommandGates = getenv('RUN_COMMAND_GATES');
+    $skipCommandGates = getenv('SKIP_COMMAND_GATES');
+
+    if ($skipCommandGates === '1' || $runCommandGates === '0') {
+        logInfo('Skipping command-based gates (set SKIP_COMMAND_GATES=1 or RUN_COMMAND_GATES=0).');
         logInfo('Targets: pint, coverage (>=90%), composer audit, pnpm audit.');
         logInfo('Use SKIP_COVERAGE=1 or SKIP_AUDITS=1 to skip subsets.');
         logInfo('=== Manual Test Completed Successfully ===');
