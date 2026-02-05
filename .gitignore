@@ -25,6 +25,8 @@ yarn-error.log
 /.nova
 /.vscode
 /.zed
+/.claude
+/.playwright-mcp
 /coverage
 .DS_Store
 docker-compose.override.yml
