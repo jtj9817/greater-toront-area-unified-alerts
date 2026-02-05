@@ -386,3 +386,32 @@ Matches the fire schedule frequency. The JSON API cache is 25s, but 5-minute pol
 - **Static Page IDs:** The streetcar changes page has no natural unique identifiers. Deterministic MD5 hashing of normalized content provides stable-enough IDs; wording changes produce new alerts.
 - **Child Alerts:** Some alerts have `childAlerts[]` with specific time windows (e.g., nightly closures). These can be flattened into separate rows or stored in meta - flattening is recommended for independent lifecycle tracking.
 - **Multi-Route Elevator Alerts:** Elevator alerts may list many routes (e.g., `"4,10,24,25,85,167,169,185,325,385,904,925,985"`). Store the full comma-separated string; parsing is a frontend concern.
+
+---
+
+## Architectural Review & Recommendations (2026-02-05)
+
+### Risks & Mitigations
+
+| Risk | Impact | Mitigation |
+|---|---|---|
+| **WAF / Bot Detection** | Hetzner VPS IPs are often flagged as bots, leading to 403 Forbidden errors. | Spoof a modern browser `User-Agent` and include legitimate `Referer` headers in all HTTP calls. |
+| **DOM Fragility** | Changes to TTC theme/HTML will cause Source 3 (Static) to fail silently. | Implement "Zero-Result Warning" logic to log an alert if the scraper consistently finds 0 items over a 24h period. |
+| **Data Truncation** | Large HTML descriptions in CMS content may exceed standard `TEXT` limits. | Use `MEDIUMTEXT` or `LONGTEXT` for the `description` column in the migration. |
+
+### Implementation Amendments
+
+The `TtcAlertsFeedService` should utilize a configured HTTP client to avoid detection:
+
+```php
+protected function getHttpClient()
+{
+    return Http::timeout(15)
+        ->retry(2, 200)
+        ->withHeaders([
+            'User-Agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            'Accept-Language' => 'en-US,en;q=0.9',
+            'Referer' => 'https://www.ttc.ca/',
+        ]);
+}
+```
