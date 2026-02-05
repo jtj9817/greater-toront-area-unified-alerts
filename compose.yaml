@@ -38,7 +38,6 @@ services:
             MYSQL_EXTRA_OPTIONS: '${MYSQL_EXTRA_OPTIONS:-}'
         volumes:
             - 'sail-mysql:/var/lib/mysql'
-            - './vendor/laravel/sail/database/mysql/create-testing-database.sh:/docker-entrypoint-initdb.d/10-create-testing-database.sh'
         networks:
             - sail
         healthcheck:
@@ -49,6 +48,32 @@ services:
                 - '-p${DB_PASSWORD}'
             retries: 3
             timeout: 5s
+    mysql-testing:
+        image: 'mysql:8.4'
+        ports:
+            - '${FORWARD_TEST_DB_PORT:-3308}:3306'
+        environment:
+            MYSQL_ROOT_PASSWORD: '${TEST_DB_ROOT_PASSWORD:-password}'
+            MYSQL_ROOT_HOST: '%'
+            MYSQL_DATABASE: '${TEST_DB_DATABASE:-gta_alerts_testing}'
+            MYSQL_USER: '${TEST_DB_USERNAME:-sail}'
+            MYSQL_PASSWORD: '${TEST_DB_PASSWORD:-password}'
+            MYSQL_ALLOW_EMPTY_PASSWORD: 1
+            MYSQL_EXTRA_OPTIONS: '${MYSQL_EXTRA_OPTIONS:-}'
+        volumes:
+            - 'sail-mysql-testing:/var/lib/mysql'
+        networks:
+            - sail
+        healthcheck:
+            test:
+                - CMD
+                - mysqladmin
+                - ping
+                - '-p${TEST_DB_ROOT_PASSWORD:-password}'
+            retries: 3
+            timeout: 5s
+        profiles:
+            - testing
     redis:
         image: 'redis:alpine'
         ports:
@@ -69,6 +94,8 @@ networks:
         driver: bridge
 volumes:
     sail-mysql:
+        driver: local
+    sail-mysql-testing:
         driver: local
     sail-redis:
         driver: local

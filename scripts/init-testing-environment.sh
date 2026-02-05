@@ -20,6 +20,17 @@ if [[ ! -x "./vendor/bin/sail" ]]; then
     exit 1
 fi
 
+if ! docker info >/dev/null 2>&1; then
+    echo "Error: Docker is not running."
+    exit 1
+fi
+
+if docker compose version >/dev/null 2>&1; then
+    DOCKER_COMPOSE=(docker compose)
+else
+    DOCKER_COMPOSE=(docker-compose)
+fi
+
 read_env_value() {
     local env_file="$1"
     local env_key="$2"
@@ -34,10 +45,19 @@ read_env_value() {
     printf '%s' "${raw}"
 }
 
+TEST_DB_HOST="$(read_env_value ".env.testing" "DB_HOST")"
 TEST_DB_DATABASE="$(read_env_value ".env.testing" "DB_DATABASE")"
+TEST_DB_USERNAME="$(read_env_value ".env.testing" "DB_USERNAME")"
+TEST_DB_PASSWORD="$(read_env_value ".env.testing" "DB_PASSWORD")"
+TEST_DB_ROOT_PASSWORD="$(read_env_value ".env.testing" "TEST_DB_ROOT_PASSWORD")"
 
-if [[ -z "${TEST_DB_DATABASE}" ]]; then
-    echo "Error: DB_DATABASE is missing in .env.testing."
+if [[ "${TEST_DB_HOST}" != "mysql-testing" ]]; then
+    echo "Error: .env.testing must use DB_HOST=mysql-testing to avoid touching local development data."
+    exit 1
+fi
+
+if [[ -z "${TEST_DB_DATABASE}" || -z "${TEST_DB_USERNAME}" || -z "${TEST_DB_PASSWORD}" ]]; then
+    echo "Error: DB_DATABASE, DB_USERNAME, and DB_PASSWORD must be set in .env.testing."
     exit 1
 fi
 
@@ -46,35 +66,48 @@ if [[ ! "${TEST_DB_DATABASE}" =~ ^[A-Za-z0-9_]+$ ]]; then
     exit 1
 fi
 
-ROOT_DB_PASSWORD="$(read_env_value ".env" "DB_PASSWORD")"
-ROOT_DB_PASSWORD="${ROOT_DB_PASSWORD:-password}"
+if [[ -z "${TEST_DB_ROOT_PASSWORD}" ]]; then
+    TEST_DB_ROOT_PASSWORD="${TEST_DB_PASSWORD}"
+fi
 
-echo "[INFO] Starting Sail services..."
-./vendor/bin/sail up -d
+export APP_ENV=testing
+export TEST_DB_DATABASE
+export TEST_DB_USERNAME
+export TEST_DB_PASSWORD
+export TEST_DB_ROOT_PASSWORD
 
-echo "[INFO] Waiting for MySQL to become ready..."
+echo "[INFO] Starting dedicated testing database container only (mysql-testing)..."
+"${DOCKER_COMPOSE[@]}" --profile testing up -d mysql-testing
+
+echo "[INFO] Waiting for mysql-testing to become ready..."
 for _ in {1..30}; do
-    if ./vendor/bin/sail mysqladmin ping -h mysql -uroot -p"${ROOT_DB_PASSWORD}" --silent >/dev/null 2>&1; then
+    if "${DOCKER_COMPOSE[@]}" --profile testing exec -T mysql-testing \
+        mysqladmin ping -h 127.0.0.1 -uroot -p"${TEST_DB_ROOT_PASSWORD}" --silent >/dev/null 2>&1; then
         break
     fi
     sleep 2
 done
 
-if ! ./vendor/bin/sail mysqladmin ping -h mysql -uroot -p"${ROOT_DB_PASSWORD}" --silent >/dev/null 2>&1; then
-    echo "Error: MySQL did not become ready in time."
+if ! "${DOCKER_COMPOSE[@]}" --profile testing exec -T mysql-testing \
+    mysqladmin ping -h 127.0.0.1 -uroot -p"${TEST_DB_ROOT_PASSWORD}" --silent >/dev/null 2>&1; then
+    echo "Error: mysql-testing did not become ready in time."
     exit 1
 fi
 
-echo "[INFO] Ensuring testing database exists: ${TEST_DB_DATABASE}"
-./vendor/bin/sail mysql -uroot -p"${ROOT_DB_PASSWORD}" -e "CREATE DATABASE IF NOT EXISTS \`${TEST_DB_DATABASE}\`;"
+run_artisan_testing() {
+    "${DOCKER_COMPOSE[@]}" run --rm --no-deps \
+        -e APP_ENV=testing \
+        laravel.test php artisan "$@"
+}
 
 echo "[INFO] Clearing and rebuilding app config in testing environment..."
-APP_ENV=testing ./vendor/bin/sail artisan config:clear
-APP_ENV=testing ./vendor/bin/sail artisan cache:clear
+run_artisan_testing config:clear
+run_artisan_testing cache:clear
 
-echo "[INFO] Running migrations for testing database..."
-APP_ENV=testing ./vendor/bin/sail artisan migrate --force
+echo "[INFO] Running migrations against mysql-testing (${TEST_DB_DATABASE})..."
+run_artisan_testing migrate --force
 
 echo "[INFO] Testing environment initialization complete."
-echo "[INFO] You can now run manual scripts, for example:"
-echo "       ./vendor/bin/sail php tests/manual/verify_ttc_phase_1_persistence.php"
+echo "[INFO] This script does not touch the local development mysql container."
+echo "[INFO] You can now run manual scripts in no-deps mode, for example:"
+echo "       ./scripts/run-manual-test.sh tests/manual/verify_ttc_phase_1_persistence.php"
