@@ -23,6 +23,14 @@ if (app()->environment('production')) {
     exit("Error: Cannot run manual tests in production!\n");
 }
 
+if (function_exists('posix_geteuid') && posix_geteuid() === 0 && getenv('ALLOW_ROOT_MANUAL_TESTS') !== '1') {
+    fwrite(STDERR, "Error: Do not run manual tests as root. Use `./vendor/bin/sail shell` (or `./vendor/bin/sail php ...`).\n");
+    fwrite(STDERR, "If you really need root, re-run with ALLOW_ROOT_MANUAL_TESTS=1 (not recommended).\n");
+    exit(1);
+}
+
+umask(002);
+
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
 use Symfony\Component\Process\Process;
@@ -31,8 +39,15 @@ $testRunId = 'query_refinement_phase_6_quality_gate_'.Carbon::now()->format('Y_m
 $logFileRelative = "storage/logs/manual_tests/{$testRunId}.log";
 $logFile = storage_path("logs/manual_tests/{$testRunId}.log");
 
-if (! is_dir(dirname($logFile))) {
-    mkdir(dirname($logFile), 0755, true);
+$logDir = dirname($logFile);
+
+if (! is_dir($logDir)) {
+    mkdir($logDir, 0775, true);
+}
+
+if (! file_exists($logFile)) {
+    touch($logFile);
+    chmod($logFile, 0664);
 }
 
 config(['logging.channels.manual_test' => [
