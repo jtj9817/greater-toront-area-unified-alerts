@@ -108,7 +108,7 @@ Assertions:
 
 ### Phase 2: TTC Feed Ingestion
 
-#### Task 2.1: Implement composite feed service
+#### [x] Task 2.1: Implement composite feed service (Completed 2026-02-05)
 **File**: `app/Services/TtcAlertsFeedService.php`
 
 Requirements:
@@ -124,7 +124,7 @@ Normalization requirements:
 - Strip/sanitize description HTML before storage.
 - Produce deterministic prefixed external IDs.
 
-#### Task 2.2: Implement sync command
+#### [x] Task 2.2: Implement sync command (Completed 2026-02-05)
 **File**: `app/Console/Commands/FetchTransitAlertsCommand.php`
 
 Requirements:
@@ -135,14 +135,14 @@ Requirements:
 - Persist `feed_updated_at` for synced rows.
 - Emit concise success/failure command output (pattern-matched to existing command tests).
 
-#### Task 2.3: Implement queue job wrapper
+#### [x] Task 2.3: Implement queue job wrapper (Completed 2026-02-05)
 **File**: `app/Jobs/FetchTransitAlertsJob.php`
 
 Requirements:
 - Match retry/backoff pattern (`tries=3`, `backoff=30`).
 - Call `Artisan::call('transit:fetch-alerts')`.
 
-#### Task 2.4: Add ingestion tests
+#### [x] Task 2.4: Add ingestion tests (Completed 2026-02-05)
 **Files**:
 - `tests/Feature/Services/TtcAlertsFeedServiceTest.php`
 - `tests/Feature/Commands/FetchTransitAlertsCommandTest.php`
@@ -238,12 +238,12 @@ Requirements:
 | `database/factories/TransitAlertFactory.php` | Create | DONE |
 | `tests/Unit/Models/TransitAlertTest.php` | Create | DONE |
 | `tests/Feature/TransitAlertMigrationTest.php` | Create | DONE |
-| `app/Services/TtcAlertsFeedService.php` | Create | TODO |
-| `app/Console/Commands/FetchTransitAlertsCommand.php` | Create | TODO |
-| `app/Jobs/FetchTransitAlertsJob.php` | Create | TODO |
-| `tests/Feature/Services/TtcAlertsFeedServiceTest.php` | Create | TODO |
-| `tests/Feature/Commands/FetchTransitAlertsCommandTest.php` | Create | TODO |
-| `tests/Feature/Jobs/FetchTransitAlertsJobTest.php` | Create | TODO |
+| `app/Services/TtcAlertsFeedService.php` | Create | DONE |
+| `app/Console/Commands/FetchTransitAlertsCommand.php` | Create | DONE |
+| `app/Jobs/FetchTransitAlertsJob.php` | Create | DONE |
+| `tests/Feature/Services/TtcAlertsFeedServiceTest.php` | Create | DONE |
+| `tests/Feature/Commands/FetchTransitAlertsCommandTest.php` | Create | DONE |
+| `tests/Feature/Jobs/FetchTransitAlertsJobTest.php` | Create | DONE |
 | `app/Services/Alerts/Providers/TransitAlertSelectProvider.php` | Modify | TODO |
 | `tests/Unit/Services/Alerts/Providers/TransitAlertSelectProviderTest.php` | Modify | TODO |
 | `app/Http/Controllers/GtaAlertsController.php` | Modify | TODO |
