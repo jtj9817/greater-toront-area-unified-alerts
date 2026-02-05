@@ -113,6 +113,24 @@ APP_ENV=testing ./vendor/bin/sail php tests/manual/verify_phase_1_foundations.ph
 
 ---
 
+## Documentation
+
+For detailed documentation on architecture, implementation, and development:
+
+- **[docs/](docs/)** - Comprehensive project documentation
+- **[CLAUDE.md](CLAUDE.md)** - Agent guidance and development conventions
+- **[docs/CHANGELOG.md](docs/CHANGELOG.md)** - Version history and recent changes
+
+### Key Documentation Topics
+
+- **[Unified Alerts System](docs/backend/unified-alerts-system.md)** - Core architecture (IMPLEMENTED)
+- **[Provider & Adapter Pattern](docs/architecture/provider-adapter-pattern.md)** - Data source integration pattern
+- **[Frontend Types](docs/frontend/types.md)** - TypeScript type definitions
+- **[AlertService](docs/frontend/alert-service.md)** - Frontend mapping and filtering
+- **[Production Scheduler](docs/backend/production-scheduler.md)** - Background job observability
+
+---
+
 ## License
 
 This project is licensed under the **GNU Public License (GPL)**.
