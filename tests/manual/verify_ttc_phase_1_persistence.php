@@ -112,8 +112,12 @@ function assertEqual(mixed $actual, mixed $expected, string $label): void
 function hasIndex(array $indexRows, string $columns, bool $unique): bool
 {
     foreach ($indexRows as $row) {
-        $isUnique = ((int) $row->non_unique) === 0;
-        if ($row->columns === $columns && $isUnique === $unique) {
+        $rowValues = array_change_key_case((array) $row, CASE_LOWER);
+
+        $isUnique = ((int) ($rowValues['non_unique'] ?? 1)) === 0;
+        $rowColumns = (string) ($rowValues['columns'] ?? '');
+
+        if ($rowColumns === $columns && $isUnique === $unique) {
             return true;
         }
     }
@@ -195,7 +199,13 @@ try {
 
     $columnTypes = [];
     foreach ($columnTypeRows as $row) {
-        $columnTypes[$row->column_name] = strtolower((string) $row->data_type);
+        $rowValues = array_change_key_case((array) $row, CASE_LOWER);
+        $columnName = (string) ($rowValues['column_name'] ?? '');
+        $dataType = strtolower((string) ($rowValues['data_type'] ?? ''));
+
+        if ($columnName !== '') {
+            $columnTypes[$columnName] = $dataType;
+        }
     }
 
     assertEqual($columnTypes['description'] ?? null, 'mediumtext', 'description uses mediumText');

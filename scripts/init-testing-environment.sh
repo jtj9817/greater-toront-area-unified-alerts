@@ -31,6 +31,10 @@ else
     DOCKER_COMPOSE=(docker-compose)
 fi
 
+# Avoid docker compose interpolation warnings from laravel.test service config.
+export WWWUSER="${WWWUSER:-$(id -u)}"
+export WWWGROUP="${WWWGROUP:-$(id -g)}"
+
 read_env_value() {
     local env_file="$1"
     local env_key="$2"
