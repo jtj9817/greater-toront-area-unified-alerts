@@ -4,5 +4,13 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
-- [ ] **Track: Unified Alerts Query Refinement & Robustness**
-*Link: [./tracks/query_refinement_20260203/](./tracks/query_refinement_20260203/)*
+## Active Tracks
+
+*(No active tracks)*
+
+---
+
+## Archived Tracks
+
+- [x] **Track: Unified Alerts Query Refinement & Robustness**
+*Link: [./archive/query_refinement_20260203/](./archive/query_refinement_20260203/)*
