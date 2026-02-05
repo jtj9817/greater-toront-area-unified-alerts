@@ -24,6 +24,19 @@ if (function_exists('posix_geteuid') && posix_geteuid() === 0 && getenv('ALLOW_R
     exit(1);
 }
 
+// Manual tests can delete data; only allow the dedicated testing database (no overrides).
+$expectedDatabase = 'gta_alerts_testing';
+$connection = config('database.default');
+$currentDatabase = config("database.connections.{$connection}.database");
+
+if (! app()->environment('testing')) {
+    exit("Error: Manual tests must run with APP_ENV=testing. Destructive test operations are disabled outside the testing environment and cannot be overridden.\n");
+}
+
+if ($currentDatabase !== $expectedDatabase) {
+    exit("Error: Manual tests must use the '{$expectedDatabase}' database (current: {$currentDatabase}). Destructive test operations are disabled and cannot be overridden.\n");
+}
+
 umask(002);
 
 use App\Http\Resources\UnifiedAlertResource;

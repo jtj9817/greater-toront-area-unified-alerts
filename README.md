@@ -102,6 +102,15 @@ composer run test
 php artisan sail --args=pest --args=--coverage
 ```
 
+Manual test scripts under `tests/manual` are destructive and only run
+when `APP_ENV=testing` and `DB_DATABASE=gta_alerts_testing`. There is no
+override for this guard. Use the `.env.testing` MySQL config, for
+example:
+
+```bash
+APP_ENV=testing ./vendor/bin/sail php tests/manual/verify_phase_1_foundations.php
+```
+
 ---
 
 ## License
