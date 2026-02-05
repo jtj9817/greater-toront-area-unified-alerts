@@ -8,16 +8,6 @@
  * - UnifiedAlertsQuery executes deterministically against MySQL.
  */
 
-require __DIR__.'/../../vendor/autoload.php';
-
-$app = require_once __DIR__.'/../../bootstrap/app.php';
-$kernel = $app->make(Illuminate\Contracts\Console\Kernel::class);
-$kernel->bootstrap();
-
-if (app()->environment('production')) {
-    exit("Error: Cannot run manual tests in production!\n");
-}
-
 use App\Models\FireIncident;
 use App\Models\PoliceCall;
 use App\Services\Alerts\Mappers\UnifiedAlertMapper;
@@ -31,6 +21,16 @@ use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+
+require __DIR__.'/../../vendor/autoload.php';
+
+$app = require_once __DIR__.'/../../bootstrap/app.php';
+$kernel = $app->make(Illuminate\Contracts\Console\Kernel::class);
+$kernel->bootstrap();
+
+if (app()->environment('production')) {
+    exit("Error: Cannot run manual tests in production!\n");
+}
 
 $testRunId = 'query_refinement_phase_4_cross_driver_verification_'.Carbon::now()->format('Y_m_d_His');
 $logFileRelative = "storage/logs/manual_tests/{$testRunId}.log";
