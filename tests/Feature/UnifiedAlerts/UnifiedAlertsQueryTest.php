@@ -4,6 +4,7 @@ use App\Models\FireIncident;
 use App\Models\PoliceCall;
 use App\Services\Alerts\Contracts\AlertSelectProvider;
 use App\Services\Alerts\DTOs\UnifiedAlert;
+use App\Services\Alerts\DTOs\UnifiedAlertsCriteria;
 use App\Services\Alerts\Mappers\UnifiedAlertMapper;
 use App\Services\Alerts\UnifiedAlertsQuery;
 use Database\Seeders\UnifiedAlertsTestSeeder;
@@ -97,8 +98,8 @@ function emptyUnifiedSelect(string $source): Builder
 function singleRowUnifiedSelect(array $overrides = []): Builder
 {
     $defaults = [
-        'id' => 'test:1',
-        'source' => 'test',
+        'id' => 'fire:1',
+        'source' => 'fire',
         'external_id' => '1',
         'is_active' => 1,
         'timestamp' => '2026-02-02 12:00:00',
@@ -129,7 +130,9 @@ function singleRowUnifiedSelect(array $overrides = []): Builder
 }
 
 test('unified alerts query returns empty results when there are no source rows', function () {
-    $results = app(UnifiedAlertsQuery::class)->paginate(perPage: 50, status: 'all');
+    $results = app(UnifiedAlertsQuery::class)->paginate(
+        new UnifiedAlertsCriteria(status: 'all', perPage: 50)
+    );
 
     expect($results->total())->toBe(0);
     expect($results->items())->toBeEmpty();
@@ -139,7 +142,9 @@ test('unified alerts query returns a mixed feed ordered by timestamp desc', func
     Carbon::setTestNow(Carbon::parse('2026-02-02 12:00:00'));
     $this->seed(UnifiedAlertsTestSeeder::class);
 
-    $results = app(UnifiedAlertsQuery::class)->paginate(perPage: 50, status: 'all');
+    $results = app(UnifiedAlertsQuery::class)->paginate(
+        new UnifiedAlertsCriteria(status: 'all', perPage: 50)
+    );
 
     expect($results->total())->toBe(8);
     expect($results->items()[0])->toBeInstanceOf(UnifiedAlert::class);
@@ -165,7 +170,9 @@ test('unified alerts query filters by status', function () {
     Carbon::setTestNow(Carbon::parse('2026-02-02 12:00:00'));
     $this->seed(UnifiedAlertsTestSeeder::class);
 
-    $active = app(UnifiedAlertsQuery::class)->paginate(perPage: 50, status: 'active');
+    $active = app(UnifiedAlertsQuery::class)->paginate(
+        new UnifiedAlertsCriteria(status: 'active', perPage: 50)
+    );
     expect($active->total())->toBe(4);
     expect(collect($active->items())->every(fn (UnifiedAlert $a) => $a->isActive))->toBeTrue();
 
@@ -177,7 +184,9 @@ test('unified alerts query filters by status', function () {
         'police:900002',
     ]);
 
-    $cleared = app(UnifiedAlertsQuery::class)->paginate(perPage: 50, status: 'cleared');
+    $cleared = app(UnifiedAlertsQuery::class)->paginate(
+        new UnifiedAlertsCriteria(status: 'cleared', perPage: 50)
+    );
     expect($cleared->total())->toBe(4);
     expect(collect($cleared->items())->every(fn (UnifiedAlert $a) => ! $a->isActive))->toBeTrue();
 
@@ -194,7 +203,9 @@ test('unified alerts query maps dto fields for each source', function () {
     Carbon::setTestNow(Carbon::parse('2026-02-02 12:00:00'));
     $this->seed(UnifiedAlertsTestSeeder::class);
 
-    $results = app(UnifiedAlertsQuery::class)->paginate(perPage: 50, status: 'all');
+    $results = app(UnifiedAlertsQuery::class)->paginate(
+        new UnifiedAlertsCriteria(status: 'all', perPage: 50)
+    );
     $items = $results->items();
 
     /** @var UnifiedAlert $first */
@@ -265,7 +276,9 @@ test('unified alerts query creates a location dto when any location fields are p
         'is_active' => true,
     ]);
 
-    $results = app(UnifiedAlertsQuery::class)->paginate(perPage: 50, status: 'all');
+    $results = app(UnifiedAlertsQuery::class)->paginate(
+        new UnifiedAlertsCriteria(status: 'all', perPage: 50)
+    );
     $byId = collect($results->items())->keyBy(fn (UnifiedAlert $a) => $a->id);
 
     /** @var UnifiedAlert $fire */
@@ -307,7 +320,9 @@ test('unified alerts query paginates deterministically', function () {
 
     Paginator::currentPageResolver(fn () => 2);
 
-    $page2 = app(UnifiedAlertsQuery::class)->paginate(perPage: 3, status: 'all');
+    $page2 = app(UnifiedAlertsQuery::class)->paginate(
+        new UnifiedAlertsCriteria(status: 'all', perPage: 3)
+    );
     expect($page2->currentPage())->toBe(2);
     expect($page2->perPage())->toBe(3);
     expect($page2->total())->toBe(8);
@@ -350,7 +365,9 @@ test('unified alerts query uses deterministic tie-breakers for identical timesta
         'is_active' => true,
     ]);
 
-    $results = app(UnifiedAlertsQuery::class)->paginate(perPage: 50, status: 'all');
+    $results = app(UnifiedAlertsQuery::class)->paginate(
+        new UnifiedAlertsCriteria(status: 'all', perPage: 50)
+    );
 
     $ids = collect($results->items())->map(fn (UnifiedAlert $a) => $a->id)->all();
 
@@ -383,10 +400,14 @@ test('unified alerts query stays stable when ties cross a page boundary', functi
     ]);
 
     Paginator::currentPageResolver(fn () => 1);
-    $page1 = app(UnifiedAlertsQuery::class)->paginate(perPage: 5, status: 'all');
+    $page1 = app(UnifiedAlertsQuery::class)->paginate(
+        new UnifiedAlertsCriteria(status: 'all', perPage: 5)
+    );
 
     Paginator::currentPageResolver(fn () => 2);
-    $page2 = app(UnifiedAlertsQuery::class)->paginate(perPage: 5, status: 'all');
+    $page2 = app(UnifiedAlertsQuery::class)->paginate(
+        new UnifiedAlertsCriteria(status: 'all', perPage: 5)
+    );
 
     $page1Ids = collect($page1->items())->map(fn (UnifiedAlert $a) => $a->id)->values()->all();
     $page2Ids = collect($page2->items())->map(fn (UnifiedAlert $a) => $a->id)->values()->all();
@@ -414,7 +435,7 @@ test('unified alerts query stays stable when ties cross a page boundary', functi
 });
 
 test('unified alerts query throws for invalid status values', function () {
-    expect(fn () => app(UnifiedAlertsQuery::class)->paginate(perPage: 50, status: 'invalid'))
+    expect(fn () => new UnifiedAlertsCriteria(status: 'invalid'))
         ->toThrow(\InvalidArgumentException::class);
 });
 
@@ -454,7 +475,9 @@ test('unified alerts query decodes meta to an array and never leaks json excepti
         mapper: new UnifiedAlertMapper,
     );
 
-    $results = $query->paginate(perPage: 50, status: 'all');
+    $results = $query->paginate(
+        new UnifiedAlertsCriteria(status: 'all', perPage: 50)
+    );
     expect($results->items())->toHaveCount(1);
 
     /** @var UnifiedAlert $alert */
@@ -501,7 +524,7 @@ test('unified alerts query throws when timestamp is missing', function () {
         mapper: new UnifiedAlertMapper,
     );
 
-    expect(fn () => $query->paginate(perPage: 50, status: 'all'))
+    expect(fn () => $query->paginate(new UnifiedAlertsCriteria(status: 'all', perPage: 50)))
         ->toThrow(\InvalidArgumentException::class);
 });
 
@@ -538,6 +561,6 @@ test('unified alerts query throws when timestamp is not parseable', function () 
         mapper: new UnifiedAlertMapper,
     );
 
-    expect(fn () => $query->paginate(perPage: 50, status: 'all'))
+    expect(fn () => $query->paginate(new UnifiedAlertsCriteria(status: 'all', perPage: 50)))
         ->toThrow(\InvalidArgumentException::class);
 });

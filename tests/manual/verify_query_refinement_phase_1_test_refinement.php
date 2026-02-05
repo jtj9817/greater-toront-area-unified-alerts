@@ -26,6 +26,7 @@ use App\Models\FireIncident;
 use App\Models\PoliceCall;
 use App\Services\Alerts\Contracts\AlertSelectProvider;
 use App\Services\Alerts\DTOs\UnifiedAlert;
+use App\Services\Alerts\DTOs\UnifiedAlertsCriteria;
 use App\Services\Alerts\Mappers\UnifiedAlertMapper;
 use App\Services\Alerts\UnifiedAlertsQuery;
 use Carbon\Carbon;
@@ -154,8 +155,8 @@ function emptyUnifiedSelect(string $source): Builder
 function singleRowUnifiedSelect(array $overrides = []): Builder
 {
     $defaults = [
-        'id' => 'test:1',
-        'source' => 'test',
+        'id' => 'fire:1',
+        'source' => 'fire',
         'external_id' => '1',
         'is_active' => 1,
         'timestamp' => '2026-02-02 12:00:00',
@@ -233,7 +234,7 @@ try {
 
     logInfo('Step 2: Verifying ordering + identifier invariants (status=all)');
     $alerts = app(UnifiedAlertsQuery::class);
-    $all = $alerts->paginate(perPage: 50, status: 'all');
+    $all = $alerts->paginate(new UnifiedAlertsCriteria(status: 'all', perPage: 50));
 
     assertEqual($all->total(), 8, 'unified total');
     assertEqual(count($all->items()), 8, 'unified items length');
@@ -247,11 +248,11 @@ try {
     logInfo('Unified IDs (status=all)', ['ids' => $ids]);
 
     logInfo('Step 3: Verifying status invariants');
-    $active = $alerts->paginate(perPage: 50, status: 'active');
+    $active = $alerts->paginate(new UnifiedAlertsCriteria(status: 'active', perPage: 50));
     assertEqual($active->total(), 4, 'active total');
     assertTrue(collect($active->items())->every(fn (UnifiedAlert $a) => $a->isActive), 'active => all isActive=true');
 
-    $cleared = $alerts->paginate(perPage: 50, status: 'cleared');
+    $cleared = $alerts->paginate(new UnifiedAlertsCriteria(status: 'cleared', perPage: 50));
     assertEqual($cleared->total(), 4, 'cleared total');
     assertTrue(collect($cleared->items())->every(fn (UnifiedAlert $a) => ! $a->isActive), 'cleared => all isActive=false');
 
@@ -278,7 +279,7 @@ try {
         'is_active' => true,
     ]);
 
-    $withLocationEdgeCases = $alerts->paginate(perPage: 50, status: 'all');
+    $withLocationEdgeCases = $alerts->paginate(new UnifiedAlertsCriteria(status: 'all', perPage: 50));
     $byId = collect($withLocationEdgeCases->items())->keyBy(fn (UnifiedAlert $a) => $a->id);
 
     /** @var UnifiedAlert $coordsOnly */
@@ -343,7 +344,7 @@ try {
             mapper: new UnifiedAlertMapper,
         );
 
-        $results = $query->paginate(perPage: 50, status: 'all');
+        $results = $query->paginate(new UnifiedAlertsCriteria(status: 'all', perPage: 50));
         /** @var UnifiedAlert $first */
         $first = $results->items()[0];
 
@@ -384,7 +385,7 @@ try {
         mapper: new UnifiedAlertMapper,
     );
 
-    assertThrows('timestamp missing', fn () => $missingTimestampQuery->paginate(perPage: 50, status: 'all'), \InvalidArgumentException::class);
+    assertThrows('timestamp missing', fn () => $missingTimestampQuery->paginate(new UnifiedAlertsCriteria(status: 'all', perPage: 50)), \InvalidArgumentException::class);
 
     $badTimestampQuery = new UnifiedAlertsQuery(
         providers: [
@@ -418,7 +419,7 @@ try {
         mapper: new UnifiedAlertMapper,
     );
 
-    assertThrows('timestamp not parseable', fn () => $badTimestampQuery->paginate(perPage: 50, status: 'all'), \InvalidArgumentException::class);
+    assertThrows('timestamp not parseable', fn () => $badTimestampQuery->paginate(new UnifiedAlertsCriteria(status: 'all', perPage: 50)), \InvalidArgumentException::class);
 
     logInfo('=== Manual Test Completed Successfully ===');
 } catch (\Throwable $e) {

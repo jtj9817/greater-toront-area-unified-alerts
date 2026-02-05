@@ -152,8 +152,6 @@ test('unified alert mapper throws when required string fields are missing or emp
     expect(fn () => (new UnifiedAlertMapper)->fromRow($row))
         ->toThrow(\InvalidArgumentException::class);
 })->with([
-    'id null' => ['id', null],
-    'id empty' => ['id', ''],
     'source null' => ['source', null],
     'external_id empty' => ['external_id', ''],
     'title empty' => ['title', ''],

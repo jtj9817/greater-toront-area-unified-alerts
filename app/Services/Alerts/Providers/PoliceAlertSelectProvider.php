@@ -2,6 +2,7 @@
 
 namespace App\Services\Alerts\Providers;
 
+use App\Enums\AlertSource;
 use App\Models\PoliceCall;
 use App\Services\Alerts\Contracts\AlertSelectProvider;
 use Illuminate\Database\Query\Builder;
@@ -12,10 +13,11 @@ class PoliceAlertSelectProvider implements AlertSelectProvider
     public function select(): Builder
     {
         $driver = DB::getDriverName();
+        $source = AlertSource::Police->value;
 
         $idExpression = $driver === 'sqlite'
-            ? "('police:' || object_id)"
-            : "CONCAT('police:', object_id)";
+            ? "('{$source}:' || object_id)"
+            : "CONCAT('{$source}:', object_id)";
 
         $externalIdExpression = $driver === 'sqlite'
             ? 'CAST(object_id AS TEXT)'
@@ -27,7 +29,7 @@ class PoliceAlertSelectProvider implements AlertSelectProvider
 
         return PoliceCall::query()
             ->selectRaw(
-                "{$idExpression} as id,\n                'police' as source,\n                {$externalIdExpression} as external_id,\n                is_active,\n                occurrence_time as timestamp,\n                call_type as title,\n                cross_streets as location_name,\n                latitude as lat,\n                longitude as lng,\n                {$metaExpression} as meta"
+                "{$idExpression} as id,\n                '{$source}' as source,\n                {$externalIdExpression} as external_id,\n                is_active,\n                occurrence_time as timestamp,\n                call_type as title,\n                cross_streets as location_name,\n                latitude as lat,\n                longitude as lng,\n                {$metaExpression} as meta"
             )
             ->toBase();
     }

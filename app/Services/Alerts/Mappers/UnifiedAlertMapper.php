@@ -3,6 +3,7 @@
 namespace App\Services\Alerts\Mappers;
 
 use App\Services\Alerts\DTOs\AlertLocation;
+use App\Services\Alerts\DTOs\AlertId;
 use App\Services\Alerts\DTOs\UnifiedAlert;
 use Carbon\CarbonImmutable;
 
@@ -10,10 +11,10 @@ class UnifiedAlertMapper
 {
     public function fromRow(object $row): UnifiedAlert
     {
-        $id = $this->requireNonEmptyString($row, 'id');
         $source = $this->requireNonEmptyString($row, 'source');
         $externalId = $this->requireNonEmptyString($row, 'external_id');
         $title = $this->requireNonEmptyString($row, 'title');
+        $id = (string) AlertId::fromParts($source, $externalId);
 
         $rawTimestamp = $this->read($row, 'timestamp');
         if ($rawTimestamp === null || $rawTimestamp === '') {

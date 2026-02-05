@@ -2,7 +2,9 @@
 
 namespace App\Services\Alerts;
 
+use App\Enums\AlertStatus;
 use App\Services\Alerts\Contracts\AlertSelectProvider;
+use App\Services\Alerts\DTOs\UnifiedAlertsCriteria;
 use App\Services\Alerts\Mappers\UnifiedAlertMapper;
 use Illuminate\Container\Attributes\Tag;
 use Illuminate\Database\Query\Builder;
@@ -18,34 +20,25 @@ class UnifiedAlertsQuery
         private readonly UnifiedAlertMapper $mapper,
     ) {}
 
-    /**
-     * @param  'all'|'active'|'cleared'  $status
-     */
-    public function paginate(
-        int $perPage = 50,
-        string $status = 'all',
-    ): LengthAwarePaginator {
-        if (! in_array($status, ['all', 'active', 'cleared'], true)) {
-            throw new \InvalidArgumentException("Invalid status '{$status}'. Expected one of: all, active, cleared.");
-        }
-
+    public function paginate(UnifiedAlertsCriteria $criteria): LengthAwarePaginator
+    {
         $union = $this->unionSelect();
 
         if ($union === null) {
             return new LengthAwarePaginator(
                 items: [],
                 total: 0,
-                perPage: $perPage,
-                currentPage: Paginator::resolveCurrentPage(),
+                perPage: $criteria->perPage,
+                currentPage: $criteria->page ?? Paginator::resolveCurrentPage(),
                 options: ['path' => Paginator::resolveCurrentPath()],
             );
         }
 
         $query = DB::query()->fromSub($union, 'unified_alerts');
 
-        if ($status === 'active') {
+        if ($criteria->status === AlertStatus::Active->value) {
             $query->where('is_active', true);
-        } elseif ($status === 'cleared') {
+        } elseif ($criteria->status === AlertStatus::Cleared->value) {
             $query->where('is_active', false);
         }
 
@@ -53,7 +46,12 @@ class UnifiedAlertsQuery
             ->orderByDesc('timestamp')
             ->orderBy('source')
             ->orderByDesc('external_id')
-            ->paginate($perPage)
+            ->paginate(
+                $criteria->perPage,
+                ['*'],
+                'page',
+                $criteria->page ?? Paginator::resolveCurrentPage(),
+            )
             ->through(fn (object $row) => $this->mapper->fromRow($row));
     }
 

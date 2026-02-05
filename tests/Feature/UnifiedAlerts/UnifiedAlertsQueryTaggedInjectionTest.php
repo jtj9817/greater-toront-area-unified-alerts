@@ -1,6 +1,7 @@
 <?php
 
 use App\Services\Alerts\Contracts\AlertSelectProvider;
+use App\Services\Alerts\DTOs\UnifiedAlertsCriteria;
 use App\Services\Alerts\UnifiedAlertsQuery;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -17,8 +18,8 @@ test('unified alerts query resolves tagged providers and includes custom tagged 
                 return DB::query()->selectRaw(
                     "? as id,\n                    ? as source,\n                    ? as external_id,\n                    ? as is_active,\n                    ? as timestamp,\n                    ? as title,\n                    ? as location_name,\n                    ? as lat,\n                    ? as lng,\n                    ? as meta",
                     [
-                        'fake:1',
-                        'fake',
+                        'transit:1',
+                        'transit',
                         '1',
                         1,
                         '2026-02-02 12:00:00',
@@ -36,8 +37,10 @@ test('unified alerts query resolves tagged providers and includes custom tagged 
     $this->app->tag(['alerts.providers.fake'], 'alerts.select-providers');
     $this->app->forgetInstance(UnifiedAlertsQuery::class);
 
-    $results = $this->app->make(UnifiedAlertsQuery::class)->paginate(perPage: 50, status: 'all');
+    $results = $this->app->make(UnifiedAlertsQuery::class)->paginate(
+        new UnifiedAlertsCriteria(status: 'all', perPage: 50)
+    );
 
     expect($results->total())->toBe(1);
-    expect($results->items()[0]->id)->toBe('fake:1');
+    expect($results->items()[0]->id)->toBe('transit:1');
 });

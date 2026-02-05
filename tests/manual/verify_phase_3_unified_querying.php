@@ -21,6 +21,7 @@ if (app()->environment('production')) {
 use App\Http\Resources\UnifiedAlertResource;
 use App\Models\FireIncident;
 use App\Models\PoliceCall;
+use App\Services\Alerts\DTOs\UnifiedAlertsCriteria;
 use App\Services\Alerts\UnifiedAlertsQuery;
 use Carbon\Carbon;
 use Database\Seeders\UnifiedAlertsTestSeeder;
@@ -100,7 +101,7 @@ try {
     logInfo('Step 2: Verifying UnifiedAlertsQuery (status=all, page=1)');
 
     $alerts = app(UnifiedAlertsQuery::class);
-    $page1 = $alerts->paginate(perPage: 3, status: 'all');
+    $page1 = $alerts->paginate(new UnifiedAlertsCriteria(status: 'all', perPage: 3));
     assertEqual($page1->total(), 8, 'unified total');
     assertEqual($page1->count(), 3, 'page 1 count');
 
@@ -111,7 +112,7 @@ try {
     logInfo('Step 3: Verifying pagination (status=all, page=2)');
 
     Paginator::currentPageResolver(fn () => 2);
-    $page2 = $alerts->paginate(perPage: 3, status: 'all');
+    $page2 = $alerts->paginate(new UnifiedAlertsCriteria(status: 'all', perPage: 3));
     assertEqual($page2->currentPage(), 2, 'page 2 current page');
 
     $page2Ids = collect($page2->items())->map(fn ($a) => $a->id)->values()->all();
@@ -121,10 +122,10 @@ try {
     logInfo('Step 4: Verifying status filters');
 
     Paginator::currentPageResolver(fn () => 1);
-    $active = $alerts->paginate(perPage: 50, status: 'active');
+    $active = $alerts->paginate(new UnifiedAlertsCriteria(status: 'active', perPage: 50));
     assertEqual($active->total(), 4, 'active total');
 
-    $cleared = $alerts->paginate(perPage: 50, status: 'cleared');
+    $cleared = $alerts->paginate(new UnifiedAlertsCriteria(status: 'cleared', perPage: 50));
     assertEqual($cleared->total(), 4, 'cleared total');
 
     logInfo('Step 5: Verifying UnifiedAlertResource mapping for the first item');

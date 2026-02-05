@@ -10,6 +10,7 @@
 
 use App\Models\FireIncident;
 use App\Models\PoliceCall;
+use App\Services\Alerts\DTOs\UnifiedAlertsCriteria;
 use App\Services\Alerts\Mappers\UnifiedAlertMapper;
 use App\Services\Alerts\Providers\FireAlertSelectProvider;
 use App\Services\Alerts\Providers\PoliceAlertSelectProvider;
@@ -161,7 +162,7 @@ try {
     Carbon::setTestNow(Carbon::parse('2026-02-02 12:00:00'));
     Artisan::call('db:seed', ['--class' => UnifiedAlertsTestSeeder::class]);
 
-    $results = app(UnifiedAlertsQuery::class)->paginate(perPage: 50, status: 'all');
+    $results = app(UnifiedAlertsQuery::class)->paginate(new UnifiedAlertsCriteria(status: 'all', perPage: 50));
     assertEqual($results->total(), 8, 'unified alerts total');
 
     $ids = collect($results->items())->map(fn ($a) => $a->id)->values()->all();

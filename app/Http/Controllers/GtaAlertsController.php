@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\AlertStatus;
 use App\Http\Resources\UnifiedAlertResource;
 use App\Models\FireIncident;
 use App\Models\PoliceCall;
+use App\Services\Alerts\DTOs\UnifiedAlertsCriteria;
 use App\Services\Alerts\UnifiedAlertsQuery;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -16,13 +18,19 @@ class GtaAlertsController extends Controller
     public function __invoke(Request $request, UnifiedAlertsQuery $alerts): Response
     {
         $validated = $request->validate([
-            'status' => ['nullable', Rule::in(['all', 'active', 'cleared'])],
+            'status' => ['nullable', Rule::enum(AlertStatus::class)],
         ]);
 
-        /** @var 'all'|'active'|'cleared' $status */
-        $status = $validated['status'] ?? 'all';
+        $status = AlertStatus::normalize($validated['status'] ?? null);
+        $page = $request->integer('page');
 
-        $paginator = $alerts->paginate(perPage: 50, status: $status);
+        $criteria = new UnifiedAlertsCriteria(
+            status: $status,
+            perPage: UnifiedAlertsCriteria::DEFAULT_PER_PAGE,
+            page: $page > 0 ? $page : null,
+        );
+
+        $paginator = $alerts->paginate($criteria);
         $paginator->withQueryString();
 
         $latestFeedUpdatedAt = $this->latestFeedUpdatedAt();

@@ -114,8 +114,8 @@ try {
 
     logInfo('Step 2: Verifying location construction rules');
     $noLocation = $mapper->fromRow((object) [
-        'id' => 'test:nolocation',
-        'source' => 'test',
+        'id' => 'fire:nolocation',
+        'source' => 'fire',
         'external_id' => 'nolocation',
         'is_active' => 1,
         'timestamp' => '2026-02-02 12:00:00',
@@ -128,8 +128,8 @@ try {
     assertTrue($noLocation->location === null, 'location null when all fields null');
 
     $coordsOnly = $mapper->fromRow((object) [
-        'id' => 'test:coords',
-        'source' => 'test',
+        'id' => 'fire:coords',
+        'source' => 'fire',
         'external_id' => 'coords',
         'is_active' => 1,
         'timestamp' => '2026-02-02 12:00:00',
@@ -145,8 +145,8 @@ try {
     assertEqual($coordsOnly->location?->lng, -79.38, 'coords-only => location.lng float');
 
     $zeroCoords = $mapper->fromRow((object) [
-        'id' => 'test:zero',
-        'source' => 'test',
+        'id' => 'fire:zero',
+        'source' => 'fire',
         'external_id' => 'zero',
         'is_active' => 1,
         'timestamp' => '2026-02-02 12:00:00',
@@ -162,8 +162,8 @@ try {
 
     logInfo('Step 3: Verifying timestamp contract is fail-fast');
     assertThrows('timestamp missing', fn () => $mapper->fromRow((object) [
-        'id' => 'test:ts-missing',
-        'source' => 'test',
+        'id' => 'fire:ts-missing',
+        'source' => 'fire',
         'external_id' => '1',
         'is_active' => 1,
         'timestamp' => null,
@@ -171,8 +171,8 @@ try {
     ]), \InvalidArgumentException::class);
 
     assertThrows('timestamp not parseable', fn () => $mapper->fromRow((object) [
-        'id' => 'test:ts-bad',
-        'source' => 'test',
+        'id' => 'fire:ts-bad',
+        'source' => 'fire',
         'external_id' => '1',
         'is_active' => 1,
         'timestamp' => 'not-a-timestamp',

@@ -5,6 +5,7 @@ use App\Models\PoliceCall;
 use App\Services\Alerts\Mappers\UnifiedAlertMapper;
 use App\Services\Alerts\Providers\FireAlertSelectProvider;
 use App\Services\Alerts\Providers\PoliceAlertSelectProvider;
+use App\Services\Alerts\DTOs\UnifiedAlertsCriteria;
 use App\Services\Alerts\UnifiedAlertsQuery;
 use Carbon\CarbonImmutable;
 use Database\Seeders\UnifiedAlertsTestSeeder;
@@ -97,7 +98,9 @@ test('mysql unified alerts query returns a deterministic mixed feed', function (
     Carbon::setTestNow(Carbon::parse('2026-02-02 12:00:00'));
     $this->seed(UnifiedAlertsTestSeeder::class);
 
-    $results = app(UnifiedAlertsQuery::class)->paginate(perPage: 50, status: 'all');
+    $results = app(UnifiedAlertsQuery::class)->paginate(
+        new UnifiedAlertsCriteria(status: 'all', perPage: 50)
+    );
 
     expect($results->total())->toBe(8);
 

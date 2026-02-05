@@ -87,6 +87,8 @@
     - [x] Log: `storage/logs/manual_tests/query_refinement_phase_4_cross_driver_verification_2026_02_05_025928.log`
 
 ## Phase 5: Type-Safe Service Boundary (Enums/Criteria)
+- [x] Task: Phase 5 Preflight - Type-Safe Boundary Audit (no implementation).
+    - [x] Notes: `conductor/tracks/query_refinement_20260203/phase_5_type_safe_boundary_preflight_audit.md`
 - [ ] Task: Introduce type-safe query contracts.
     - [ ] Create `App\Enums\AlertStatus` (all, active, cleared) and use it at the controller/service boundary.
     - [ ] Create `App\Enums\AlertSource` (fire, police, transit) and use it as the canonical source identifier throughout the subsystem.

@@ -25,6 +25,7 @@ if (app()->environment('production')) {
 use App\Models\FireIncident;
 use App\Models\PoliceCall;
 use App\Services\Alerts\Contracts\AlertSelectProvider;
+use App\Services\Alerts\DTOs\UnifiedAlertsCriteria;
 use App\Services\Alerts\Mappers\UnifiedAlertMapper;
 use App\Services\Alerts\UnifiedAlertsQuery;
 use Carbon\Carbon;
@@ -105,7 +106,7 @@ try {
 
     logInfo('Step 1: Defensive behavior when there are no providers');
     $emptyQuery = new UnifiedAlertsQuery(providers: [], mapper: new UnifiedAlertMapper);
-    $emptyResults = $emptyQuery->paginate(perPage: 50, status: 'all');
+    $emptyResults = $emptyQuery->paginate(new UnifiedAlertsCriteria(status: 'all', perPage: 50));
     assertEqual($emptyResults->total(), 0, 'empty providers => total 0');
     assertEqual(count($emptyResults->items()), 0, 'empty providers => items empty');
 
@@ -122,7 +123,7 @@ try {
 
     logInfo('Step 3: Resolve UnifiedAlertsQuery from the container (tagged providers)');
     $alerts = app(UnifiedAlertsQuery::class);
-    $baseline = $alerts->paginate(perPage: 50, status: 'all');
+    $baseline = $alerts->paginate(new UnifiedAlertsCriteria(status: 'all', perPage: 50));
     assertEqual($baseline->total(), 8, 'baseline total');
 
     logInfo('Step 4: Tag a new provider and ensure it contributes rows without modifying the query');
@@ -135,9 +136,9 @@ try {
                 return DB::query()->selectRaw(
                     "? as id,\n                    ? as source,\n                    ? as external_id,\n                    ? as is_active,\n                    ? as timestamp,\n                    ? as title,\n                    ? as location_name,\n                    ? as lat,\n                    ? as lng,\n                    ? as meta",
                     [
-                        'manual_fake:1',
-                        'manual_fake',
-                        '1',
+                        'transit:MANUAL-FAKE-1',
+                        'transit',
+                        'MANUAL-FAKE-1',
                         1,
                         '2026-02-02 14:00:00',
                         'MANUAL FAKE ALERT',
@@ -155,21 +156,21 @@ try {
     app()->forgetInstance(UnifiedAlertsQuery::class);
 
     $alertsWithFake = app(UnifiedAlertsQuery::class);
-    $results = $alertsWithFake->paginate(perPage: 50, status: 'all');
+    $results = $alertsWithFake->paginate(new UnifiedAlertsCriteria(status: 'all', perPage: 50));
 
     assertEqual($results->total(), 9, 'total includes fake provider row');
 
     $ids = collect($results->items())->map(fn ($a) => $a->id)->values()->all();
     logInfo('Unified IDs (with fake provider)', ['ids' => $ids]);
 
-    assertEqual($ids[0], 'manual_fake:1', 'fake provider row is first (latest timestamp)');
-    assertTrue(in_array('manual_fake:1', $ids, true), 'fake provider row exists in results');
+    assertEqual($ids[0], 'transit:MANUAL-FAKE-1', 'fake provider row is first (latest timestamp)');
+    assertTrue(in_array('transit:MANUAL-FAKE-1', $ids, true), 'fake provider row exists in results');
 
     logInfo('Step 5: Verify status filters remain correct with the additional provider');
-    $active = $alertsWithFake->paginate(perPage: 50, status: 'active');
+    $active = $alertsWithFake->paginate(new UnifiedAlertsCriteria(status: 'active', perPage: 50));
     assertEqual($active->total(), 5, 'active includes fake row');
 
-    $cleared = $alertsWithFake->paginate(perPage: 50, status: 'cleared');
+    $cleared = $alertsWithFake->paginate(new UnifiedAlertsCriteria(status: 'cleared', perPage: 50));
     assertEqual($cleared->total(), 4, 'cleared excludes fake row');
 
     logInfo('=== Manual Test Completed Successfully ===');

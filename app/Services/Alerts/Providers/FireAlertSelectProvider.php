@@ -2,6 +2,7 @@
 
 namespace App\Services\Alerts\Providers;
 
+use App\Enums\AlertSource;
 use App\Models\FireIncident;
 use App\Services\Alerts\Contracts\AlertSelectProvider;
 use Illuminate\Database\Query\Builder;
@@ -12,10 +13,11 @@ class FireAlertSelectProvider implements AlertSelectProvider
     public function select(): Builder
     {
         $driver = DB::getDriverName();
+        $source = AlertSource::Fire->value;
 
         $idExpression = $driver === 'sqlite'
-            ? "('fire:' || event_num)"
-            : "CONCAT('fire:', event_num)";
+            ? "('{$source}:' || event_num)"
+            : "CONCAT('{$source}:', event_num)";
 
         $externalIdExpression = $driver === 'sqlite'
             ? 'CAST(event_num AS TEXT)'
@@ -31,7 +33,7 @@ class FireAlertSelectProvider implements AlertSelectProvider
 
         return FireIncident::query()
             ->selectRaw(
-                "{$idExpression} as id,\n                'fire' as source,\n                {$externalIdExpression} as external_id,\n                is_active,\n                dispatch_time as timestamp,\n                event_type as title,\n                {$locationExpression} as location_name,\n                NULL as lat,\n                NULL as lng,\n                {$metaExpression} as meta"
+                "{$idExpression} as id,\n                '{$source}' as source,\n                {$externalIdExpression} as external_id,\n                is_active,\n                dispatch_time as timestamp,\n                event_type as title,\n                {$locationExpression} as location_name,\n                NULL as lat,\n                NULL as lng,\n                {$metaExpression} as meta"
             )
             ->toBase();
     }
