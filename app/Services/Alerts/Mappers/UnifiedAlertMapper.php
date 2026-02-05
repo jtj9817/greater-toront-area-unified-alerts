@@ -2,8 +2,8 @@
 
 namespace App\Services\Alerts\Mappers;
 
-use App\Services\Alerts\DTOs\AlertLocation;
 use App\Services\Alerts\DTOs\AlertId;
+use App\Services\Alerts\DTOs\AlertLocation;
 use App\Services\Alerts\DTOs\UnifiedAlert;
 use Carbon\CarbonImmutable;
 

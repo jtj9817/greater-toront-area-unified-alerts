@@ -2,10 +2,10 @@
 
 use App\Models\FireIncident;
 use App\Models\PoliceCall;
+use App\Services\Alerts\DTOs\UnifiedAlertsCriteria;
 use App\Services\Alerts\Mappers\UnifiedAlertMapper;
 use App\Services\Alerts\Providers\FireAlertSelectProvider;
 use App\Services\Alerts\Providers\PoliceAlertSelectProvider;
-use App\Services\Alerts\DTOs\UnifiedAlertsCriteria;
 use App\Services\Alerts\UnifiedAlertsQuery;
 use Carbon\CarbonImmutable;
 use Database\Seeders\UnifiedAlertsTestSeeder;

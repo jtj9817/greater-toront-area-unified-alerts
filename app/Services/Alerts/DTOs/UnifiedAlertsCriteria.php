@@ -7,11 +7,15 @@ use App\Enums\AlertStatus;
 readonly class UnifiedAlertsCriteria
 {
     public const int DEFAULT_PER_PAGE = 50;
+
     public const int MIN_PER_PAGE = 1;
+
     public const int MAX_PER_PAGE = 200;
 
     public string $status;
+
     public int $perPage;
+
     public ?int $page;
 
     public function __construct(
@@ -28,7 +32,7 @@ readonly class UnifiedAlertsCriteria
     {
         if ($perPage < self::MIN_PER_PAGE || $perPage > self::MAX_PER_PAGE) {
             throw new \InvalidArgumentException(
-                "perPage must be between ".self::MIN_PER_PAGE.' and '.self::MAX_PER_PAGE.'.'
+                'perPage must be between '.self::MIN_PER_PAGE.' and '.self::MAX_PER_PAGE.'.'
             );
         }
 

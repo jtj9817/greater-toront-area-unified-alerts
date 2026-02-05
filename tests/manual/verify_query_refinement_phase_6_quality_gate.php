@@ -92,6 +92,7 @@ try {
         logInfo('Targets: pint, coverage (>=90%), composer audit, pnpm audit.');
         logInfo('Use SKIP_COVERAGE=1 or SKIP_AUDITS=1 to skip subsets.');
         logInfo('=== Manual Test Completed Successfully ===');
+
         return;
     }
 

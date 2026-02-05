@@ -23,7 +23,7 @@ readonly class AlertId
         [$source, $externalId] = array_pad(explode(':', $value, 2), 2, null);
 
         if ($source === null || $externalId === null) {
-            throw new \InvalidArgumentException("AlertId must be in the format {source}:{externalId}.");
+            throw new \InvalidArgumentException('AlertId must be in the format {source}:{externalId}.');
         }
 
         return new self($source, $externalId);
