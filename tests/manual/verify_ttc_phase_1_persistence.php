@@ -8,6 +8,14 @@
 
 require __DIR__.'/../../vendor/autoload.php';
 
+// Default manual verification runs to testing so Laravel loads `.env.testing`.
+// Preserve an explicitly provided APP_ENV value if the caller set one.
+if (getenv('APP_ENV') === false || getenv('APP_ENV') === '') {
+    putenv('APP_ENV=testing');
+    $_ENV['APP_ENV'] = 'testing';
+    $_SERVER['APP_ENV'] = 'testing';
+}
+
 $app = require_once __DIR__.'/../../bootstrap/app.php';
 $kernel = $app->make(Illuminate\Contracts\Console\Kernel::class);
 $kernel->bootstrap();
@@ -41,6 +49,7 @@ umask(002);
 use App\Models\TransitAlert;
 use Carbon\Carbon;
 use Illuminate\Database\QueryException;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
@@ -120,9 +129,21 @@ try {
         DB::connection()->getPdo();
     } catch (Throwable $e) {
         throw new RuntimeException(
-            "Database connection failed. If you're using Sail, ensure Docker is running and execute: ./vendor/bin/sail php tests/manual/verify_ttc_phase_1_persistence.php",
+            "Database connection failed. If you're using Sail, run: ./scripts/init-testing-environment.sh",
             previous: $e
         );
+    }
+
+    logInfo('Boot context', [
+        'app_env' => app()->environment(),
+        'db_connection' => $connection,
+        'db_database' => $currentDatabase,
+    ]);
+
+    if (! Schema::hasTable('transit_alerts')) {
+        logInfo('transit_alerts missing; running migrations for testing database');
+        Artisan::call('migrate', ['--force' => true]);
+        logInfo('Migration output', ['output' => trim(Artisan::output())]);
     }
 
     DB::beginTransaction();
