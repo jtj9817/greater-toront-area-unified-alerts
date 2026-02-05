@@ -77,12 +77,14 @@
     - [x] Identify missing runtime prerequisites (Sail compose / MySQL container) and propose setup steps.
     - [x] Document driver-specific risks to validate (JSON meta, casts, UNION type coercion, ordering/collation, pagination wrapping).
     - [x] Notes: `conductor/tracks/query_refinement_20260203/phase_4_cross_driver_preflight_audit.md`
-- [ ] Task: MySQL Testing Environment Setup.
-    - [ ] Configure a test environment/command to run PHPUnit/Pest against a MySQL instance (via Sail/Docker).
+- [x] (a39e43b) Task: MySQL Testing Environment Setup.
+    - [x] Configure a test environment/command to run PHPUnit/Pest against a MySQL instance (via Sail/Docker).
     - [ ] Optional but recommended: add CI coverage for MySQL for the provider + unified query tests.
-- [ ] Task: Validate SQL Branches against MySQL.
-    - [ ] Execute provider and unified query tests against MySQL and fix any driver-specific regressions (e.g., `CONCAT` vs `||`).
-- [ ] Task: Conductor - User Manual Verification 'Phase 4: Cross-Driver Verification' (Protocol in workflow.md)
+- [x] (a39e43b) Task: Validate SQL Branches against MySQL.
+    - [x] Execute provider and unified query tests against MySQL and fix any driver-specific regressions (e.g., `CONCAT` vs `||`).
+- [x] (a39e43b) Task: Conductor - User Manual Verification 'Phase 4: Cross-Driver Verification' (Protocol in workflow.md)
+    - [x] Script: `tests/manual/verify_query_refinement_phase_4_cross_driver_verification.php`
+    - [x] Log: `storage/logs/manual_tests/query_refinement_phase_4_cross_driver_verification_2026_02_05_025928.log`
 
 ## Phase 5: Type-Safe Service Boundary (Enums/Criteria)
 - [ ] Task: Introduce type-safe query contracts.
