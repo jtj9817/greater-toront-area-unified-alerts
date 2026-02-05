@@ -6,7 +6,8 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ## Active Tracks
 
-*(No active tracks)*
+- [~] **Track: TTC Transit Integration**
+*Link: [./tracks/ttc_transit_integration/](./tracks/ttc_transit_integration/)*
 
 ---
 
