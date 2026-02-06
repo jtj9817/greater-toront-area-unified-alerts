@@ -14,9 +14,17 @@ on:
       - master
       - workos
 
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   quality:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v6
 
@@ -24,15 +32,19 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.4'
+          cache: composer
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
+        with:
+          version: 10.4.0
 
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: '22'
           cache: 'pnpm'
+          cache-dependency-path: pnpm-lock.yaml
 
       - name: Install Dependencies
         run: |
