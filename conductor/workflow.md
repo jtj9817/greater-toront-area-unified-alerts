@@ -14,6 +14,14 @@
 
 All tasks follow a strict lifecycle:
 
+### Track Structure Requirements
+
+Every implementation track must conclude with a final **Quality & Documentation** phase. This phase ensures the track meets the project's long-term maintenance standards before archiving. It must include:
+
+1. **Coverage Verification:** Execute `./vendor/bin/sail artisan test --coverage` to ensure that the track's specific modules meet or exceed the **>90% coverage** threshold.
+2. **Documentation Update:** Update all relevant project documentation, including technical docs in `docs/`, the `README.md`, and `CLAUDE.md` to reflect new features, commands, or architectural changes.
+3. **Registry Maintenance:** Once verified, the track must be moved to the archive and its status updated in the **Tracks Registry** (`conductor/tracks.md`).
+
 ### Standard Task Workflow
 
 1. **Select Task:** Choose the next available task from `plan.md` in sequential order.
