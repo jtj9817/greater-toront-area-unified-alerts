@@ -7,6 +7,7 @@ enum AlertSource: string
     case Fire = 'fire';
     case Police = 'police';
     case Transit = 'transit';
+    case GoTransit = 'go_transit';
 
     /**
      * @return array<int, string>
