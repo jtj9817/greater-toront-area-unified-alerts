@@ -36,6 +36,23 @@ describe('AlertService', () => {
         },
     };
 
+    const mockGoTransitAlert: UnifiedAlertResource = {
+        id: 'go_transit:12345',
+        source: 'go_transit',
+        external_id: '12345',
+        is_active: true,
+        timestamp,
+        title: 'Lakeshore East delay',
+        location: { name: 'Union Station', lat: 43.7, lng: -79.4 },
+        meta: {
+            service_mode: 'Train',
+            corridor_code: 'LE',
+            sub_category: 'TDELAY',
+            direction: 'Eastbound',
+            delay_duration: '00:15:00',
+        },
+    };
+
     it('maps a backend unified fire alert to an AlertItem correctly', () => {
         const alertItem =
             AlertService.mapUnifiedAlertToAlertItem(mockFireAlert);
@@ -183,6 +200,39 @@ describe('AlertService', () => {
         });
 
         expect(alertItem.severity).toBe('low');
+    });
+
+    it('keeps GO Transit alerts reachable via transit category filter', () => {
+        const items = [
+            AlertService.mapUnifiedAlertToAlertItem(mockFireAlert),
+            AlertService.mapUnifiedAlertToAlertItem({
+                id: 'transit:T1',
+                source: 'transit',
+                external_id: 'T1',
+                is_active: true,
+                timestamp,
+                title: 'Line 2 delay',
+                location: { name: 'Bloor Station', lat: null, lng: null },
+                meta: {
+                    route_type: 'Subway',
+                    route: '2',
+                    effect: 'SIGNIFICANT_DELAYS',
+                },
+            }),
+            AlertService.mapUnifiedAlertToAlertItem(mockGoTransitAlert),
+        ];
+
+        const results = AlertService.search(items, {
+            query: '',
+            category: 'transit',
+            dateScope: 'all',
+        });
+
+        expect(results).toHaveLength(2);
+        expect(results.map((item) => item.type).sort()).toEqual([
+            'go_transit',
+            'transit',
+        ]);
     });
 
     it('filters items by search query', () => {

@@ -14,6 +14,11 @@ export interface AlertFilterOptions {
  * Refactored to be data-driven and support live backend resources.
  */
 export class AlertService {
+    private static categoryAliases: Record<string, ReadonlyArray<AlertItem['type']>> =
+        {
+            transit: ['transit', 'go_transit'],
+        };
+
     /**
      * Helper to parse relative time strings (e.g. "4m ago", "1h ago") into minutes for numeric sorting
      */
@@ -561,7 +566,10 @@ export class AlertService {
 
         // 2. Category Filter
         if (category !== 'all') {
-            filtered = filtered.filter((item) => item.type === category);
+            const allowedTypes = this.categoryAliases[category] ?? [category];
+            filtered = filtered.filter((item) =>
+                allowedTypes.includes(item.type),
+            );
         }
 
         // 3. Time Limit Filter (Last X minutes)
