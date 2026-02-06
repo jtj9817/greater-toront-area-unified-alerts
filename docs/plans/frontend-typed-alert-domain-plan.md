@@ -1,103 +1,101 @@
 # Frontend Typed Alert Domain Plan
 
-## Context
+## Purpose
 
-The backend already provides a unified alert contract through `UnifiedAlertsQuery`.
-In Phase 4 of TTC integration, frontend behavior was improved for transit severity,
-icon mapping, and richer descriptions using `meta`.
+Document the **current** frontend alert-domain state and define the remaining work to reach a fully typed domain layer.
 
-We discussed whether to introduce source-specific frontend types (especially for
-transit) while keeping backend unification intact.
+## Current State (As Implemented)
 
-## Question
+### 1. Backend Boundary Is Unified and Typed in Frontend Inputs
 
-Should we create a dedicated transit alert type in the frontend now, or defer it?
+- `resources/js/features/gta-alerts/types.ts` defines `UnifiedAlertResource` as the API input shape.
+- Frontend currently handles these sources directly: `'fire' | 'police' | 'transit' | 'go_transit'`.
+- `App.tsx` receives `alerts.data: UnifiedAlertResource[]` and maps each item through `AlertService.mapUnifiedAlertToAlertItem(...)`.
 
-## Decision
+### 2. Frontend Uses a Typed Presentation Model (`AlertItem`)
 
-Defer this refactor to a follow-up track.
+- `AlertItem` is the UI-facing type used across feed cards, table rows, and details views.
+- `AlertItem.type` is a union: `'fire' | 'police' | 'transit' | 'go_transit' | 'hazard' | 'medical'`.
+- `AlertItem.metadata` includes shared fields plus optional transit/GO-specific fields (`routeType`, `effect`, `direction`, `estimatedDelay`, `sourceFeed`, `shuttleInfo`).
 
-Rationale:
-- Current TTC Phase 4 requirements are complete and validated.
-- Introducing a typed per-source domain model is architectural improvement,
-  not a blocker for transit integration acceptance criteria.
-- Doing this cleanly is better when applied consistently across transit, fire,
-  and police instead of transit-only partial specialization.
+### 3. Domain Mapping Logic Exists but Is Centralized in One Service
 
-## Proposed Architecture (Follow-up)
+- `resources/js/features/gta-alerts/services/AlertService.ts` currently performs:
+  - source/type mapping (`getAlertItemType`, `normalizeType`)
+  - severity mapping (`getSeverity`, `getTransitSeverity`, `getGoTransitSeverity`)
+  - source-specific description + metadata mapping (`getDescriptionAndMetadata`)
+  - icon/color mapping (`getIconForType`, `getAccentColorForType`, `getIconColorForType`)
+  - search/filter logic (`search`) including category aliasing (`transit` includes `go_transit`)
 
-Keep a unified backend boundary and specialize in a frontend domain layer:
+### 4. Test Coverage Reflects This Architecture
 
-1. Input boundary: `UnifiedAlertResource` (API shape)
-2. Mapping boundary: parse `meta` into source-specific typed models
-3. UI domain: discriminated union of typed alerts
-4. Presentation: source-aware render/mapping functions using typed data
+- `resources/js/features/gta-alerts/services/AlertService.test.ts` covers:
+  - fire/police/transit/GO mapping behavior
+  - transit severity and icon mapping from metadata
+  - transit category filter including GO alerts
+  - query/category filtering behavior
+- Component tests use mapped `AlertItem` values (e.g., `AlertCard.test.tsx`, `FeedView.test.tsx`).
 
-Example shape:
+## What Changed vs Original Plan
 
-```ts
-// transport-layer API type
-interface UnifiedAlertResource {
-  source: 'fire' | 'police' | 'transit';
-  meta: Record<string, unknown>;
-  // ...
-}
+The previous version of this document stated this work should be deferred. That is no longer accurate.
 
-// domain-layer union
-type DomainAlert = FireAlert | PoliceAlert | TransitAlert;
-```
+What is now true:
 
-## OOP Analysis
+- Typed source-aware mapping is already implemented.
+- GO Transit is integrated in frontend types and mapping.
+- Source-specific behavior for transit metadata/severity/icon rules is already in production code.
 
-### Pros
+What is still not done:
 
-- Single Responsibility: each source mapper handles only its own translation.
-- Open/Closed: adding new source behavior extends strategy classes/functions
-  without repeatedly editing one central conditional block.
-- Encapsulation: transit-specific rules live in a transit-focused type/mapper.
-- Testability: each mapper can be unit-tested independently.
+- There is no dedicated `domain/alerts` module.
+- There is no explicit discriminated union domain model (`DomainAlert = FireAlert | PoliceAlert | TransitAlert | GoTransitAlert`).
+- Source parsing/mapping remains concentrated in one large service class.
 
-### Cons
+## Remaining Gaps
 
-- More classes/modules and mapping code to maintain.
-- Potential drift if backend metadata changes and mapper updates lag.
-- If only transit is specialized, design consistency degrades.
+1. **No explicit domain-layer union model**
+   - UI operates on `AlertItem` only, not a strongly modeled domain union.
 
-## FP Analysis
+2. **Mapping responsibilities are overloaded in `AlertService`**
+   - Data translation, presentation mapping, and filtering are mixed together.
 
-### Pros
+3. **Weak metadata typing**
+   - Input `meta` is `Record<string, unknown>` and is narrowed ad hoc in many places.
 
-- Pure mapping functions (`resource -> domain`) are deterministic and easy to test.
-- Discriminated unions provide exhaustive handling for `source`.
-- Reduced runtime uncertainty by validating/parsing unknown `meta` once.
-- Easier composition of small transform functions for severity/icon/description.
+4. **Detail rendering does not explicitly model GO Transit**
+   - `AlertDetailsView` branches on `alert.type === 'transit'`; `go_transit` currently falls back to transit rendering.
 
-### Cons
+## Updated Recommendation
 
-- Upfront cost to design parser and domain union.
-- Extra boilerplate for parsing and narrowing unknown metadata.
-- Requires team discipline to keep transformations pure and centralized.
+Proceed with an incremental refactor to formalize the typed domain layer, while preserving current behavior.
 
-## Unified Alerts Principle Check
+## Incremental Refactor Plan
 
-This refactor does **not** violate unified alerts principles if the boundary remains:
-- Unified contract from backend
-- Specialization after boundary in frontend domain mapping
+1. Create `resources/js/features/gta-alerts/domain/alerts/` with:
+   - domain types (`FireAlert`, `PoliceAlert`, `TransitAlert`, `GoTransitAlert`, `DomainAlert`)
+   - metadata parsers/guards for each source
 
-Unification is preserved at integration points while improving internal type safety.
+2. Add a boundary mapper:
+   - `toDomainAlert(resource: UnifiedAlertResource): DomainAlert`
 
-## Incremental Rollout Plan
+3. Add a presentation mapper:
+   - `toAlertItem(domainAlert: DomainAlert): AlertItem`
 
-1. Add a `domain/alerts` module for typed models and parsers.
-2. Create `toDomainAlert(resource: UnifiedAlertResource): DomainAlert`.
-3. Migrate transit logic first behind compatibility mapping.
-4. Migrate fire and police for symmetry.
-5. Replace conditional-heavy service logic with source-specific helpers.
-6. Expand tests for parser validity and exhaustive source handling.
+4. Move source-specific logic out of `AlertService`:
+   - severity/icon/description rules into source modules
+   - keep `AlertService.search(...)` focused on filtering/sorting only
 
-## Scope Recommendation
+5. Update details rendering to explicitly handle `go_transit`:
+   - either dedicated GO detail renderer or clearly intentional shared transit renderer path
 
-- **Now (current TTC track):** keep existing implementation as-is.
-- **Next track:** execute typed-domain refactor across all sources.
+6. Expand tests around:
+   - parser validation/narrowing of source metadata
+   - exhaustive handling on `DomainAlert['source']`
+   - parity tests to prevent UI regressions during refactor
 
-This keeps delivery momentum while reducing long-term complexity safely.
+## Scope Guidance
+
+- **Short term:** keep existing `AlertItem` API for UI components to minimize churn.
+- **Medium term:** introduce domain union + mappers behind the existing component interfaces.
+- **Long term:** make domain union the primary internal model and keep `AlertItem` as presentation-only.
