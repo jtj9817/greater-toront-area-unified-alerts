@@ -10,6 +10,7 @@ GTA Alerts is a real-time dashboard for emergency services and transit alerts ac
 - **Toronto Fire Services** - Live CAD XML feed (real-time, every 5 minutes)
 - **Toronto Police Services** - ArcGIS FeatureServer scraping (every 10 minutes)
 - **TTC Transit Alerts** - Architecture spec complete, implementation pending
+- **GO Transit** - Metrolinx JSON API (`api.metrolinx.com/external/go/serviceupdate/en/all`, every 5 minutes)
 
 ## Commands
 
@@ -46,8 +47,9 @@ pnpm run types               # TypeScript type checking (tsc --noEmit)
 
 ### Data
 ```bash
-php artisan fire:fetch-incidents   # Manually sync Toronto Fire feed
-php artisan police:fetch-calls     # Manually sync Toronto Police feed
+php artisan fire:fetch-incidents       # Manually sync Toronto Fire feed
+php artisan police:fetch-calls         # Manually sync Toronto Police feed
+php artisan go-transit:fetch-alerts    # Manually sync GO Transit feed
 ```
 
 ### Scheduler
@@ -64,7 +66,7 @@ php artisan scheduler:report         # Show schedule configuration
 The system uses a **Provider & Adapter** pattern to unify divergent data sources:
 
 ```
-Source Models (FireIncident, PoliceCall)
+Source Models (FireIncident, PoliceCall, GoTransitAlert)
     ↓
 Select Providers (AlertSelectProvider implementations)
     ↓
@@ -84,14 +86,15 @@ AlertItem View Model (frontend)
 - `App\Services\Alerts\DTOs\AlertId` - Composite ID (`source:externalId`) with validation
 
 **Enums:**
-- `App\Enums\AlertSource` - Fire, Police, Transit (type-safe)
+- `App\Enums\AlertSource` - Fire, Police, Transit, GoTransit (type-safe)
 - `App\Enums\AlertStatus` - All, Active, Cleared (with `normalize()` method)
 
 **Providers (Tagged Injection):**
 - `App\Services\Alerts\Contracts\AlertSelectProvider` - Interface for SELECT queries
 - `App\Services\Alerts\Providers\FireAlertSelectProvider` - Fire incidents adapter
 - `App\Services\Alerts\Providers\PoliceAlertSelectProvider` - Police calls adapter
-- `App\Services\Alerts\Providers\TransitAlertSelectProvider` - TTC stub (returns `WHERE 1=0`)
+- `App\Services\Alerts\Providers\TransitAlertSelectProvider` - TTC transit alerts adapter
+- `App\Services\Alerts\Providers\GoTransitAlertSelectProvider` - GO Transit alerts adapter
 
 **Query & Mapper:**
 - `App\Services\Alerts\UnifiedAlertsQuery` - UNION ALL query with tagged provider injection
@@ -121,6 +124,12 @@ AlertItem View Model (frontend)
 **TTC Transit (Future):**
 - Multiple sources: alerts.ttc.ca JSON API, Sitecore SXA search, static CMS pages
 - Architecture documented in `docs/backend/sources/ttc-transit.md`
+
+**GO Transit:**
+- Metrolinx JSON API → `GoTransitFeedService` (fetch/parse) → `FetchGoTransitAlertsCommand` (upsert via `external_id`) → `GoTransitAlert` model
+- Parses Trains (notifications + SAAG real-time delays), Buses, and Stations
+- Command marks missing alerts as `is_active = false`
+- Scheduled every 5 minutes in `routes/console.php`
 
 ### Frontend Structure
 
