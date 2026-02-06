@@ -6,6 +6,7 @@ use App\Enums\AlertStatus;
 use App\Http\Resources\UnifiedAlertResource;
 use App\Models\FireIncident;
 use App\Models\PoliceCall;
+use App\Models\TransitAlert;
 use App\Services\Alerts\DTOs\UnifiedAlertsCriteria;
 use App\Services\Alerts\UnifiedAlertsQuery;
 use Illuminate\Http\Request;
@@ -46,26 +47,30 @@ class GtaAlertsController extends Controller
 
     private function latestFeedUpdatedAt(): ?\Carbon\CarbonInterface
     {
-        $fire = FireIncident::query()
+        $latest = null;
+
+        foreach ([
+            $this->latestFeedTimestamp(FireIncident::class),
+            $this->latestFeedTimestamp(PoliceCall::class),
+            $this->latestFeedTimestamp(TransitAlert::class),
+        ] as $timestamp) {
+            if ($timestamp !== null && ($latest === null || $timestamp->greaterThan($latest))) {
+                $latest = $timestamp;
+            }
+        }
+
+        return $latest;
+    }
+
+    /**
+     * @param  class-string<\Illuminate\Database\Eloquent\Model>  $modelClass
+     */
+    private function latestFeedTimestamp(string $modelClass): ?\Carbon\CarbonInterface
+    {
+        return $modelClass::query()
             ->whereNotNull('feed_updated_at')
             ->orderByDesc('feed_updated_at')
             ->first(['feed_updated_at'])
             ?->feed_updated_at;
-
-        $police = PoliceCall::query()
-            ->whereNotNull('feed_updated_at')
-            ->orderByDesc('feed_updated_at')
-            ->first(['feed_updated_at'])
-            ?->feed_updated_at;
-
-        if ($fire === null) {
-            return $police;
-        }
-
-        if ($police === null) {
-            return $fire;
-        }
-
-        return $fire->greaterThan($police) ? $fire : $police;
     }
 }

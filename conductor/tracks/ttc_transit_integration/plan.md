@@ -2,7 +2,7 @@
 
 **Created**: 2026-02-05  
 **Completed**: In Progress  
-**Status**: In Progress (Phase 1 Complete)  
+**Status**: In Progress (Phases 1-3 Complete)  
 **Purpose**: Replace the transit placeholder path with full TTC ingestion and unified dashboard integration aligned with current backend/frontend architecture.
 
 ---
@@ -158,7 +158,7 @@ Coverage goals:
 
 ### Phase 3: Unified Backend Integration
 
-#### Task 3.1: Replace transit provider stub
+#### [x] Task 3.1: Replace transit provider stub (Completed 2026-02-06)
 **File**: `app/Services/Alerts/Providers/TransitAlertSelectProvider.php`
 
 Requirements:
@@ -168,7 +168,7 @@ Requirements:
 - Build `location_name` from route/stop data.
 - Leave lat/lng null for route-based alerts.
 
-#### Task 3.2: Update transit provider unit tests
+#### [x] Task 3.2: Update transit provider unit tests (Completed 2026-02-06)
 **File**: `tests/Unit/Services/Alerts/Providers/TransitAlertSelectProviderTest.php`
 
 Requirements:
@@ -176,7 +176,7 @@ Requirements:
 - Verify non-empty rows when transit fixtures exist.
 - Assert `source='transit'`, non-empty `external_id`, and JSON `meta` keys.
 
-#### Task 3.3: Include transit in feed freshness aggregation
+#### [x] Task 3.3: Include transit in feed freshness aggregation (Completed 2026-02-06)
 **File**: `app/Http/Controllers/GtaAlertsController.php`
 
 Requirements:
@@ -184,7 +184,7 @@ Requirements:
 - Return max of fire/police/transit.
 - Preserve current return contract and existing `filters`/`alerts` payload shape.
 
-#### Task 3.4: Add schedule registration
+#### [x] Task 3.4: Add schedule registration (Completed 2026-02-06)
 **File**: `routes/console.php`
 
 Requirement:
@@ -244,13 +244,13 @@ Requirements:
 | `tests/Feature/Services/TtcAlertsFeedServiceTest.php` | Create | DONE |
 | `tests/Feature/Commands/FetchTransitAlertsCommandTest.php` | Create | DONE |
 | `tests/Feature/Jobs/FetchTransitAlertsJobTest.php` | Create | DONE |
-| `app/Services/Alerts/Providers/TransitAlertSelectProvider.php` | Modify | TODO |
-| `tests/Unit/Services/Alerts/Providers/TransitAlertSelectProviderTest.php` | Modify | TODO |
-| `app/Http/Controllers/GtaAlertsController.php` | Modify | TODO |
-| `routes/console.php` | Modify | TODO |
+| `app/Services/Alerts/Providers/TransitAlertSelectProvider.php` | Modify | DONE |
+| `tests/Unit/Services/Alerts/Providers/TransitAlertSelectProviderTest.php` | Modify | DONE |
+| `app/Http/Controllers/GtaAlertsController.php` | Modify | DONE |
+| `routes/console.php` | Modify | DONE |
 | `database/seeders/UnifiedAlertsTestSeeder.php` | Modify | TODO |
 | `tests/Feature/UnifiedAlerts/UnifiedAlertsQueryTest.php` | Modify | TODO |
-| `tests/Feature/GtaAlertsTest.php` | Modify | TODO |
+| `tests/Feature/GtaAlertsTest.php` | Modify | IN PROGRESS |
 | `resources/js/features/gta-alerts/services/AlertService.ts` | Modify | TODO |
 | `resources/js/features/gta-alerts/services/AlertService.test.ts` | Modify | TODO |
 

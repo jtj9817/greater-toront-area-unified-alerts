@@ -3,6 +3,7 @@
 namespace App\Services\Alerts\Providers;
 
 use App\Enums\AlertSource;
+use App\Models\TransitAlert;
 use App\Services\Alerts\Contracts\AlertSelectProvider;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\DB;
@@ -11,12 +12,25 @@ class TransitAlertSelectProvider implements AlertSelectProvider
 {
     public function select(): Builder
     {
+        $driver = DB::getDriverName();
         $source = AlertSource::Transit->value;
 
-        return DB::query()
+        $idExpression = $driver === 'sqlite'
+            ? "('{$source}:' || external_id)"
+            : "CONCAT('{$source}:', external_id)";
+
+        $locationExpression = $driver === 'sqlite'
+            ? "NULLIF(trim(\n                COALESCE('Route ' || route, '') ||\n                CASE WHEN route IS NOT NULL AND (stop_start IS NOT NULL OR stop_end IS NOT NULL) THEN ': ' ELSE '' END ||\n                COALESCE(stop_start, '') ||\n                CASE WHEN stop_start IS NOT NULL AND stop_end IS NOT NULL THEN ' to ' ELSE '' END ||\n                COALESCE(stop_end, '')\n            ), '')"
+            : "NULLIF(TRIM(CONCAT(\n                IF(route IS NOT NULL, CONCAT('Route ', route), ''),\n                IF(route IS NOT NULL AND (stop_start IS NOT NULL OR stop_end IS NOT NULL), ': ', ''),\n                IFNULL(stop_start, ''),\n                IF(stop_start IS NOT NULL AND stop_end IS NOT NULL, ' to ', ''),\n                IFNULL(stop_end, '')\n            )), '')";
+
+        $metaExpression = $driver === 'sqlite'
+            ? "json_object('route_type', route_type, 'route', route, 'severity', severity, 'effect', effect, 'source_feed', source_feed, 'alert_type', alert_type, 'description', description, 'url', url, 'direction', direction, 'cause', cause, 'stop_start', stop_start, 'stop_end', stop_end)"
+            : "JSON_OBJECT('route_type', route_type, 'route', route, 'severity', severity, 'effect', effect, 'source_feed', source_feed, 'alert_type', alert_type, 'description', description, 'url', url, 'direction', direction, 'cause', cause, 'stop_start', stop_start, 'stop_end', stop_end)";
+
+        return TransitAlert::query()
             ->selectRaw(
-                "NULL as id,\n                '{$source}' as source,\n                NULL as external_id,\n                0 as is_active,\n                NULL as timestamp,\n                NULL as title,\n                NULL as location_name,\n                NULL as lat,\n                NULL as lng,\n                NULL as meta"
+                "{$idExpression} as id,\n                '{$source}' as source,\n                external_id,\n                is_active,\n                COALESCE(active_period_start, created_at) as timestamp,\n                title,\n                {$locationExpression} as location_name,\n                NULL as lat,\n                NULL as lng,\n                {$metaExpression} as meta"
             )
-            ->whereRaw('1 = 0');
+            ->toBase();
     }
 }

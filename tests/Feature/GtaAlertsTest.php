@@ -2,6 +2,7 @@
 
 use App\Models\FireIncident;
 use App\Models\PoliceCall;
+use App\Models\TransitAlert;
 use Illuminate\Support\Carbon;
 use Inertia\Testing\AssertableInertia as Assert;
 
@@ -149,5 +150,51 @@ test('the home page sets latest_feed_updated_at to the most recent of fire and p
     $this->get(route('home'))
         ->assertInertia(fn (Assert $page) => $page
             ->where('latest_feed_updated_at', $fireLatest->toIso8601String())
+        );
+});
+
+test('the home page sets latest_feed_updated_at from transit when fire and police are missing', function () {
+    Carbon::setTestNow(Carbon::parse('2026-02-03 12:00:00'));
+
+    $latest = Carbon::now()->subMinutes(4);
+    TransitAlert::factory()->create([
+        'external_id' => 'api:62000',
+        'feed_updated_at' => $latest,
+    ]);
+
+    $this->get(route('home'))
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('latest_feed_updated_at', $latest->toIso8601String())
+        );
+});
+
+test('the home page sets latest_feed_updated_at to the most recent of fire police and transit', function () {
+    Carbon::setTestNow(Carbon::parse('2026-02-03 12:00:00'));
+
+    $fireLatest = Carbon::now()->subMinutes(3);
+    FireIncident::factory()->create([
+        'event_num' => 'E1',
+        'is_active' => true,
+        'dispatch_time' => Carbon::now()->subMinutes(10),
+        'feed_updated_at' => $fireLatest,
+    ]);
+
+    $policeLatest = Carbon::now()->subMinutes(4);
+    PoliceCall::factory()->create([
+        'object_id' => 123,
+        'is_active' => true,
+        'occurrence_time' => Carbon::now()->subMinutes(10),
+        'feed_updated_at' => $policeLatest,
+    ]);
+
+    $transitLatest = Carbon::now()->subMinutes(1);
+    TransitAlert::factory()->create([
+        'external_id' => 'api:62001',
+        'feed_updated_at' => $transitLatest,
+    ]);
+
+    $this->get(route('home'))
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('latest_feed_updated_at', $transitLatest->toIso8601String())
         );
 });
