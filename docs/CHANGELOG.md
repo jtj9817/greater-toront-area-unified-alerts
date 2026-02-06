@@ -1,105 +1,65 @@
 # Changelog
 
-All notable changes to the GTA Alerts project will be documented in this file.
+All notable documentation-relevant changes are tracked here.
 
-## [February 05, 2026] - Unified Alerts System & Query Refinement
+## [February 06, 2026] - TTC + GO Transit Unified Feed Completion
 
 ### Added
-- **AlertSource Enum** (`app/Enums/AlertSource.php`) - Type-safe source identifiers (Fire, Police, Transit)
-- **AlertStatus Enum** (`app/Enums/AlertStatus.php`) - Type-safe status values (All, Active, Cleared) with normalization
-- **AlertId Value Object** (`app/Services/Alerts/DTOs/AlertId.php`) - Composite ID for unified alerts with validation
-- **UnifiedAlertsCriteria DTO** - Query criteria with per-page/page validation
-- **Tagged Provider Injection** - AlertSelectProvider implementations tagged and auto-injected into UnifiedAlertsQuery
-- **MySQL Cross-Driver Tests** - `phpunit.mysql.xml` configuration with dedicated test database
+- Documented **GO Transit integration** end-to-end:
+  - `GoTransitFeedService`
+  - `go-transit:fetch-alerts` command
+  - `FetchGoTransitAlertsJob`
+  - `go_transit_alerts` table/model/factory
+  - `GoTransitAlertSelectProvider`
+- Added source documentation for GO Transit feed parsing and storage contract.
 
 ### Changed
-- **UnifiedAlertsQuery** - Refactored to use tagged provider injection via `#[Tag('alerts.select-providers')]`
-- **UnifiedAlertsCriteria** - Now uses `AlertStatus` enum with `normalize()` method for validation
-- **Fire/Police/Transit Providers** - Updated to use `AlertSource` enum
-- **GtaAlertsController** - Uses `AlertStatus::normalize()` for request validation
-- **Testing Setup** - Added `.env.testing` for MySQL manual test scripts
+- Updated unified system docs to reflect **four active providers**: Fire, Police, TTC Transit, GO Transit.
+- Updated enum/type docs for `AlertSource::GoTransit` / `'go_transit'`.
+- Updated frontend mapping docs for transit category aliasing (`transit` + `go_transit`) and GO-specific severity/icon/color handling.
+- Updated docs index/status tables to mark TTC as implemented.
 
-### Fixed
-- Phase 6 quality gates for query refinement completed
-- Type-safe boundary validation for alert queries
-- MySQL driver compatibility for all provider SELECT expressions
-
-## [February 03, 2026] - Dynamic Zones Architecture
+## [February 05, 2026] - Transit Expansion and Query Hardening
 
 ### Added
-- **Dynamic Zones Architecture Specification** (`docs/Dynamic-Zones-Architecture.md`)
-  - Zone definitions and beat/division mapping config
-  - ZoneStatsService for 24-hour aggregation
-  - ZoneStats DTO and Resource serialization
-  - Frontend integration with ZonesView component
-
-## [February 02, 2026] - Unified Alerts Implementation
-
-### Added
-- **UnifiedAlertsQuery Service** - Database-level UNION query for cross-source pagination
-- **AlertSelectProvider Interface** - Contract for source-specific SELECT queries
-- **FireAlertSelectProvider** - Toronto Fire incidents unified query adapter
-- **PoliceAlertSelectProvider** - Toronto Police calls unified query adapter
-- **TransitAlertSelectProvider** - Stub for future TTC transit alerts
-- **UnifiedAlertMapper** - Maps database rows to UnifiedAlert DTOs
-- **UnifiedAlertResource** - JSON serialization for Inertia props
-- **GtaAlertsController** - Public page controller with unified alerts endpoint
+- `AlertStatus` enum and criteria normalization for unified feed filtering.
+- `transit_alerts` ingestion pipeline:
+  - `TtcAlertsFeedService`
+  - `transit:fetch-alerts` command
+  - `FetchTransitAlertsJob`
+  - `TransitAlert` model and factory
+  - `TransitAlertSelectProvider`
+- `go_transit_alerts` persistence and enum support scaffolding in unified source model.
 
 ### Changed
-- **Frontend types** - Added `UnifiedAlertResource` interface to `types.ts`
-- **AlertService** - Added `mapUnifiedAlertToAlertItem()` for transport to view-model mapping
-- **App.tsx** - Updated to consume `alerts` prop from backend
-- **Feed pagination** - Moved from client-side to server-side via UNION query
+- `UnifiedAlertsQuery` uses tagged provider injection via `#[Tag('alerts.select-providers')]`.
+- `GtaAlertsController` computes latest feed timestamp across all integrated sources.
+- Scheduler registration now includes both transit commands:
+  - `transit:fetch-alerts` every 5 minutes
+  - `go-transit:fetch-alerts` every 5 minutes
+
+## [February 03, 2026] - Dynamic Zones Architecture Spec
+
+### Added
+- `docs/architecture/dynamic-zones.md` specification for a backend-driven zone stats feature.
+
+## [February 02, 2026] - Unified Alerts Architecture
+
+### Added
+- `UnifiedAlertsQuery`, provider contract, mapper, DTOs, and unified resource transport.
+- Fire and Police provider adapters for DB-level `UNION ALL` aggregation.
 
 ## [February 01, 2026] - Toronto Police Integration
 
 ### Added
-- **PoliceCall Model** - Eloquent model for TPS "Calls for Service" data
-- **TorontoPoliceFeedService** - ArcGIS FeatureServer scraping service
-- **FetchPoliceCallsCommand** - `police:fetch-calls` artisan command
-- **FetchPoliceCallsJob** - Queue job wrapper for async processing
-- **Police Select Provider** - Unified query adapter for police data
+- Toronto Police ArcGIS feed integration (`TorontoPoliceFeedService`, command, job, model).
 
 ## [January 31, 2026] - Toronto Fire Integration
 
 ### Added
-- **FireIncident Model** - Eloquent model for Toronto Fire Services CAD data
-- **TorontoFireFeedService** - XML feed parsing service
-- **FetchFireIncidentsCommand** - `fire:fetch-incidents` artisan command
-- **FetchFireIncidentsJob** - Queue job wrapper
-- **Fire Select Provider** - Unified query adapter for fire data
-- **FireIncidentResource** - JSON API resource serialization
+- Toronto Fire CAD XML integration (`TorontoFireFeedService`, command, job, model).
 
-## [January 30, 2026] - Production Scheduler
+## [January 30, 2026] - Production Scheduler Observability
 
 ### Added
-- **Scheduler Docker Container** - `docker/scheduler/` with cron-based scheduling
-- **scheduler:run-and-log Command** - Enhanced scheduler with logging and heartbeat
-- **scheduler:status Command** - Health check command for stale scheduler detection
-- **scheduler:report Command** - Startup report with schedule configuration
-- **Heartbeat Cache Keys** - `scheduler:last_tick_at`, `scheduler:last_tick_exit_code`, `scheduler:last_tick_duration_ms`
-- **HEALTHCHECK Docker Instruction** - Container health monitoring
-
----
-
-## Project Status Summary
-
-### Completed Features
-- Toronto Fire Services live CAD XML feed integration
-- Toronto Police Services ArcGIS scraping integration
-- Unified Alerts Query system with Provider & Adapter pattern
-- Type-safe enums for AlertSource and AlertStatus
-- Server-side pagination over active and cleared alerts
-- Production scheduler container with observability
-
-### Planned Features
-- TTC Transit Alerts integration (architecture spec complete)
-- Dynamic Zones feature with real-time statistics
-- Additional data sources (hazard, medical)
-
-### Technical Highlights
-- Laravel 12 (PHP 8.2+) backend
-- React 19 + TypeScript frontend
-- Inertia.js for seamless SPA experience
-- Pest PHP testing with SQLite/MySQL support
-- Tagged provider injection for extensibility
+- Scheduler container support, heartbeat/status commands, and startup reporting.
