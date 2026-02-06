@@ -11,3 +11,4 @@ Artisan::command('inspire', function () {
 Schedule::command('fire:fetch-incidents')->everyFiveMinutes()->withoutOverlapping();
 Schedule::command('police:fetch-calls')->everyTenMinutes();
 Schedule::command('transit:fetch-alerts')->everyFiveMinutes()->withoutOverlapping();
+Schedule::command('go-transit:fetch-alerts')->everyFiveMinutes()->withoutOverlapping();
