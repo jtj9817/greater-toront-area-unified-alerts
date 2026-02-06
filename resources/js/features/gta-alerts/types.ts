@@ -5,7 +5,7 @@ export interface AlertItem {
     timeAgo: string;
     timestamp: string; // Raw ISO 8601 string from backend
     description: string;
-    type: 'fire' | 'police' | 'transit' | 'hazard' | 'medical';
+    type: 'fire' | 'police' | 'transit' | 'go_transit' | 'hazard' | 'medical';
     severity: 'high' | 'medium' | 'low';
     iconName: string;
     accentColor: string; // Tailwind bg-* class, used for the left border
@@ -30,7 +30,7 @@ export interface AlertItem {
 
 export interface UnifiedAlertResource {
     id: string;
-    source: 'fire' | 'police' | 'transit';
+    source: 'fire' | 'police' | 'transit' | 'go_transit';
     external_id: string;
     is_active: boolean;
     timestamp: string;

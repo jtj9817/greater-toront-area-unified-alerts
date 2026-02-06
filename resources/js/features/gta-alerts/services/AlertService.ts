@@ -64,6 +64,10 @@ export class AlertService {
             return 'transit';
         }
 
+        if (alert.source === 'go_transit') {
+            return 'go_transit';
+        }
+
         return this.normalizeType(alert.title);
     }
 
@@ -89,6 +93,12 @@ export class AlertService {
 
         if (alert.source === 'transit') {
             return this.getTransitSeverity(
+                alert.meta as Record<string, unknown>,
+            );
+        }
+
+        if (alert.source === 'go_transit') {
+            return this.getGoTransitSeverity(
                 alert.meta as Record<string, unknown>,
             );
         }
@@ -124,6 +134,32 @@ export class AlertService {
         return 'low';
     }
 
+    private static getGoTransitSeverity(
+        meta: Record<string, unknown>,
+    ): AlertItem['severity'] {
+        const subCategory = String(meta['sub_category'] ?? '')
+            .trim()
+            .toUpperCase();
+
+        if (subCategory === 'BCANCEL') {
+            return 'high';
+        }
+
+        if (subCategory === 'TDELAY' || subCategory === 'BDETOUR') {
+            return 'medium';
+        }
+
+        // SAAG notifications (real-time delays) are medium
+        const alertType = String(meta['alert_type'] ?? '')
+            .trim()
+            .toLowerCase();
+        if (alertType === 'saag') {
+            return 'medium';
+        }
+
+        return 'low';
+    }
+
     private static getSourceName(
         source: UnifiedAlertResource['source'],
     ): string {
@@ -134,6 +170,8 @@ export class AlertService {
                 return 'Toronto Police';
             case 'transit':
                 return 'TTC Control';
+            case 'go_transit':
+                return 'GO Transit';
             default:
                 return 'Unknown Source';
         }
@@ -192,6 +230,58 @@ export class AlertService {
                     unitsDispatched: null,
                     beat: division,
                     source: sourceName,
+                },
+            };
+        }
+
+        if (alert.source === 'go_transit') {
+            const messageBody =
+                (meta['message_body'] as string | null | undefined) ??
+                undefined;
+            const serviceMode =
+                (meta['service_mode'] as string | null | undefined) ??
+                undefined;
+            const corridorCode =
+                (meta['corridor_code'] as string | null | undefined) ??
+                undefined;
+            const goDirection =
+                (meta['direction'] as string | null | undefined) ?? undefined;
+            const delayDuration =
+                (meta['delay_duration'] as string | null | undefined) ??
+                undefined;
+            const subCategory =
+                (meta['sub_category'] as string | null | undefined) ??
+                undefined;
+
+            const summaryParts = [
+                serviceMode,
+                corridorCode ? `Corridor: ${corridorCode}` : null,
+                goDirection ? `Direction: ${goDirection}` : null,
+                delayDuration && delayDuration !== '00:00:00'
+                    ? `Delay: ${delayDuration}`
+                    : null,
+            ]
+                .filter(Boolean)
+                .join(' • ');
+
+            const goDescription = [summaryParts || null, messageBody || null]
+                .filter(Boolean)
+                .join('. ');
+
+            return {
+                description:
+                    goDescription || alert.title || 'GO Transit service alert.',
+                metadata: {
+                    eventNum: alert.external_id,
+                    alarmLevel: 0,
+                    unitsDispatched: null,
+                    beat: null,
+                    source: sourceName,
+                    routeType: serviceMode,
+                    route: corridorCode ?? undefined,
+                    effect: subCategory ?? undefined,
+                    direction: goDirection,
+                    estimatedDelay: delayDuration ?? undefined,
                 },
             };
         }
@@ -314,6 +404,8 @@ export class AlertService {
         if (et.includes('GAS')) return 'warning';
         if (et.includes('COLLISION')) return 'car_crash';
 
+        if (type === 'go_transit') return 'train';
+
         if (type === 'transit' && alert?.source === 'transit') {
             const meta = alert.meta as Record<string, unknown>;
             const routeType = String(meta['route_type'] ?? '')
@@ -413,6 +505,8 @@ export class AlertService {
                 return 'bg-[#f0b040]';
             case 'transit':
                 return 'bg-[#a78bfa]';
+            case 'go_transit':
+                return 'bg-[#3b9a4f]';
             case 'medical':
                 return 'bg-[#f472b6]';
             default:
@@ -438,6 +532,8 @@ export class AlertService {
                 return 'text-[#f0b040]';
             case 'transit':
                 return 'text-[#a78bfa]';
+            case 'go_transit':
+                return 'text-[#3b9a4f]';
             case 'medical':
                 return 'text-[#f472b6]';
             default:
