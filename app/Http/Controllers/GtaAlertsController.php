@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Enums\AlertStatus;
 use App\Http\Resources\UnifiedAlertResource;
 use App\Models\FireIncident;
+use App\Models\GoTransitAlert;
 use App\Models\PoliceCall;
 use App\Models\TransitAlert;
 use App\Services\Alerts\DTOs\UnifiedAlertsCriteria;
@@ -47,19 +48,15 @@ class GtaAlertsController extends Controller
 
     private function latestFeedUpdatedAt(): ?\Carbon\CarbonInterface
     {
-        $latest = null;
-
-        foreach ([
+        return collect([
             $this->latestFeedTimestamp(FireIncident::class),
             $this->latestFeedTimestamp(PoliceCall::class),
             $this->latestFeedTimestamp(TransitAlert::class),
-        ] as $timestamp) {
-            if ($timestamp !== null && ($latest === null || $timestamp->greaterThan($latest))) {
-                $latest = $timestamp;
-            }
-        }
-
-        return $latest;
+            $this->latestFeedTimestamp(GoTransitAlert::class),
+        ])
+            ->filter()
+            ->sortDesc()
+            ->first();
     }
 
     /**

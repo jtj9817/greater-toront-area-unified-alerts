@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Services\Alerts\Providers\FireAlertSelectProvider;
+use App\Services\Alerts\Providers\GoTransitAlertSelectProvider;
 use App\Services\Alerts\Providers\PoliceAlertSelectProvider;
 use App\Services\Alerts\Providers\TransitAlertSelectProvider;
 use Carbon\CarbonImmutable;
@@ -22,6 +23,7 @@ class AppServiceProvider extends ServiceProvider
             FireAlertSelectProvider::class,
             PoliceAlertSelectProvider::class,
             TransitAlertSelectProvider::class,
+            GoTransitAlertSelectProvider::class,
         ], 'alerts.select-providers');
     }
 
