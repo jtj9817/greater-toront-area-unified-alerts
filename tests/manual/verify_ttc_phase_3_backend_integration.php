@@ -17,6 +17,17 @@ if (getenv('APP_ENV') === false || getenv('APP_ENV') === '') {
     $_SERVER['APP_ENV'] = 'testing';
 }
 
+// Some manual test environments do not provide APP_KEY in `.env.testing`.
+// Use a deterministic, testing-only fallback so encrypted middleware/session
+// bootstrapping does not fail during Inertia request handling.
+$manualTestEnv = getenv('APP_ENV') ?: ($_ENV['APP_ENV'] ?? $_SERVER['APP_ENV'] ?? null);
+if ($manualTestEnv === 'testing' && (getenv('APP_KEY') === false || getenv('APP_KEY') === '')) {
+    $fallbackAppKey = 'base64:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=';
+    putenv("APP_KEY={$fallbackAppKey}");
+    $_ENV['APP_KEY'] = $fallbackAppKey;
+    $_SERVER['APP_KEY'] = $fallbackAppKey;
+}
+
 $app = require_once __DIR__.'/../../bootstrap/app.php';
 $kernel = $app->make(Illuminate\Contracts\Console\Kernel::class);
 $kernel->bootstrap();
