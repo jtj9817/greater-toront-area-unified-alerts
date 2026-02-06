@@ -3,7 +3,7 @@
 use App\Enums\AlertSource;
 
 test('alert source exposes ordered values', function () {
-    expect(AlertSource::values())->toBe(['fire', 'police', 'transit']);
+    expect(AlertSource::values())->toBe(['fire', 'police', 'transit', 'go_transit']);
 });
 
 test('alert source validates expected values', function (string $value) {
@@ -12,6 +12,7 @@ test('alert source validates expected values', function (string $value) {
     'fire' => ['fire'],
     'police' => ['police'],
     'transit' => ['transit'],
+    'go_transit' => ['go_transit'],
 ]);
 
 test('alert source rejects unexpected values', function (mixed $value) {

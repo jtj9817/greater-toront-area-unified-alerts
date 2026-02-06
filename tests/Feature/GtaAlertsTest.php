@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\FireIncident;
+use App\Models\GoTransitAlert;
 use App\Models\PoliceCall;
 use App\Models\TransitAlert;
 use Illuminate\Support\Carbon;
@@ -210,5 +211,49 @@ test('the home page sets latest_feed_updated_at to the most recent of fire polic
     $this->get(route('home'))
         ->assertInertia(fn (Assert $page) => $page
             ->where('latest_feed_updated_at', $transitLatest->toIso8601String())
+        );
+});
+
+test('go transit alerts appear in unified feed', function () {
+    Carbon::setTestNow(Carbon::parse('2026-02-05 18:00:00'));
+
+    GoTransitAlert::factory()->create([
+        'external_id' => 'notif:LW:TDELAY:abc123',
+        'message_subject' => 'Lakeshore West delays',
+        'posted_at' => Carbon::now()->subMinutes(5),
+        'is_active' => true,
+        'feed_updated_at' => Carbon::now()->subMinutes(4),
+    ]);
+
+    $this->get(route('home'))
+        ->assertInertia(fn (Assert $page) => $page
+            ->has('alerts.data', 1)
+            ->where('alerts.data.0.id', 'go_transit:notif:LW:TDELAY:abc123')
+            ->where('alerts.data.0.source', 'go_transit')
+            ->where('alerts.data.0.title', 'Lakeshore West delays')
+        );
+});
+
+test('the home page sets latest_feed_updated_at from go transit when it is most recent', function () {
+    Carbon::setTestNow(Carbon::parse('2026-02-05 18:00:00'));
+
+    $fireLatest = Carbon::now()->subMinutes(5);
+    FireIncident::factory()->create([
+        'event_num' => 'E1',
+        'is_active' => true,
+        'dispatch_time' => Carbon::now()->subMinutes(10),
+        'feed_updated_at' => $fireLatest,
+    ]);
+
+    $goLatest = Carbon::now()->subMinutes(1);
+    GoTransitAlert::factory()->create([
+        'external_id' => 'notif:LW:TDELAY:abc123',
+        'is_active' => true,
+        'feed_updated_at' => $goLatest,
+    ]);
+
+    $this->get(route('home'))
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('latest_feed_updated_at', $goLatest->toIso8601String())
         );
 });
