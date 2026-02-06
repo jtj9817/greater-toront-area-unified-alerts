@@ -52,6 +52,7 @@ use App\Services\TtcAlertsFeedService;
 use Carbon\Carbon;
 use Carbon\CarbonImmutable;
 use Carbon\CarbonInterface;
+use Illuminate\Http\Client\Factory as HttpFactory;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
@@ -138,6 +139,17 @@ function isIndefiniteEndValue(mixed $value): bool
 }
 
 /**
+ * @param  array<string, mixed>  $responses
+ */
+function fakeHttpResponses(array $responses): void
+{
+    // In long-running manual scripts, consecutive Http::fake() calls are cumulative.
+    // Reset the facade root before each phase to avoid stale stubs leaking forward.
+    Http::swap(new HttpFactory);
+    Http::fake($responses);
+}
+
+/**
  * @param  list<array<string, mixed>>  $alerts
  */
 function buildFeedStub(CarbonInterface $updatedAt, array $alerts): TtcAlertsFeedService
@@ -194,7 +206,7 @@ try {
 
     logInfo('Phase 1: Verify feed service normalization across all 3 sources');
 
-    Http::fake([
+    fakeHttpResponses([
         'https://alerts.ttc.ca/api/alerts/live-alerts*' => Http::response([
             'lastUpdated' => '2026-02-03T04:41:06.633Z',
             'routes' => [
@@ -292,7 +304,7 @@ try {
 
     logInfo('Phase 2: Verify source-1 failure is fatal');
 
-    Http::fake([
+    fakeHttpResponses([
         'https://alerts.ttc.ca/api/alerts/live-alerts*' => Http::response('error', 500),
     ]);
 
@@ -309,7 +321,7 @@ try {
 
     logInfo('Phase 3: Verify source-2/source-3 failures are best effort');
 
-    Http::fake([
+    fakeHttpResponses([
         'https://alerts.ttc.ca/api/alerts/live-alerts*' => Http::response([
             'lastUpdated' => '2026-02-03T04:41:06.633Z',
             'routes' => [
