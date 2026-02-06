@@ -146,7 +146,7 @@ test('unified alerts query returns a mixed feed ordered by timestamp desc', func
         new UnifiedAlertsCriteria(status: 'all', perPage: 50)
     );
 
-    expect($results->total())->toBe(8);
+    expect($results->total())->toBe(10);
     expect($results->items()[0])->toBeInstanceOf(UnifiedAlert::class);
 
     $ids = collect($results->items())->map(fn (UnifiedAlert $a) => $a->id)->all();
@@ -154,10 +154,12 @@ test('unified alerts query returns a mixed feed ordered by timestamp desc', func
     expect($ids)->toBe([
         'fire:FIRE-0001',
         'police:900001',
+        'transit:api:TR-0001',
         'fire:FIRE-0002',
         'police:900002',
         'fire:FIRE-0003',
         'police:900003',
+        'transit:sxa:TR-0002',
         'fire:FIRE-0004',
         'police:900004',
     ]);
@@ -173,13 +175,14 @@ test('unified alerts query filters by status', function () {
     $active = app(UnifiedAlertsQuery::class)->paginate(
         new UnifiedAlertsCriteria(status: 'active', perPage: 50)
     );
-    expect($active->total())->toBe(4);
+    expect($active->total())->toBe(5);
     expect(collect($active->items())->every(fn (UnifiedAlert $a) => $a->isActive))->toBeTrue();
 
     $activeIds = collect($active->items())->map(fn (UnifiedAlert $a) => $a->id)->all();
     expect($activeIds)->toBe([
         'fire:FIRE-0001',
         'police:900001',
+        'transit:api:TR-0001',
         'fire:FIRE-0002',
         'police:900002',
     ]);
@@ -187,13 +190,14 @@ test('unified alerts query filters by status', function () {
     $cleared = app(UnifiedAlertsQuery::class)->paginate(
         new UnifiedAlertsCriteria(status: 'cleared', perPage: 50)
     );
-    expect($cleared->total())->toBe(4);
+    expect($cleared->total())->toBe(5);
     expect(collect($cleared->items())->every(fn (UnifiedAlert $a) => ! $a->isActive))->toBeTrue();
 
     $clearedIds = collect($cleared->items())->map(fn (UnifiedAlert $a) => $a->id)->all();
     expect($clearedIds)->toBe([
         'fire:FIRE-0003',
         'police:900003',
+        'transit:sxa:TR-0002',
         'fire:FIRE-0004',
         'police:900004',
     ]);
@@ -231,6 +235,22 @@ test('unified alerts query maps dto fields for each source', function () {
     expect($second->meta)->toBeArray();
     expect($second->meta['object_id'] ?? null)->toBe(900001);
     expect($second->meta)->toHaveKey('call_type_code');
+
+    /** @var UnifiedAlert $third */
+    $third = $items[2];
+    expect($third->id)->toBe('transit:api:TR-0001');
+    expect($third->source)->toBe('transit');
+    expect($third->externalId)->toBe('api:TR-0001');
+    expect($third->isActive)->toBeTrue();
+    expect($third->title)->toBe('Line 1 service adjustment');
+    expect($third->location)->not->toBeNull();
+    expect($third->location?->name)->toBe('Route 1: Finch to Eglinton');
+    expect($third->location?->lat)->toBeNull();
+    expect($third->location?->lng)->toBeNull();
+    expect($third->meta)->toBeArray();
+    expect($third->meta['route_type'] ?? null)->toBe('Subway');
+    expect($third->meta['severity'] ?? null)->toBe('Critical');
+    expect($third->meta['effect'] ?? null)->toBe('REDUCED_SERVICE');
 });
 
 test('unified alerts query creates a location dto when any location fields are present', function () {
@@ -325,13 +345,13 @@ test('unified alerts query paginates deterministically', function () {
     );
     expect($page2->currentPage())->toBe(2);
     expect($page2->perPage())->toBe(3);
-    expect($page2->total())->toBe(8);
+    expect($page2->total())->toBe(10);
 
     $ids = collect($page2->items())->map(fn (UnifiedAlert $a) => $a->id)->all();
     expect($ids)->toBe([
+        'fire:FIRE-0002',
         'police:900002',
         'fire:FIRE-0003',
-        'police:900003',
     ]);
 
     expectAlertsOrderedByDeterministicTuple($page2->items());

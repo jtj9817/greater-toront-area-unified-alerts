@@ -46,7 +46,7 @@ export class AlertService {
             description,
             type: type,
             severity: severity,
-            iconName: this.getIconForType(type, alert.title),
+            iconName: this.getIconForType(type, alert.title, alert),
             accentColor: this.getAccentColorForType(type, severity),
             iconColor: this.getIconColorForType(type, severity),
             metadata,
@@ -87,12 +87,46 @@ export class AlertService {
             return 'low';
         }
 
+        if (alert.source === 'transit') {
+            return this.getTransitSeverity(
+                alert.meta as Record<string, unknown>,
+            );
+        }
+
         if (type === 'hazard') return 'high';
 
         return 'low';
     }
 
-    private static getSourceName(source: UnifiedAlertResource['source']): string {
+    private static getTransitSeverity(
+        meta: Record<string, unknown>,
+    ): AlertItem['severity'] {
+        const severity = String(meta['severity'] ?? '')
+            .trim()
+            .toUpperCase();
+        const effect = String(meta['effect'] ?? '')
+            .trim()
+            .toUpperCase();
+
+        if (severity === 'CRITICAL') {
+            return 'high';
+        }
+
+        if (
+            effect === 'SIGNIFICANT_DELAYS' ||
+            effect === 'REDUCED_SERVICE' ||
+            effect === 'DETOUR' ||
+            effect === 'ACCESSIBILITY_ISSUE'
+        ) {
+            return 'medium';
+        }
+
+        return 'low';
+    }
+
+    private static getSourceName(
+        source: UnifiedAlertResource['source'],
+    ): string {
         switch (source) {
             case 'fire':
                 return 'Toronto Fire Services';
@@ -163,21 +197,67 @@ export class AlertService {
         }
 
         if (alert.source === 'transit') {
+            const routeType =
+                (meta['route_type'] as string | null | undefined) ?? undefined;
+            const route =
+                (meta['route'] as string | null | undefined) ?? undefined;
+            const effect =
+                (meta['effect'] as string | null | undefined) ?? undefined;
+            const direction =
+                (meta['direction'] as string | null | undefined) ?? undefined;
+            const stopStart =
+                (meta['stop_start'] as string | null | undefined) ?? undefined;
+            const stopEnd =
+                (meta['stop_end'] as string | null | undefined) ?? undefined;
+            const sourceFeed =
+                (meta['source_feed'] as string | null | undefined) ?? undefined;
+            const transitDescriptionRaw =
+                (meta['description'] as string | null | undefined) ?? undefined;
             const estimatedDelay =
                 (meta['estimated_delay'] as string | null | undefined) ??
                 undefined;
             const shuttleInfo =
                 (meta['shuttle_info'] as string | null | undefined) ??
                 undefined;
+            const segment =
+                stopStart && stopEnd
+                    ? `${stopStart} to ${stopEnd}`
+                    : stopStart || stopEnd;
+
+            const routeLabel = this.getTransitRouteLabel(routeType, route);
+            const effectLabel = this.getTransitEffectLabel(effect);
+            const summary = [
+                routeLabel,
+                effectLabel,
+                segment ? `Segment: ${segment}` : null,
+                direction ? `Direction: ${direction}` : null,
+            ]
+                .filter(Boolean)
+                .join(' • ');
+
+            const transitDescription = [
+                summary || null,
+                transitDescriptionRaw || null,
+            ]
+                .filter(Boolean)
+                .join('. ');
 
             return {
-                description: alert.title || 'Transit service alert.',
+                description:
+                    transitDescription ||
+                    alert.title ||
+                    'Transit service alert.',
                 metadata: {
                     eventNum: alert.external_id,
                     alarmLevel: 0,
                     unitsDispatched: null,
                     beat: null,
                     source: sourceName,
+                    routeType,
+                    route,
+                    effect,
+                    direction,
+                    sourceFeed,
                     estimatedDelay,
                     shuttleInfo,
                 },
@@ -228,10 +308,35 @@ export class AlertService {
     private static getIconForType(
         type: AlertItem['type'],
         eventType: string,
+        alert?: UnifiedAlertResource,
     ): string {
         const et = eventType.toUpperCase();
         if (et.includes('GAS')) return 'warning';
         if (et.includes('COLLISION')) return 'car_crash';
+
+        if (type === 'transit' && alert?.source === 'transit') {
+            const meta = alert.meta as Record<string, unknown>;
+            const routeType = String(meta['route_type'] ?? '')
+                .trim()
+                .toLowerCase();
+            const effect = String(meta['effect'] ?? '')
+                .trim()
+                .toUpperCase();
+
+            if (routeType.includes('subway')) return 'directions_subway';
+            if (routeType.includes('bus')) return 'directions_bus';
+            if (routeType.includes('streetcar') || routeType.includes('tram')) {
+                return 'tram';
+            }
+            if (
+                routeType.includes('elevator') ||
+                effect === 'ACCESSIBILITY_ISSUE'
+            ) {
+                return 'elevator';
+            }
+
+            return 'train';
+        }
 
         switch (type) {
             case 'fire':
@@ -246,6 +351,47 @@ export class AlertService {
                 return 'medical_services';
             default:
                 return 'info';
+        }
+    }
+
+    private static getTransitRouteLabel(
+        routeType?: string,
+        route?: string,
+    ): string | null {
+        if (routeType && route) {
+            return `${routeType} ${route}`;
+        }
+
+        if (routeType) {
+            return routeType;
+        }
+
+        if (route) {
+            return `Route ${route}`;
+        }
+
+        return null;
+    }
+
+    private static getTransitEffectLabel(effect?: string): string | null {
+        if (!effect) {
+            return null;
+        }
+
+        switch (effect.toUpperCase()) {
+            case 'REDUCED_SERVICE':
+                return 'Reduced service';
+            case 'SIGNIFICANT_DELAYS':
+                return 'Significant delays';
+            case 'DETOUR':
+                return 'Detour in effect';
+            case 'ACCESSIBILITY_ISSUE':
+                return 'Accessibility issue';
+            default:
+                return effect
+                    .replace(/_/g, ' ')
+                    .toLowerCase()
+                    .replace(/\b\w/g, (char) => char.toUpperCase());
         }
     }
 

@@ -102,17 +102,19 @@ test('mysql unified alerts query returns a deterministic mixed feed', function (
         new UnifiedAlertsCriteria(status: 'all', perPage: 50)
     );
 
-    expect($results->total())->toBe(8);
+    expect($results->total())->toBe(10);
 
     $ids = collect($results->items())->map(fn ($alert) => $alert->id)->all();
 
     expect($ids)->toBe([
         'fire:FIRE-0001',
         'police:900001',
+        'transit:api:TR-0001',
         'fire:FIRE-0002',
         'police:900002',
         'fire:FIRE-0003',
         'police:900003',
+        'transit:sxa:TR-0002',
         'fire:FIRE-0004',
         'police:900004',
     ]);

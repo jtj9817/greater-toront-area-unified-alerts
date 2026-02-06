@@ -20,6 +20,11 @@ export interface AlertItem {
         source?: string; // e.g., "Toronto Fire Services", "TTC Control", "Toronto Police"
         estimatedDelay?: string; // Transit-specific delay info
         shuttleInfo?: string; // Transit-specific shuttle bus instructions
+        routeType?: string;
+        route?: string;
+        effect?: string;
+        direction?: string;
+        sourceFeed?: string;
     };
 }
 

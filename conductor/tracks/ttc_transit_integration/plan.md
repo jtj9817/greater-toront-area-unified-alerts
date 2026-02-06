@@ -1,8 +1,8 @@
 # Implementation Plan: TTC Transit Integration
 
 **Created**: 2026-02-05  
-**Completed**: In Progress  
-**Status**: In Progress (Phases 1-3 Complete)  
+**Completed**: 2026-02-06  
+**Status**: Completed (Phases 1-4 Complete)  
 **Purpose**: Replace the transit placeholder path with full TTC ingestion and unified dashboard integration aligned with current backend/frontend architecture.
 
 ---
@@ -194,14 +194,14 @@ Requirement:
 
 ### Phase 4: Unified Data + Frontend Behavior
 
-#### Task 4.1: Seed transit fixtures for mixed-feed tests
+#### [x] Task 4.1: Seed transit fixtures for mixed-feed tests (Completed 2026-02-06)
 **File**: `database/seeders/UnifiedAlertsTestSeeder.php`
 
 Requirements:
 - Insert active and cleared transit rows with deterministic timestamps.
 - Ensure ordering assertions remain deterministic with existing fire/police fixtures.
 
-#### Task 4.2: Expand unified query tests
+#### [x] Task 4.2: Expand unified query tests (Completed 2026-02-06)
 **File**: `tests/Feature/UnifiedAlerts/UnifiedAlertsQueryTest.php`
 
 Assertions:
@@ -209,14 +209,14 @@ Assertions:
 - status filtering handles transit active/cleared rows.
 - deterministic ordering still holds with 3 providers.
 
-#### Task 4.3: Extend controller feature tests
+#### [x] Task 4.3: Extend controller feature tests (Completed 2026-02-06)
 **File**: `tests/Feature/GtaAlertsTest.php`
 
 Assertions:
 - `alerts.data` includes transit records.
 - `latest_feed_updated_at` reflects newest value across all 3 sources.
 
-#### Task 4.4: Improve transit UI mapping logic
+#### [x] Task 4.4: Improve transit UI mapping logic (Completed 2026-02-06)
 **Files**:
 - `resources/js/features/gta-alerts/services/AlertService.ts`
 - `resources/js/features/gta-alerts/services/AlertService.test.ts`
@@ -248,11 +248,12 @@ Requirements:
 | `tests/Unit/Services/Alerts/Providers/TransitAlertSelectProviderTest.php` | Modify | DONE |
 | `app/Http/Controllers/GtaAlertsController.php` | Modify | DONE |
 | `routes/console.php` | Modify | DONE |
-| `database/seeders/UnifiedAlertsTestSeeder.php` | Modify | TODO |
-| `tests/Feature/UnifiedAlerts/UnifiedAlertsQueryTest.php` | Modify | TODO |
-| `tests/Feature/GtaAlertsTest.php` | Modify | IN PROGRESS |
-| `resources/js/features/gta-alerts/services/AlertService.ts` | Modify | TODO |
-| `resources/js/features/gta-alerts/services/AlertService.test.ts` | Modify | TODO |
+| `database/seeders/UnifiedAlertsTestSeeder.php` | Modify | DONE |
+| `tests/Feature/UnifiedAlerts/UnifiedAlertsQueryTest.php` | Modify | DONE |
+| `tests/Feature/GtaAlertsTest.php` | Modify | DONE |
+| `resources/js/features/gta-alerts/services/AlertService.ts` | Modify | DONE |
+| `resources/js/features/gta-alerts/services/AlertService.test.ts` | Modify | DONE |
+| `resources/js/features/gta-alerts/types.ts` | Modify | DONE |
 
 ---
 
@@ -282,8 +283,8 @@ Requirements:
 ---
 
 ## Success Criteria
-- [ ] Transit ingestion command syncs records and deactivates stale ones correctly.
-- [ ] Unified alerts query includes transit rows with valid IDs and timestamps.
-- [ ] `latest_feed_updated_at` includes transit feed updates.
-- [ ] Frontend transit cards show TTC-aware severity and icon behavior.
-- [ ] Added tests pass under Pest and Vitest.
+- [x] Transit ingestion command syncs records and deactivates stale ones correctly.
+- [x] Unified alerts query includes transit rows with valid IDs and timestamps.
+- [x] `latest_feed_updated_at` includes transit feed updates.
+- [x] Frontend transit cards show TTC-aware severity and icon behavior.
+- [x] Added tests pass under Pest and Vitest.

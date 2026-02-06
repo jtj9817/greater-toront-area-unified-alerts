@@ -65,16 +65,24 @@ describe('AlertService', () => {
 
     it('maps a backend unified transit alert to an AlertItem correctly', () => {
         const mockTransitAlert: UnifiedAlertResource = {
-            id: 'transit:T1',
+            id: 'transit:api:61748',
             source: 'transit',
-            external_id: 'T1',
+            external_id: 'api:61748',
             is_active: true,
             timestamp,
-            title: 'Line 1 Delay',
+            title: 'Line 1 Yonge-University delay',
             location: { name: 'St Clair Station', lat: 43.7, lng: -79.4 },
             meta: {
-                estimated_delay: '20-30 mins',
-                shuttle_info: 'Shuttle buses operating between St Clair and Lawrence.',
+                route_type: 'Subway',
+                route: '1',
+                severity: 'Critical',
+                effect: 'REDUCED_SERVICE',
+                description:
+                    'Shuttle buses operating between St Clair and Lawrence.',
+                direction: 'Both Ways',
+                stop_start: 'St Clair',
+                stop_end: 'Lawrence',
+                source_feed: 'live-api',
             },
         };
 
@@ -82,33 +90,99 @@ describe('AlertService', () => {
             AlertService.mapUnifiedAlertToAlertItem(mockTransitAlert);
 
         expect(alertItem.type).toBe('transit');
+        expect(alertItem.severity).toBe('high');
+        expect(alertItem.iconName).toBe('directions_subway');
         expect(alertItem.location).toBe('St Clair Station');
-        expect(alertItem.metadata?.source).toBe('TTC Control');
-        expect(alertItem.metadata?.estimatedDelay).toBe('20-30 mins');
-        expect(alertItem.metadata?.shuttleInfo).toBe(
+        expect(alertItem.description).toContain('Subway 1');
+        expect(alertItem.description).toContain('Reduced service');
+        expect(alertItem.description).toContain(
             'Shuttle buses operating between St Clair and Lawrence.',
         );
+        expect(alertItem.metadata?.source).toBe('TTC Control');
+        expect(alertItem.metadata?.routeType).toBe('Subway');
+        expect(alertItem.metadata?.route).toBe('1');
+        expect(alertItem.metadata?.effect).toBe('REDUCED_SERVICE');
+        expect(alertItem.metadata?.direction).toBe('Both Ways');
+        expect(alertItem.metadata?.sourceFeed).toBe('live-api');
     });
 
-    it('maps transit alert without optional metadata correctly', () => {
+    it('maps transit alert with minimal metadata correctly', () => {
         const mockTransitAlertMinimal: UnifiedAlertResource = {
             id: 'transit:T2',
             source: 'transit',
             external_id: 'T2',
             is_active: true,
             timestamp,
-            title: 'Minor Delay',
+            title: 'Minor route detour',
             location: { name: 'Union Station', lat: null, lng: null },
-            meta: {},
+            meta: {
+                route_type: 'Bus',
+                route: '52',
+                severity: 'Minor',
+                effect: 'DETOUR',
+            },
         };
 
-        const alertItem =
-            AlertService.mapUnifiedAlertToAlertItem(mockTransitAlertMinimal);
+        const alertItem = AlertService.mapUnifiedAlertToAlertItem(
+            mockTransitAlertMinimal,
+        );
 
         expect(alertItem.type).toBe('transit');
+        expect(alertItem.severity).toBe('medium');
+        expect(alertItem.iconName).toBe('directions_bus');
+        expect(alertItem.description).toContain('Bus 52');
+        expect(alertItem.description).toContain('Detour in effect');
         expect(alertItem.metadata?.source).toBe('TTC Control');
-        expect(alertItem.metadata?.estimatedDelay).toBeUndefined();
-        expect(alertItem.metadata?.shuttleInfo).toBeUndefined();
+    });
+
+    it.each([
+        {
+            routeType: 'Streetcar',
+            effect: 'SIGNIFICANT_DELAYS',
+            expectedIcon: 'tram',
+        },
+        {
+            routeType: 'Elevator',
+            effect: 'ACCESSIBILITY_ISSUE',
+            expectedIcon: 'elevator',
+        },
+    ])(
+        'maps transit route type $routeType to icon $expectedIcon',
+        ({ routeType, effect, expectedIcon }) => {
+            const alertItem = AlertService.mapUnifiedAlertToAlertItem({
+                id: `transit:${routeType}`,
+                source: 'transit',
+                external_id: `x-${routeType}`,
+                is_active: true,
+                timestamp,
+                title: `${routeType} alert`,
+                location: { name: 'TTC', lat: null, lng: null },
+                meta: {
+                    route_type: routeType,
+                    effect,
+                },
+            });
+
+            expect(alertItem.iconName).toBe(expectedIcon);
+        },
+    );
+
+    it('maps transit alert to low severity when no critical severity or known effect exists', () => {
+        const alertItem = AlertService.mapUnifiedAlertToAlertItem({
+            id: 'transit:low-severity',
+            source: 'transit',
+            external_id: 'low-severity',
+            is_active: true,
+            timestamp,
+            title: 'Transit notice',
+            location: { name: 'TTC', lat: null, lng: null },
+            meta: {
+                severity: 'Minor',
+                effect: 'OTHER_EFFECT',
+            },
+        });
+
+        expect(alertItem.severity).toBe('low');
     });
 
     it('filters items by search query', () => {

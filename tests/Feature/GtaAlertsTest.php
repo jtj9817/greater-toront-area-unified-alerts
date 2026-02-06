@@ -38,23 +38,37 @@ test('the home page provides unified alerts data', function () {
         'feed_updated_at' => Carbon::now()->subMinutes(59),
     ]);
 
-    $latest = Carbon::now()->subMinutes(2);
+    $policeLatest = Carbon::now()->subMinutes(3);
     PoliceCall::factory()->create([
         'object_id' => 123,
         'is_active' => true,
         'occurrence_time' => Carbon::now()->subMinutes(5),
-        'feed_updated_at' => $latest,
+        'feed_updated_at' => $policeLatest,
+    ]);
+
+    $transitLatest = Carbon::now()->subMinutes(2);
+    TransitAlert::factory()->create([
+        'external_id' => 'api:62050',
+        'route_type' => 'Subway',
+        'route' => '1',
+        'title' => 'Line 1 delay',
+        'active_period_start' => Carbon::now()->subMinutes(7),
+        'stop_start' => 'St Clair',
+        'stop_end' => 'Lawrence',
+        'is_active' => true,
+        'feed_updated_at' => $transitLatest,
     ]);
 
     $this->get(route('home'))
         ->assertInertia(fn (Assert $page) => $page
             ->component('gta-alerts')
             ->has('alerts')
-            ->has('alerts.data', 3)
+            ->has('alerts.data', 4)
             ->where('alerts.data.0.id', 'police:123')
-            ->where('alerts.data.1.id', 'fire:E1')
-            ->where('alerts.data.2.id', 'fire:E2')
-            ->where('latest_feed_updated_at', $latest->toIso8601String())
+            ->where('alerts.data.1.id', 'transit:api:62050')
+            ->where('alerts.data.2.id', 'fire:E1')
+            ->where('alerts.data.3.id', 'fire:E2')
+            ->where('latest_feed_updated_at', $transitLatest->toIso8601String())
         );
 });
 
