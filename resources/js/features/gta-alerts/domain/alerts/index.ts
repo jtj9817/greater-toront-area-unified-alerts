@@ -1,5 +1,6 @@
 // Domain Alerts - barrel export
 export { fromResource } from './fromResource';
+export { mapDomainAlertToAlertItem } from './view';
 export { UnifiedAlertResourceSchema } from './resource';
 export type { UnifiedAlertResourceParsed } from './resource';
 export type { DomainAlert, AlertKind } from './types';
