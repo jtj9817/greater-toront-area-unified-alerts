@@ -5,7 +5,7 @@ import { z } from 'zod/v4';
  */
 export const FireMetaSchema = z.object({
     alarm_level: z.number(),
-    event_num: z.number(),
+    event_num: z.string(),
     units_dispatched: z.nullable(z.string()),
     beat: z.nullable(z.string()),
 });
