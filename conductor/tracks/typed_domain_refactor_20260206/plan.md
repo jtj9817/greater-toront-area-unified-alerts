@@ -27,16 +27,18 @@ Implement the source-specific mappers and the centralized validation orchestrati
 - [x] Task: Refactor `AlertService` to orchestrate mapping via `fromResource(...)` and enforce "Hard Enforcement" (catch/log/discard invalid items; never throw into UI rendering)
 - [x] Task: Conductor - User Manual Verification 'Phase 2: Decentralized Mapping & Validation' (Protocol in workflow.md)
 
-## Phase 3: Logic Migration
+## Phase 3: Logic Migration [checkpoint: 33a76c2]
 Move business logic (severity, icon selection, etc.) from `AlertService` into domain-specific pure functions.
 
-- [ ] Task: Move Fire-specific logic to Fire domain module
-- [ ] Task: Move Police-specific logic to Police domain module
-- [ ] Task: Move Transit/GO-specific logic to Transit domain module
-- [ ] Task: Update logic to consume the new Discriminated Union types
-- [ ] Task: Define derived presentation categories (e.g., hazard/medical) as pure functions or a dedicated `ViewAlert` mapping layer (do not add to `DomainAlert.kind`)
-- [ ] Task: Verify unit tests for all migrated logic
-- [ ] Task: Conductor - User Manual Verification 'Phase 3: Logic Migration' (Protocol in workflow.md)
+- [x] (0b0ee96) Task: Move Fire-specific logic to Fire domain module
+- [x] (0b0ee96) Task: Move Police-specific logic to Police domain module
+- [x] (0b0ee96) Task: Move Transit/GO-specific logic to Transit domain module
+- [x] (0b0ee96) Task: Update logic to consume the new Discriminated Union types
+- [x] (0b0ee96) Task: Define derived presentation categories (e.g., hazard/medical) as pure functions or a dedicated `ViewAlert` mapping layer (do not add to `DomainAlert.kind`)
+- [x] (0b0ee96) Task: Verify unit tests for all migrated logic
+- [~] (bb0bc32) Task: Conductor - User Manual Verification 'Phase 3: Logic Migration' (Protocol in workflow.md)
+    - Manual verifier script added: `scripts/manual_tests/typed_domain_refactor_phase3.php`
+    - Awaiting user-run log attachment / final verification confirmation.
 
 ### Phase 3 Audit & Preflight (2026-02-07)
 
@@ -65,6 +67,15 @@ Move business logic (severity, icon selection, etc.) from `AlertService` into do
   - Keep hard enforcement boundary behavior unchanged (`fromResource` invalid items must still be discarded).
   - Keep `go_transit` included under transit filtering via existing category alias behavior.
   - Keep derived `hazard`/`medical` as presentation-level categories (do not add new `DomainAlert.kind` variants).
+
+### Phase 3 Implementation Checkpoint (2026-02-07)
+- ✅ Implementation commit: `0b0ee96` (`refactor(gta-alerts): migrate alert presentation logic to typed domain`)
+- ✅ Manual verification script commit: `bb0bc32` (`test(manual): add Phase 3 logic migration verifier`)
+- ✅ Checkpoint commit: `33a76c2` (`conductor(checkpoint): End of Phase 3 implementation`)
+- ✅ Automated checks passed during implementation:
+  - `pnpm exec vitest run resources/js/features/gta-alerts/services/AlertService.test.ts resources/js/features/gta-alerts/domain/alerts/fromResource.contract.test.ts resources/js/features/gta-alerts/domain/alerts/fire/mapper.test.ts resources/js/features/gta-alerts/domain/alerts/police/mapper.test.ts resources/js/features/gta-alerts/domain/alerts/transit/ttc/mapper.test.ts resources/js/features/gta-alerts/domain/alerts/transit/go/mapper.test.ts resources/js/features/gta-alerts/domain/alerts/fire/presentation.test.ts resources/js/features/gta-alerts/domain/alerts/police/presentation.test.ts resources/js/features/gta-alerts/domain/alerts/transit/presentation.test.ts resources/js/features/gta-alerts/domain/alerts/view/mapDomainAlertToAlertItem.test.ts`
+  - `pnpm exec vitest run resources/js/features/gta-alerts/App.test.tsx resources/js/features/gta-alerts/components/FeedView.test.tsx resources/js/features/gta-alerts/components/AlertCard.test.tsx`
+  - `pnpm run types`
 
 ## Phase 4: UI Modernization (Components)
 Refactor UI components to consume the new domain model and modernize their implementation.
