@@ -226,16 +226,15 @@ try {
     assertMatches($policeSchema, '/\\bcall_type_code\\s*:\\s*z\\.nullable\\(z\\.string\\(\\)\\)/', 'police meta: call_type_code is nullable string');
 
     $ttcSchema = readFileStrict('resources/js/features/gta-alerts/domain/alerts/transit/ttc/schema.ts');
+    assertContains($ttcSchema, 'BaseTransitMetaSchema.extend', 'ttc transit meta extends base transit meta');
     foreach ([
         'route_type',
         'route',
         'severity',
         'effect',
         'source_feed',
-        'alert_type',
         'description',
         'url',
-        'direction',
         'cause',
     ] as $key) {
         assertContains($ttcSchema, "{$key}:", "ttc transit meta includes {$key}");
@@ -286,4 +285,3 @@ try {
 
     exit($exitCode);
 }
-
