@@ -347,8 +347,8 @@ class MedicalAlertDetail extends AlertDetailTemplate {
         return (
             <div className="rounded-2xl border border-pink-500/20 bg-pink-500/5 p-6">
                 <h4 className="mb-4 flex items-center gap-2 text-xs font-bold text-pink-400 uppercase">
-                    <Icon name="medical_services" className="text-sm" />{' '}
-                    Medical Advisory
+                    <Icon name="medical_services" className="text-sm" /> Medical
+                    Advisory
                 </h4>
                 <div className="flex items-start gap-4 rounded-xl border border-pink-500/20 bg-pink-600/10 p-4">
                     <Icon name="info" className="text-pink-400" />

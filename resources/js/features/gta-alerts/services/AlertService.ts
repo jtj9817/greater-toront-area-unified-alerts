@@ -14,10 +14,12 @@ export interface AlertFilterOptions {
  * Refactored to be data-driven and support live backend resources.
  */
 export class AlertService {
-    private static categoryAliases: Record<string, ReadonlyArray<AlertItem['type']>> =
-        {
-            transit: ['transit', 'go_transit'],
-        };
+    private static categoryAliases: Record<
+        string,
+        ReadonlyArray<AlertItem['type']>
+    > = {
+        transit: ['transit', 'go_transit'],
+    };
 
     /**
      * Helper to parse relative time strings (e.g. "4m ago", "1h ago") into minutes for numeric sorting
