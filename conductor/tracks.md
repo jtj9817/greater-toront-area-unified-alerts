@@ -15,3 +15,8 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 - [x] **Track: Unified Alerts Query Refinement & Robustness**
 *Link: [./archive/query_refinement_20260203/](./archive/query_refinement_20260203/)*
+
+---
+
+- [ ] **Track: Frontend Typed Alert Domain Refactor**
+*Link: [./tracks/typed_domain_refactor_20260206/](./tracks/typed_domain_refactor_20260206/)*
