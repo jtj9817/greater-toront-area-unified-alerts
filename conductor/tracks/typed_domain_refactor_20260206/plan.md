@@ -10,6 +10,7 @@ Define the core Zod schemas and TypeScript types that will form the backbone of 
 - [ ] Task: Implement Zod schemas and types for Transit alerts (TTC)
 - [ ] Task: Implement Zod schemas and types for GO Transit alerts
 - [ ] Task: Define the `DomainAlert` Discriminated Union type
+- [ ] Task: Implement canonical mapper `fromResource(resource: UnifiedAlertResource): DomainAlert | null` (wrap `parse()` with try/catch or use `safeParse()`; log+discard invalid items)
 - [ ] Task: Conductor - User Manual Verification 'Phase 1: Foundation & Schema Definition' (Protocol in workflow.md)
 
 ## Phase 2: Decentralized Mapping & Validation
@@ -23,7 +24,7 @@ Implement the source-specific mappers and the centralized validation orchestrati
 - [ ] Task: Implement Transit alert mapper using Zod validation
 - [ ] Task: Write tests for GO Transit alert mapper (valid/invalid scenarios)
 - [ ] Task: Implement GO Transit alert mapper using Zod validation
-- [ ] Task: Refactor `AlertService` to orchestrate mapping and enforce "Hard Enforcement" (discarding invalid items)
+- [ ] Task: Refactor `AlertService` to orchestrate mapping via `fromResource(...)` and enforce "Hard Enforcement" (catch/log/discard invalid items; never throw into UI rendering)
 - [ ] Task: Conductor - User Manual Verification 'Phase 2: Decentralized Mapping & Validation' (Protocol in workflow.md)
 
 ## Phase 3: Logic Migration
@@ -33,6 +34,7 @@ Move business logic (severity, icon selection, etc.) from `AlertService` into do
 - [ ] Task: Move Police-specific logic to Police domain module
 - [ ] Task: Move Transit/GO-specific logic to Transit domain module
 - [ ] Task: Update logic to consume the new Discriminated Union types
+- [ ] Task: Define derived presentation categories (e.g., hazard/medical) as pure functions or a dedicated `ViewAlert` mapping layer (do not add to `DomainAlert.kind`)
 - [ ] Task: Verify unit tests for all migrated logic
 - [ ] Task: Conductor - User Manual Verification 'Phase 3: Logic Migration' (Protocol in workflow.md)
 
