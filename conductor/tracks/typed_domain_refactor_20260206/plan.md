@@ -80,12 +80,12 @@ Move business logic (severity, icon selection, etc.) from `AlertService` into do
 ## Phase 4: UI Modernization (Components)
 Refactor UI components to consume the new domain model and modernize their implementation.
 
-- [ ] Task: Update `AlertCard` to consume `DomainAlert` and handle source-specific rendering
-- [ ] Task: Update `FeedView` to handle the new model and update filtering/searching logic
-- [ ] Task: Refactor `AlertDetailsView` from Class to Functional Component using React Composition
-- [ ] Task: Implement pattern matching (switch on `kind`) in `AlertDetailsView` for detail sections
-- [ ] Task: Update `App.tsx` to handle the updated service output
-- [ ] Task: Conductor - User Manual Verification 'Phase 4: UI Modernization (Components)' (Protocol in workflow.md)
+- [x] (036dbaf) Task: Update `AlertCard` to consume `DomainAlert` and handle source-specific rendering
+- [x] (036dbaf) Task: Update `FeedView` to handle the new model and update filtering/searching logic
+- [x] (036dbaf) Task: Refactor `AlertDetailsView` from Class to Functional Component using React Composition
+- [x] (036dbaf) Task: Implement pattern matching (switch on `kind`) in `AlertDetailsView` for detail sections
+- [x] (036dbaf) Task: Update `App.tsx` to handle the updated service output
+- [x] Task: Conductor - User Manual Verification 'Phase 4: UI Modernization (Components)' (Protocol in workflow.md)
 
 ### Phase 4 Audit & Preflight (2026-02-07)
 
@@ -111,6 +111,15 @@ Refactor UI components to consume the new domain model and modernize their imple
   - Preserve transit filtering alias behavior where `go_transit` remains reachable under transit filter UX.
   - Preserve current rendered semantics (severity/icon/color/description/metadata) while changing component input types.
   - Add dedicated tests for `AlertDetailsView` branch behavior once converted to functional `switch (alert.kind)` rendering.
+
+### Phase 4 Implementation Notes (2026-02-07)
+- ✅ Component contracts updated to `DomainAlert` for `App`, `FeedView`, `AlertCard`, `AlertDetailsView`, `AlertTableView`, and `SavedView`.
+- ✅ `AlertDetailsView` migrated from class inheritance/template-method rendering to functional composition with explicit `switch (alert.kind)` branching.
+- ✅ Added dedicated test suite: `resources/js/features/gta-alerts/components/AlertDetailsView.test.tsx`.
+- ✅ Added manual verifier script: `scripts/manual_tests/typed_domain_refactor_phase4.php`.
+- ✅ Manual verifier run with command gates:
+  - `RUN_COMMAND_GATES=1 php scripts/manual_tests/typed_domain_refactor_phase4.php`
+  - Log: `storage/logs/manual_tests/typed_domain_refactor_phase4_2026_02_07_093150.log`
 
 ## Phase 5: Quality & Documentation
 Final verification, cleanup, and documentation updates.
