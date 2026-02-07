@@ -87,6 +87,31 @@ Refactor UI components to consume the new domain model and modernize their imple
 - [ ] Task: Update `App.tsx` to handle the updated service output
 - [ ] Task: Conductor - User Manual Verification 'Phase 4: UI Modernization (Components)' (Protocol in workflow.md)
 
+### Phase 4 Audit & Preflight (2026-02-07)
+
+#### Audit Findings (Current State)
+- `AlertCard` still consumes `AlertItem` (`resources/js/features/gta-alerts/components/AlertCard.tsx`).
+- `FeedView` still consumes `AlertItem[]` and uses `AlertService.search(...)` over `AlertItem` (`resources/js/features/gta-alerts/components/FeedView.tsx`).
+- `AlertDetailsView` remains class/template-method oriented:
+  - Class-based abstraction via `AlertDetailTemplate extends Component` and derived subclasses.
+  - Type branching is currently based on `alert.type` (`fire`/`hazard`/`police`/`medical`/`transit`) instead of `switch (alert.kind)`.
+- `App.tsx` still maps backend resources through `AlertService.mapUnifiedAlertsToAlertItems(...)` and passes `AlertItem` into UI components.
+- There is no dedicated automated test file for `AlertDetailsView` behavior; current UI tests cover `App`, `FeedView`, and `AlertCard`.
+
+#### Preflight Checks Executed (2026-02-07)
+- ✅ `pnpm exec vitest run resources/js/features/gta-alerts/App.test.tsx resources/js/features/gta-alerts/components/FeedView.test.tsx resources/js/features/gta-alerts/components/AlertCard.test.tsx resources/js/features/gta-alerts/services/AlertService.test.ts resources/js/features/gta-alerts/domain/alerts/view/mapDomainAlertToAlertItem.test.ts`
+  - Result: pass (5 files, 25 tests).
+- ✅ `pnpm run types`
+  - Result: pass (`tsc --noEmit`).
+
+#### Phase 4 Readiness Decision
+- ✅ Ready to begin Phase 4 implementation.
+- Constraints to preserve during UI modernization:
+  - Keep hard enforcement boundary unchanged (`fromResource(...)` must remain catch/log/discard).
+  - Preserve transit filtering alias behavior where `go_transit` remains reachable under transit filter UX.
+  - Preserve current rendered semantics (severity/icon/color/description/metadata) while changing component input types.
+  - Add dedicated tests for `AlertDetailsView` branch behavior once converted to functional `switch (alert.kind)` rendering.
+
 ## Phase 5: Quality & Documentation
 Final verification, cleanup, and documentation updates.
 
