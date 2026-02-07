@@ -44,7 +44,6 @@ jobs:
           php-version: ${{ matrix.php-version }}
           tools: composer:v2
           coverage: xdebug
-          cache: composer
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
