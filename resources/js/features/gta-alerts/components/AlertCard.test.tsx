@@ -23,11 +23,11 @@ describe('AlertCard', () => {
         },
     };
 
-    const mockItem = AlertService.mapUnifiedAlertToAlertItem(mockUnified);
-    if (!mockItem) throw new Error('Expected AlertItem');
+    const mockAlert = AlertService.mapUnifiedAlertToDomainAlert(mockUnified);
+    if (!mockAlert) throw new Error('Expected DomainAlert');
 
     it('renders correctly with given item data', () => {
-        render(<AlertCard item={mockItem} />);
+        render(<AlertCard alert={mockAlert} />);
 
         expect(screen.getByText('STRUCTURE FIRE')).toBeInTheDocument();
         expect(screen.getByText(/Main St/)).toBeInTheDocument();
@@ -37,7 +37,7 @@ describe('AlertCard', () => {
 
     it('calls onViewDetails when clicked', () => {
         const onViewDetails = vi.fn();
-        render(<AlertCard item={mockItem} onViewDetails={onViewDetails} />);
+        render(<AlertCard alert={mockAlert} onViewDetails={onViewDetails} />);
 
         const card = screen.getByText('STRUCTURE FIRE').closest('article');
         if (!card) throw new Error('Alert card not found');
@@ -46,7 +46,7 @@ describe('AlertCard', () => {
     });
 
     it('shows saved badge when isSaved is true', () => {
-        render(<AlertCard item={mockItem} isSaved={true} />);
+        render(<AlertCard alert={mockAlert} isSaved={true} />);
         expect(screen.getByText('SAVED')).toBeInTheDocument();
     });
 });

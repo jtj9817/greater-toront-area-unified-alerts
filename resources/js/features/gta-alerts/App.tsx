@@ -7,6 +7,7 @@ import { SavedView } from './components/SavedView';
 import { SettingsView } from './components/SettingsView';
 import { Sidebar } from './components/Sidebar';
 import { ZonesView } from './components/ZonesView';
+import type { DomainAlert } from './domain/alerts';
 import { AlertService } from './services/AlertService';
 import type { UnifiedAlertResource } from './types';
 
@@ -31,9 +32,9 @@ const App: React.FC<AppProps> = ({ alerts, filters, latestFeedUpdatedAt }) => {
     const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-    // Map backend unified alerts to frontend AlertItems
+    // Map backend unified alerts to frontend domain values
     const allAlerts = useMemo(() => {
-        return AlertService.mapUnifiedAlertsToAlertItems(alerts.data);
+        return AlertService.mapUnifiedAlertsToDomainAlerts(alerts.data);
     }, [alerts.data]);
 
     const pagination = useMemo(() => {
@@ -52,9 +53,9 @@ const App: React.FC<AppProps> = ({ alerts, filters, latestFeedUpdatedAt }) => {
     }, [alerts.links, alerts.meta]);
 
     // Use the local alerts to find the active alert
-    const activeAlert = useMemo(() => {
+    const activeAlert = useMemo<DomainAlert | null>(() => {
         return activeAlertId
-            ? allAlerts.find((item) => item.id === activeAlertId)
+            ? (allAlerts.find((item) => item.id === activeAlertId) ?? null)
             : null;
     }, [activeAlertId, allAlerts]);
 

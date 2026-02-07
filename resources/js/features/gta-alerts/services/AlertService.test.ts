@@ -201,9 +201,7 @@ describe('AlertService', () => {
     ])(
         'maps transit route type $routeType to icon $expectedIcon',
         ({ routeType, effect, expectedIcon }) => {
-            const warn = vi
-                .spyOn(console, 'warn')
-                .mockImplementation(() => {});
+            const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
             const alertItem = AlertService.mapUnifiedAlertToAlertItem({
                 id: `transit:${routeType}`,
                 source: 'transit',
@@ -265,6 +263,82 @@ describe('AlertService', () => {
         expect(alertItem).not.toBeNull();
         if (!alertItem) throw new Error('Expected AlertItem');
         expect(alertItem.severity).toBe('low');
+        expect(warn).not.toHaveBeenCalled();
+        warn.mockRestore();
+    });
+
+    it('maps backend unified alerts to DomainAlert values and discards invalid resources', () => {
+        const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+
+        const invalidFire = {
+            ...mockFireAlert,
+            id: 'fire:BAD',
+            external_id: 'BAD',
+            meta: {
+                ...mockFireAlert.meta,
+                alarm_level: 'bad-value',
+            },
+        } as unknown as UnifiedAlertResource;
+
+        const alerts = AlertService.mapUnifiedAlertsToDomainAlerts([
+            mockFireAlert,
+            mockPoliceAlert,
+            mockGoTransitAlert,
+            invalidFire,
+        ]);
+
+        expect(alerts).toHaveLength(3);
+        expect(alerts.map((alert) => alert.kind).sort()).toEqual([
+            'fire',
+            'go_transit',
+            'police',
+        ]);
+        expect(warn).toHaveBeenCalled();
+
+        warn.mockRestore();
+    });
+
+    it('keeps GO Transit alerts reachable via transit category filter when searching DomainAlert values', () => {
+        const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+        const items = AlertService.mapUnifiedAlertsToDomainAlerts([
+            mockFireAlert,
+            {
+                id: 'transit:T1',
+                source: 'transit',
+                external_id: 'T1',
+                is_active: true,
+                timestamp,
+                title: 'Line 2 delay',
+                location: { name: 'Bloor Station', lat: null, lng: null },
+                meta: {
+                    route_type: 'Subway',
+                    route: '2',
+                    severity: null,
+                    effect: 'SIGNIFICANT_DELAYS',
+                    source_feed: 'live-api',
+                    alert_type: 'advisory',
+                    description: null,
+                    url: null,
+                    direction: null,
+                    cause: null,
+                    stop_start: null,
+                    stop_end: null,
+                },
+            },
+            mockGoTransitAlert,
+        ]);
+
+        const results = AlertService.searchDomainAlerts(items, {
+            query: '',
+            category: 'transit',
+            dateScope: 'all',
+        });
+
+        expect(results).toHaveLength(2);
+        expect(results.map((item) => item.kind).sort()).toEqual([
+            'go_transit',
+            'transit',
+        ]);
         expect(warn).not.toHaveBeenCalled();
         warn.mockRestore();
     });

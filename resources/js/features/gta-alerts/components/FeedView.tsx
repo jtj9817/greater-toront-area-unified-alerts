@@ -2,9 +2,9 @@ import { Link } from '@inertiajs/react';
 import React, { useState, useMemo } from 'react';
 import { formatTimeAgo } from '@/lib/utils';
 import { home } from '@/routes';
+import type { DomainAlert } from '../domain/alerts';
 import type { AlertFilterOptions } from '../services/AlertService';
 import { AlertService } from '../services/AlertService';
-import type { AlertItem } from '../types';
 import { AlertCard } from './AlertCard';
 import { AlertTableView } from './AlertTableView';
 import { Icon } from './Icon';
@@ -20,7 +20,7 @@ type FeedPagination = {
 interface FeedViewProps {
     searchQuery: string;
     onSelectAlert: (id: string) => void;
-    allAlerts: AlertItem[];
+    allAlerts: DomainAlert[];
     latestFeedUpdatedAt: string | null;
     status?: 'all' | 'active' | 'cleared';
     pagination?: FeedPagination;
@@ -50,7 +50,7 @@ export const FeedView: React.FC<FeedViewProps> = ({
             timeLimit: timeFilter,
             dateScope: dateFilter,
         };
-        return AlertService.search(allAlerts, options);
+        return AlertService.searchDomainAlerts(allAlerts, options);
     }, [searchQuery, activeCategory, timeFilter, dateFilter, allAlerts]);
 
     // Get Set of Saved IDs for efficient lookup
@@ -295,7 +295,7 @@ export const FeedView: React.FC<FeedViewProps> = ({
                         filteredItems.map((item) => (
                             <AlertCard
                                 key={item.id}
-                                item={item}
+                                alert={item}
                                 onViewDetails={() => onSelectAlert(item.id)}
                                 isSaved={savedIds.has(item.id)}
                             />

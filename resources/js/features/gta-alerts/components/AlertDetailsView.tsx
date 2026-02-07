@@ -1,162 +1,205 @@
-import React, { Component } from 'react';
+import React, { useMemo } from 'react';
 import { formatTimestampEST } from '@/lib/utils';
-import type { AlertItem } from '../types';
+import { mapDomainAlertToAlertItem, type DomainAlert } from '../domain/alerts';
 import { Icon } from './Icon';
 
 interface DetailsProps {
-    alert: AlertItem;
+    alert: DomainAlert;
     onBack: () => void;
 }
 
-/**
- * OOP Pattern: Template Method
- * Abstract Base Class defining the structure of the Details View
- */
-abstract class AlertDetailTemplate extends Component<DetailsProps> {
-    // Fix: Explicitly declare props to resolve TS error about missing property in abstract class
-    public readonly props: Readonly<DetailsProps>;
+type PresentationAlert = ReturnType<typeof mapDomainAlertToAlertItem>;
 
-    constructor(props: DetailsProps) {
-        super(props);
-        this.props = props;
-    }
+type DetailSections = {
+    header: React.ReactNode;
+    metadata: React.ReactNode;
+    specializedContent: React.ReactNode;
+};
 
-    // Explicitly typing the return value of the main render method
-    render(): React.ReactNode {
-        const { alert, onBack } = this.props;
-        const isSaved = false;
+interface DetailLayoutProps {
+    alert: PresentationAlert;
+    onBack: () => void;
+    sections: DetailSections;
+}
 
-        return (
-            <div className="flex h-full animate-in flex-col bg-background-dark duration-500 fade-in slide-in-from-bottom-4">
-                {/* Persistent Navigation */}
-                <div className="sticky top-0 z-10 flex items-center gap-4 border-b border-white/5 bg-background-dark/50 p-4 backdrop-blur-md">
-                    <button
-                        onClick={onBack}
-                        className="flex h-10 w-10 items-center justify-center rounded-full bg-white/5 text-white transition-all hover:bg-primary hover:text-white"
-                    >
-                        <Icon name="arrow_back" />
-                    </button>
-                    <div>
-                        <h2 className="leading-none font-bold text-white">
-                            Incident Details
-                        </h2>
-                        <p className="mt-1 text-xs text-text-secondary">
-                            {alert.id.toUpperCase()} • {alert.location}
-                        </p>
-                    </div>
+const AlertDetailsLayout: React.FC<DetailLayoutProps> = ({
+    alert,
+    onBack,
+    sections,
+}) => {
+    const isSaved = false;
+
+    return (
+        <div className="flex h-full animate-in flex-col bg-background-dark duration-500 fade-in slide-in-from-bottom-4">
+            <div className="sticky top-0 z-10 flex items-center gap-4 border-b border-white/5 bg-background-dark/50 p-4 backdrop-blur-md">
+                <button
+                    onClick={onBack}
+                    className="flex h-10 w-10 items-center justify-center rounded-full bg-white/5 text-white transition-all hover:bg-primary hover:text-white"
+                >
+                    <Icon name="arrow_back" />
+                </button>
+                <div>
+                    <h2 className="leading-none font-bold text-white">
+                        Incident Details
+                    </h2>
+                    <p className="mt-1 text-xs text-text-secondary">
+                        {alert.id.toUpperCase()} • {alert.location}
+                    </p>
                 </div>
+            </div>
 
-                <div className="flex-1 overflow-y-auto p-4 md:p-8">
-                    <div className="mx-auto max-w-4xl space-y-8">
-                        {/* 1. Header Hook */}
-                        {this.renderHeader()}
+            <div className="flex-1 overflow-y-auto p-4 md:p-8">
+                <div className="mx-auto max-w-4xl space-y-8">
+                    {sections.header}
 
-                        {/* 2. Primary Content Hook */}
-                        <section className="rounded-2xl border border-white/5 bg-surface-dark p-6 shadow-xl md:p-8">
-                            <div className="flex flex-col gap-8 md:flex-row">
-                                <div className="flex-1">
-                                    <h3 className="mb-4 text-xs font-bold tracking-widest text-primary uppercase">
-                                        Official Briefing
-                                    </h3>
-                                    <p className="text-lg leading-relaxed font-light text-white">
-                                        {alert.description}
-                                    </p>
+                    <section className="rounded-2xl border border-white/5 bg-surface-dark p-6 shadow-xl md:p-8">
+                        <div className="flex flex-col gap-8 md:flex-row">
+                            <div className="flex-1">
+                                <h3 className="mb-4 text-xs font-bold tracking-widest text-primary uppercase">
+                                    Official Briefing
+                                </h3>
+                                <p className="text-lg leading-relaxed font-light text-white">
+                                    {alert.description}
+                                </p>
 
-                                    <div className="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-4">
-                                        <div className="rounded-xl bg-white/5 p-4">
-                                            <p className="mb-1 text-[10px] font-bold text-text-secondary uppercase">
-                                                Time Reported
-                                            </p>
-                                            <p className="text-sm text-white">
-                                                {formatTimestampEST(
-                                                    alert.timestamp,
-                                                )}
-                                            </p>
-                                            <p className="mt-0.5 text-xs text-text-secondary">
-                                                {alert.timeAgo}
-                                            </p>
-                                        </div>
-                                        <div className="rounded-xl bg-white/5 p-4">
-                                            <p className="mb-1 text-[10px] font-bold text-text-secondary uppercase">
-                                                Category
-                                            </p>
-                                            <p className="text-sm text-white capitalize">
-                                                {alert.type}
-                                            </p>
-                                        </div>
-                                        {this.renderMetadata()}
+                                <div className="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-4">
+                                    <div className="rounded-xl bg-white/5 p-4">
+                                        <p className="mb-1 text-[10px] font-bold text-text-secondary uppercase">
+                                            Time Reported
+                                        </p>
+                                        <p className="text-sm text-white">
+                                            {formatTimestampEST(
+                                                alert.timestamp,
+                                            )}
+                                        </p>
+                                        <p className="mt-0.5 text-xs text-text-secondary">
+                                            {alert.timeAgo}
+                                        </p>
                                     </div>
+                                    <div className="rounded-xl bg-white/5 p-4">
+                                        <p className="mb-1 text-[10px] font-bold text-text-secondary uppercase">
+                                            Category
+                                        </p>
+                                        <p className="text-sm text-white capitalize">
+                                            {alert.type}
+                                        </p>
+                                    </div>
+                                    {sections.metadata}
                                 </div>
                             </div>
-                        </section>
-
-                        {/* 3. Specialized Content Hook */}
-                        {this.renderSpecializedContent()}
-
-                        {/* 4. Action Hook */}
-                        <div className="flex gap-4 pt-4">
-                            <button className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-white/10 py-4 font-bold text-white shadow-lg transition-all hover:bg-white/20">
-                                <Icon name="share" />
-                                Broadcast Alert
-                            </button>
-                            <button
-                                className={`flex items-center justify-center gap-2 rounded-xl border px-6 transition-all ${
-                                    isSaved
-                                        ? 'border-white/20 bg-white/10 text-white shadow-lg'
-                                        : 'border-white/10 text-white hover:border-white/20'
-                                }`}
-                            >
-                                <Icon
-                                    name={
-                                        isSaved ? 'bookmark' : 'bookmark_border'
-                                    }
-                                    fill={isSaved}
-                                />
-                                {isSaved && (
-                                    <span className="hidden text-sm font-bold sm:inline">
-                                        Saved
-                                    </span>
-                                )}
-                            </button>
                         </div>
+                    </section>
+
+                    {sections.specializedContent}
+
+                    <div className="flex gap-4 pt-4">
+                        <button className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-white/10 py-4 font-bold text-white shadow-lg transition-all hover:bg-white/20">
+                            <Icon name="share" />
+                            Broadcast Alert
+                        </button>
+                        <button
+                            className={`flex items-center justify-center gap-2 rounded-xl border px-6 transition-all ${
+                                isSaved
+                                    ? 'border-white/20 bg-white/10 text-white shadow-lg'
+                                    : 'border-white/10 text-white hover:border-white/20'
+                            }`}
+                        >
+                            <Icon
+                                name={isSaved ? 'bookmark' : 'bookmark_border'}
+                                fill={isSaved}
+                            />
+                            {isSaved && (
+                                <span className="hidden text-sm font-bold sm:inline">
+                                    Saved
+                                </span>
+                            )}
+                        </button>
                     </div>
                 </div>
             </div>
-        );
+        </div>
+    );
+};
+
+function buildFireSections(alert: PresentationAlert): DetailSections {
+    const isMedical = alert.type === 'medical';
+
+    if (isMedical) {
+        return {
+            header: (
+                <div className="relative flex flex-col items-center gap-6 overflow-hidden rounded-3xl border border-pink-500/20 bg-pink-950/20 p-8 md:flex-row">
+                    <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-pink-500 text-white shadow-2xl shadow-pink-500/40">
+                        <Icon name="medical_services" className="text-4xl" />
+                    </div>
+                    <div>
+                        <span className="mb-2 inline-block rounded-md bg-pink-600 px-2 py-1 text-[10px] font-bold text-white uppercase">
+                            Medical Emergency
+                        </span>
+                        <h1 className="text-3xl font-bold tracking-tight text-white md:text-4xl">
+                            {alert.title}
+                        </h1>
+                    </div>
+                </div>
+            ),
+            metadata: (
+                <>
+                    <div className="rounded-xl bg-white/5 p-4">
+                        <p className="mb-1 text-[10px] font-bold text-text-secondary uppercase">
+                            Alert Source
+                        </p>
+                        <p className="text-sm text-white">
+                            {alert.metadata?.source || 'Toronto Fire Services'}
+                        </p>
+                    </div>
+                    <div className="rounded-xl bg-white/5 p-4">
+                        <p className="mb-1 text-[10px] font-bold text-text-secondary uppercase">
+                            Units Dispatched
+                        </p>
+                        <p className="text-sm text-white">
+                            {alert.metadata?.unitsDispatched || 'None reported'}
+                        </p>
+                    </div>
+                </>
+            ),
+            specializedContent: (
+                <div className="rounded-2xl border border-pink-500/20 bg-pink-500/5 p-6">
+                    <h4 className="mb-4 flex items-center gap-2 text-xs font-bold text-pink-400 uppercase">
+                        <Icon name="medical_services" className="text-sm" />
+                        Medical Advisory
+                    </h4>
+                    <div className="flex items-start gap-4 rounded-xl border border-pink-500/20 bg-pink-600/10 p-4">
+                        <Icon name="info" className="text-pink-400" />
+                        <p className="text-sm font-medium text-pink-100">
+                            Emergency medical services are responding to this
+                            incident. Please clear the area to allow access for
+                            first responders.
+                        </p>
+                    </div>
+                </div>
+            ),
+        };
     }
 
-    // Abstract Hooks to be implemented by subclasses
-    abstract renderHeader(): React.ReactNode;
-    abstract renderMetadata(): React.ReactNode;
-    abstract renderSpecializedContent(): React.ReactNode;
-}
-
-/**
- * Inheritance: Specialized Renderer for Fire Alerts
- */
-class FireAlertDetail extends AlertDetailTemplate {
-    renderHeader(): React.ReactNode {
-        return (
+    return {
+        header: (
             <div className="relative flex flex-col items-center gap-6 overflow-hidden rounded-3xl border border-coral/20 bg-crimson/20 p-8 md:flex-row">
                 <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-coral text-white shadow-2xl shadow-coral/40">
                     <Icon name="local_fire_department" className="text-4xl" />
                 </div>
                 <div>
                     <span className="mb-2 inline-block rounded-md bg-crimson px-2 py-1 text-[10px] font-bold text-white uppercase">
-                        High Severity Response
+                        {alert.type === 'hazard'
+                            ? 'Hazard Response'
+                            : 'High Severity Response'}
                     </span>
                     <h1 className="text-3xl font-bold tracking-tight text-white md:text-4xl">
-                        {this.props.alert.title}
+                        {alert.title}
                     </h1>
                 </div>
             </div>
-        );
-    }
-
-    renderMetadata(): React.ReactNode {
-        const { alert } = this.props;
-        return (
-            <React.Fragment>
+        ),
+        metadata: (
+            <>
                 <div className="rounded-xl bg-white/5 p-4">
                     <p className="mb-1 text-[10px] font-bold text-text-secondary uppercase">
                         Alert Source
@@ -184,12 +227,9 @@ class FireAlertDetail extends AlertDetailTemplate {
                         {alert.metadata?.unitsDispatched || 'None reported'}
                     </p>
                 </div>
-            </React.Fragment>
-        );
-    }
-
-    renderSpecializedContent(): React.ReactNode {
-        return (
+            </>
+        ),
+        specializedContent: (
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                 <div className="rounded-2xl border border-white/5 bg-surface-dark p-6">
                     <h4 className="mb-4 flex items-center gap-2 text-xs font-bold text-primary uppercase">
@@ -227,16 +267,13 @@ class FireAlertDetail extends AlertDetailTemplate {
                     </ul>
                 </div>
             </div>
-        );
-    }
+        ),
+    };
 }
 
-/**
- * Inheritance: Specialized Renderer for Police Alerts
- */
-class PoliceAlertDetail extends AlertDetailTemplate {
-    renderHeader(): React.ReactNode {
-        return (
+function buildPoliceSections(alert: PresentationAlert): DetailSections {
+    return {
+        header: (
             <div className="relative flex flex-col items-center gap-6 overflow-hidden rounded-3xl border border-blue-500/20 bg-blue-950/20 p-8 md:flex-row">
                 <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-blue-600 text-white shadow-2xl shadow-blue-500/40">
                     <Icon name="local_police" className="text-4xl" />
@@ -246,17 +283,13 @@ class PoliceAlertDetail extends AlertDetailTemplate {
                         Tactical Operation
                     </span>
                     <h1 className="text-3xl font-bold tracking-tight text-white md:text-4xl">
-                        {this.props.alert.title}
+                        {alert.title}
                     </h1>
                 </div>
             </div>
-        );
-    }
-
-    renderMetadata(): React.ReactNode {
-        const { alert } = this.props;
-        return (
-            <React.Fragment>
+        ),
+        metadata: (
+            <>
                 <div className="rounded-xl bg-white/5 p-4">
                     <p className="mb-1 text-[10px] font-bold text-text-secondary uppercase">
                         Alert Source
@@ -273,12 +306,9 @@ class PoliceAlertDetail extends AlertDetailTemplate {
                         {alert.metadata?.beat || 'Not specified'}
                     </p>
                 </div>
-            </React.Fragment>
-        );
-    }
-
-    renderSpecializedContent(): React.ReactNode {
-        return (
+            </>
+        ),
+        specializedContent: (
             <div className="rounded-2xl border border-blue-500/20 bg-blue-500/5 p-6">
                 <h4 className="mb-4 flex items-center gap-2 text-xs font-bold text-blue-400 uppercase">
                     <Icon name="visibility" className="text-sm" /> Public Safety
@@ -293,82 +323,13 @@ class PoliceAlertDetail extends AlertDetailTemplate {
                     </p>
                 </div>
             </div>
-        );
-    }
+        ),
+    };
 }
 
-/**
- * Inheritance: Specialized Renderer for Medical Alerts
- */
-class MedicalAlertDetail extends AlertDetailTemplate {
-    renderHeader(): React.ReactNode {
-        return (
-            <div className="relative flex flex-col items-center gap-6 overflow-hidden rounded-3xl border border-pink-500/20 bg-pink-950/20 p-8 md:flex-row">
-                <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-pink-500 text-white shadow-2xl shadow-pink-500/40">
-                    <Icon name="medical_services" className="text-4xl" />
-                </div>
-                <div>
-                    <span className="mb-2 inline-block rounded-md bg-pink-600 px-2 py-1 text-[10px] font-bold text-white uppercase">
-                        Medical Emergency
-                    </span>
-                    <h1 className="text-3xl font-bold tracking-tight text-white md:text-4xl">
-                        {this.props.alert.title}
-                    </h1>
-                </div>
-            </div>
-        );
-    }
-
-    renderMetadata(): React.ReactNode {
-        const { alert } = this.props;
-        return (
-            <React.Fragment>
-                <div className="rounded-xl bg-white/5 p-4">
-                    <p className="mb-1 text-[10px] font-bold text-text-secondary uppercase">
-                        Alert Source
-                    </p>
-                    <p className="text-sm text-white">
-                        {alert.metadata?.source || 'Toronto Fire Services'}
-                    </p>
-                </div>
-                <div className="rounded-xl bg-white/5 p-4">
-                    <p className="mb-1 text-[10px] font-bold text-text-secondary uppercase">
-                        Units Dispatched
-                    </p>
-                    <p className="text-sm text-white">
-                        {alert.metadata?.unitsDispatched || 'None reported'}
-                    </p>
-                </div>
-            </React.Fragment>
-        );
-    }
-
-    renderSpecializedContent(): React.ReactNode {
-        return (
-            <div className="rounded-2xl border border-pink-500/20 bg-pink-500/5 p-6">
-                <h4 className="mb-4 flex items-center gap-2 text-xs font-bold text-pink-400 uppercase">
-                    <Icon name="medical_services" className="text-sm" /> Medical
-                    Advisory
-                </h4>
-                <div className="flex items-start gap-4 rounded-xl border border-pink-500/20 bg-pink-600/10 p-4">
-                    <Icon name="info" className="text-pink-400" />
-                    <p className="text-sm font-medium text-pink-100">
-                        Emergency medical services are responding to this
-                        incident. Please clear the area to allow access for
-                        first responders.
-                    </p>
-                </div>
-            </div>
-        );
-    }
-}
-
-/**
- * Inheritance: Specialized Renderer for Transit Alerts
- */
-class TransitAlertDetail extends AlertDetailTemplate {
-    renderHeader(): React.ReactNode {
-        return (
+function buildTransitSections(alert: PresentationAlert): DetailSections {
+    return {
+        header: (
             <div className="relative flex flex-col items-center gap-6 overflow-hidden rounded-3xl border border-purple-500/20 bg-purple-950/20 p-8 md:flex-row">
                 <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-purple-500 text-white shadow-2xl shadow-purple-500/40">
                     <Icon name="train" className="text-4xl" />
@@ -378,19 +339,13 @@ class TransitAlertDetail extends AlertDetailTemplate {
                         Service Notice
                     </span>
                     <h1 className="text-3xl font-bold tracking-tight text-white md:text-4xl">
-                        {this.props.alert.title}
+                        {alert.title}
                     </h1>
                 </div>
             </div>
-        );
-    }
-
-    renderMetadata(): React.ReactNode {
-        const { alert } = this.props;
-        const hasDelay = alert.metadata?.estimatedDelay;
-
-        return (
-            <React.Fragment>
+        ),
+        metadata: (
+            <>
                 <div className="rounded-xl bg-white/5 p-4">
                     <p className="mb-1 text-[10px] font-bold text-text-secondary uppercase">
                         Alert Source
@@ -399,28 +354,19 @@ class TransitAlertDetail extends AlertDetailTemplate {
                         {alert.metadata?.source || 'TTC Control'}
                     </p>
                 </div>
-                {hasDelay && (
+                {alert.metadata?.estimatedDelay && (
                     <div className="rounded-xl bg-white/5 p-4">
                         <p className="mb-1 text-[10px] font-bold text-text-secondary uppercase">
                             Estimated Delay
                         </p>
                         <p className="text-sm text-white">
-                            {alert.metadata?.estimatedDelay}
+                            {alert.metadata.estimatedDelay}
                         </p>
                     </div>
                 )}
-            </React.Fragment>
-        );
-    }
-
-    renderSpecializedContent(): React.ReactNode {
-        const { alert } = this.props;
-
-        if (!alert.metadata?.shuttleInfo) {
-            return null;
-        }
-
-        return (
+            </>
+        ),
+        specializedContent: alert.metadata?.shuttleInfo ? (
             <div className="rounded-2xl border border-purple-500/20 bg-purple-500/5 p-6">
                 <h4 className="mb-4 text-xs font-bold text-purple-400 uppercase">
                     Shuttle Bus Info
@@ -429,30 +375,95 @@ class TransitAlertDetail extends AlertDetailTemplate {
                     {alert.metadata.shuttleInfo}
                 </p>
             </div>
-        );
-    }
+        ) : null,
+    };
 }
 
-/**
- * Functional Component that acts as a Factory/Wrapper for the OOP Detail views
- */
-export const AlertDetailsView: React.FC<DetailsProps> = (props) => {
-    const { alert } = props;
+function buildGoTransitSections(alert: PresentationAlert): DetailSections {
+    return {
+        header: (
+            <div className="relative flex flex-col items-center gap-6 overflow-hidden rounded-3xl border border-forest/20 bg-forest/10 p-8 md:flex-row">
+                <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-forest text-white shadow-2xl shadow-forest/40">
+                    <Icon name="directions_transit" className="text-4xl" />
+                </div>
+                <div>
+                    <span className="mb-2 inline-block rounded-md bg-forest px-2 py-1 text-[10px] font-bold text-white uppercase">
+                        GO Service Notice
+                    </span>
+                    <h1 className="text-3xl font-bold tracking-tight text-white md:text-4xl">
+                        {alert.title}
+                    </h1>
+                </div>
+            </div>
+        ),
+        metadata: (
+            <>
+                <div className="rounded-xl bg-white/5 p-4">
+                    <p className="mb-1 text-[10px] font-bold text-text-secondary uppercase">
+                        Alert Source
+                    </p>
+                    <p className="text-sm text-white">
+                        {alert.metadata?.source || 'GO Transit'}
+                    </p>
+                </div>
+                <div className="rounded-xl bg-white/5 p-4">
+                    <p className="mb-1 text-[10px] font-bold text-text-secondary uppercase">
+                        Corridor
+                    </p>
+                    <p className="text-sm text-white">
+                        {alert.metadata?.route || 'Not specified'}
+                    </p>
+                </div>
+                {alert.metadata?.estimatedDelay && (
+                    <div className="rounded-xl bg-white/5 p-4">
+                        <p className="mb-1 text-[10px] font-bold text-text-secondary uppercase">
+                            Estimated Delay
+                        </p>
+                        <p className="text-sm text-white">
+                            {alert.metadata.estimatedDelay}
+                        </p>
+                    </div>
+                )}
+            </>
+        ),
+        specializedContent: (
+            <div className="rounded-2xl border border-forest/20 bg-forest/5 p-6">
+                <h4 className="mb-4 flex items-center gap-2 text-xs font-bold text-forest uppercase">
+                    <Icon name="info" className="text-sm" /> Operations Note
+                </h4>
+                <p className="text-sm text-white/90">
+                    Monitor station displays and platform announcements for the
+                    latest GO service adjustments.
+                </p>
+            </div>
+        ),
+    };
+}
 
-    // Choose the appropriate renderer subclass based on alert type
-    if (alert.type === 'fire' || alert.type === 'hazard') {
-        return <FireAlertDetail {...props} />;
-    }
-    if (alert.type === 'police') {
-        return <PoliceAlertDetail {...props} />;
-    }
-    if (alert.type === 'medical') {
-        return <MedicalAlertDetail {...props} />;
-    }
-    if (alert.type === 'transit') {
-        return <TransitAlertDetail {...props} />;
-    }
+export const AlertDetailsView: React.FC<DetailsProps> = ({ alert, onBack }) => {
+    const presentation = useMemo(
+        () => mapDomainAlertToAlertItem(alert),
+        [alert],
+    );
 
-    // Fallback for any unknown types - uses dynamic source from metadata
-    return <TransitAlertDetail {...props} />;
+    const sections = useMemo<DetailSections>(() => {
+        switch (alert.kind) {
+            case 'fire':
+                return buildFireSections(presentation);
+            case 'police':
+                return buildPoliceSections(presentation);
+            case 'transit':
+                return buildTransitSections(presentation);
+            case 'go_transit':
+                return buildGoTransitSections(presentation);
+        }
+    }, [alert.kind, presentation]);
+
+    return (
+        <AlertDetailsLayout
+            alert={presentation}
+            onBack={onBack}
+            sections={sections}
+        />
+    );
 };

@@ -1,15 +1,15 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { formatTimestampEST } from '@/lib/utils';
-import type { AlertItem } from '../types';
+import { mapDomainAlertToAlertItem, type DomainAlert } from '../domain/alerts';
 import { Icon } from './Icon';
 
 interface AlertTableViewProps {
-    items: AlertItem[];
+    items: DomainAlert[];
     onSelectAlert: (id: string) => void;
     savedIds: Set<string>;
 }
 
-const severityStyles: Record<AlertItem['severity'], string> = {
+const severityStyles: Record<'high' | 'medium' | 'low', string> = {
     high: 'bg-[#e05560]/15 text-[#e05560] border-[#e05560]/20',
     medium: 'bg-[#f0b040]/15 text-[#f0b040] border-[#f0b040]/20',
     low: 'bg-white/10 text-[#8b95a5] border-white/10',
@@ -20,6 +20,11 @@ export const AlertTableView: React.FC<AlertTableViewProps> = ({
     onSelectAlert,
     savedIds,
 }) => {
+    const rows = useMemo(
+        () => items.map((item) => mapDomainAlertToAlertItem(item)),
+        [items],
+    );
+
     return (
         <div className="w-full overflow-x-auto rounded-lg border border-white/5">
             <table className="w-full min-w-[700px]">
@@ -44,7 +49,7 @@ export const AlertTableView: React.FC<AlertTableViewProps> = ({
                     </tr>
                 </thead>
                 <tbody>
-                    {items.map((item) => (
+                    {rows.map((item) => (
                         <tr
                             key={item.id}
                             onClick={() => onSelectAlert(item.id)}

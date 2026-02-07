@@ -1,19 +1,35 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { formatTimestampEST } from '@/lib/utils';
-import type { AlertItem } from '../types';
+import { mapDomainAlertToAlertItem, type DomainAlert } from '../domain/alerts';
 import { Icon } from './Icon';
 
 interface AlertCardProps {
-    item: AlertItem;
+    alert: DomainAlert;
     onViewDetails?: () => void;
     isSaved?: boolean;
 }
 
+function getSourceLabel(alert: DomainAlert): string {
+    switch (alert.kind) {
+        case 'fire':
+            return 'Toronto Fire';
+        case 'police':
+            return 'Toronto Police';
+        case 'transit':
+            return 'TTC';
+        case 'go_transit':
+            return 'GO Transit';
+    }
+}
+
 export const AlertCard: React.FC<AlertCardProps> = ({
-    item,
+    alert,
     onViewDetails,
     isSaved = false,
 }) => {
+    const item = useMemo(() => mapDomainAlertToAlertItem(alert), [alert]);
+    const sourceLabel = getSourceLabel(alert);
+
     return (
         <article
             onClick={onViewDetails}
@@ -41,6 +57,9 @@ export const AlertCard: React.FC<AlertCardProps> = ({
                             ></span>
                             <span className="text-[10px] font-bold tracking-wider text-primary uppercase">
                                 {item.type}
+                            </span>
+                            <span className="text-[10px] font-semibold tracking-wide text-white/50 uppercase">
+                                {sourceLabel}
                             </span>
                             {isSaved && (
                                 <span className="ml-1 animate-in rounded bg-primary px-1.5 py-0.5 text-[9px] font-bold text-white fade-in slide-in-from-left-2">

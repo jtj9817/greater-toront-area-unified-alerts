@@ -1,4 +1,8 @@
-import { fromResource, mapDomainAlertToAlertItem } from '../domain/alerts';
+import {
+    fromResource,
+    mapDomainAlertToAlertItem,
+    type DomainAlert,
+} from '../domain/alerts';
 import type { AlertItem, UnifiedAlertResource } from '../types';
 
 export interface AlertFilterOptions {
@@ -14,10 +18,7 @@ export interface AlertFilterOptions {
  * Refactored to be data-driven and support live backend resources.
  */
 export class AlertService {
-    private static categoryAliases: Record<
-        string,
-        ReadonlyArray<AlertItem['type']>
-    > = {
+    private static categoryAliases: Record<string, ReadonlyArray<string>> = {
         transit: ['transit', 'go_transit'],
     };
 
@@ -36,42 +37,7 @@ export class AlertService {
         return val;
     }
 
-    /**
-     * Maps backend UnifiedAlert resource to frontend AlertItem interface.
-     *
-     * Hard enforcement:
-     * - Invalid resources are caught, logged, and discarded (returns null).
-     * - This must never throw into UI rendering.
-     */
-    static mapUnifiedAlertToAlertItem(
-        alert: UnifiedAlertResource,
-    ): AlertItem | null {
-        const domainAlert = fromResource(alert);
-        if (!domainAlert) {
-            return null;
-        }
-
-        return mapDomainAlertToAlertItem(domainAlert);
-    }
-
-    static mapUnifiedAlertsToAlertItems(
-        alerts: UnifiedAlertResource[],
-    ): AlertItem[] {
-        const mapped: AlertItem[] = [];
-
-        for (const alert of alerts) {
-            const item = this.mapUnifiedAlertToAlertItem(alert);
-            if (item) mapped.push(item);
-        }
-
-        return mapped;
-    }
-
-    /**
-     * Core Search and Filter Engine
-     * Filters a provided list of items based on user options.
-     */
-    static search(
+    private static searchAlertItems(
         items: AlertItem[],
         options: AlertFilterOptions,
     ): AlertItem[] {
@@ -127,5 +93,80 @@ export class AlertService {
         }
 
         return filtered;
+    }
+
+    static mapUnifiedAlertToDomainAlert(
+        alert: UnifiedAlertResource,
+    ): DomainAlert | null {
+        return fromResource(alert);
+    }
+
+    static mapUnifiedAlertsToDomainAlerts(
+        alerts: UnifiedAlertResource[],
+    ): DomainAlert[] {
+        const mapped: DomainAlert[] = [];
+
+        for (const alert of alerts) {
+            const item = this.mapUnifiedAlertToDomainAlert(alert);
+            if (item) mapped.push(item);
+        }
+
+        return mapped;
+    }
+
+    static searchDomainAlerts(
+        items: DomainAlert[],
+        options: AlertFilterOptions,
+    ): DomainAlert[] {
+        const alertsById = new Map(items.map((item) => [item.id, item]));
+        const presentationItems = items.map((item) =>
+            mapDomainAlertToAlertItem(item),
+        );
+
+        const filteredPresentation = this.searchAlertItems(
+            presentationItems,
+            options,
+        );
+
+        return filteredPresentation
+            .map((item) => alertsById.get(item.id))
+            .filter((item): item is DomainAlert => item !== undefined);
+    }
+
+    /**
+     * Maps backend UnifiedAlert resource to frontend AlertItem interface.
+     *
+     * Hard enforcement:
+     * - Invalid resources are caught, logged, and discarded (returns null).
+     * - This must never throw into UI rendering.
+     */
+    static mapUnifiedAlertToAlertItem(
+        alert: UnifiedAlertResource,
+    ): AlertItem | null {
+        const domainAlert = this.mapUnifiedAlertToDomainAlert(alert);
+        if (!domainAlert) {
+            return null;
+        }
+
+        return mapDomainAlertToAlertItem(domainAlert);
+    }
+
+    static mapUnifiedAlertsToAlertItems(
+        alerts: UnifiedAlertResource[],
+    ): AlertItem[] {
+        return this.mapUnifiedAlertsToDomainAlerts(alerts).map((item) =>
+            mapDomainAlertToAlertItem(item),
+        );
+    }
+
+    /**
+     * Core Search and Filter Engine
+     * Filters a provided list of items based on user options.
+     */
+    static search(
+        items: AlertItem[],
+        options: AlertFilterOptions,
+    ): AlertItem[] {
+        return this.searchAlertItems(items, options);
     }
 }
