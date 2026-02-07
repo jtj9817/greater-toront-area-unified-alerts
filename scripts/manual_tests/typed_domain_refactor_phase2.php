@@ -16,7 +16,10 @@
  *   ./vendor/bin/sail php scripts/manual_tests/typed_domain_refactor_phase2.php
  *
  * Options:
- *   --keep      Do not delete any seeded sample records.
+ *   --no-induce Disable induced malformed rows.
+ *   --commit    Commit seeded rows (default is rollback transaction).
+ *   --keep      When used with --commit, keep seeded rows (no cleanup).
+ *   --allow-non-testing Allow running outside APP_ENV=testing (dangerous).
  */
 
 require dirname(__DIR__, 2).'/vendor/autoload.php';
@@ -29,8 +32,11 @@ use App\Models\TransitAlert;
 use App\Services\Alerts\DTOs\UnifiedAlertsCriteria;
 use App\Services\Alerts\UnifiedAlertsQuery;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Contracts\Console\Kernel as ConsoleKernel;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Schema;
 
 $app = require_once dirname(__DIR__, 2).'/bootstrap/app.php';
 $kernel = $app->make(ConsoleKernel::class);
@@ -40,7 +46,18 @@ if (app()->environment('production')) {
     die("Error: Cannot run manual tests in production.\n");
 }
 
+$allowNonTesting = in_array('--allow-non-testing', $argv, true);
+$commit = in_array('--commit', $argv, true);
 $keep = in_array('--keep', $argv, true);
+$induceFailures = ! in_array('--no-induce', $argv, true);
+
+if (! app()->environment('testing') && ! $allowNonTesting) {
+    die(
+        "Error: This script must be run with APP_ENV=testing to avoid touching the development DB.\n".
+        "Run: APP_ENV=testing php scripts/manual_tests/typed_domain_refactor_phase2.php\n".
+        "Or (dangerous): php scripts/manual_tests/typed_domain_refactor_phase2.php --allow-non-testing\n"
+    );
+}
 
 $testRunId = 'typed_domain_refactor_phase2_'.Carbon::now()->format('Y_m_d_His');
 $logFile = storage_path("logs/manual_tests/{$testRunId}.log");
@@ -214,6 +231,14 @@ function validateUnifiedAlertResource(array $resource): array
 
 logInfo("=== Manual Test Run Started: {$testRunId} ===");
 logInfo('Log file', ['path' => $logFile]);
+logInfo('Environment', [
+    'app_env' => app()->environment(),
+    'db_connection' => config('database.default'),
+    'db_driver' => config('database.connections.'.config('database.default').'.driver'),
+    'db_database' => config('database.connections.'.config('database.default').'.database'),
+    'commit' => $commit,
+    'induce_failures' => $induceFailures,
+]);
 
 $createdRecords = [
     'fire_incidents' => [],
@@ -223,92 +248,98 @@ $createdRecords = [
 ];
 
 try {
+    DB::beginTransaction();
+
     logInfo('Phase 1: Data Setup');
 
+    $requiredTables = [
+        'fire_incidents',
+        'police_calls',
+        'transit_alerts',
+        'go_transit_alerts',
+    ];
+
+    $missingTables = array_values(array_filter(
+        $requiredTables,
+        static fn (string $table): bool => ! Schema::hasTable($table),
+    ));
+
+    if ($missingTables !== []) {
+        logInfo('Missing tables detected; running migrations', ['tables' => $missingTables]);
+        Artisan::call('migrate', ['--force' => true]);
+        logInfo('Migrations complete');
+    }
+
     if (FireIncident::query()->count() === 0) {
-        $eventNum = "MANUAL_FIRE_{$testRunId}";
-        $incident = FireIncident::query()->create([
-            'event_num' => $eventNum,
-            'event_type' => 'STRUCTURE FIRE',
-            'prime_street' => 'MAIN ST',
-            'cross_streets' => 'CROSS RD',
-            'dispatch_time' => Carbon::now()->subMinutes(5),
-            'alarm_level' => 2,
-            'beat' => 'B1',
-            'units_dispatched' => 'P1, P2',
-            'is_active' => true,
-            'feed_updated_at' => Carbon::now(),
-        ]);
+        $incident = FireIncident::factory()->create();
         $createdRecords['fire_incidents'][] = $incident->getKey();
-        logInfo('Seeded FireIncident', ['id' => $incident->getKey(), 'event_num' => $eventNum]);
+        logInfo('Seeded FireIncident (factory)', ['id' => $incident->getKey(), 'event_num' => $incident->event_num]);
     }
 
     if (PoliceCall::query()->count() === 0) {
-        $objectId = (int) (Carbon::now()->format('His').'01');
-        $call = PoliceCall::query()->create([
-            'object_id' => $objectId,
-            'call_type_code' => 'ASLTPR',
-            'call_type' => 'ASSAULT IN PROGRESS',
-            'division' => 'D31',
-            'cross_streets' => '456 POLICE RD',
-            'latitude' => 43.7,
-            'longitude' => -79.4,
-            'occurrence_time' => Carbon::now()->subMinutes(8),
-            'is_active' => true,
-            'feed_updated_at' => Carbon::now(),
-        ]);
+        $call = PoliceCall::factory()->create();
         $createdRecords['police_calls'][] = $call->getKey();
-        logInfo('Seeded PoliceCall', ['id' => $call->getKey(), 'object_id' => $objectId]);
+        logInfo('Seeded PoliceCall (factory)', ['id' => $call->getKey(), 'object_id' => $call->object_id]);
     }
 
     if (TransitAlert::query()->count() === 0) {
-        $externalId = "MANUAL_TTC_{$testRunId}";
-        $alert = TransitAlert::query()->create([
-            'external_id' => $externalId,
-            'source_feed' => 'manual',
-            'alert_type' => 'advisory',
-            'route_type' => 'Subway',
-            'route' => '1',
-            'title' => 'Line 1 delay',
-            'description' => 'Signal issues. Shuttle buses operating.',
-            'severity' => 'Critical',
-            'effect' => 'REDUCED_SERVICE',
-            'cause' => null,
-            'active_period_start' => Carbon::now()->subMinutes(12),
-            'active_period_end' => null,
-            'direction' => 'Both Ways',
-            'stop_start' => 'St Clair',
-            'stop_end' => 'Lawrence',
-            'url' => null,
-            'is_active' => true,
-            'feed_updated_at' => Carbon::now(),
-        ]);
+        $alert = TransitAlert::factory()->create();
         $createdRecords['transit_alerts'][] = $alert->getKey();
-        logInfo('Seeded TransitAlert', ['id' => $alert->getKey(), 'external_id' => $externalId]);
+        logInfo('Seeded TransitAlert (factory)', ['id' => $alert->getKey(), 'external_id' => $alert->external_id]);
     }
 
     if (GoTransitAlert::query()->count() === 0) {
-        $externalId = "MANUAL_GO_{$testRunId}";
-        $alert = GoTransitAlert::query()->create([
-            'external_id' => $externalId,
-            'alert_type' => 'saag',
-            'service_mode' => 'Train',
-            'corridor_or_route' => 'Lakeshore East',
-            'corridor_code' => 'LE',
-            'sub_category' => 'TDELAY',
-            'message_subject' => 'Lakeshore East delay',
-            'message_body' => 'Minor delays due to track congestion.',
-            'direction' => 'Eastbound',
-            'trip_number' => null,
-            'delay_duration' => '00:15:00',
-            'status' => null,
-            'line_colour' => null,
-            'posted_at' => Carbon::now()->subMinutes(15),
-            'is_active' => true,
-            'feed_updated_at' => Carbon::now(),
-        ]);
+        $alert = GoTransitAlert::factory()->create();
         $createdRecords['go_transit_alerts'][] = $alert->getKey();
-        logInfo('Seeded GoTransitAlert', ['id' => $alert->getKey(), 'external_id' => $externalId]);
+        logInfo('Seeded GoTransitAlert (factory)', ['id' => $alert->getKey(), 'external_id' => $alert->external_id]);
+    }
+
+    $induced = [
+        'fire_event_num' => null,
+        'police_object_id' => null,
+    ];
+
+    if ($induceFailures) {
+        $driver = config('database.connections.'.config('database.default').'.driver');
+        if ($driver !== 'sqlite') {
+            logInfo('Induced failure rows skipped (requires sqlite dynamic typing)', ['db_driver' => $driver]);
+        } else {
+            $inducedFireEventNum = "INDUCED_FIRE_{$testRunId}";
+            DB::table('fire_incidents')->insert([
+                'event_num' => $inducedFireEventNum,
+                'event_type' => 'STRUCTURE FIRE',
+                'prime_street' => 'MAIN ST',
+                'cross_streets' => 'CROSS RD',
+                'dispatch_time' => Carbon::now()->subMinutes(3)->toDateTimeString(),
+                'alarm_level' => 'NOT_A_NUMBER',
+                'beat' => null,
+                'units_dispatched' => null,
+                'is_active' => 1,
+                'feed_updated_at' => Carbon::now()->toDateTimeString(),
+                'created_at' => Carbon::now()->toDateTimeString(),
+                'updated_at' => Carbon::now()->toDateTimeString(),
+            ]);
+            $induced['fire_event_num'] = $inducedFireEventNum;
+            logInfo('Induced malformed FireIncident (sqlite)', ['event_num' => $inducedFireEventNum]);
+
+            $inducedPoliceObjectId = "INDUCED_OBJ_{$testRunId}";
+            DB::table('police_calls')->insert([
+                'object_id' => $inducedPoliceObjectId,
+                'call_type_code' => 'ASLTPR',
+                'call_type' => 'ASSAULT IN PROGRESS',
+                'division' => 'D31',
+                'cross_streets' => '456 POLICE RD',
+                'latitude' => 43.7,
+                'longitude' => -79.4,
+                'occurrence_time' => Carbon::now()->subMinutes(4)->toDateTimeString(),
+                'is_active' => 1,
+                'feed_updated_at' => Carbon::now()->toDateTimeString(),
+                'created_at' => Carbon::now()->toDateTimeString(),
+                'updated_at' => Carbon::now()->toDateTimeString(),
+            ]);
+            $induced['police_object_id'] = $inducedPoliceObjectId;
+            logInfo('Induced malformed PoliceCall (sqlite)', ['object_id' => $inducedPoliceObjectId]);
+        }
     }
 
     logInfo('Data setup completed');
@@ -332,6 +363,11 @@ try {
     ];
 
     $invalidExamples = [];
+    $inducedMatched = [
+        'fire' => false,
+        'police' => false,
+    ];
+
     foreach ($resources as $resource) {
         if (isset($resource['source']) && is_string($resource['source']) && isset($summary['by_source'][$resource['source']])) {
             $summary['by_source'][$resource['source']]++;
@@ -340,6 +376,16 @@ try {
         $errors = validateUnifiedAlertResource($resource);
         if ($errors !== []) {
             $summary['invalid']++;
+            if (($resource['source'] ?? null) === 'fire' && is_string($induced['fire_event_num'] ?? null)) {
+                if (($resource['external_id'] ?? null) === $induced['fire_event_num']) {
+                    $inducedMatched['fire'] = true;
+                }
+            }
+            if (($resource['source'] ?? null) === 'police' && is_string($induced['police_object_id'] ?? null)) {
+                if (($resource['external_id'] ?? null) === $induced['police_object_id']) {
+                    $inducedMatched['police'] = true;
+                }
+            }
             $invalidExamples[] = [
                 'id' => $resource['id'] ?? null,
                 'source' => $resource['source'] ?? null,
@@ -350,9 +396,17 @@ try {
 
     logInfo('Contract validation summary', $summary);
 
-    if ($invalidExamples !== []) {
+    if ($induceFailures) {
+        if ($summary['invalid'] < 1) {
+            logError('Expected at least one invalid resource from induced failures, but found none.');
+        } else {
+            logInfo('Induced failures produced invalid resources as expected', ['matched' => $inducedMatched]);
+        }
+    }
+
+    if ($invalidExamples !== [] && ! $induceFailures) {
         logError('Found invalid resources (unexpected)', ['examples' => $invalidExamples]);
-    } else {
+    } elseif ($invalidExamples === []) {
         logInfo('All resources match the expected contract.');
     }
 
@@ -373,27 +427,34 @@ try {
 } finally {
     logInfo('Phase 3: Data Cleanup');
 
-    if ($keep) {
-        logInfo('--keep set; skipping cleanup');
-    } else {
-        foreach (array_reverse($createdRecords['go_transit_alerts']) as $id) {
-            GoTransitAlert::query()->whereKey($id)->delete();
-        }
-        foreach (array_reverse($createdRecords['transit_alerts']) as $id) {
-            TransitAlert::query()->whereKey($id)->delete();
-        }
-        foreach (array_reverse($createdRecords['police_calls']) as $id) {
-            PoliceCall::query()->whereKey($id)->delete();
-        }
-        foreach (array_reverse($createdRecords['fire_incidents']) as $id) {
-            FireIncident::query()->whereKey($id)->delete();
-        }
+    if ($commit) {
+        DB::commit();
+        logInfo('Committed transaction (--commit)');
 
-        logInfo('Cleanup completed', $createdRecords);
+        if (! $keep) {
+            foreach (array_reverse($createdRecords['go_transit_alerts']) as $id) {
+                GoTransitAlert::query()->whereKey($id)->delete();
+            }
+            foreach (array_reverse($createdRecords['transit_alerts']) as $id) {
+                TransitAlert::query()->whereKey($id)->delete();
+            }
+            foreach (array_reverse($createdRecords['police_calls']) as $id) {
+                PoliceCall::query()->whereKey($id)->delete();
+            }
+            foreach (array_reverse($createdRecords['fire_incidents']) as $id) {
+                FireIncident::query()->whereKey($id)->delete();
+            }
+
+            logInfo('Cleanup completed (committed run)', $createdRecords);
+        } else {
+            logInfo('--keep set; skipping cleanup for committed run');
+        }
+    } else {
+        DB::rollBack();
+        logInfo('Rolled back transaction (default)');
     }
 
     logInfo("=== Manual Test Run Completed: {$testRunId} ===");
     logInfo('Full logs available', ['path' => $logFile]);
     echo "\n✓ Done. Logs: {$logFile}\n";
 }
-
