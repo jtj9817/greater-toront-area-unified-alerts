@@ -1,27 +1,9 @@
-import { FireAlertSchema } from './fire/schema';
-import { PoliceAlertSchema } from './police/schema';
+import { mapFireAlert } from './fire/mapper';
+import { mapPoliceAlert } from './police/mapper';
 import { UnifiedAlertResourceSchema } from './resource';
-import { GoTransitAlertSchema } from './transit/go/schema';
-import { TtcTransitAlertSchema } from './transit/ttc/schema';
+import { mapGoTransitAlert } from './transit/go/mapper';
+import { mapTtcTransitAlert } from './transit/ttc/mapper';
 import type { DomainAlert } from './types';
-
-/**
- * Maps a raw UnifiedAlertResource (from the API) into a source-specific base
- * object suitable for Zod schema validation.
- */
-function buildDomainInput(
-    resource: Record<string, unknown>,
-): Record<string, unknown> {
-    return {
-        id: resource.id,
-        externalId: resource.external_id,
-        isActive: resource.is_active,
-        timestamp: resource.timestamp,
-        title: resource.title,
-        location: resource.location,
-        meta: resource.meta,
-    };
-}
 
 /**
  * Canonical entry point for mapping a raw API resource into a typed DomainAlert.
@@ -45,56 +27,20 @@ export function fromResource(resource: unknown): DomainAlert | null {
     }
 
     const validated = envelopeResult.data;
-    const input = {
-        ...buildDomainInput(validated as unknown as Record<string, unknown>),
-        kind: validated.source,
-    };
 
     // Step 2: Parse with source-specific schema
     switch (validated.source) {
         case 'fire': {
-            const result = FireAlertSchema.safeParse(input);
-            if (!result.success) {
-                console.warn(
-                    `[DomainAlert] Invalid fire alert (${validated.id}):`,
-                    result.error.issues,
-                );
-                return null;
-            }
-            return result.data;
+            return mapFireAlert(validated);
         }
         case 'police': {
-            const result = PoliceAlertSchema.safeParse(input);
-            if (!result.success) {
-                console.warn(
-                    `[DomainAlert] Invalid police alert (${validated.id}):`,
-                    result.error.issues,
-                );
-                return null;
-            }
-            return result.data;
+            return mapPoliceAlert(validated);
         }
         case 'transit': {
-            const result = TtcTransitAlertSchema.safeParse(input);
-            if (!result.success) {
-                console.warn(
-                    `[DomainAlert] Invalid transit alert (${validated.id}):`,
-                    result.error.issues,
-                );
-                return null;
-            }
-            return result.data;
+            return mapTtcTransitAlert(validated);
         }
         case 'go_transit': {
-            const result = GoTransitAlertSchema.safeParse(input);
-            if (!result.success) {
-                console.warn(
-                    `[DomainAlert] Invalid GO Transit alert (${validated.id}):`,
-                    result.error.issues,
-                );
-                return null;
-            }
-            return result.data;
+            return mapGoTransitAlert(validated);
         }
         default: {
             console.warn(

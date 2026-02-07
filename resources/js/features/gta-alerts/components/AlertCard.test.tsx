@@ -24,6 +24,7 @@ describe('AlertCard', () => {
     };
 
     const mockItem = AlertService.mapUnifiedAlertToAlertItem(mockUnified);
+    if (!mockItem) throw new Error('Expected AlertItem');
 
     it('renders correctly with given item data', () => {
         render(<AlertCard item={mockItem} />);

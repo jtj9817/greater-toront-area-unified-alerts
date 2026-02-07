@@ -16,15 +16,15 @@ Define the core Zod schemas and TypeScript types that will form the backbone of 
 ## Phase 2: Decentralized Mapping & Validation
 Implement the source-specific mappers and the centralized validation orchestration.
 
-- [ ] Task: Write tests for Fire alert mapper (valid/invalid scenarios)
-- [ ] Task: Implement Fire alert mapper using Zod validation
-- [ ] Task: Write tests for Police alert mapper (valid/invalid scenarios)
-- [ ] Task: Implement Police alert mapper using Zod validation
-- [ ] Task: Write tests for Transit alert mapper (valid/invalid scenarios)
-- [ ] Task: Implement Transit alert mapper using Zod validation
-- [ ] Task: Write tests for GO Transit alert mapper (valid/invalid scenarios)
-- [ ] Task: Implement GO Transit alert mapper using Zod validation
-- [ ] Task: Refactor `AlertService` to orchestrate mapping via `fromResource(...)` and enforce "Hard Enforcement" (catch/log/discard invalid items; never throw into UI rendering)
+- [x] Task: Write tests for Fire alert mapper (valid/invalid scenarios)
+- [x] Task: Implement Fire alert mapper using Zod validation
+- [x] Task: Write tests for Police alert mapper (valid/invalid scenarios)
+- [x] Task: Implement Police alert mapper using Zod validation
+- [x] Task: Write tests for Transit alert mapper (valid/invalid scenarios)
+- [x] Task: Implement Transit alert mapper using Zod validation
+- [x] Task: Write tests for GO Transit alert mapper (valid/invalid scenarios)
+- [x] Task: Implement GO Transit alert mapper using Zod validation
+- [x] Task: Refactor `AlertService` to orchestrate mapping via `fromResource(...)` and enforce "Hard Enforcement" (catch/log/discard invalid items; never throw into UI rendering)
 - [ ] Task: Conductor - User Manual Verification 'Phase 2: Decentralized Mapping & Validation' (Protocol in workflow.md)
 
 ## Phase 3: Logic Migration

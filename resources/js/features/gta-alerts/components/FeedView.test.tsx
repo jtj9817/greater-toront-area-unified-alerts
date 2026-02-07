@@ -35,9 +35,7 @@ describe('FeedView', () => {
         },
     ];
 
-    const mockAlerts = mockUnified.map((a) =>
-        AlertService.mapUnifiedAlertToAlertItem(a),
-    );
+    const mockAlerts = AlertService.mapUnifiedAlertsToAlertItems(mockUnified);
 
     it('renders a list of alerts', () => {
         render(

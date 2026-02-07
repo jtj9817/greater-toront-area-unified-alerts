@@ -1,4 +1,6 @@
 import { formatTimeAgo } from '@/lib/utils';
+import { fromResource } from '../domain/alerts';
+import type { DomainAlert } from '../domain/alerts';
 import type { AlertItem, UnifiedAlertResource } from '../types';
 
 export interface AlertFilterOptions {
@@ -37,9 +39,37 @@ export class AlertService {
     }
 
     /**
-     * Maps backend UnifiedAlert resource to frontend AlertItem interface
+     * Maps backend UnifiedAlert resource to frontend AlertItem interface.
+     *
+     * Hard enforcement:
+     * - Invalid resources are caught, logged, and discarded (returns null).
+     * - This must never throw into UI rendering.
      */
-    static mapUnifiedAlertToAlertItem(alert: UnifiedAlertResource): AlertItem {
+    static mapUnifiedAlertToAlertItem(
+        alert: UnifiedAlertResource,
+    ): AlertItem | null {
+        const domainAlert = fromResource(alert);
+        if (!domainAlert) {
+            return null;
+        }
+
+        return this.mapDomainAlertToAlertItem(domainAlert);
+    }
+
+    static mapUnifiedAlertsToAlertItems(
+        alerts: UnifiedAlertResource[],
+    ): AlertItem[] {
+        const mapped: AlertItem[] = [];
+
+        for (const alert of alerts) {
+            const item = this.mapUnifiedAlertToAlertItem(alert);
+            if (item) mapped.push(item);
+        }
+
+        return mapped;
+    }
+
+    private static mapDomainAlertToAlertItem(alert: DomainAlert): AlertItem {
         const type = this.getAlertItemType(alert);
         const severity = this.getSeverity(alert, type);
         const { description, metadata } = this.getDescriptionAndMetadata(alert);
@@ -61,17 +91,17 @@ export class AlertService {
     }
 
     private static getAlertItemType(
-        alert: UnifiedAlertResource,
+        alert: DomainAlert,
     ): AlertItem['type'] {
-        if (alert.source === 'police') {
+        if (alert.kind === 'police') {
             return 'police';
         }
 
-        if (alert.source === 'transit') {
+        if (alert.kind === 'transit') {
             return 'transit';
         }
 
-        if (alert.source === 'go_transit') {
+        if (alert.kind === 'go_transit') {
             return 'go_transit';
         }
 
@@ -79,35 +109,29 @@ export class AlertService {
     }
 
     private static getSeverity(
-        alert: UnifiedAlertResource,
+        alert: DomainAlert,
         type: AlertItem['type'],
     ): AlertItem['severity'] {
-        if (alert.source === 'fire') {
-            const alarmLevel = Number(
-                (alert.meta as Record<string, unknown>)['alarm_level'] ?? 0,
-            );
+        if (alert.kind === 'fire') {
+            const alarmLevel = alert.meta.alarm_level;
             if (alarmLevel > 1) return 'high';
             if (alarmLevel === 1) return 'medium';
             return 'low';
         }
 
-        if (alert.source === 'police') {
+        if (alert.kind === 'police') {
             const title = alert.title.toUpperCase();
             if (title.includes('IN PROGRESS')) return 'high';
             if (title.includes('COLLISION')) return 'medium';
             return 'low';
         }
 
-        if (alert.source === 'transit') {
-            return this.getTransitSeverity(
-                alert.meta as Record<string, unknown>,
-            );
+        if (alert.kind === 'transit') {
+            return this.getTransitSeverity(alert.meta);
         }
 
-        if (alert.source === 'go_transit') {
-            return this.getGoTransitSeverity(
-                alert.meta as Record<string, unknown>,
-            );
+        if (alert.kind === 'go_transit') {
+            return this.getGoTransitSeverity(alert.meta);
         }
 
         if (type === 'hazard') return 'high';
@@ -116,14 +140,10 @@ export class AlertService {
     }
 
     private static getTransitSeverity(
-        meta: Record<string, unknown>,
+        meta: { severity: string | null; effect: string | null },
     ): AlertItem['severity'] {
-        const severity = String(meta['severity'] ?? '')
-            .trim()
-            .toUpperCase();
-        const effect = String(meta['effect'] ?? '')
-            .trim()
-            .toUpperCase();
+        const severity = (meta.severity ?? '').trim().toUpperCase();
+        const effect = (meta.effect ?? '').trim().toUpperCase();
 
         if (severity === 'CRITICAL') {
             return 'high';
@@ -142,11 +162,9 @@ export class AlertService {
     }
 
     private static getGoTransitSeverity(
-        meta: Record<string, unknown>,
+        meta: { sub_category: string | null; alert_type: string | null },
     ): AlertItem['severity'] {
-        const subCategory = String(meta['sub_category'] ?? '')
-            .trim()
-            .toUpperCase();
+        const subCategory = (meta.sub_category ?? '').trim().toUpperCase();
 
         if (subCategory === 'BCANCEL') {
             return 'high';
@@ -157,9 +175,7 @@ export class AlertService {
         }
 
         // SAAG notifications (real-time delays) are medium
-        const alertType = String(meta['alert_type'] ?? '')
-            .trim()
-            .toLowerCase();
+        const alertType = (meta.alert_type ?? '').trim().toLowerCase();
         if (alertType === 'saag') {
             return 'medium';
         }
@@ -168,7 +184,7 @@ export class AlertService {
     }
 
     private static getSourceName(
-        source: UnifiedAlertResource['source'],
+        source: DomainAlert['kind'],
     ): string {
         switch (source) {
             case 'fire':
@@ -185,19 +201,15 @@ export class AlertService {
     }
 
     private static getDescriptionAndMetadata(
-        alert: UnifiedAlertResource,
+        alert: DomainAlert,
     ): Pick<AlertItem, 'description' | 'metadata'> {
-        const meta = alert.meta as Record<string, unknown>;
-        const sourceName = this.getSourceName(alert.source);
+        const sourceName = this.getSourceName(alert.kind);
 
-        if (alert.source === 'fire') {
-            const eventNum = String(
-                (meta['event_num'] ?? alert.external_id) as string,
-            );
-            const alarmLevel = Number(meta['alarm_level'] ?? 0);
-            const unitsDispatched =
-                (meta['units_dispatched'] as string | null | undefined) ?? null;
-            const beat = (meta['beat'] as string | null | undefined) ?? null;
+        if (alert.kind === 'fire') {
+            const eventNum = alert.meta.event_num || alert.externalId;
+            const alarmLevel = alert.meta.alarm_level;
+            const unitsDispatched = alert.meta.units_dispatched;
+            const beat = alert.meta.beat;
 
             return {
                 description: `Event #${eventNum}. Units: ${unitsDispatched || 'None'}. Beat: ${beat || 'N/A'}.`,
@@ -211,14 +223,10 @@ export class AlertService {
             };
         }
 
-        if (alert.source === 'police') {
-            const objectId = String(
-                (meta['object_id'] ?? alert.external_id) as string,
-            );
-            const division =
-                (meta['division'] as string | null | undefined) ?? null;
-            const callTypeCode =
-                (meta['call_type_code'] as string | null | undefined) ?? null;
+        if (alert.kind === 'police') {
+            const objectId = String(alert.meta.object_id || alert.externalId);
+            const division = alert.meta.division ?? null;
+            const callTypeCode = alert.meta.call_type_code ?? null;
 
             const suffix = [
                 division ? `Division: ${division}` : null,
@@ -241,24 +249,13 @@ export class AlertService {
             };
         }
 
-        if (alert.source === 'go_transit') {
-            const messageBody =
-                (meta['message_body'] as string | null | undefined) ??
-                undefined;
-            const serviceMode =
-                (meta['service_mode'] as string | null | undefined) ??
-                undefined;
-            const corridorCode =
-                (meta['corridor_code'] as string | null | undefined) ??
-                undefined;
-            const goDirection =
-                (meta['direction'] as string | null | undefined) ?? undefined;
-            const delayDuration =
-                (meta['delay_duration'] as string | null | undefined) ??
-                undefined;
-            const subCategory =
-                (meta['sub_category'] as string | null | undefined) ??
-                undefined;
+        if (alert.kind === 'go_transit') {
+            const messageBody = alert.meta.message_body ?? undefined;
+            const serviceMode = alert.meta.service_mode ?? undefined;
+            const corridorCode = alert.meta.corridor_code ?? undefined;
+            const goDirection = alert.meta.direction ?? undefined;
+            const delayDuration = alert.meta.delay_duration ?? undefined;
+            const subCategory = alert.meta.sub_category ?? undefined;
 
             const summaryParts = [
                 serviceMode,
@@ -279,7 +276,7 @@ export class AlertService {
                 description:
                     goDescription || alert.title || 'GO Transit service alert.',
                 metadata: {
-                    eventNum: alert.external_id,
+                    eventNum: alert.externalId,
                     alarmLevel: 0,
                     unitsDispatched: null,
                     beat: null,
@@ -293,29 +290,17 @@ export class AlertService {
             };
         }
 
-        if (alert.source === 'transit') {
-            const routeType =
-                (meta['route_type'] as string | null | undefined) ?? undefined;
-            const route =
-                (meta['route'] as string | null | undefined) ?? undefined;
-            const effect =
-                (meta['effect'] as string | null | undefined) ?? undefined;
-            const direction =
-                (meta['direction'] as string | null | undefined) ?? undefined;
-            const stopStart =
-                (meta['stop_start'] as string | null | undefined) ?? undefined;
-            const stopEnd =
-                (meta['stop_end'] as string | null | undefined) ?? undefined;
-            const sourceFeed =
-                (meta['source_feed'] as string | null | undefined) ?? undefined;
-            const transitDescriptionRaw =
-                (meta['description'] as string | null | undefined) ?? undefined;
-            const estimatedDelay =
-                (meta['estimated_delay'] as string | null | undefined) ??
-                undefined;
-            const shuttleInfo =
-                (meta['shuttle_info'] as string | null | undefined) ??
-                undefined;
+        if (alert.kind === 'transit') {
+            const routeType = alert.meta.route_type ?? undefined;
+            const route = alert.meta.route ?? undefined;
+            const effect = alert.meta.effect ?? undefined;
+            const direction = alert.meta.direction ?? undefined;
+            const stopStart = alert.meta.stop_start ?? undefined;
+            const stopEnd = alert.meta.stop_end ?? undefined;
+            const sourceFeed = alert.meta.source_feed ?? undefined;
+            const transitDescriptionRaw = alert.meta.description ?? undefined;
+            const estimatedDelay = undefined;
+            const shuttleInfo = undefined;
             const segment =
                 stopStart && stopEnd
                     ? `${stopStart} to ${stopEnd}`
@@ -345,7 +330,7 @@ export class AlertService {
                     alert.title ||
                     'Transit service alert.',
                 metadata: {
-                    eventNum: alert.external_id,
+                    eventNum: alert.externalId,
                     alarmLevel: 0,
                     unitsDispatched: null,
                     beat: null,
@@ -362,11 +347,9 @@ export class AlertService {
         }
 
         return {
-            description: alert.external_id
-                ? `Alert #${alert.external_id}.`
-                : 'Alert details unavailable.',
+            description: 'Alert details unavailable.',
             metadata: {
-                eventNum: alert.external_id,
+                eventNum: 'unknown',
                 alarmLevel: 0,
                 unitsDispatched: null,
                 beat: null,
@@ -405,7 +388,7 @@ export class AlertService {
     private static getIconForType(
         type: AlertItem['type'],
         eventType: string,
-        alert?: UnifiedAlertResource,
+        alert?: DomainAlert,
     ): string {
         const et = eventType.toUpperCase();
         if (et.includes('GAS')) return 'warning';
@@ -413,14 +396,11 @@ export class AlertService {
 
         if (type === 'go_transit') return 'train';
 
-        if (type === 'transit' && alert?.source === 'transit') {
-            const meta = alert.meta as Record<string, unknown>;
-            const routeType = String(meta['route_type'] ?? '')
+        if (type === 'transit' && alert?.kind === 'transit') {
+            const routeType = (alert.meta.route_type ?? '')
                 .trim()
                 .toLowerCase();
-            const effect = String(meta['effect'] ?? '')
-                .trim()
-                .toUpperCase();
+            const effect = (alert.meta.effect ?? '').trim().toUpperCase();
 
             if (routeType.includes('subway')) return 'directions_subway';
             if (routeType.includes('bus')) return 'directions_bus';

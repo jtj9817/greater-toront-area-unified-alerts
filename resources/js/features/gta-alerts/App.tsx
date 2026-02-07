@@ -33,9 +33,7 @@ const App: React.FC<AppProps> = ({ alerts, filters, latestFeedUpdatedAt }) => {
 
     // Map backend unified alerts to frontend AlertItems
     const allAlerts = useMemo(() => {
-        return alerts.data.map((a) =>
-            AlertService.mapUnifiedAlertToAlertItem(a),
-        );
+        return AlertService.mapUnifiedAlertsToAlertItems(alerts.data);
     }, [alerts.data]);
 
     const pagination = useMemo(() => {
