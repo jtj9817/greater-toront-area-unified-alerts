@@ -1,8 +1,8 @@
 import { FireAlertSchema } from './fire/schema';
-import { GoTransitAlertSchema } from './go-transit/schema';
 import { PoliceAlertSchema } from './police/schema';
 import { UnifiedAlertResourceSchema } from './resource';
-import { TransitAlertSchema } from './transit/schema';
+import { GoTransitAlertSchema } from './transit/go/schema';
+import { TtcTransitAlertSchema } from './transit/ttc/schema';
 import type { DomainAlert } from './types';
 
 /**
@@ -75,7 +75,7 @@ export function fromResource(resource: unknown): DomainAlert | null {
             return result.data;
         }
         case 'transit': {
-            const result = TransitAlertSchema.safeParse(input);
+            const result = TtcTransitAlertSchema.safeParse(input);
             if (!result.success) {
                 console.warn(
                     `[DomainAlert] Invalid transit alert (${validated.id}):`,

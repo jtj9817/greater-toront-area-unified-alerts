@@ -1,7 +1,7 @@
 import type { FireAlert } from './fire/schema';
-import type { GoTransitAlert } from './go-transit/schema';
 import type { PoliceAlert } from './police/schema';
-import type { TransitAlert } from './transit/schema';
+import type { GoTransitAlert } from './transit/go/schema';
+import type { TtcTransitAlert } from './transit/ttc/schema';
 
 /**
  * Discriminated union of all alert domain types.
@@ -9,16 +9,16 @@ import type { TransitAlert } from './transit/schema';
  *
  * Usage:
  *   switch (alert.kind) {
- *     case 'fire':    // alert is FireAlert
- *     case 'police':  // alert is PoliceAlert
- *     case 'transit': // alert is TransitAlert
+ *     case 'fire':       // alert is FireAlert
+ *     case 'police':     // alert is PoliceAlert
+ *     case 'transit':    // alert is TtcTransitAlert
  *     case 'go_transit': // alert is GoTransitAlert
  *   }
  */
 export type DomainAlert =
     | FireAlert
     | PoliceAlert
-    | TransitAlert
+    | TtcTransitAlert
     | GoTransitAlert;
 
 /**

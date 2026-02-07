@@ -1,43 +1,36 @@
 import { z } from 'zod/v4';
 
 /**
- * Zod schema for TTC Transit alert meta fields as emitted by TransitAlertSelectProvider.
+ * Shared location schema used across all alert types.
  */
-export const TransitMetaSchema = z.object({
-    route_type: z.nullable(z.string()),
-    route: z.nullable(z.string()),
-    severity: z.nullable(z.string()),
-    effect: z.nullable(z.string()),
-    source_feed: z.nullable(z.string()),
-    alert_type: z.nullable(z.string()),
-    description: z.nullable(z.string()),
-    url: z.nullable(z.string()),
-    direction: z.nullable(z.string()),
-    cause: z.nullable(z.string()),
-    stop_start: z.nullable(z.string()),
-    stop_end: z.nullable(z.string()),
-});
-
-export type TransitMeta = z.infer<typeof TransitMetaSchema>;
+export const AlertLocationSchema = z
+    .object({
+        name: z.nullable(z.string()),
+        lat: z.nullable(z.number()),
+        lng: z.nullable(z.number()),
+    })
+    .nullable();
 
 /**
- * TTC Transit domain alert — fully validated and typed.
+ * Base transit meta — fields common to all transit providers.
+ * Extend this with `.extend({...})` for provider-specific fields.
  */
-export const TransitAlertSchema = z.object({
-    kind: z.literal('transit'),
+export const BaseTransitMetaSchema = z.object({
+    alert_type: z.nullable(z.string()),
+    direction: z.nullable(z.string()),
+});
+
+export type BaseTransitMeta = z.infer<typeof BaseTransitMetaSchema>;
+
+/**
+ * Base transit alert schema — shared structure for all transit providers.
+ * Subtype schemas use `.extend()` to add `kind` literal and provider-specific meta.
+ */
+export const BaseTransitAlertSchema = z.object({
     id: z.string(),
     externalId: z.string(),
     isActive: z.boolean(),
     timestamp: z.string(),
     title: z.string(),
-    location: z
-        .object({
-            name: z.nullable(z.string()),
-            lat: z.nullable(z.number()),
-            lng: z.nullable(z.number()),
-        })
-        .nullable(),
-    meta: TransitMetaSchema,
+    location: AlertLocationSchema,
 });
-
-export type TransitAlert = z.infer<typeof TransitAlertSchema>;
