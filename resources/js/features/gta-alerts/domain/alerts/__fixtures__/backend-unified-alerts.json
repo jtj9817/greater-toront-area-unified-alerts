@@ -1,0 +1,172 @@
+{
+    "alerts": [
+        {
+            "id": "go_transit:notif:LW:TDELAY:contract001",
+            "source": "go_transit",
+            "external_id": "notif:LW:TDELAY:contract001",
+            "is_active": true,
+            "timestamp": "2026-02-06T13:59:00+00:00",
+            "title": "Lakeshore West delays",
+            "location": {
+                "name": "Lakeshore West",
+                "lat": null,
+                "lng": null
+            },
+            "meta": {
+                "alert_type": "notification",
+                "service_mode": "GO Train",
+                "sub_category": "TDELAY",
+                "corridor_code": "LW",
+                "direction": "EASTBOUND",
+                "trip_number": null,
+                "delay_duration": null,
+                "line_colour": "#0099cc",
+                "message_body": "Expect 10 minute delays near Port Credit."
+            }
+        },
+        {
+            "id": "police:910001",
+            "source": "police",
+            "external_id": "910001",
+            "is_active": true,
+            "timestamp": "2026-02-06T13:58:00+00:00",
+            "title": "ASSAULT IN PROGRESS",
+            "location": {
+                "name": "King St W / Spadina Ave",
+                "lat": 43.6456,
+                "lng": -79.3957
+            },
+            "meta": {
+                "division": "D31",
+                "call_type_code": "ASLTPR",
+                "object_id": 910001
+            }
+        },
+        {
+            "id": "transit:api:CONTRACT-001",
+            "source": "transit",
+            "external_id": "api:CONTRACT-001",
+            "is_active": true,
+            "timestamp": "2026-02-06T13:57:00+00:00",
+            "title": "Line 1 delay",
+            "location": {
+                "name": "Route 1: St Clair to Eglinton",
+                "lat": null,
+                "lng": null
+            },
+            "meta": {
+                "route_type": "Subway",
+                "route": "1",
+                "severity": "Critical",
+                "effect": "REDUCED_SERVICE",
+                "source_feed": "live-api",
+                "alert_type": "advisory",
+                "description": "Shuttle buses are running between stations.",
+                "url": null,
+                "direction": "Both Ways",
+                "cause": null,
+                "stop_start": "St Clair",
+                "stop_end": "Eglinton"
+            }
+        },
+        {
+            "id": "fire:FIRE-CONTRACT-001",
+            "source": "fire",
+            "external_id": "FIRE-CONTRACT-001",
+            "is_active": true,
+            "timestamp": "2026-02-06T13:55:00+00:00",
+            "title": "STRUCTURE FIRE",
+            "location": {
+                "name": "Main St / Queen St",
+                "lat": null,
+                "lng": null
+            },
+            "meta": {
+                "alarm_level": 2,
+                "units_dispatched": "P1, A1",
+                "beat": "B11",
+                "event_num": "FIRE-CONTRACT-001"
+            }
+        },
+        {
+            "id": "fire:FIRE-CONTRACT-002",
+            "source": "fire",
+            "external_id": "FIRE-CONTRACT-002",
+            "is_active": false,
+            "timestamp": "2026-02-06T13:20:00+00:00",
+            "title": "ALARM",
+            "location": null,
+            "meta": {
+                "alarm_level": 0,
+                "units_dispatched": null,
+                "beat": null,
+                "event_num": "FIRE-CONTRACT-002"
+            }
+        },
+        {
+            "id": "police:910002",
+            "source": "police",
+            "external_id": "910002",
+            "is_active": false,
+            "timestamp": "2026-02-06T13:00:00+00:00",
+            "title": "THEFT",
+            "location": null,
+            "meta": {
+                "division": null,
+                "call_type_code": "THEFT",
+                "object_id": 910002
+            }
+        },
+        {
+            "id": "transit:sxa:CONTRACT-002",
+            "source": "transit",
+            "external_id": "sxa:CONTRACT-002",
+            "is_active": false,
+            "timestamp": "2026-02-06T12:50:00+00:00",
+            "title": "501 diversion cleared",
+            "location": {
+                "name": "Route 501",
+                "lat": null,
+                "lng": null
+            },
+            "meta": {
+                "route_type": "Streetcar",
+                "route": "501",
+                "severity": "Minor",
+                "effect": "DETOUR",
+                "source_feed": "sxa",
+                "alert_type": null,
+                "description": null,
+                "url": null,
+                "direction": null,
+                "cause": null,
+                "stop_start": null,
+                "stop_end": null
+            }
+        },
+        {
+            "id": "go_transit:saag:KI:1234",
+            "source": "go_transit",
+            "external_id": "saag:KI:1234",
+            "is_active": false,
+            "timestamp": "2026-02-06T12:30:00+00:00",
+            "title": "Kitchener schedule update",
+            "location": {
+                "name": "Kitchener",
+                "lat": null,
+                "lng": null
+            },
+            "meta": {
+                "alert_type": "saag",
+                "service_mode": "GO Bus",
+                "sub_category": null,
+                "corridor_code": "KI",
+                "direction": null,
+                "trip_number": "1234",
+                "delay_duration": "00:10:00",
+                "line_colour": null,
+                "message_body": null
+            }
+        }
+    ]
+}
