@@ -36,9 +36,9 @@ Move business logic (severity, icon selection, etc.) from `AlertService` into do
 - [x] (0b0ee96) Task: Update logic to consume the new Discriminated Union types
 - [x] (0b0ee96) Task: Define derived presentation categories (e.g., hazard/medical) as pure functions or a dedicated `ViewAlert` mapping layer (do not add to `DomainAlert.kind`)
 - [x] (0b0ee96) Task: Verify unit tests for all migrated logic
-- [~] (bb0bc32) Task: Conductor - User Manual Verification 'Phase 3: Logic Migration' (Protocol in workflow.md)
-    - Manual verifier script added: `scripts/manual_tests/typed_domain_refactor_phase3.php`
-    - Awaiting user-run log attachment / final verification confirmation.
+- [x] Task: Conductor - User Manual Verification 'Phase 3: Logic Migration' (Protocol in workflow.md)
+    - Manual verifier script: `scripts/manual_tests/typed_domain_refactor_phase3.php`
+    - User-run log: `storage/logs/manual_tests/typed_domain_refactor_phase3_2026_02_07_054944.log`
 
 ### Phase 3 Audit & Preflight (2026-02-07)
 
