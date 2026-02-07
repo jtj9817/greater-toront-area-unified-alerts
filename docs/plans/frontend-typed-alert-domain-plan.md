@@ -68,34 +68,47 @@ What is still not done:
 
 ## Updated Recommendation
 
-Proceed with an incremental refactor to formalize the typed domain layer, while preserving current behavior.
+Proceed with a Functional Programming (FP) refactor using **Zod** for runtime validation and **Discriminated Unions** for domain modeling.
+
+### Key Architectural Decisions
+
+1.  **Zod for Runtime Validation:**
+    -   Because the `meta` column is unstructured JSON derived from 3rd-party XML feeds, TypeScript interfaces alone are insufficient.
+    -   We will use Zod schemas to parse and validate `meta` data at the application boundary (Service layer). This ensures "Fail Fast" behavior if external feeds change, rather than silent UI failures.
+
+2.  **Discriminated Unions (FP) > Classes (OOP):**
+    -   We will model the domain using Discriminated Unions (e.g., `kind: 'transit'`) rather than Class hierarchies.
+    -   Logic will be co-located as module-scoped pure functions (e.g., `isCritical(alert)`), promoting better tree-shaking and testability.
+
+3.  **Composition > Inheritance in UI:**
+    -   We will refactor `AlertDetailsView` to use React Composition instead of the current Class-based inheritance (`extends AlertDetailTemplate`), which is rigid and less idiomatic in modern React.
 
 ## Incremental Refactor Plan
 
-1. Create `resources/js/features/gta-alerts/domain/alerts/` with:
-   - domain types (`FireAlert`, `PoliceAlert`, `TransitAlert`, `GoTransitAlert`, `DomainAlert`)
-   - metadata parsers/guards for each source
+1.  **Define Zod Schemas & Domain Types**
+    -   Create `resources/js/features/gta-alerts/domain/alerts/schemas.ts` (or individual files per source).
+    -   Define strict Zod schemas for `FireMeta`, `PoliceMeta`, `TransitMeta`.
+    -   Export strict TypeScript types inferred from Zod: `type TransitAlert = { kind: 'transit', metadata: z.infer<typeof TransitMetaSchema>, ... }`.
 
-2. Add a boundary mapper:
-   - `toDomainAlert(resource: UnifiedAlertResource): DomainAlert`
+2.  **Create "Smart" Mappers**
+    -   Implement `fromResource(resource: UnifiedAlertResource): DomainAlert`.
+    -   This function *must* use `Schema.parse()` to guarantee data integrity.
 
-3. Add a presentation mapper:
-   - `toAlertItem(domainAlert: DomainAlert): AlertItem`
+3.  **Refactor `AlertService` to Facade**
+    -   Move business logic (severity calculation, icon selection) into domain modules as pure functions.
+    -   `AlertService` becomes a thin facade that fetches data and orchestrates the mapping.
 
-4. Move source-specific logic out of `AlertService`:
-   - severity/icon/description rules into source modules
-   - keep `AlertService.search(...)` focused on filtering/sorting only
+4.  **Refactor `AlertItem` to Discriminated Union**
+    -   Deprecated the "kitchen sink" `AlertItem` interface.
+    -   Update the UI components to consume the Discriminated Union (`DomainAlert`) directly, or a specialized `ViewAlert` union if presentation needs diverge significantly from domain data.
 
-5. Update details rendering to explicitly handle `go_transit`:
-   - either dedicated GO detail renderer or clearly intentional shared transit renderer path
-
-6. Expand tests around:
-   - parser validation/narrowing of source metadata
-   - exhaustive handling on `DomainAlert['source']`
-   - parity tests to prevent UI regressions during refactor
+5.  **Modernize `AlertDetailsView`**
+    -   Refactor to a Functional Component using a `Layout` wrapper.
+    -   Use pattern matching (switch on `alert.kind`) to render specific content.
 
 ## Scope Guidance
 
-- **Short term:** keep existing `AlertItem` API for UI components to minimize churn.
-- **Medium term:** introduce domain union + mappers behind the existing component interfaces.
-- **Long term:** make domain union the primary internal model and keep `AlertItem` as presentation-only.
+-   **Immediate:** Install Zod. Create Schemas.
+-   **Short term:** Refactor `AlertService` to use Zod and return typed Domain objects.
+-   **Medium term:** Update `App.tsx` and `FeedView` to handle the new Discriminated Unions.
+-   **Long term:** Delete the legacy `AlertItem` interface and Class-based View components.
