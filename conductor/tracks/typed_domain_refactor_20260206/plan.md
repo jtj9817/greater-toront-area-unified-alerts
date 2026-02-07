@@ -25,7 +25,7 @@ Implement the source-specific mappers and the centralized validation orchestrati
 - [x] Task: Write tests for GO Transit alert mapper (valid/invalid scenarios)
 - [x] Task: Implement GO Transit alert mapper using Zod validation
 - [x] Task: Refactor `AlertService` to orchestrate mapping via `fromResource(...)` and enforce "Hard Enforcement" (catch/log/discard invalid items; never throw into UI rendering)
-- [ ] Task: Conductor - User Manual Verification 'Phase 2: Decentralized Mapping & Validation' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 2: Decentralized Mapping & Validation' (Protocol in workflow.md)
 
 ## Phase 3: Logic Migration
 Move business logic (severity, icon selection, etc.) from `AlertService` into domain-specific pure functions.
@@ -37,6 +37,34 @@ Move business logic (severity, icon selection, etc.) from `AlertService` into do
 - [ ] Task: Define derived presentation categories (e.g., hazard/medical) as pure functions or a dedicated `ViewAlert` mapping layer (do not add to `DomainAlert.kind`)
 - [ ] Task: Verify unit tests for all migrated logic
 - [ ] Task: Conductor - User Manual Verification 'Phase 3: Logic Migration' (Protocol in workflow.md)
+
+### Phase 3 Audit & Preflight (2026-02-07)
+
+#### Audit Findings (Current State)
+- `AlertService` still contains Phase 3 target logic and remains the migration source of truth:
+  - Type/category derivation: `getAlertItemType(...)`, `normalizeType(...)`.
+  - Severity derivation: `getSeverity(...)`, `getTransitSeverity(...)`, `getGoTransitSeverity(...)`.
+  - Presentation composition: `getDescriptionAndMetadata(...)`, `getIconForType(...)`, `getTransitRouteLabel(...)`, `getTransitEffectLabel(...)`.
+  - Styling derivation: `getAccentColorForType(...)`, `getIconColorForType(...)`.
+- Domain modules currently validate/parse transport resources only (`fromResource` + source mappers) and do not yet contain presentation/business logic functions.
+- Contract fixture coverage is in place and healthy:
+  - Backend fixture generation + drift check: `UnifiedAlertsQuery` → `UnifiedAlertResource`.
+  - Frontend fixture consumption gate: `fromResource(...)` parses all fixture items without `[DomainAlert]` warnings.
+
+#### Preflight Checks Executed (2026-02-07)
+- ✅ `./vendor/bin/pest --filter=UnifiedAlertsFrontendContractFixtureTest`
+  - Result: pass (1 test, 3 assertions).
+- ✅ `pnpm exec vitest run resources/js/features/gta-alerts/services/AlertService.test.ts resources/js/features/gta-alerts/domain/alerts/fromResource.contract.test.ts resources/js/features/gta-alerts/domain/alerts/fire/mapper.test.ts resources/js/features/gta-alerts/domain/alerts/police/mapper.test.ts resources/js/features/gta-alerts/domain/alerts/transit/ttc/mapper.test.ts resources/js/features/gta-alerts/domain/alerts/transit/go/mapper.test.ts`
+  - Result: pass (6 files, 20 tests).
+- ✅ `pnpm run types`
+  - Result: pass (`tsc --noEmit`).
+
+#### Phase 3 Readiness Decision
+- ✅ Ready to begin Phase 3 implementation.
+- Constraints to preserve during migration:
+  - Keep hard enforcement boundary behavior unchanged (`fromResource` invalid items must still be discarded).
+  - Keep `go_transit` included under transit filtering via existing category alias behavior.
+  - Keep derived `hazard`/`medical` as presentation-level categories (do not add new `DomainAlert.kind` variants).
 
 ## Phase 4: UI Modernization (Components)
 Refactor UI components to consume the new domain model and modernize their implementation.
