@@ -100,7 +100,9 @@ describe('mapDomainAlertToPresentation', () => {
         expect(alertItem.iconName).toBe('warning');
         expect(alertItem.accentColor).toBe('bg-[#e05560]');
         expect(alertItem.iconColor).toBe('text-[#e05560]');
-        expect(alertItem.timeAgo).toBe(formatTimeAgo(makeFireAlert().timestamp));
+        expect(alertItem.timeAgo).toBe(
+            formatTimeAgo(makeFireAlert().timestamp),
+        );
     });
 
     it('maps police domain alert preserving metadata', () => {

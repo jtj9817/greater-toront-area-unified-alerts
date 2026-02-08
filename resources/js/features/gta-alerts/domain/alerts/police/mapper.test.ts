@@ -56,4 +56,3 @@ describe('mapPoliceAlert', () => {
         warn.mockRestore();
     });
 });
-

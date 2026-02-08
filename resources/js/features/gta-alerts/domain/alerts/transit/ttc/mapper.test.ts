@@ -75,4 +75,3 @@ describe('mapTtcTransitAlert', () => {
         warn.mockRestore();
     });
 });
-

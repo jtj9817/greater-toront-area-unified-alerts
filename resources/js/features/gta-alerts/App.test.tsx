@@ -145,9 +145,9 @@ describe('GTA Alerts App (typed domain enforcement boundary)', () => {
 
         const messages = domainWarnMessages(warn);
         expect(messages.length).toBeGreaterThanOrEqual(1);
-        expect(
-            messages.some((msg) => msg.includes('Invalid fire alert')),
-        ).toBe(true);
+        expect(messages.some((msg) => msg.includes('Invalid fire alert'))).toBe(
+            true,
+        );
 
         warn.mockRestore();
     });
@@ -164,9 +164,7 @@ describe('GTA Alerts App (typed domain enforcement boundary)', () => {
         } as unknown as Partial<UnifiedAlertResource>) as unknown as UnifiedAlertResource;
 
         expect(() =>
-            render(
-                <AlertsApp {...buildBaseProps([valid, invalidEnvelope])} />,
-            ),
+            render(<AlertsApp {...buildBaseProps([valid, invalidEnvelope])} />),
         ).not.toThrow();
 
         expect(screen.getByText('VALID POLICE')).toBeInTheDocument();

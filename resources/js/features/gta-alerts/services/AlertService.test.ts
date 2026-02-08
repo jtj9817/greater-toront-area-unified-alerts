@@ -1,5 +1,8 @@
 import { describe, expect, it, vi } from 'vitest';
-import { mapDomainAlertToPresentation, type UnifiedAlertResource } from '../domain/alerts';
+import {
+    mapDomainAlertToPresentation,
+    type UnifiedAlertResource,
+} from '../domain/alerts';
 import { AlertService } from './AlertService';
 
 describe('AlertService', () => {
@@ -59,7 +62,8 @@ describe('AlertService', () => {
 
     it('maps a backend unified fire alert to DomainAlert correctly', () => {
         const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
-        const domainAlert = AlertService.mapUnifiedAlertToDomainAlert(mockFireAlert);
+        const domainAlert =
+            AlertService.mapUnifiedAlertToDomainAlert(mockFireAlert);
 
         expect(domainAlert).not.toBeNull();
         if (!domainAlert) throw new Error('Expected DomainAlert');
@@ -80,7 +84,8 @@ describe('AlertService', () => {
 
     it('maps a backend unified police alert to DomainAlert correctly', () => {
         const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
-        const domainAlert = AlertService.mapUnifiedAlertToDomainAlert(mockPoliceAlert);
+        const domainAlert =
+            AlertService.mapUnifiedAlertToDomainAlert(mockPoliceAlert);
 
         expect(domainAlert).not.toBeNull();
         if (!domainAlert) throw new Error('Expected DomainAlert');
@@ -125,7 +130,8 @@ describe('AlertService', () => {
             },
         };
 
-        const domainAlert = AlertService.mapUnifiedAlertToDomainAlert(mockTransitAlert);
+        const domainAlert =
+            AlertService.mapUnifiedAlertToDomainAlert(mockTransitAlert);
 
         expect(domainAlert).not.toBeNull();
         if (!domainAlert) throw new Error('Expected DomainAlert');
@@ -290,11 +296,23 @@ describe('AlertService', () => {
     it('sorts search results by timestamp descending', () => {
         const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
         const nowIso = new Date().toISOString();
-        const olderIso = new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString();
+        const olderIso = new Date(
+            Date.now() - 3 * 60 * 60 * 1000,
+        ).toISOString();
 
         const items = AlertService.mapUnifiedAlertsToDomainAlerts([
-            { ...mockFireAlert, id: 'fire:old', external_id: 'old', timestamp: olderIso },
-            { ...mockPoliceAlert, id: 'police:new', external_id: 'new', timestamp: nowIso },
+            {
+                ...mockFireAlert,
+                id: 'fire:old',
+                external_id: 'old',
+                timestamp: olderIso,
+            },
+            {
+                ...mockPoliceAlert,
+                id: 'police:new',
+                external_id: 'new',
+                timestamp: nowIso,
+            },
         ]);
 
         const results = AlertService.searchDomainAlerts(items, {
@@ -312,11 +330,23 @@ describe('AlertService', () => {
 
     it('applies timeLimit filter using parsed relative minutes', () => {
         const nowIso = new Date().toISOString();
-        const twoHoursIso = new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString();
+        const twoHoursIso = new Date(
+            Date.now() - 2 * 60 * 60 * 1000,
+        ).toISOString();
 
         const items = AlertService.mapUnifiedAlertsToDomainAlerts([
-            { ...mockFireAlert, id: 'fire:recent', external_id: 'recent', timestamp: nowIso },
-            { ...mockPoliceAlert, id: 'police:old', external_id: 'old', timestamp: twoHoursIso },
+            {
+                ...mockFireAlert,
+                id: 'fire:recent',
+                external_id: 'recent',
+                timestamp: nowIso,
+            },
+            {
+                ...mockPoliceAlert,
+                id: 'police:old',
+                external_id: 'old',
+                timestamp: twoHoursIso,
+            },
         ]);
 
         const results = AlertService.searchDomainAlerts(items, {
@@ -332,13 +362,32 @@ describe('AlertService', () => {
 
     it('applies dateScope filters for today and yesterday', () => {
         const nowIso = new Date().toISOString();
-        const oneDayIso = new Date(Date.now() - 25 * 60 * 60 * 1000).toISOString();
-        const twoDayIso = new Date(Date.now() - 49 * 60 * 60 * 1000).toISOString();
+        const oneDayIso = new Date(
+            Date.now() - 25 * 60 * 60 * 1000,
+        ).toISOString();
+        const twoDayIso = new Date(
+            Date.now() - 49 * 60 * 60 * 1000,
+        ).toISOString();
 
         const items = AlertService.mapUnifiedAlertsToDomainAlerts([
-            { ...mockFireAlert, id: 'fire:today', external_id: 'today', timestamp: nowIso },
-            { ...mockPoliceAlert, id: 'police:yesterday', external_id: 'yesterday', timestamp: oneDayIso },
-            { ...mockGoTransitAlert, id: 'go_transit:twodays', external_id: 'twodays', timestamp: twoDayIso },
+            {
+                ...mockFireAlert,
+                id: 'fire:today',
+                external_id: 'today',
+                timestamp: nowIso,
+            },
+            {
+                ...mockPoliceAlert,
+                id: 'police:yesterday',
+                external_id: 'yesterday',
+                timestamp: oneDayIso,
+            },
+            {
+                ...mockGoTransitAlert,
+                id: 'go_transit:twodays',
+                external_id: 'twodays',
+                timestamp: twoDayIso,
+            },
         ]);
 
         const todayResults = AlertService.searchDomainAlerts(items, {
@@ -415,7 +464,9 @@ describe('AlertService', () => {
 
         expect(descResults.map((item) => item.id)).toEqual(['fire:desc-match']);
         expect(locResults.map((item) => item.id)).toEqual(['police:loc-match']);
-        expect(idResults.map((item) => item.id)).toEqual(['go_transit:id-match']);
+        expect(idResults.map((item) => item.id)).toEqual([
+            'go_transit:id-match',
+        ]);
         expect(typeResults.map((item) => item.id).sort()).toEqual([
             'go_transit:id-match',
             'go_transit:type-match',

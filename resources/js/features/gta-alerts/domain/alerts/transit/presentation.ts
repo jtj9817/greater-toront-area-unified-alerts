@@ -116,7 +116,9 @@ export function buildTtcDescriptionAndMetadata(
     const estimatedDelay = undefined;
     const shuttleInfo = undefined;
     const segment =
-        stopStart && stopEnd ? `${stopStart} to ${stopEnd}` : stopStart || stopEnd;
+        stopStart && stopEnd
+            ? `${stopStart} to ${stopEnd}`
+            : stopStart || stopEnd;
 
     const routeLabel = getTransitRouteLabel(routeType, route);
     const effectLabel = getTransitEffectLabel(effect);
@@ -134,7 +136,8 @@ export function buildTtcDescriptionAndMetadata(
         .join('. ');
 
     return {
-        description: transitDescription || alert.title || 'Transit service alert.',
+        description:
+            transitDescription || alert.title || 'Transit service alert.',
         metadata: {
             eventNum: alert.externalId,
             alarmLevel: 0,
@@ -166,7 +169,9 @@ export function buildGoTransitDescriptionAndMetadata(
         serviceMode,
         corridorCode ? `Corridor: ${corridorCode}` : null,
         goDirection ? `Direction: ${goDirection}` : null,
-        delayDuration && delayDuration !== '00:00:00' ? `Delay: ${delayDuration}` : null,
+        delayDuration && delayDuration !== '00:00:00'
+            ? `Delay: ${delayDuration}`
+            : null,
     ]
         .filter(Boolean)
         .join(' • ');
@@ -176,7 +181,8 @@ export function buildGoTransitDescriptionAndMetadata(
         .join('. ');
 
     return {
-        description: goDescription || alert.title || 'GO Transit service alert.',
+        description:
+            goDescription || alert.title || 'GO Transit service alert.',
         metadata: {
             eventNum: alert.externalId,
             alarmLevel: 0,

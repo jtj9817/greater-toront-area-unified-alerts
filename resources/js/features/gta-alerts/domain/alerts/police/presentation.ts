@@ -32,7 +32,9 @@ export function buildPoliceDescriptionAndMetadata(
         .join(' • ');
 
     return {
-        description: suffix ? `Call #${objectId}. ${suffix}.` : `Call #${objectId}.`,
+        description: suffix
+            ? `Call #${objectId}. ${suffix}.`
+            : `Call #${objectId}.`,
         metadata: {
             eventNum: objectId,
             alarmLevel: 0,

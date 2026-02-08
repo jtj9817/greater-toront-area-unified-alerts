@@ -19,4 +19,3 @@ export function buildBaseDomainInput(resource: UnifiedAlertResourceParsed): {
         meta: resource.meta,
     };
 }
-

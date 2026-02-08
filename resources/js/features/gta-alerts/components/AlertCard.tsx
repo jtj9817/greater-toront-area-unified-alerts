@@ -1,6 +1,9 @@
 import React, { useMemo } from 'react';
 import { formatTimestampEST } from '@/lib/utils';
-import { mapDomainAlertToPresentation, type DomainAlert } from '../domain/alerts';
+import {
+    mapDomainAlertToPresentation,
+    type DomainAlert,
+} from '../domain/alerts';
 import { Icon } from './Icon';
 
 interface AlertCardProps {

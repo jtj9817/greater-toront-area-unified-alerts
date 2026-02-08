@@ -10,7 +10,10 @@ export function deriveFirePresentationType(
 ): AlertPresentation['type'] {
     const normalizedTitle = title.toUpperCase();
 
-    if (normalizedTitle.includes('FIRE') || normalizedTitle.includes('STRUCTURE')) {
+    if (
+        normalizedTitle.includes('FIRE') ||
+        normalizedTitle.includes('STRUCTURE')
+    ) {
         return 'fire';
     }
 

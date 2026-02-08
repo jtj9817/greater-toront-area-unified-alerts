@@ -3,7 +3,11 @@ import { describe, expect, it } from 'vitest';
 import type { FireAlert } from '../fire/schema';
 import type { GoTransitAlert } from '../transit/go/schema';
 import type { TtcTransitAlert } from '../transit/ttc/schema';
-import { deriveAccentColor, deriveIconColor, deriveIconName } from './presentationStyles';
+import {
+    deriveAccentColor,
+    deriveIconColor,
+    deriveIconName,
+} from './presentationStyles';
 
 function makeFireAlert(title: string): FireAlert {
     return {
@@ -23,7 +27,10 @@ function makeFireAlert(title: string): FireAlert {
     };
 }
 
-function makeTransitAlert(routeType: string, effect = 'DETOUR'): TtcTransitAlert {
+function makeTransitAlert(
+    routeType: string,
+    effect = 'DETOUR',
+): TtcTransitAlert {
     return {
         kind: 'transit',
         id: 'transit:T1',
@@ -74,10 +81,12 @@ function makeGoAlert(): GoTransitAlert {
 
 describe('presentationStyles', () => {
     it('derives icon name from title keyword shortcuts', () => {
-        expect(deriveIconName(makeFireAlert('GAS LEAK'), 'fire')).toBe('warning');
-        expect(deriveIconName(makeFireAlert('MULTI CAR COLLISION'), 'police')).toBe(
-            'car_crash',
+        expect(deriveIconName(makeFireAlert('GAS LEAK'), 'fire')).toBe(
+            'warning',
         );
+        expect(
+            deriveIconName(makeFireAlert('MULTI CAR COLLISION'), 'police'),
+        ).toBe('car_crash');
     });
 
     it('derives go_transit and transit route-specific icon names', () => {
@@ -85,7 +94,9 @@ describe('presentationStyles', () => {
         expect(deriveIconName(makeTransitAlert('Bus'), 'transit')).toBe(
             'directions_bus',
         );
-        expect(deriveIconName(makeTransitAlert('Streetcar'), 'transit')).toBe('tram');
+        expect(deriveIconName(makeTransitAlert('Streetcar'), 'transit')).toBe(
+            'tram',
+        );
         expect(
             deriveIconName(
                 makeTransitAlert('Elevator', 'ACCESSIBILITY_ISSUE'),
@@ -113,7 +124,9 @@ describe('presentationStyles', () => {
         expect(deriveAccentColor('transit', 'medium')).toBe('bg-[#a78bfa]');
         expect(deriveAccentColor('go_transit', 'medium')).toBe('bg-[#3b9a4f]');
         expect(deriveAccentColor('medical', 'medium')).toBe('bg-[#f472b6]');
-        expect(deriveAccentColor('unknown' as never, 'low')).toBe('bg-gray-500');
+        expect(deriveAccentColor('unknown' as never, 'low')).toBe(
+            'bg-gray-500',
+        );
     });
 
     it('derives icon color for all severities and categories', () => {
@@ -124,6 +137,8 @@ describe('presentationStyles', () => {
         expect(deriveIconColor('transit', 'medium')).toBe('text-[#a78bfa]');
         expect(deriveIconColor('go_transit', 'medium')).toBe('text-[#3b9a4f]');
         expect(deriveIconColor('medical', 'medium')).toBe('text-[#f472b6]');
-        expect(deriveIconColor('unknown' as never, 'low')).toBe('text-gray-500');
+        expect(deriveIconColor('unknown' as never, 'low')).toBe(
+            'text-gray-500',
+        );
     });
 });

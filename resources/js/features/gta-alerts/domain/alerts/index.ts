@@ -2,7 +2,10 @@
 export { fromResource } from './fromResource';
 export { mapDomainAlertToPresentation } from './view';
 export { UnifiedAlertResourceSchema } from './resource';
-export type { UnifiedAlertResource, UnifiedAlertResourceParsed } from './resource';
+export type {
+    UnifiedAlertResource,
+    UnifiedAlertResourceParsed,
+} from './resource';
 export type { DomainAlert, AlertKind } from './types';
 export type {
     AlertPresentation,

@@ -36,7 +36,9 @@ describe('police presentation', () => {
     it('builds police description and metadata', () => {
         const result = buildPoliceDescriptionAndMetadata(makePoliceAlert());
 
-        expect(result.description).toBe('Call #123. Division: D31 • Code: ASLTPR.');
+        expect(result.description).toBe(
+            'Call #123. Division: D31 • Code: ASLTPR.',
+        );
         expect(result.metadata).toEqual({
             eventNum: '123',
             alarmLevel: 0,

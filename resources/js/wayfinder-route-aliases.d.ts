@@ -54,4 +54,3 @@ declare module '@/routes/verification' {
     export * from '@/routes/verification/index';
     export { default } from '@/routes/verification/index';
 }
-

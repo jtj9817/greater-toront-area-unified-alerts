@@ -68,4 +68,3 @@ describe('mapGoTransitAlert', () => {
         warn.mockRestore();
     });
 });
-

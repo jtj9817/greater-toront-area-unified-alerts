@@ -12,7 +12,9 @@ import {
 } from './presentation';
 import type { TtcTransitAlert } from './ttc/schema';
 
-function makeTtcAlert(overrides: Partial<TtcTransitAlert> = {}): TtcTransitAlert {
+function makeTtcAlert(
+    overrides: Partial<TtcTransitAlert> = {},
+): TtcTransitAlert {
     return {
         kind: 'transit',
         id: 'transit:T1',
@@ -115,8 +117,12 @@ describe('transit presentation', () => {
     it('builds TTC labels and metadata details', () => {
         expect(getTransitRouteLabel('Bus', '52')).toBe('Bus 52');
         expect(getTransitRouteLabel(undefined, '52')).toBe('Route 52');
-        expect(getTransitEffectLabel('REDUCED_SERVICE')).toBe('Reduced service');
-        expect(getTransitEffectLabel('UNPLANNED_CLOSURE')).toBe('Unplanned Closure');
+        expect(getTransitEffectLabel('REDUCED_SERVICE')).toBe(
+            'Reduced service',
+        );
+        expect(getTransitEffectLabel('UNPLANNED_CLOSURE')).toBe(
+            'Unplanned Closure',
+        );
 
         const result = buildTtcDescriptionAndMetadata(makeTtcAlert());
         expect(result.description).toContain('Subway 1');

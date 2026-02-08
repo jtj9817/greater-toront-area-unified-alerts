@@ -16,11 +16,16 @@ import {
     deriveTtcSeverity,
 } from '../transit/presentation';
 import type { DomainAlert } from '../types';
-import { deriveAccentColor, deriveIconColor, deriveIconName } from './presentationStyles';
+import {
+    deriveAccentColor,
+    deriveIconColor,
+    deriveIconName,
+} from './presentationStyles';
 import type { AlertPresentation } from './types';
 
-
-export function mapDomainAlertToPresentation(alert: DomainAlert): AlertPresentation {
+export function mapDomainAlertToPresentation(
+    alert: DomainAlert,
+): AlertPresentation {
     let type: AlertPresentation['type'];
     let severity: AlertPresentation['severity'];
     let details: Pick<AlertPresentation, 'description' | 'metadata'>;

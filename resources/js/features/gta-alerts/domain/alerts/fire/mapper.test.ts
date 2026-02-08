@@ -58,4 +58,3 @@ describe('mapFireAlert', () => {
         warn.mockRestore();
     });
 });
-

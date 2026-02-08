@@ -4,7 +4,9 @@ import type { UnifiedAlertResourceParsed } from '../resource';
 import { FireAlertSchema } from './schema';
 import type { FireAlert } from './schema';
 
-export function mapFireAlert(resource: UnifiedAlertResourceParsed): FireAlert | null {
+export function mapFireAlert(
+    resource: UnifiedAlertResourceParsed,
+): FireAlert | null {
     if (resource.source !== 'fire') {
         console.warn(
             `[DomainAlert] Fire mapper received non-fire resource (${resource.id}):`,
