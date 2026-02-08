@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Manual Test Script for Unified Alert Contract (Phase 2: Typed Domain Refactor)
  * Generated: 2026-02-07
@@ -32,9 +33,9 @@ use App\Models\TransitAlert;
 use App\Services\Alerts\DTOs\UnifiedAlertsCriteria;
 use App\Services\Alerts\UnifiedAlertsQuery;
 use Carbon\Carbon;
+use Illuminate\Contracts\Console\Kernel as ConsoleKernel;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Contracts\Console\Kernel as ConsoleKernel;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
 
@@ -43,7 +44,7 @@ $kernel = $app->make(ConsoleKernel::class);
 $kernel->bootstrap();
 
 if (app()->environment('production')) {
-    die("Error: Cannot run manual tests in production.\n");
+    exit("Error: Cannot run manual tests in production.\n");
 }
 
 $allowNonTesting = in_array('--allow-non-testing', $argv, true);
@@ -52,7 +53,7 @@ $keep = in_array('--keep', $argv, true);
 $induceFailures = ! in_array('--no-induce', $argv, true);
 
 if (! app()->environment('testing') && ! $allowNonTesting) {
-    die(
+    exit(
         "Error: This script must be run with APP_ENV=testing to avoid touching the development DB.\n".
         "Run: APP_ENV=testing php scripts/manual_tests/typed_domain_refactor_phase2.php\n".
         "Or (dangerous): php scripts/manual_tests/typed_domain_refactor_phase2.php --allow-non-testing\n"
@@ -148,6 +149,7 @@ function validateUnifiedAlertResource(array $resource): array
     $meta = $resource['meta'] ?? null;
     if (! is_array($meta)) {
         $errors[] = 'meta must be an object (associative array)';
+
         return $errors;
     }
 

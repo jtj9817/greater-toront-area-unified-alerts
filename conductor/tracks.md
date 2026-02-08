@@ -6,10 +6,12 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ## Active Tracks
 
-- [~] **Track: Frontend Typed Alert Domain Refactor**
-*Link: [./tracks/typed_domain_refactor_20260206/](./tracks/typed_domain_refactor_20260206/)*
+- None.
 
 ## Archived Tracks
+
+- [x] **Track: Frontend Typed Alert Domain Refactor**
+*Link: [./archive/typed_domain_refactor_20260206/](./archive/typed_domain_refactor_20260206/)*
 
 - [x] **Track: TTC Transit Integration**
 *Link: [./archive/ttc_transit_integration_20260206/](./archive/ttc_transit_integration_20260206/)*

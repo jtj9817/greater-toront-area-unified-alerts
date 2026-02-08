@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Manual Test Script for Typed Domain Refactor (Phase 3: Logic Migration)
  * Generated: 2026-02-07
