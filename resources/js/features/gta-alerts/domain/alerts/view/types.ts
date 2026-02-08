@@ -1,4 +1,39 @@
-import type { AlertItem } from '../../../types';
+export type AlertPresentationType =
+    | 'fire'
+    | 'police'
+    | 'transit'
+    | 'go_transit'
+    | 'hazard'
+    | 'medical';
 
-export type AlertPresentationType = AlertItem['type'];
-export type AlertPresentationSeverity = AlertItem['severity'];
+export type AlertPresentationSeverity = 'high' | 'medium' | 'low';
+
+export interface AlertPresentationMetadata {
+    eventNum: string;
+    alarmLevel: number;
+    unitsDispatched: string | null;
+    beat: string | null;
+    source?: string;
+    estimatedDelay?: string;
+    shuttleInfo?: string;
+    routeType?: string;
+    route?: string;
+    effect?: string;
+    direction?: string;
+    sourceFeed?: string;
+}
+
+export interface AlertPresentation {
+    id: string;
+    title: string;
+    location: string;
+    timeAgo: string;
+    timestamp: string;
+    description: string;
+    type: AlertPresentationType;
+    severity: AlertPresentationSeverity;
+    iconName: string;
+    accentColor: string;
+    iconColor: string;
+    metadata?: AlertPresentationMetadata;
+}

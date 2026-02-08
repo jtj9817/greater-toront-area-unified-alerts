@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import { formatTimestampEST } from '@/lib/utils';
-import { mapDomainAlertToAlertItem, type DomainAlert } from '../domain/alerts';
+import { mapDomainAlertToPresentation, type DomainAlert } from '../domain/alerts';
 import { Icon } from './Icon';
 
 interface DetailsProps {
@@ -8,7 +8,7 @@ interface DetailsProps {
     onBack: () => void;
 }
 
-type PresentationAlert = ReturnType<typeof mapDomainAlertToAlertItem>;
+type PresentationAlert = ReturnType<typeof mapDomainAlertToPresentation>;
 
 type DetailSections = {
     header: React.ReactNode;
@@ -442,7 +442,7 @@ function buildGoTransitSections(alert: PresentationAlert): DetailSections {
 
 export const AlertDetailsView: React.FC<DetailsProps> = ({ alert, onBack }) => {
     const presentation = useMemo(
-        () => mapDomainAlertToAlertItem(alert),
+        () => mapDomainAlertToPresentation(alert),
         [alert],
     );
 

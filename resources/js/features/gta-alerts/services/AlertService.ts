@@ -1,9 +1,10 @@
 import {
     fromResource,
-    mapDomainAlertToAlertItem,
+    mapDomainAlertToPresentation,
+    type AlertPresentation,
     type DomainAlert,
+    type UnifiedAlertResource,
 } from '../domain/alerts';
-import type { AlertItem, UnifiedAlertResource } from '../types';
 
 export interface AlertFilterOptions {
     query: string;
@@ -37,10 +38,10 @@ export class AlertService {
         return val;
     }
 
-    private static searchAlertItems(
-        items: AlertItem[],
+    private static searchPresentationItems(
+        items: AlertPresentation[],
         options: AlertFilterOptions,
-    ): AlertItem[] {
+    ): AlertPresentation[] {
         let filtered = [...items];
         const { query, category, timeLimit, dateScope } = options;
 
@@ -120,10 +121,10 @@ export class AlertService {
     ): DomainAlert[] {
         const alertsById = new Map(items.map((item) => [item.id, item]));
         const presentationItems = items.map((item) =>
-            mapDomainAlertToAlertItem(item),
+            mapDomainAlertToPresentation(item),
         );
 
-        const filteredPresentation = this.searchAlertItems(
+        const filteredPresentation = this.searchPresentationItems(
             presentationItems,
             options,
         );
@@ -131,42 +132,5 @@ export class AlertService {
         return filteredPresentation
             .map((item) => alertsById.get(item.id))
             .filter((item): item is DomainAlert => item !== undefined);
-    }
-
-    /**
-     * Maps backend UnifiedAlert resource to frontend AlertItem interface.
-     *
-     * Hard enforcement:
-     * - Invalid resources are caught, logged, and discarded (returns null).
-     * - This must never throw into UI rendering.
-     */
-    static mapUnifiedAlertToAlertItem(
-        alert: UnifiedAlertResource,
-    ): AlertItem | null {
-        const domainAlert = this.mapUnifiedAlertToDomainAlert(alert);
-        if (!domainAlert) {
-            return null;
-        }
-
-        return mapDomainAlertToAlertItem(domainAlert);
-    }
-
-    static mapUnifiedAlertsToAlertItems(
-        alerts: UnifiedAlertResource[],
-    ): AlertItem[] {
-        return this.mapUnifiedAlertsToDomainAlerts(alerts).map((item) =>
-            mapDomainAlertToAlertItem(item),
-        );
-    }
-
-    /**
-     * Core Search and Filter Engine
-     * Filters a provided list of items based on user options.
-     */
-    static search(
-        items: AlertItem[],
-        options: AlertFilterOptions,
-    ): AlertItem[] {
-        return this.searchAlertItems(items, options);
     }
 }

@@ -1,4 +1,12 @@
-import type { AlertSectionData } from './types';
+import type { AlertPresentation } from './domain/alerts/view/types';
+
+type AlertSectionData = {
+    id: string;
+    title: string;
+    iconName: string;
+    activeCount: number;
+    items: AlertPresentation[];
+};
 
 export const ALERT_DATA: AlertSectionData[] = [
     {

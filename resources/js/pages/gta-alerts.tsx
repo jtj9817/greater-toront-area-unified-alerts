@@ -1,7 +1,7 @@
 import { Head } from '@inertiajs/react';
 import React from 'react';
 import AlertsApp from '../features/gta-alerts/App';
-import type { UnifiedAlertResource } from '../features/gta-alerts/types';
+import type { UnifiedAlertResource } from '../features/gta-alerts/domain/alerts';
 
 interface GTAAlertsProps {
     alerts: {

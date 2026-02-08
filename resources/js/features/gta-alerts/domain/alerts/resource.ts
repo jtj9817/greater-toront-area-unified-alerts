@@ -27,3 +27,5 @@ export const UnifiedAlertResourceSchema = z.object({
 export type UnifiedAlertResourceParsed = z.infer<
     typeof UnifiedAlertResourceSchema
 >;
+
+export type UnifiedAlertResource = z.input<typeof UnifiedAlertResourceSchema>;

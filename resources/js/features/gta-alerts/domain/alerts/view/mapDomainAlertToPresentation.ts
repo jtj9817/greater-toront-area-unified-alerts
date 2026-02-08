@@ -1,6 +1,5 @@
 import { formatTimeAgo } from '@/lib/utils';
 
-import type { AlertItem } from '../../../types';
 import {
     buildFireDescriptionAndMetadata,
     deriveFirePresentationType,
@@ -17,13 +16,14 @@ import {
     deriveTtcSeverity,
 } from '../transit/presentation';
 import type { DomainAlert } from '../types';
-
 import { deriveAccentColor, deriveIconColor, deriveIconName } from './presentationStyles';
+import type { AlertPresentation } from './types';
 
-export function mapDomainAlertToAlertItem(alert: DomainAlert): AlertItem {
-    let type: AlertItem['type'];
-    let severity: AlertItem['severity'];
-    let details: Pick<AlertItem, 'description' | 'metadata'>;
+
+export function mapDomainAlertToPresentation(alert: DomainAlert): AlertPresentation {
+    let type: AlertPresentation['type'];
+    let severity: AlertPresentation['severity'];
+    let details: Pick<AlertPresentation, 'description' | 'metadata'>;
 
     switch (alert.kind) {
         case 'fire': {

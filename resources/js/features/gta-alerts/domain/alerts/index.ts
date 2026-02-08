@@ -1,9 +1,15 @@
 // Domain Alerts - barrel export
 export { fromResource } from './fromResource';
-export { mapDomainAlertToAlertItem } from './view';
+export { mapDomainAlertToPresentation } from './view';
 export { UnifiedAlertResourceSchema } from './resource';
-export type { UnifiedAlertResourceParsed } from './resource';
+export type { UnifiedAlertResource, UnifiedAlertResourceParsed } from './resource';
 export type { DomainAlert, AlertKind } from './types';
+export type {
+    AlertPresentation,
+    AlertPresentationMetadata,
+    AlertPresentationSeverity,
+    AlertPresentationType,
+} from './view';
 
 // Source-specific schemas and types
 export { FireAlertSchema, FireMetaSchema } from './fire/schema';

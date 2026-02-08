@@ -1,10 +1,10 @@
-import type { AlertItem } from '../../../types';
+import type { AlertPresentation } from '../view/types';
 import type { GoTransitAlert } from './go/schema';
 import type { TtcTransitAlert } from './ttc/schema';
 
 export function deriveTtcSeverity(
     meta: TtcTransitAlert['meta'],
-): AlertItem['severity'] {
+): AlertPresentation['severity'] {
     const severity = (meta.severity ?? '').trim().toUpperCase();
     const effect = (meta.effect ?? '').trim().toUpperCase();
 
@@ -26,7 +26,7 @@ export function deriveTtcSeverity(
 
 export function deriveGoTransitSeverity(
     meta: GoTransitAlert['meta'],
-): AlertItem['severity'] {
+): AlertPresentation['severity'] {
     const subCategory = (meta.sub_category ?? '').trim().toUpperCase();
 
     if (subCategory === 'BCANCEL') {
@@ -104,7 +104,7 @@ export function getTransitEffectLabel(effect?: string): string | null {
 
 export function buildTtcDescriptionAndMetadata(
     alert: TtcTransitAlert,
-): Pick<AlertItem, 'description' | 'metadata'> {
+): Pick<AlertPresentation, 'description' | 'metadata'> {
     const routeType = alert.meta.route_type ?? undefined;
     const route = alert.meta.route ?? undefined;
     const effect = alert.meta.effect ?? undefined;
@@ -154,7 +154,7 @@ export function buildTtcDescriptionAndMetadata(
 
 export function buildGoTransitDescriptionAndMetadata(
     alert: GoTransitAlert,
-): Pick<AlertItem, 'description' | 'metadata'> {
+): Pick<AlertPresentation, 'description' | 'metadata'> {
     const messageBody = alert.meta.message_body ?? undefined;
     const serviceMode = alert.meta.service_mode ?? undefined;
     const corridorCode = alert.meta.corridor_code ?? undefined;

@@ -1,10 +1,10 @@
-import type { AlertItem } from '../../../types';
-import type { DomainAlert } from '../types';
 import { deriveTtcIconName } from '../transit/presentation';
+import type { DomainAlert } from '../types';
+import type { AlertPresentation } from './types';
 
 export function deriveIconName(
     alert: DomainAlert,
-    type: AlertItem['type'],
+    type: AlertPresentation['type'],
 ): string {
     const normalizedTitle = alert.title.toUpperCase();
     if (normalizedTitle.includes('GAS')) return 'warning';
@@ -33,8 +33,8 @@ export function deriveIconName(
 }
 
 export function deriveAccentColor(
-    type: AlertItem['type'],
-    severity: AlertItem['severity'],
+    type: AlertPresentation['type'],
+    severity: AlertPresentation['severity'],
 ): string {
     if (severity === 'high') return 'bg-[#e05560]';
 
@@ -57,8 +57,8 @@ export function deriveAccentColor(
 }
 
 export function deriveIconColor(
-    type: AlertItem['type'],
-    severity: AlertItem['severity'],
+    type: AlertPresentation['type'],
+    severity: AlertPresentation['severity'],
 ): string {
     if (severity === 'high') return 'text-[#e05560]';
 

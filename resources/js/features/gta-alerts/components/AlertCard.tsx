@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import { formatTimestampEST } from '@/lib/utils';
-import { mapDomainAlertToAlertItem, type DomainAlert } from '../domain/alerts';
+import { mapDomainAlertToPresentation, type DomainAlert } from '../domain/alerts';
 import { Icon } from './Icon';
 
 interface AlertCardProps {
@@ -27,7 +27,7 @@ export const AlertCard: React.FC<AlertCardProps> = ({
     onViewDetails,
     isSaved = false,
 }) => {
-    const item = useMemo(() => mapDomainAlertToAlertItem(alert), [alert]);
+    const item = useMemo(() => mapDomainAlertToPresentation(alert), [alert]);
     const sourceLabel = getSourceLabel(alert);
 
     return (

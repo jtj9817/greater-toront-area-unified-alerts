@@ -7,9 +7,8 @@ import { SavedView } from './components/SavedView';
 import { SettingsView } from './components/SettingsView';
 import { Sidebar } from './components/Sidebar';
 import { ZonesView } from './components/ZonesView';
-import type { DomainAlert } from './domain/alerts';
+import type { DomainAlert, UnifiedAlertResource } from './domain/alerts';
 import { AlertService } from './services/AlertService';
-import type { UnifiedAlertResource } from './types';
 
 interface AppProps {
     alerts: {

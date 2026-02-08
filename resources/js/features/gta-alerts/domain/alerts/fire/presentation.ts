@@ -1,12 +1,13 @@
-import type { AlertItem } from '../../../types';
-
+import type { AlertPresentation } from '../view/types';
 import type { FireAlert } from './schema';
 
 /**
  * Normalizes fire CAD event titles into UI-facing presentation categories.
  * This remains presentation-level and does not alter DomainAlert discriminators.
  */
-export function deriveFirePresentationType(title: string): AlertItem['type'] {
+export function deriveFirePresentationType(
+    title: string,
+): AlertPresentation['type'] {
     const normalizedTitle = title.toUpperCase();
 
     if (normalizedTitle.includes('FIRE') || normalizedTitle.includes('STRUCTURE')) {
@@ -46,7 +47,9 @@ export function deriveFirePresentationType(title: string): AlertItem['type'] {
     return 'fire';
 }
 
-export function deriveFireSeverity(alert: FireAlert): AlertItem['severity'] {
+export function deriveFireSeverity(
+    alert: FireAlert,
+): AlertPresentation['severity'] {
     const alarmLevel = alert.meta.alarm_level;
     if (alarmLevel > 1) return 'high';
     if (alarmLevel === 1) return 'medium';
@@ -55,7 +58,7 @@ export function deriveFireSeverity(alert: FireAlert): AlertItem['severity'] {
 
 export function buildFireDescriptionAndMetadata(
     alert: FireAlert,
-): Pick<AlertItem, 'description' | 'metadata'> {
+): Pick<AlertPresentation, 'description' | 'metadata'> {
     const eventNum = alert.meta.event_num || alert.externalId;
     const alarmLevel = alert.meta.alarm_level;
     const unitsDispatched = alert.meta.units_dispatched;
