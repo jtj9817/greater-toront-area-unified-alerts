@@ -27,18 +27,18 @@ Implement safeguards for large datasets and tools for validation.
     - [x] Scaffold `VerifyProductionSeed` command
     - [x] Write failing tests for verifying seeder syntax and record integrity
     - [x] Implement `db:verify-production-seed` logic
-- [ ] Task: Conductor - User Manual Verification 'Phase 2: Advanced Features & Splitting' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 2: Advanced Features & Splitting' (Protocol in workflow.md)
 
 ## Phase 3: Automation & Documentation
 Provide the final scripts and guides for production readiness.
 
-- [ ] Task: Create Automation Shell Script
-    - [ ] Implement `scripts/generate-production-seed.sh`
-    - [ ] Add execution permissions and basic error handling/Git prompts
-- [ ] Task: Create Deployment Documentation
-    - [ ] Write `docs/deployment/production-seeding.md`
-    - [ ] Include Forge-specific instructions, security warnings, and troubleshooting
-- [ ] Task: Conductor - User Manual Verification 'Phase 3: Automation & Documentation' (Protocol in workflow.md)
+- [x] Task: Create Automation Shell Script
+    - [x] Implement `scripts/generate-production-seed.sh`
+    - [x] Add execution permissions and basic error handling/Git prompts
+- [x] Task: Create Deployment Documentation
+    - [x] Write `docs/deployment/production-seeding.md`
+    - [x] Include Forge-specific instructions, security warnings, and troubleshooting
+- [x] Task: Conductor - User Manual Verification 'Phase 3: Automation & Documentation' (Protocol in workflow.md)
 
 ## Phase 4: Final Quality Gate
 Verify the entire track meets the project's high standards.
