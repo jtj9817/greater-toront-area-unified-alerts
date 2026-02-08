@@ -3,18 +3,18 @@
 ## Phase 1: Export Command Foundation
 Establish the core export mechanism with a focus on memory efficiency and idempotency.
 
-- [ ] Task: Scaffold `ExportProductionData` Artisan command
-    - [ ] Create `app/Console/Commands/ExportProductionData.php`
-    - [ ] Define signature `db:export-to-seeder`
-- [ ] Task: Implement Basic Export Logic (TDD)
-    - [ ] Write failing Pest test for exporting a single model to a seeder file
-    - [ ] Implement `chunk()` based retrieval and incremental file writing
-    - [ ] Use `var_export` for PHP array generation
-    - [ ] Verify file contents use `insertOrIgnore` syntax and preserve timestamps
-- [ ] Task: Expand Scope to all Alert Models
-    - [ ] Write test verifying `FireIncident`, `PoliceCall`, `TransitAlert`, and `GoTransitAlert` are exported
-    - [ ] Implement multi-model export loop in the command
-- [ ] Task: Conductor - User Manual Verification 'Phase 1: Export Command Foundation' (Protocol in workflow.md)
+- [x] Task: Scaffold `ExportProductionData` Artisan command
+    - [x] Create `app/Console/Commands/ExportProductionData.php`
+    - [x] Define signature `db:export-to-seeder`
+- [x] Task: Implement Basic Export Logic (TDD)
+    - [x] Write failing Pest test for exporting a single model to a seeder file
+    - [x] Implement `chunk()` based retrieval and incremental file writing
+    - [x] Use `var_export` for PHP array generation
+    - [x] Verify file contents use `insertOrIgnore` syntax and preserve timestamps
+- [x] Task: Expand Scope to all Alert Models
+    - [x] Write test verifying `FireIncident`, `PoliceCall`, `TransitAlert`, and `GoTransitAlert` are exported
+    - [x] Implement multi-model export loop in the command
+- [x] Task: Conductor - User Manual Verification 'Phase 1: Export Command Foundation' (Protocol in workflow.md)
 
 ## Phase 2: Advanced Features & Splitting
 Implement safeguards for large datasets and tools for validation.
