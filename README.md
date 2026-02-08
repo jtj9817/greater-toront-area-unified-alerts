@@ -8,9 +8,11 @@ GTA Alerts is built as a data aggregator and API using Laravel, with a high-perf
 
 ### Key Features
 
-- **Unified Alert Feed:** A mixed-source timeline of Fire and Police incidents, supporting pagination over both active and cleared history.
+- **Unified Alert Feed:** A mixed-source timeline of Fire, Police, TTC Transit, and GO Transit incidents, supporting pagination over both active and cleared history.
 - **Toronto Fire Integration:** Real-time sync with the Toronto Fire Services CAD (Computer Aided Dispatch) XML feed.
-- **Toronto Police Integration:** Automated scraping of the TPS "Calls for Service" dashboard using browser automation.
+- **Toronto Police Integration:** Automated scraping of the TPS "Calls for Service" ArcGIS FeatureServer.
+- **TTC Transit Integration:** Composite feed from alerts.ttc.ca JSON API, Sitecore SXA search, and static CMS pages.
+- **GO Transit Integration:** Real-time service updates from the Metrolinx JSON API (trains, buses, stations, and delay notifications).
 - **Inertia.js SPA:** A seamless single-page application experience with React 19 and Radix UI.
 - **Production-Ready Scheduler:** Built-in observability for background scraping tasks with heartbeat monitoring and health checks.
 
@@ -30,11 +32,20 @@ GTA Alerts is built as a data aggregator and API using Laravel, with a high-perf
 
 The system follows a **Provider & Adapter** pattern to unify divergent data sources:
 
-1.  **Source Models:** Raw data is persisted in source-specific tables (`fire_incidents`, `police_calls`).
+1.  **Source Models:** Raw data is persisted in source-specific tables (`fire_incidents`, `police_calls`, `transit_alerts`, `go_transit_alerts`).
 2.  **Select Providers:** Standardized query providers map source-specific columns into a unified SQL structure.
-3.  **Unified Aggregator:** A database-level `UNION` query facilitates stable pagination across all alert types simultaneously.
+3.  **Unified Aggregator:** A database-level `UNION ALL` query facilitates stable pagination across all alert types simultaneously.
 4.  **Frontend Boundary:** Inertia transport resources are validated with Zod and mapped to a typed `DomainAlert` discriminated union.
 5.  **Presentation Mapping:** UI components render a derived `AlertPresentation` model from `DomainAlert` values.
+
+### Source Coverage
+
+| Source | Backing Table | Schedule |
+|--------|---------------|----------|
+| Toronto Fire | `fire_incidents` | Every 5 minutes |
+| Toronto Police | `police_calls` | Every 10 minutes |
+| TTC Transit | `transit_alerts` | Every 5 minutes |
+| GO Transit | `go_transit_alerts` | Every 5 minutes |
 
 ---
 
@@ -76,6 +87,8 @@ php artisan migrate
 # Run the data fetchers manually
 ./vendor/bin/sail artisan fire:fetch-incidents
 ./vendor/bin/sail artisan police:fetch-calls
+./vendor/bin/sail artisan transit:fetch-alerts
+./vendor/bin/sail artisan go-transit:fetch-alerts
 ```
 
 ---
@@ -84,8 +97,12 @@ php artisan migrate
 
 The application uses the Laravel Scheduler to keep data fresh.
 
-- **Toronto Fire:** Synced every 5 minutes from `livecad.xml`.
-- **Toronto Police:** Synced every 10–20 minutes via ArcGIS FeatureServer interception.
+| Source | Schedule | Endpoint |
+|--------|----------|----------|
+| **Toronto Fire** | Every 5 minutes | `livecad.xml` CAD feed |
+| **Toronto Police** | Every 10 minutes | ArcGIS FeatureServer |
+| **TTC Transit** | Every 5 minutes | alerts.ttc.ca JSON API + SXA |
+| **GO Transit** | Every 5 minutes | `api.metrolinx.com` JSON API |
 
 In production, the project uses a dedicated scheduler container (`docker/scheduler/Dockerfile`) that runs `php artisan scheduler:run-and-log` every minute, providing detailed logs and a health check heartbeat.
 
@@ -124,11 +141,18 @@ For detailed documentation on architecture, implementation, and development:
 
 ### Key Documentation Topics
 
-- **[Unified Alerts System](docs/backend/unified-alerts-system.md)** - Core architecture (IMPLEMENTED)
+- **[Unified Alerts System](docs/backend/unified-alerts-system.md)** - Core architecture with UNION ALL aggregation
 - **[Provider & Adapter Pattern](docs/architecture/provider-adapter-pattern.md)** - Data source integration pattern
-- **[Frontend Types](docs/frontend/types.md)** - TypeScript type definitions
-- **[AlertService](docs/frontend/alert-service.md)** - Frontend mapping and filtering
+- **[Frontend Types](docs/frontend/types.md)** - TypeScript domain types and presentation mapping
+- **[AlertService](docs/frontend/alert-service.md)** - Frontend filtering and search orchestration
 - **[Production Scheduler](docs/backend/production-scheduler.md)** - Background job observability
+
+### Data Source Documentation
+
+- **[Toronto Fire](docs/sources/toronto-fire.md)** - CAD XML feed integration
+- **[Toronto Police](docs/sources/toronto-police.md)** - ArcGIS FeatureServer integration
+- **[TTC Transit](docs/sources/ttc-transit.md)** - Composite feed (API + SXA + static)
+- **[GO Transit](docs/sources/go-transit.md)** - Metrolinx JSON API integration
 
 ---
 
