@@ -19,14 +19,14 @@ Establish the core export mechanism with a focus on memory efficiency and idempo
 ## Phase 2: Advanced Features & Splitting
 Implement safeguards for large datasets and tools for validation.
 
-- [ ] Task: Implement File Splitting Logic (TDD)
-    - [ ] Write failing test for splitting output when seeder data exceeds 10MB
-    - [ ] Implement logic to rotate files and generate `ProductionDataSeeder_PartN.php`
-    - [ ] Verify generated seeders are syntactically correct and linked
-- [ ] Task: Implement Verification Command (TDD)
-    - [ ] Scaffold `VerifyProductionSeed` command
-    - [ ] Write failing tests for verifying seeder syntax and record integrity
-    - [ ] Implement `db:verify-production-seed` logic
+- [x] Task: Implement File Splitting Logic (TDD)
+    - [x] Write failing test for splitting output when seeder data exceeds 10MB
+    - [x] Implement logic to rotate files and generate `ProductionDataSeeder_PartN.php`
+    - [x] Verify generated seeders are syntactically correct and linked
+- [x] Task: Implement Verification Command (TDD)
+    - [x] Scaffold `VerifyProductionSeed` command
+    - [x] Write failing tests for verifying seeder syntax and record integrity
+    - [x] Implement `db:verify-production-seed` logic
 - [ ] Task: Conductor - User Manual Verification 'Phase 2: Advanced Features & Splitting' (Protocol in workflow.md)
 
 ## Phase 3: Automation & Documentation
