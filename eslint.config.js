@@ -33,8 +33,12 @@ export default [
     {
         ...importPlugin.flatConfigs.recommended,
         settings: {
+            // Ensure `@/...` is always treated as "internal" so import grouping is consistent across environments.
+            'import/internal-regex': '^@/',
             'import/resolver': {
-                typescript: true,
+                typescript: {
+                    project: './tsconfig.json',
+                },
                 node: true,
             },
         },
