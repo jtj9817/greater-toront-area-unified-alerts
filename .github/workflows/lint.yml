@@ -50,6 +50,9 @@ jobs:
           composer install -q --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
           pnpm install --frozen-lockfile
 
+      - name: Generate Wayfinder Types
+        run: php artisan wayfinder:generate --with-form
+
       - name: Run Pint (Check)
         run: composer test:lint
 
