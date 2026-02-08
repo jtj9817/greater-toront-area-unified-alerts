@@ -2,21 +2,19 @@
 
 - File: `resources/js/features/gta-alerts/services/AlertService.ts`
 
-`AlertService` maps backend transport objects (`UnifiedAlertResource`) into display-ready `AlertItem` records and performs client-side filtering/search.
+`AlertService` is a thin facade over the typed domain boundary. It maps backend transport objects into `DomainAlert` values and performs search/filtering over domain alerts via derived presentation fields.
 
 ## Current Responsibilities
 
-- Map source-specific metadata into unified UI fields (`description`, `metadata`, `severity`, icons/colors).
+- Map transport `UnifiedAlertResource` values into `DomainAlert` using `fromResource(...)`.
+- Discard invalid resources via hard enforcement (`catch/log/discard` at boundary).
 - Keep GO Transit alerts visible under the transit filter (`categoryAliases.transit = ['transit', 'go_transit']`).
-- Format relative times via `formatTimeAgo()`.
-- Search and filter alerts by category, time window, date scope, and query.
+- Search and filter `DomainAlert[]` by category, time window, date scope, and query.
 
 ## Source Handling
 
-- `fire`: alarm-level-driven severity + fire metadata.
-- `police`: title keyword severity + division/code metadata.
-- `transit`: TTC-specific route/effect/source-feed metadata.
-- `go_transit`: Metrolinx notification/SAAG metadata and GO severity mapping.
+- Source-specific validation and mapping is handled in domain mapper modules under `resources/js/features/gta-alerts/domain/alerts/*`.
+- Presentation derivation (severity/icon/description/metadata) is handled by `mapDomainAlertToPresentation(...)`.
 
 ## GO Transit Severity Rules
 

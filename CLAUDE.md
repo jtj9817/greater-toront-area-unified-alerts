@@ -74,7 +74,9 @@ UNION Query (UnifiedAlertsQuery)
     ↓
 UnifiedAlert DTO (transport)
     ↓
-AlertItem View Model (frontend)
+DomainAlert (frontend typed union)
+    ↓
+AlertPresentation (frontend view model)
 ```
 
 #### Key Components
@@ -135,10 +137,10 @@ AlertItem View Model (frontend)
 
 Inertia.js renders React pages from `resources/js/pages/`. The main public page is `gta-alerts.tsx` which mounts the feature module at `resources/js/features/gta-alerts/`.
 
-**Transport vs View-Model:**
+**Transport vs Domain vs Presentation:**
 - Backend sends `UnifiedAlertResource[]` (transport shape)
-- `AlertService.mapUnifiedAlertToAlertItem()` maps to `AlertItem` (view-model)
-- Components consume `AlertItem` with UI-agnostic properties
+- `fromResource(...)` validates and maps transport values to `DomainAlert`
+- Components consume `DomainAlert` and derive `AlertPresentation` with `mapDomainAlertToPresentation(...)`
 
 **Views:**
 - `FeedView` - Paginated alert feed with client-side search/filter
@@ -148,8 +150,8 @@ Inertia.js renders React pages from `resources/js/pages/`. The main public page 
 - `AlertDetailsView` - Detail view for individual alerts
 
 **Services:**
-- `AlertService` - Mapping, search, filtering, severity calculation
-- Type definitions in `resources/js/features/gta-alerts/types.ts`
+- `AlertService` - Domain boundary mapping plus domain search/filter orchestration
+- Domain schemas/types in `resources/js/features/gta-alerts/domain/alerts/`
 
 ### Routing
 - `routes/web.php` — HTTP routes (home renders `gta-alerts` Inertia page; dashboard requires auth)
@@ -199,8 +201,8 @@ Dedicated scheduler container (`docker/scheduler/`) runs `php artisan scheduler:
 5. Add source to `AlertSource` enum
 6. Update `latestFeedUpdatedAt()` in `GtaAlertsController`
 7. Add schedule entry in `routes/console.php`
-8. Create frontend mapping in `AlertService`
-9. Update types and tests
+8. Add source-specific frontend schema + mapper under `resources/js/features/gta-alerts/domain/alerts/`
+9. Update view presentation mapping (`mapDomainAlertToPresentation`) and tests
 
 ## Architecture Documentation
 

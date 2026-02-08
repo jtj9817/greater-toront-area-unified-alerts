@@ -1,39 +1,40 @@
 # Frontend Types
 
-- Source file: `resources/js/features/gta-alerts/types.ts`
-
-## AlertItem (UI View-Model)
-
-`AlertItem` is the normalized frontend shape used by feed/detail components.
-
-Notable fields:
-- `type`: `'fire' | 'police' | 'transit' | 'go_transit' | 'hazard' | 'medical'`
-- `severity`: `'high' | 'medium' | 'low'`
-- `metadata`: optional source-specific payload used by detail views
+- Source directory: `resources/js/features/gta-alerts/domain/alerts/`
 
 ## UnifiedAlertResource (Backend Transport)
 
-This mirrors `UnifiedAlertResource` from Laravel:
+Transport shape is validated at the frontend boundary with Zod:
+- Schema: `resources/js/features/gta-alerts/domain/alerts/resource.ts`
+- Type: `UnifiedAlertResource`
 
-```typescript
-interface UnifiedAlertResource {
-    id: string;
-    source: 'fire' | 'police' | 'transit' | 'go_transit';
-    external_id: string;
-    is_active: boolean;
-    timestamp: string;
-    title: string;
-    location: {
-        name: string | null;
-        lat: number | null;
-        lng: number | null;
-    } | null;
-    meta: Record<string, unknown>;
-}
-```
+`UnifiedAlertResource` is not rendered directly in components.
 
-## Mapping Boundary
+## DomainAlert (Typed Domain Union)
 
-Components should consume `AlertItem`, not `UnifiedAlertResource` directly.
+`DomainAlert` is the discriminated union used across GTA Alerts feature logic:
+- `kind: 'fire'`
+- `kind: 'police'`
+- `kind: 'transit'`
+- `kind: 'go_transit'`
 
-Mapping lives in `resources/js/features/gta-alerts/services/AlertService.ts`.
+Source-specific schema modules validate and map each source into its domain type.
+
+## AlertPresentation (UI View Model)
+
+`AlertPresentation` is the derived presentation model used by card/table/details renderers:
+- Type: `resources/js/features/gta-alerts/domain/alerts/view/types.ts`
+- Mapper: `mapDomainAlertToPresentation(...)` in `resources/js/features/gta-alerts/domain/alerts/view/mapDomainAlertToPresentation.ts`
+
+Presentation-only categories (`hazard`, `medical`) are derived here and are not `DomainAlert.kind` values.
+
+## Boundary Contract
+
+Canonical boundary entrypoint:
+- `fromResource(resource): DomainAlert | null`
+- File: `resources/js/features/gta-alerts/domain/alerts/fromResource.ts`
+
+Behavior:
+- Valid resources map to typed `DomainAlert`.
+- Invalid resources are caught, logged (`[DomainAlert] ...`), and discarded (`null`).
+- UI rendering must never crash due to malformed backend items.

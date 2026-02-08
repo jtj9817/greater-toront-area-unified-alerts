@@ -33,7 +33,8 @@ The system follows a **Provider & Adapter** pattern to unify divergent data sour
 1.  **Source Models:** Raw data is persisted in source-specific tables (`fire_incidents`, `police_calls`).
 2.  **Select Providers:** Standardized query providers map source-specific columns into a unified SQL structure.
 3.  **Unified Aggregator:** A database-level `UNION` query facilitates stable pagination across all alert types simultaneously.
-4.  **Inertia Transport:** Standardized DTOs are passed to the frontend, where they are mapped to a common UI view-model.
+4.  **Frontend Boundary:** Inertia transport resources are validated with Zod and mapped to a typed `DomainAlert` discriminated union.
+5.  **Presentation Mapping:** UI components render a derived `AlertPresentation` model from `DomainAlert` values.
 
 ---
 
