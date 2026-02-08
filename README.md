@@ -108,6 +108,24 @@ In production, the project uses a dedicated scheduler container (`docker/schedul
 
 ---
 
+## Production Data Seeding
+
+To migrate locally scraped alert data into production as code-managed seeders:
+
+```bash
+# Generate + verify seeder files
+./scripts/generate-production-seed.sh --sail
+
+# Or run commands directly
+php artisan db:export-to-seeder
+php artisan db:verify-production-seed
+```
+
+Forge deployment runbook:
+- **[docs/deployment/production-seeding.md](docs/deployment/production-seeding.md)**
+
+---
+
 ## Testing
 
 The project uses Pest PHP for feature and unit testing.

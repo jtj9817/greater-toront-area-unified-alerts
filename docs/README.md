@@ -15,6 +15,8 @@ docs/
 ├── architecture/
 │   ├── dynamic-zones.md
 │   └── provider-adapter-pattern.md
+├── deployment/
+│   └── production-seeding.md
 ├── backend/
 │   ├── dtos.md
 │   ├── enums.md
@@ -64,6 +66,10 @@ The unified feed currently aggregates four source types:
 - **[sources/toronto-police.md](sources/toronto-police.md)**
 - **[sources/ttc-transit.md](sources/ttc-transit.md)**
 - **[sources/go-transit.md](sources/go-transit.md)**
+
+## Deployment Docs
+
+- **[deployment/production-seeding.md](deployment/production-seeding.md)** - Production data migration and Forge seeding runbook
 
 ## Implementation Status
 

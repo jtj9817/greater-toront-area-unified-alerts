@@ -35,6 +35,7 @@ APP_ENV=testing ./vendor/bin/sail php tests/manual/verify_phase_2_mapper_extract
 APP_ENV=testing ./vendor/bin/sail php tests/manual/verify_phase_3_unified_querying.php
 APP_ENV=testing ./vendor/bin/sail php tests/manual/verify_phase_4_frontend_integration.php
 APP_ENV=testing ./vendor/bin/sail php tests/manual/verify_phase_5_quality_gate.php
+APP_ENV=testing ./vendor/bin/sail php tests/manual/verify_production_data_migration_phase_3_automation_documentation.php
 ```
 
 ### Linting & Formatting
@@ -50,6 +51,9 @@ pnpm run types               # TypeScript type checking (tsc --noEmit)
 php artisan fire:fetch-incidents       # Manually sync Toronto Fire feed
 php artisan police:fetch-calls         # Manually sync Toronto Police feed
 php artisan go-transit:fetch-alerts    # Manually sync GO Transit feed
+php artisan db:export-to-seeder        # Export alert tables into ProductionDataSeeder*.php
+php artisan db:verify-production-seed  # Verify syntax/integrity of generated production seeders
+./scripts/generate-production-seed.sh --sail  # Export + verify + optional git staging workflow
 ```
 
 ### Scheduler
@@ -210,6 +214,7 @@ See `docs/` for detailed architecture:
 - `docs/backend/unified-alerts-system.md` - Unified alerts architecture (IMPLEMENTED)
 - `docs/backend/enums.md` - AlertSource, AlertStatus, AlertId documentation
 - `docs/backend/dtos.md` - UnifiedAlert, UnifiedAlertsCriteria, AlertLocation
+- `docs/deployment/production-seeding.md` - Forge-safe production seed migration runbook
 - `docs/backend/sources/` - Individual data source documentation
 - `docs/architecture/provider-adapter-pattern.md` - Provider pattern explanation
 - `docs/architecture/dynamic-zones.md` - Dynamic zones feature (PLANNED)

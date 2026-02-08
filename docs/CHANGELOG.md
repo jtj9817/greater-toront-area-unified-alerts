@@ -2,6 +2,18 @@
 
 All notable documentation-relevant changes are tracked here.
 
+## [February 08, 2026] - Production Data Seeding Runbook
+
+### Added
+- Added deployment runbook for production data migration:
+  - `docs/deployment/production-seeding.md`
+  - Forge one-off/deploy-script execution guidance
+  - Security warnings and troubleshooting matrix
+
+### Changed
+- Updated documentation index to include deployment runbooks.
+- Updated root/agent docs to reference production seeding commands and automation script.
+
 ## [February 06, 2026] - TTC + GO Transit Unified Feed Completion
 
 ### Added
