@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 
-import { fromResource } from './fromResource';
 import backendContractFixtureRaw from './__fixtures__/backend-unified-alerts.json?raw';
+import { fromResource } from './fromResource';
 
 interface BackendContractFixture {
     alerts: unknown[];

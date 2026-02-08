@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'vitest';
 
-import type { PoliceAlert } from './schema';
 import {
     buildPoliceDescriptionAndMetadata,
     derivePoliceSeverity,
 } from './presentation';
+import type { PoliceAlert } from './schema';
 
 function makePoliceAlert(overrides: Partial<PoliceAlert> = {}): PoliceAlert {
     return {

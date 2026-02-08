@@ -1,7 +1,7 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
+import type { UnifiedAlertResource } from '../domain/alerts';
 import { AlertService } from '../services/AlertService';
-import type { UnifiedAlertResource } from '../types';
 import { AlertDetailsView } from './AlertDetailsView';
 
 function toDomainAlert(resource: UnifiedAlertResource) {

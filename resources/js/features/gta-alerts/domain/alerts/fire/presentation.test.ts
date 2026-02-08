@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest';
 
-import type { FireAlert } from './schema';
 import {
     buildFireDescriptionAndMetadata,
     deriveFirePresentationType,
     deriveFireSeverity,
 } from './presentation';
+import type { FireAlert } from './schema';
 
 function makeFireAlert(overrides: Partial<FireAlert> = {}): FireAlert {
     return {

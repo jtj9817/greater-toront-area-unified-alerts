@@ -1,7 +1,7 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
+import type { UnifiedAlertResource } from '../domain/alerts';
 import { AlertService } from '../services/AlertService';
-import type { UnifiedAlertResource } from '../types';
 import { AlertCard } from './AlertCard';
 
 describe('AlertCard', () => {

@@ -1,5 +1,5 @@
-import { describe, it, expect, vi } from 'vitest';
-import type { UnifiedAlertResource } from '../types';
+import { describe, expect, it, vi } from 'vitest';
+import { mapDomainAlertToPresentation, type UnifiedAlertResource } from '../domain/alerts';
 import { AlertService } from './AlertService';
 
 describe('AlertService', () => {
@@ -57,44 +57,48 @@ describe('AlertService', () => {
         },
     };
 
-    it('maps a backend unified fire alert to an AlertItem correctly', () => {
+    it('maps a backend unified fire alert to DomainAlert correctly', () => {
         const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
-        const alertItem =
-            AlertService.mapUnifiedAlertToAlertItem(mockFireAlert);
-        expect(alertItem).not.toBeNull();
-        if (!alertItem) throw new Error('Expected AlertItem');
+        const domainAlert = AlertService.mapUnifiedAlertToDomainAlert(mockFireAlert);
 
-        expect(alertItem.id).toBe('fire:E1');
-        expect(alertItem.title).toBe('STRUCTURE FIRE');
-        expect(alertItem.location).toBe('MAIN ST / CROSS RD');
-        expect(alertItem.type).toBe('fire');
-        expect(alertItem.severity).toBe('high');
-        expect(alertItem.iconName).toBe('local_fire_department');
-        expect(alertItem.metadata?.eventNum).toBe('E1');
-        expect(alertItem.metadata?.alarmLevel).toBe(2);
-        expect(alertItem.metadata?.source).toBe('Toronto Fire Services');
+        expect(domainAlert).not.toBeNull();
+        if (!domainAlert) throw new Error('Expected DomainAlert');
+
+        const presentation = mapDomainAlertToPresentation(domainAlert);
+
+        expect(domainAlert.id).toBe('fire:E1');
+        expect(domainAlert.kind).toBe('fire');
+        expect(presentation.type).toBe('fire');
+        expect(presentation.severity).toBe('high');
+        expect(presentation.iconName).toBe('local_fire_department');
+        expect(presentation.metadata?.eventNum).toBe('E1');
+        expect(presentation.metadata?.alarmLevel).toBe(2);
+        expect(presentation.metadata?.source).toBe('Toronto Fire Services');
         expect(warn).not.toHaveBeenCalled();
         warn.mockRestore();
     });
 
-    it('maps a backend unified police alert to an AlertItem correctly', () => {
+    it('maps a backend unified police alert to DomainAlert correctly', () => {
         const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
-        const alertItem =
-            AlertService.mapUnifiedAlertToAlertItem(mockPoliceAlert);
-        expect(alertItem).not.toBeNull();
-        if (!alertItem) throw new Error('Expected AlertItem');
+        const domainAlert = AlertService.mapUnifiedAlertToDomainAlert(mockPoliceAlert);
 
-        expect(alertItem.type).toBe('police');
-        expect(alertItem.severity).toBe('high');
-        expect(alertItem.location).toBe('456 POLICE RD');
-        expect(alertItem.metadata?.eventNum).toBe('123');
-        expect(alertItem.metadata?.beat).toBe('D31');
-        expect(alertItem.metadata?.source).toBe('Toronto Police');
+        expect(domainAlert).not.toBeNull();
+        if (!domainAlert) throw new Error('Expected DomainAlert');
+
+        const presentation = mapDomainAlertToPresentation(domainAlert);
+
+        expect(domainAlert.kind).toBe('police');
+        expect(presentation.type).toBe('police');
+        expect(presentation.severity).toBe('high');
+        expect(presentation.location).toBe('456 POLICE RD');
+        expect(presentation.metadata?.eventNum).toBe('123');
+        expect(presentation.metadata?.beat).toBe('D31');
+        expect(presentation.metadata?.source).toBe('Toronto Police');
         expect(warn).not.toHaveBeenCalled();
         warn.mockRestore();
     });
 
-    it('maps a backend unified transit alert to an AlertItem correctly', () => {
+    it('maps a backend unified transit alert to DomainAlert and preserves presentation fields', () => {
         const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
         const mockTransitAlert: UnifiedAlertResource = {
             id: 'transit:api:61748',
@@ -121,148 +125,29 @@ describe('AlertService', () => {
             },
         };
 
-        const alertItem =
-            AlertService.mapUnifiedAlertToAlertItem(mockTransitAlert);
-        expect(alertItem).not.toBeNull();
-        if (!alertItem) throw new Error('Expected AlertItem');
+        const domainAlert = AlertService.mapUnifiedAlertToDomainAlert(mockTransitAlert);
 
-        expect(alertItem.type).toBe('transit');
-        expect(alertItem.severity).toBe('high');
-        expect(alertItem.iconName).toBe('directions_subway');
-        expect(alertItem.location).toBe('St Clair Station');
-        expect(alertItem.description).toContain('Subway 1');
-        expect(alertItem.description).toContain('Reduced service');
-        expect(alertItem.description).toContain(
+        expect(domainAlert).not.toBeNull();
+        if (!domainAlert) throw new Error('Expected DomainAlert');
+
+        const presentation = mapDomainAlertToPresentation(domainAlert);
+
+        expect(domainAlert.kind).toBe('transit');
+        expect(presentation.type).toBe('transit');
+        expect(presentation.severity).toBe('high');
+        expect(presentation.iconName).toBe('directions_subway');
+        expect(presentation.location).toBe('St Clair Station');
+        expect(presentation.description).toContain('Subway 1');
+        expect(presentation.description).toContain('Reduced service');
+        expect(presentation.description).toContain(
             'Shuttle buses operating between St Clair and Lawrence.',
         );
-        expect(alertItem.metadata?.source).toBe('TTC Control');
-        expect(alertItem.metadata?.routeType).toBe('Subway');
-        expect(alertItem.metadata?.route).toBe('1');
-        expect(alertItem.metadata?.effect).toBe('REDUCED_SERVICE');
-        expect(alertItem.metadata?.direction).toBe('Both Ways');
-        expect(alertItem.metadata?.sourceFeed).toBe('live-api');
-        expect(warn).not.toHaveBeenCalled();
-        warn.mockRestore();
-    });
-
-    it('maps transit alert with minimal metadata correctly', () => {
-        const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
-        const mockTransitAlertMinimal: UnifiedAlertResource = {
-            id: 'transit:T2',
-            source: 'transit',
-            external_id: 'T2',
-            is_active: true,
-            timestamp,
-            title: 'Minor route detour',
-            location: { name: 'Union Station', lat: null, lng: null },
-            meta: {
-                route_type: 'Bus',
-                route: '52',
-                severity: 'Minor',
-                effect: 'DETOUR',
-                source_feed: 'static',
-                alert_type: null,
-                description: null,
-                url: null,
-                direction: null,
-                cause: null,
-                stop_start: null,
-                stop_end: null,
-            },
-        };
-
-        const alertItem = AlertService.mapUnifiedAlertToAlertItem(
-            mockTransitAlertMinimal,
-        );
-        expect(alertItem).not.toBeNull();
-        if (!alertItem) throw new Error('Expected AlertItem');
-
-        expect(alertItem.type).toBe('transit');
-        expect(alertItem.severity).toBe('medium');
-        expect(alertItem.iconName).toBe('directions_bus');
-        expect(alertItem.description).toContain('Bus 52');
-        expect(alertItem.description).toContain('Detour in effect');
-        expect(alertItem.metadata?.source).toBe('TTC Control');
-        expect(warn).not.toHaveBeenCalled();
-        warn.mockRestore();
-    });
-
-    it.each([
-        {
-            routeType: 'Streetcar',
-            effect: 'SIGNIFICANT_DELAYS',
-            expectedIcon: 'tram',
-        },
-        {
-            routeType: 'Elevator',
-            effect: 'ACCESSIBILITY_ISSUE',
-            expectedIcon: 'elevator',
-        },
-    ])(
-        'maps transit route type $routeType to icon $expectedIcon',
-        ({ routeType, effect, expectedIcon }) => {
-            const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
-            const alertItem = AlertService.mapUnifiedAlertToAlertItem({
-                id: `transit:${routeType}`,
-                source: 'transit',
-                external_id: `x-${routeType}`,
-                is_active: true,
-                timestamp,
-                title: `${routeType} alert`,
-                location: { name: 'TTC', lat: null, lng: null },
-                meta: {
-                    route_type: routeType,
-                    route: null,
-                    severity: null,
-                    effect,
-                    source_feed: 'static',
-                    alert_type: null,
-                    description: null,
-                    url: null,
-                    direction: null,
-                    cause: null,
-                    stop_start: null,
-                    stop_end: null,
-                },
-            });
-
-            expect(alertItem).not.toBeNull();
-            if (!alertItem) throw new Error('Expected AlertItem');
-            expect(alertItem.iconName).toBe(expectedIcon);
-            expect(warn).not.toHaveBeenCalled();
-            warn.mockRestore();
-        },
-    );
-
-    it('maps transit alert to low severity when no critical severity or known effect exists', () => {
-        const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
-        const alertItem = AlertService.mapUnifiedAlertToAlertItem({
-            id: 'transit:low-severity',
-            source: 'transit',
-            external_id: 'low-severity',
-            is_active: true,
-            timestamp,
-            title: 'Transit notice',
-            location: { name: 'TTC', lat: null, lng: null },
-            meta: {
-                route_type: null,
-                route: null,
-                severity: 'Minor',
-                effect: 'OTHER_EFFECT',
-                source_feed: 'static',
-                alert_type: null,
-                description: null,
-                url: null,
-                direction: null,
-                cause: null,
-                stop_start: null,
-                stop_end: null,
-            },
-        });
-
-        expect(alertItem).not.toBeNull();
-        if (!alertItem) throw new Error('Expected AlertItem');
-        expect(alertItem.severity).toBe('low');
+        expect(presentation.metadata?.source).toBe('TTC Control');
+        expect(presentation.metadata?.routeType).toBe('Subway');
+        expect(presentation.metadata?.route).toBe('1');
+        expect(presentation.metadata?.effect).toBe('REDUCED_SERVICE');
+        expect(presentation.metadata?.direction).toBe('Both Ways');
+        expect(presentation.metadata?.sourceFeed).toBe('live-api');
         expect(warn).not.toHaveBeenCalled();
         warn.mockRestore();
     });
@@ -294,7 +179,6 @@ describe('AlertService', () => {
             'police',
         ]);
         expect(warn).toHaveBeenCalled();
-
         warn.mockRestore();
     });
 
@@ -343,54 +227,9 @@ describe('AlertService', () => {
         warn.mockRestore();
     });
 
-    it('keeps GO Transit alerts reachable via transit category filter', () => {
+    it('filters DomainAlert items by search query', () => {
         const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
-        const items = AlertService.mapUnifiedAlertsToAlertItems([
-            mockFireAlert,
-            {
-                id: 'transit:T1',
-                source: 'transit',
-                external_id: 'T1',
-                is_active: true,
-                timestamp,
-                title: 'Line 2 delay',
-                location: { name: 'Bloor Station', lat: null, lng: null },
-                meta: {
-                    route_type: 'Subway',
-                    route: '2',
-                    severity: null,
-                    effect: 'SIGNIFICANT_DELAYS',
-                    source_feed: 'live-api',
-                    alert_type: 'advisory',
-                    description: null,
-                    url: null,
-                    direction: null,
-                    cause: null,
-                    stop_start: null,
-                    stop_end: null,
-                },
-            },
-            mockGoTransitAlert,
-        ]);
-
-        const results = AlertService.search(items, {
-            query: '',
-            category: 'transit',
-            dateScope: 'all',
-        });
-
-        expect(results).toHaveLength(2);
-        expect(results.map((item) => item.type).sort()).toEqual([
-            'go_transit',
-            'transit',
-        ]);
-        expect(warn).not.toHaveBeenCalled();
-        warn.mockRestore();
-    });
-
-    it('filters items by search query', () => {
-        const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
-        const items = AlertService.mapUnifiedAlertsToAlertItems([
+        const items = AlertService.mapUnifiedAlertsToDomainAlerts([
             mockFireAlert,
             {
                 ...mockFireAlert,
@@ -406,7 +245,7 @@ describe('AlertService', () => {
             },
         ]);
 
-        const results = AlertService.search(items, {
+        const results = AlertService.searchDomainAlerts(items, {
             query: 'GAS',
             category: 'all',
             dateScope: 'all',
@@ -418,9 +257,9 @@ describe('AlertService', () => {
         warn.mockRestore();
     });
 
-    it('filters items by category', () => {
+    it('filters DomainAlert items by derived hazard category', () => {
         const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
-        const items = AlertService.mapUnifiedAlertsToAlertItems([
+        const items = AlertService.mapUnifiedAlertsToDomainAlerts([
             mockFireAlert,
             {
                 ...mockFireAlert,
@@ -436,7 +275,7 @@ describe('AlertService', () => {
             },
         ]);
 
-        const results = AlertService.search(items, {
+        const results = AlertService.searchDomainAlerts(items, {
             query: '',
             category: 'hazard',
             dateScope: 'all',
@@ -446,6 +285,141 @@ describe('AlertService', () => {
         expect(results[0].title).toBe('GAS LEAK');
         expect(warn).not.toHaveBeenCalled();
         warn.mockRestore();
+    });
+
+    it('sorts search results by timestamp descending', () => {
+        const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+        const nowIso = new Date().toISOString();
+        const olderIso = new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString();
+
+        const items = AlertService.mapUnifiedAlertsToDomainAlerts([
+            { ...mockFireAlert, id: 'fire:old', external_id: 'old', timestamp: olderIso },
+            { ...mockPoliceAlert, id: 'police:new', external_id: 'new', timestamp: nowIso },
+        ]);
+
+        const results = AlertService.searchDomainAlerts(items, {
+            query: '',
+            category: 'all',
+            dateScope: 'all',
+        });
+
+        expect(results).toHaveLength(2);
+        expect(results[0].id).toBe('police:new');
+        expect(results[1].id).toBe('fire:old');
+        expect(warn).not.toHaveBeenCalled();
+        warn.mockRestore();
+    });
+
+    it('applies timeLimit filter using parsed relative minutes', () => {
+        const nowIso = new Date().toISOString();
+        const twoHoursIso = new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString();
+
+        const items = AlertService.mapUnifiedAlertsToDomainAlerts([
+            { ...mockFireAlert, id: 'fire:recent', external_id: 'recent', timestamp: nowIso },
+            { ...mockPoliceAlert, id: 'police:old', external_id: 'old', timestamp: twoHoursIso },
+        ]);
+
+        const results = AlertService.searchDomainAlerts(items, {
+            query: '',
+            category: 'all',
+            timeLimit: 60,
+            dateScope: 'all',
+        });
+
+        expect(results).toHaveLength(1);
+        expect(results[0].id).toBe('fire:recent');
+    });
+
+    it('applies dateScope filters for today and yesterday', () => {
+        const nowIso = new Date().toISOString();
+        const oneDayIso = new Date(Date.now() - 25 * 60 * 60 * 1000).toISOString();
+        const twoDayIso = new Date(Date.now() - 49 * 60 * 60 * 1000).toISOString();
+
+        const items = AlertService.mapUnifiedAlertsToDomainAlerts([
+            { ...mockFireAlert, id: 'fire:today', external_id: 'today', timestamp: nowIso },
+            { ...mockPoliceAlert, id: 'police:yesterday', external_id: 'yesterday', timestamp: oneDayIso },
+            { ...mockGoTransitAlert, id: 'go_transit:twodays', external_id: 'twodays', timestamp: twoDayIso },
+        ]);
+
+        const todayResults = AlertService.searchDomainAlerts(items, {
+            query: '',
+            category: 'all',
+            dateScope: 'today',
+        });
+
+        const yesterdayResults = AlertService.searchDomainAlerts(items, {
+            query: '',
+            category: 'all',
+            dateScope: 'yesterday',
+        });
+
+        expect(todayResults.map((item) => item.id)).toEqual(['fire:today']);
+        expect(yesterdayResults.map((item) => item.id)).toEqual([
+            'police:yesterday',
+        ]);
+    });
+
+    it('matches search query across description, location, id, and type', () => {
+        const items = AlertService.mapUnifiedAlertsToDomainAlerts([
+            {
+                ...mockFireAlert,
+                id: 'fire:desc-match',
+                external_id: 'desc-match',
+                title: 'UNRELATED TITLE',
+                meta: {
+                    ...mockFireAlert.meta,
+                    event_num: 'desc-match',
+                },
+            },
+            {
+                ...mockPoliceAlert,
+                id: 'police:loc-match',
+                external_id: 'loc-match',
+                title: 'UNRELATED POLICE',
+                location: { name: 'Queen Street West', lat: null, lng: null },
+            },
+            {
+                ...mockGoTransitAlert,
+                id: 'go_transit:id-match',
+                external_id: 'id-match',
+                title: 'UNRELATED GO',
+            },
+            {
+                ...mockGoTransitAlert,
+                id: 'go_transit:type-match',
+                external_id: 'type-match',
+                title: 'Another GO',
+            },
+        ]);
+
+        const descResults = AlertService.searchDomainAlerts(items, {
+            query: 'event #desc-match',
+            category: 'all',
+            dateScope: 'all',
+        });
+        const locResults = AlertService.searchDomainAlerts(items, {
+            query: 'queen street west',
+            category: 'all',
+            dateScope: 'all',
+        });
+        const idResults = AlertService.searchDomainAlerts(items, {
+            query: 'id-match',
+            category: 'all',
+            dateScope: 'all',
+        });
+        const typeResults = AlertService.searchDomainAlerts(items, {
+            query: 'go_transit',
+            category: 'all',
+            dateScope: 'all',
+        });
+
+        expect(descResults.map((item) => item.id)).toEqual(['fire:desc-match']);
+        expect(locResults.map((item) => item.id)).toEqual(['police:loc-match']);
+        expect(idResults.map((item) => item.id)).toEqual(['go_transit:id-match']);
+        expect(typeResults.map((item) => item.id).sort()).toEqual([
+            'go_transit:id-match',
+            'go_transit:type-match',
+        ]);
     });
 
     it('returns null (and warns) for invalid unified alert resources', () => {
@@ -467,9 +441,8 @@ describe('AlertService', () => {
             },
         };
 
-        expect(AlertService.mapUnifiedAlertToAlertItem(invalid)).toBeNull();
+        expect(AlertService.mapUnifiedAlertToDomainAlert(invalid)).toBeNull();
         expect(warn).toHaveBeenCalled();
-
         warn.mockRestore();
     });
 });

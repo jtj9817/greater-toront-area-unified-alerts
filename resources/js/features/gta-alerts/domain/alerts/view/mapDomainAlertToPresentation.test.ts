@@ -5,7 +5,7 @@ import type { FireAlert } from '../fire/schema';
 import type { PoliceAlert } from '../police/schema';
 import type { GoTransitAlert } from '../transit/go/schema';
 import type { TtcTransitAlert } from '../transit/ttc/schema';
-import { mapDomainAlertToAlertItem } from './mapDomainAlertToAlertItem';
+import { mapDomainAlertToPresentation } from './mapDomainAlertToPresentation';
 
 function makeFireAlert(title = 'GAS LEAK'): FireAlert {
     return {
@@ -91,9 +91,9 @@ function makeGoAlert(): GoTransitAlert {
     };
 }
 
-describe('mapDomainAlertToAlertItem', () => {
+describe('mapDomainAlertToPresentation', () => {
     it('maps fire domain alert using derived hazard type and high severity styling', () => {
-        const alertItem = mapDomainAlertToAlertItem(makeFireAlert());
+        const alertItem = mapDomainAlertToPresentation(makeFireAlert());
 
         expect(alertItem.type).toBe('hazard');
         expect(alertItem.severity).toBe('high');
@@ -104,7 +104,7 @@ describe('mapDomainAlertToAlertItem', () => {
     });
 
     it('maps police domain alert preserving metadata', () => {
-        const alertItem = mapDomainAlertToAlertItem(makePoliceAlert());
+        const alertItem = mapDomainAlertToPresentation(makePoliceAlert());
 
         expect(alertItem.type).toBe('police');
         expect(alertItem.severity).toBe('high');
@@ -113,7 +113,7 @@ describe('mapDomainAlertToAlertItem', () => {
     });
 
     it('maps TTC transit domain alert with route-specific icon', () => {
-        const alertItem = mapDomainAlertToAlertItem(makeTransitAlert());
+        const alertItem = mapDomainAlertToPresentation(makeTransitAlert());
 
         expect(alertItem.type).toBe('transit');
         expect(alertItem.severity).toBe('high');
@@ -122,11 +122,20 @@ describe('mapDomainAlertToAlertItem', () => {
     });
 
     it('maps GO transit domain alert with GO-specific metadata', () => {
-        const alertItem = mapDomainAlertToAlertItem(makeGoAlert());
+        const alertItem = mapDomainAlertToPresentation(makeGoAlert());
 
         expect(alertItem.type).toBe('go_transit');
         expect(alertItem.severity).toBe('medium');
         expect(alertItem.iconName).toBe('train');
         expect(alertItem.metadata?.source).toBe('GO Transit');
+    });
+
+    it('falls back to Unknown location when domain alert location is null', () => {
+        const fire = makeFireAlert();
+        fire.location = null;
+
+        const alertItem = mapDomainAlertToPresentation(fire);
+
+        expect(alertItem.location).toBe('Unknown location');
     });
 });

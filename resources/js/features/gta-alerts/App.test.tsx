@@ -3,7 +3,7 @@ import React from 'react';
 import { describe, it, expect, vi } from 'vitest';
 
 import AlertsApp from './App';
-import type { UnifiedAlertResource } from './types';
+import type { UnifiedAlertResource } from './domain/alerts';
 
 function buildBaseProps(alerts: UnifiedAlertResource[]) {
     return {

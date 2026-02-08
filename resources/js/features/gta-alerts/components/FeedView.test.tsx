@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import { describe, it, expect } from 'vitest';
+import type { UnifiedAlertResource } from '../domain/alerts';
 import { AlertService } from '../services/AlertService';
-import type { UnifiedAlertResource } from '../types';
 import { FeedView } from './FeedView';
 
 describe('FeedView', () => {
