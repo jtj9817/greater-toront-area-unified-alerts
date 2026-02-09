@@ -43,12 +43,12 @@ Provide the final scripts and guides for production readiness.
 ## Phase 4: Final Quality Gate
 Verify the entire track meets the project's high standards.
 
-- [ ] Task: Full System Integration Test
-    - [ ] Run export on current local dataset
-    - [ ] Execute `db:verify-production-seed` on output
-    - [ ] Wipe a secondary test database and run the generated seeders
-    - [ ] Verify data fidelity (count, timestamps, relationships)
-- [ ] Task: Coverage and Linting Verification
-    - [ ] Execute `./vendor/bin/sail artisan test --coverage` (ensure >90% on new modules)
-    - [ ] Run `pint` for PHP code style compliance
-- [ ] Task: Conductor - User Manual Verification 'Phase 4: Final Quality Gate' (Protocol in workflow.md)
+- [x] Task: Full System Integration Test
+    - [x] Run export on current local dataset
+    - [x] Execute `db:verify-production-seed` on output
+    - [x] Wipe a secondary test database and run the generated seeders
+    - [x] Verify data fidelity (count, timestamps, relationships)
+- [x] Task: Coverage and Linting Verification
+    - [x] Execute `./vendor/bin/sail artisan test --coverage` (ensure >90% on new modules)
+    - [x] Run `pint` for PHP code style compliance
+- [x] Task: Conductor - User Manual Verification 'Phase 4: Final Quality Gate' (Protocol in workflow.md)
