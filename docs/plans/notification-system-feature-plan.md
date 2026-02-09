@@ -2,7 +2,9 @@
 
 ## Executive Summary
 
-This document outlines the planning for a comprehensive **Notification System** feature for GTA Alerts. The system will enable users to receive personalized, real-time alerts based on their specific needs, locations, and preferences. This is a foundational feature that will significantly increase user engagement and app value.
+This document outlines the planning for a focused **In-App Notification System** feature for GTA Alerts. The system will enable users to receive personalized, real-time alerts based on their specific needs, locations, and preferences — all delivered within the application. By constraining notifications to in-app only, we maintain simplicity, reduce infrastructure complexity, and avoid external service dependencies.
+
+**Scope Constraint:** This plan covers **in-app push notifications only**. SMS and Email delivery methods are intentionally excluded to keep the system simple and self-contained.
 
 ---
 
@@ -34,9 +36,8 @@ This document outlines the planning for a comprehensive **Notification System** 
 
 **Preferred Channels:**
 
-- Push notifications (primary)
-- Email digest (morning overview)
-- SMS for critical alerts
+- In-app push notifications (primary)
+- In-app notification center (morning overview)
 
 **Typical Schedule:**
 
@@ -65,21 +66,19 @@ This document outlines the planning for a comprehensive **Notification System** 
 
 - **Geofenced alerts** (within 1-2km of home)
 - **Emergency-only filtering** (fire, police, major incidents)
-- **Quiet hours** respect (no notifications during deep work)
 - **End-of-day digest** of neighborhood activity
 - **Severe weather integration** with emergency alerts
 
 **Preferred Channels:**
 
-- Push notifications (emergency only)
-- Daily email digest
+- In-app push notifications (emergency only)
 - Dashboard badge (passive awareness)
 
 **Notification Preferences:**
 
 - Emergency incidents: Immediate
 - Non-emergency: Batch into digest
-- Quiet hours: 9:00 AM - 5:00 PM (work time)
+- Severity filter: Major/Critical only (reduces noise during work)
 
 ---
 
@@ -110,8 +109,8 @@ This document outlines the planning for a comprehensive **Notification System** 
 
 **Preferred Channels:**
 
-- Push notifications (immediate for safety)
-- SMS for critical alerts
+- In-app push notifications (immediate for safety)
+- In-app notification center
 - Family sharing (partner also gets alerts)
 
 **Key Locations to Monitor:**
@@ -151,9 +150,9 @@ This document outlines the planning for a comprehensive **Notification System** 
 
 **Preferred Channels:**
 
-- SMS (most reliable, familiar)
-- Phone call option for severe emergencies
-- Large-format push notifications
+- In-app push notifications (reliable, immediate)
+- Large-format notifications with high contrast
+- Vibration + audio cues for accessibility
 
 **Accessibility Requirements:**
 
@@ -190,8 +189,8 @@ This document outlines the planning for a comprehensive **Notification System** 
 
 **Preferred Channels:**
 
-- Push notifications (immediate for elevator outages)
-- SMS backup
+- In-app push notifications (immediate for elevator outages)
+- Persistent banner notifications (until acknowledged)
 - Integration with accessibility apps
 
 **Critical Features:**
@@ -228,7 +227,7 @@ This document outlines the planning for a comprehensive **Notification System** 
 
 **Preferred Channels:**
 
-- Push notifications
+- In-app push notifications
 - Smartwatch integration
 - Route planning app integration
 
@@ -258,7 +257,6 @@ This document outlines the planning for a comprehensive **Notification System** 
 
 **Notification Needs:**
 
-- **Schedule-aware delivery** (respect sleep hours)
 - **Night transit** specific alerts (Blue Night routes)
 - **Safety alerts** for late-night travel areas
 - **24-hour service** disruption info
@@ -266,15 +264,10 @@ This document outlines the planning for a comprehensive **Notification System** 
 
 **Preferred Channels:**
 
-- Push notifications (night mode)
-- SMS for critical
-- Silent/vibrate mode during sleep
+- In-app push notifications
+- Silent/vibrate mode (controlled via OS settings)
 
-**Schedule Considerations:**
-
-- Customizable quiet hours
-- Night shift mode (6 PM - 6 AM active)
-- Weekend/holiday service changes
+**Note:** Uses OS Do Not Disturb during sleep hours instead of app-level quiet hours
 
 ---
 
@@ -304,9 +297,8 @@ This document outlines the planning for a comprehensive **Notification System** 
 
 **Preferred Channels:**
 
-- Push notifications (primary)
+- In-app push notifications (primary)
 - Integration with campus apps
-- Discord/Slack bot option
 
 **Key Locations:**
 
@@ -344,8 +336,8 @@ This document outlines the planning for a comprehensive **Notification System** 
 
 **Preferred Channels:**
 
-- Email (business hours)
-- Push notifications
+- In-app push notifications
+- In-app notification center
 - Dashboard analytics view
 
 **Business Metrics:**
@@ -383,7 +375,7 @@ This document outlines the planning for a comprehensive **Notification System** 
 **Preferred Channels:**
 
 - Radio integration
-- Secure push notifications
+- Secure in-app push notifications
 - CAD system integration
 - Real-time map view
 
@@ -421,7 +413,7 @@ This document outlines the planning for a comprehensive **Notification System** 
 
 **Preferred Channels:**
 
-- Push notifications
+- In-app push notifications
 - Calendar integration
 - Event app integration
 
@@ -460,7 +452,7 @@ This document outlines the planning for a comprehensive **Notification System** 
 
 **Preferred Channels:**
 
-- Push notifications
+- In-app push notifications
 - Visual map overlays
 - Multi-language support
 
@@ -477,16 +469,15 @@ This document outlines the planning for a comprehensive **Notification System** 
 
 ### Core Notification Features
 
-| Feature                 | Priority | Personas                      | Description                       |
-| ----------------------- | -------- | ----------------------------- | --------------------------------- |
-| Geofenced Alerts        | P0       | All                           | Location-based notification zones |
-| Route Subscriptions     | P0       | Transit users                 | Follow specific TTC/GO routes     |
-| Schedule-Based Delivery | P1       | Remote workers, shift workers | Respect work/sleep hours          |
-| Severity Filtering      | P0       | All                           | Only notify on relevant severity  |
-| Multi-Channel Support   | P1       | All                           | Push, SMS, Email options          |
-| Digest Mode             | P1       | Remote workers                | Batched daily summaries           |
-| Real-Time Updates       | P0       | Commuters                     | Live incident updates             |
-| Alternative Suggestions | P1       | Commuters                     | Show alternate routes             |
+| Feature                 | Priority | Personas       | Description                       |
+| ----------------------- | -------- | -------------- | --------------------------------- |
+| Geofenced Alerts        | P0       | All            | Location-based notification zones |
+| Route Subscriptions     | P0       | Transit users  | Follow specific TTC/GO routes     |
+| Severity Filtering      | P0       | All            | Only notify on relevant severity  |
+| In-App Delivery         | P0       | All            | Push notifications within app     |
+| Digest Mode             | P1       | Remote workers | Batched daily summaries           |
+| Real-Time Updates       | P0       | Commuters      | Live incident updates             |
+| Alternative Suggestions | P1       | Commuters      | Show alternate routes             |
 
 ### Accessibility Features
 
@@ -518,27 +509,27 @@ This document outlines the planning for a comprehensive **Notification System** 
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│                    NOTIFICATION SERVICE                          │
+│                 IN-APP NOTIFICATION SERVICE                      │
 ├─────────────────────────────────────────────────────────────────┤
 │                                                                  │
 │  ┌─────────────────┐    ┌─────────────────┐    ┌─────────────┐  │
-│  │ User Preferences│    │ Alert Processing│    │  Delivery   │  │
-│  │   Manager       │───▶│     Engine      │───▶│  Dispatcher │  │
+│  │ User Preferences│    │ Alert Processing│    │  In-App     │  │
+│  │   Manager       │───▶│     Engine      │───▶│  Delivery   │  │
 │  │                 │    │                 │    │             │  │
 │  │ • Geofences     │    │ • Filter rules  │    │ • Push      │  │
-│  │ • Routes        │    │ • Severity check│    │ • SMS       │  │
-│  │ • Schedules     │    │ • User matching │    │ • Email     │  │
-│  │ • Channels      │    │ • Throttling    │    │ • WebSocket │  │
+│  │ • Routes        │    │ • Severity check│    │ • Banner    │  │
+│  │ • Severity      │    │ • User matching │    │ • In-App    │  │
+│  │ • Digest Mode   │    │ • Throttling    │    │ • Real-time │  │
 │  └─────────────────┘    └─────────────────┘    └─────────────┘  │
 │           │                                               │      │
 │           ▼                                               ▼      │
 │  ┌─────────────────┐                            ┌─────────────┐ │
-│  │  Subscription   │                            │   Queue     │ │
-│  │    Service      │                            │  Workers    │ │
+│  │  Subscription   │                            │  In-App     │ │
+│  │    Service      │                            │  Queue      │ │
 │  │                 │                            │             │ │
 │  │ • Create/Update │                            │ • Rate limit│ │
 │  │ • Unsubscribe   │                            │ • Retry     │ │
-│  │ • Batch ops     │                            │ • Batch     │ │
+│  │ • Batch ops     │                            │ • Digest    │ │
 │  └─────────────────┘                            └─────────────┘ │
 │                                                                  │
 └─────────────────────────────────────────────────────────────────┘
@@ -547,17 +538,17 @@ This document outlines the planning for a comprehensive **Notification System** 
 ### Database Schema Additions
 
 ```php
-// notifications table
+// notification_preferences table
 Schema::create('notification_preferences', function (Blueprint $table) {
     $table->id();
     $table->foreignId('user_id')->constrained()->onDelete('cascade');
-    $table->string('channel'); // 'push', 'sms', 'email'
+    // In-app only - no channel selection needed
     $table->string('alert_type'); // 'transit', 'emergency', 'accessibility'
     $table->string('severity_threshold'); // 'all', 'minor', 'major', 'critical'
     $table->json('geofences'); // Array of location zones
     $table->json('subscribed_routes'); // TTC/GO route IDs
-    $table->json('schedule'); // Quiet hours, active times
-    $table->boolean('digest_mode')->default(false);
+    $table->boolean('digest_mode')->default(false); // In-app digest
+    $table->boolean('push_enabled')->default(true);
     $table->timestamps();
 });
 
@@ -566,10 +557,11 @@ Schema::create('notification_logs', function (Blueprint $table) {
     $table->id();
     $table->foreignId('user_id')->constrained();
     $table->foreignId('alert_id')->nullable();
-    $table->string('channel');
-    $table->string('status'); // 'sent', 'delivered', 'failed', 'read'
+    $table->string('delivery_method')->default('push'); // 'push', 'in-app'
+    $table->string('status'); // 'sent', 'delivered', 'failed', 'read', 'dismissed'
     $table->timestamp('sent_at');
     $table->timestamp('read_at')->nullable();
+    $table->timestamp('dismissed_at')->nullable();
     $table->json('metadata');
     $table->timestamps();
 });
@@ -581,15 +573,15 @@ Schema::create('notification_logs', function (Blueprint $table) {
 
 ### Phase 1: MVP (Weeks 1-4)
 
-**Goal:** Basic notification infrastructure
+**Goal:** Basic in-app notification infrastructure
 
 **Features:**
 
 - User preference storage
-- Push notification integration (FCM/APNS)
+- In-app push notification system
 - Simple geofenced alerts
 - Severity-based filtering
-- Email digest (daily)
+- In-app notification center with daily digest
 
 **Personas Served:**
 
@@ -598,20 +590,18 @@ Schema::create('notification_logs', function (Blueprint $table) {
 
 ### Phase 2: Enhanced Targeting (Weeks 5-8)
 
-**Goal:** Precision delivery
+**Goal:** Precision in-app delivery
 
 **Features:**
 
 - Route-specific subscriptions
-- Schedule-based quiet hours
-- SMS channel
-- Real-time updates
+- Real-time in-app updates
 - Alternative route suggestions
+- Persistent banner notifications
 
 **Personas Served:**
 
 - Daily Commuters (full feature set)
-- Shift Workers (schedule awareness)
 - Parents (school zone alerts)
 
 ### Phase 3: Accessibility & Inclusion (Weeks 9-12)
@@ -684,7 +674,7 @@ Schema::create('notification_logs', function (Blueprint $table) {
 
 - **Route Subscriptions:** % of users subscribing to routes
 - **Geofence Setup:** % with custom location zones
-- **Channel Mix:** Push vs SMS vs Email usage
+- **Notification Center Usage:** % checking notification center regularly
 - **Digest Mode:** % using digest vs real-time
 
 ### Technical Performance
@@ -719,10 +709,11 @@ Schema::create('notification_logs', function (Blueprint $table) {
 ## Open Questions
 
 1. **Privacy:** How precise should geofencing be? (Exact address vs neighborhood)
-2. **Cost:** SMS costs for high-volume users - freemium model?
+2. **Storage:** How long should notification history be retained?
 3. **Partnerships:** Should we integrate with TTC/GO official apps?
 4. **Moderation:** User-generated alerts - verification process?
 5. **International:** Support for visitors (multiple languages)?
+6. **Battery:** How to balance real-time geofencing with battery life?
 
 ---
 
