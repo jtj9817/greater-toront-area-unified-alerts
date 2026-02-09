@@ -111,27 +111,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
                         )}
                     </button>
                 ))}
-
-                <div className="mt-4 border-t border-white/5 pt-4">
-                    {!isCollapsed && (
-                        <p className="mb-2 overflow-hidden px-3 text-[10px] font-bold tracking-widest whitespace-nowrap text-text-secondary/50 uppercase">
-                            System
-                        </p>
-                    )}
-                    <button
-                        className={`flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-gray-400 transition-all hover:bg-white/5 hover:text-white ${isCollapsed ? 'md:justify-center' : ''}`}
-                    >
-                        <Icon name="dns" />
-                        {!isCollapsed && (
-                            <span className="flex-1 text-left text-sm font-medium">
-                                Status
-                            </span>
-                        )}
-                        {!isCollapsed && (
-                            <span className="h-2 w-2 rounded-full bg-forest shadow-[0_0_8px_rgba(61,88,75,0.8)]"></span>
-                        )}
-                    </button>
-                </div>
             </nav>
 
             {/* Profile & Collapse Toggle Section */}
