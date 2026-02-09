@@ -40,6 +40,24 @@ Expected behavior:
 4. Lists generated files (including split `ProductionDataSeeder_PartN.php` files when applicable).
 5. Prompts to stage/commit generated files.
 
+## Step 1.5: Run Final Quality Gate Verification
+
+Before promoting generated seeders, run the Phase 4 end-to-end verification script:
+
+```bash
+php tests/manual/verify_production_data_migration_phase_4_final_quality_gate.php
+```
+
+This script validates the full migration path in isolated local SQLite databases:
+
+1. Seeds deterministic source data.
+2. Runs `db:export-to-seeder`.
+3. Runs `db:verify-production-seed`.
+4. Replays generated seeders into a fresh secondary database.
+5. Verifies row-count and row-level fidelity (including timestamps).
+6. Re-runs seeders to confirm idempotency.
+7. Runs Pint and command test coverage gates (`--coverage --min=90`) for migration commands.
+
 ## Step 2: Review And Commit
 
 1. Inspect generated files in `database/seeders/`.

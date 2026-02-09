@@ -35,7 +35,8 @@ docs/
 │   ├── ttc-transit.md
 │   └── go-transit.md
 ├── plans/
-│   └── frontend-typed-alert-domain-plan.md
+│   ├── frontend-typed-alert-domain-plan.md
+│   └── production-data-migration.md
 ├── archive/
 │   ├── query-refinement-testing.md
 │   └── unified-alerts-design.md
@@ -70,6 +71,12 @@ The unified feed currently aggregates four source types:
 ## Deployment Docs
 
 - **[deployment/production-seeding.md](deployment/production-seeding.md)** - Production data migration and Forge seeding runbook
+  - Includes Phase 4 final quality gate command:
+    `php tests/manual/verify_production_data_migration_phase_4_final_quality_gate.php`
+
+## Plan Docs
+
+- **[plans/production-data-migration.md](plans/production-data-migration.md)** - Implementation and completion record for production data migration/export tooling.
 
 ## Implementation Status
 
