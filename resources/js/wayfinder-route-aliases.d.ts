@@ -20,6 +20,11 @@ declare module '@/routes/login' {
     export { default } from '@/routes/login/index';
 }
 
+declare module '@/routes/notifications' {
+    export * from '@/routes/notifications/index';
+    export { default } from '@/routes/notifications/index';
+}
+
 declare module '@/routes/password' {
     export * from '@/routes/password/index';
     export { default } from '@/routes/password/index';

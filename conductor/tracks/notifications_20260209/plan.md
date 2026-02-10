@@ -49,16 +49,16 @@ Deliver only matching notifications in real-time and prepare digest generation.
 ## Phase 3: Frontend - Settings & Toasts
 Build the Phase 1 UI controls and real-time in-app delivery UX.
 
-- [ ] Task: Build Notification Settings UI
-    - [ ] Create `NotificationSettings` UI with controls for source/route filters
-    - [ ] Add severity threshold selector
-    - [ ] Add simple geofence editor (initial zone list or radius presets)
-    - [ ] Add digest mode and push toggle controls
-    - [ ] Integrate with preference API
-- [ ] Task: Implement Real-time Toast Component
-    - [ ] Install and configure `laravel-echo` and `pusher-js`
-    - [ ] Create persistent `NotificationToast` layout wrapper
-    - [ ] Verify toasts appear for matching mock WebSocket events only
+- [x] Task: Build Notification Settings UI
+    - [x] Create `NotificationSettings` UI with controls for source/route filters
+    - [x] Add severity threshold selector
+    - [x] Add simple geofence editor (initial zone list or radius presets)
+    - [x] Add digest mode and push toggle controls
+    - [x] Integrate with preference API
+- [x] Task: Implement Real-time Toast Component
+    - [x] Install and configure `laravel-echo` and `pusher-js`
+    - [x] Create persistent `NotificationToast` layout wrapper
+    - [x] Verify toasts appear for matching mock WebSocket events only
 - [ ] Task: Conductor - User Manual Verification 'Phase 3: Frontend - Settings & Toasts' (Protocol in workflow.md)
 
 ## Phase 4: Notification Center (Inbox)

@@ -3,6 +3,7 @@ import { AlertDetailsView } from './components/AlertDetailsView';
 import { BottomNav } from './components/BottomNav';
 import { FeedView } from './components/FeedView';
 import { Icon } from './components/Icon';
+import { NotificationToastLayer } from './components/NotificationToastLayer';
 import { SavedView } from './components/SavedView';
 import { SettingsView } from './components/SettingsView';
 import { Sidebar } from './components/Sidebar';
@@ -20,9 +21,53 @@ interface AppProps {
         status: 'all' | 'active' | 'cleared';
     };
     latestFeedUpdatedAt: string | null;
+    authUserId: number | null;
 }
 
-const App: React.FC<AppProps> = ({ alerts, filters, latestFeedUpdatedAt }) => {
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+    typeof value === 'object' && value !== null;
+
+const extractRouteOptions = (resources: UnifiedAlertResource[]): string[] => {
+    const options = new Set<string>();
+
+    for (const resource of resources) {
+        if (!isRecord(resource.meta)) {
+            continue;
+        }
+
+        if (resource.source === 'transit') {
+            const route = resource.meta.route;
+
+            if (typeof route === 'string' && route.trim().length > 0) {
+                options.add(route.trim());
+            }
+        }
+
+        if (resource.source === 'go_transit') {
+            const corridorCode = resource.meta.corridor_code;
+
+            if (
+                typeof corridorCode === 'string' &&
+                corridorCode.trim().length > 0
+            ) {
+                options.add(`GO-${corridorCode.trim()}`);
+            }
+        }
+    }
+
+    return Array.from(options).sort((left, right) =>
+        left.localeCompare(right, undefined, {
+            numeric: true,
+        }),
+    );
+};
+
+const App: React.FC<AppProps> = ({
+    alerts,
+    filters,
+    latestFeedUpdatedAt,
+    authUserId,
+}) => {
     const [currentView, setCurrentView] = useState('feed');
     const [activeAlertId, setActiveAlertId] = useState<string | null>(null);
     const [searchQuery, setSearchQuery] = useState('');
@@ -50,6 +95,11 @@ const App: React.FC<AppProps> = ({ alerts, filters, latestFeedUpdatedAt }) => {
             total: typeof meta.total === 'number' ? meta.total : null,
         };
     }, [alerts.links, alerts.meta]);
+
+    const routeOptions = useMemo(
+        () => extractRouteOptions(alerts.data),
+        [alerts.data],
+    );
 
     // Use the local alerts to find the active alert
     const activeAlert = useMemo<DomainAlert | null>(() => {
@@ -85,7 +135,12 @@ const App: React.FC<AppProps> = ({ alerts, filters, latestFeedUpdatedAt }) => {
             case 'zones':
                 return <ZonesView />;
             case 'settings':
-                return <SettingsView />;
+                return (
+                    <SettingsView
+                        authUserId={authUserId}
+                        availableRoutes={routeOptions}
+                    />
+                );
             case 'feed':
             default:
                 return (
@@ -251,6 +306,7 @@ const App: React.FC<AppProps> = ({ alerts, filters, latestFeedUpdatedAt }) => {
                     onNavigate={handleNavigate}
                 />
             </div>
+            <NotificationToastLayer authUserId={authUserId} />
         </div>
     );
 };

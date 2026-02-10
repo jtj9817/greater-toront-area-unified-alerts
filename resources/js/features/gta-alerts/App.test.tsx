@@ -14,6 +14,7 @@ function buildBaseProps(alerts: UnifiedAlertResource[]) {
         },
         filters: { status: 'all' as const },
         latestFeedUpdatedAt: null,
+        authUserId: null,
     };
 }
 
