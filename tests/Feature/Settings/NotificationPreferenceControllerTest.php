@@ -115,3 +115,151 @@ test('notification settings updates only affect the authenticated user', functio
     expect(NotificationPreference::query()->where('user_id', $user->id)->firstOrFail()->severity_threshold)
         ->toBe('minor');
 });
+
+test('notification settings update rejects invalid alert type and push toggle', function () {
+    $user = User::factory()->create();
+
+    $response = $this
+        ->actingAs($user)
+        ->patchJson('/settings/notifications', [
+            'alert_type' => 'weather',
+            'push_enabled' => 'enabled',
+        ]);
+
+    $response
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors([
+            'alert_type',
+            'push_enabled',
+        ]);
+});
+
+test('notification settings update enforces geofence coordinate and radius boundaries', function () {
+    $user = User::factory()->create();
+
+    $this
+        ->actingAs($user)
+        ->patchJson('/settings/notifications', [
+            'geofences' => [
+                ['name' => 'Boundary', 'lat' => 90, 'lng' => 180, 'radius_km' => 100],
+            ],
+        ])
+        ->assertOk();
+
+    $response = $this
+        ->actingAs($user)
+        ->patchJson('/settings/notifications', [
+            'geofences' => [
+                ['name' => 'Invalid A', 'lat' => 90.0001, 'lng' => 180, 'radius_km' => 1],
+                ['name' => 'Invalid B', 'lat' => 43.7, 'lng' => -180.0001, 'radius_km' => 1],
+                ['name' => 'Invalid C', 'lat' => 43.7, 'lng' => -79.4, 'radius_km' => 0],
+            ],
+        ]);
+
+    $response
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors([
+            'geofences.0.lat',
+            'geofences.1.lng',
+            'geofences.2.radius_km',
+        ]);
+});
+
+test('partial notification settings patch preserves untouched fields', function () {
+    $user = User::factory()->create();
+
+    NotificationPreference::factory()->create([
+        'user_id' => $user->id,
+        'alert_type' => 'transit',
+        'severity_threshold' => 'major',
+        'geofences' => [
+            ['name' => 'Home', 'lat' => 43.7, 'lng' => -79.4, 'radius_km' => 2],
+        ],
+        'subscribed_routes' => ['1', 'GO-LW'],
+        'digest_mode' => false,
+        'push_enabled' => true,
+    ]);
+
+    $this
+        ->actingAs($user)
+        ->patchJson('/settings/notifications', [
+            'severity_threshold' => 'critical',
+        ])
+        ->assertOk()
+        ->assertJsonPath('data.alert_type', 'transit')
+        ->assertJsonPath('data.severity_threshold', 'critical')
+        ->assertJsonPath('data.subscribed_routes', ['1', 'GO-LW'])
+        ->assertJsonPath('data.digest_mode', false)
+        ->assertJsonPath('data.push_enabled', true);
+});
+
+test('notification settings update accepts empty arrays for geofences and subscribed routes', function () {
+    $user = User::factory()->create();
+
+    $this
+        ->actingAs($user)
+        ->patchJson('/settings/notifications', [
+            'geofences' => [],
+            'subscribed_routes' => [],
+        ])
+        ->assertOk()
+        ->assertJsonPath('data.geofences', [])
+        ->assertJsonPath('data.subscribed_routes', []);
+});
+
+test('notification settings update rejects null scalar preference fields', function () {
+    $user = User::factory()->create();
+
+    $response = $this
+        ->actingAs($user)
+        ->patchJson('/settings/notifications', [
+            'alert_type' => null,
+            'severity_threshold' => null,
+            'digest_mode' => null,
+            'push_enabled' => null,
+        ]);
+
+    $response
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors([
+            'alert_type',
+            'severity_threshold',
+            'digest_mode',
+            'push_enabled',
+        ]);
+});
+
+test('notification settings update rejects unknown geofence keys', function () {
+    $user = User::factory()->create();
+
+    $response = $this
+        ->actingAs($user)
+        ->patchJson('/settings/notifications', [
+            'geofences' => [
+                [
+                    'name' => 'Home',
+                    'lat' => 43.7,
+                    'lng' => -79.4,
+                    'radius_km' => 2,
+                    'extra' => 'not-allowed',
+                ],
+            ],
+        ]);
+
+    $response
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors([
+            'geofences.0',
+        ]);
+});
+
+test('repeated notification settings fetch and update do not create duplicate preference rows', function () {
+    $user = User::factory()->create();
+
+    $this->actingAs($user)->getJson('/settings/notifications')->assertOk();
+    $this->actingAs($user)->getJson('/settings/notifications')->assertOk();
+    $this->actingAs($user)->patchJson('/settings/notifications', ['digest_mode' => true])->assertOk();
+    $this->actingAs($user)->patchJson('/settings/notifications', ['digest_mode' => false])->assertOk();
+
+    expect(NotificationPreference::query()->where('user_id', $user->id)->count())->toBe(1);
+});
