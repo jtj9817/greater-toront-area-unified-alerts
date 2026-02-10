@@ -2,6 +2,20 @@
 
 All notable documentation-relevant changes are tracked here.
 
+## [February 10, 2026] - Notifications Phase 1 Manual Verification
+
+### Added
+- Added Phase 1 notifications manual verification runner:
+  - `tests/manual/verify_notifications_phase_1_data_model_preferences.php`
+  - Covers schema/index checks, model validation/scopes, and settings
+    controller GET/PATCH behavior with rollback cleanup.
+
+### Changed
+- Marked notifications track Phase 1 manual verification task complete in:
+  - `conductor/tracks/notifications_20260209/plan.md`
+  - Verification evidence log:
+    `storage/logs/manual_tests/notifications_phase_1_data_model_preferences_2026_02_10_023053.log`
+
 ## [February 09, 2026] - Production Data Migration Final Quality Gate
 
 ### Added

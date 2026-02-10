@@ -23,7 +23,7 @@ Establish schema and preference APIs that match the feature plan fields.
     - [x] Implement `GET /settings/notifications` and `PATCH /settings/notifications`
     - [x] Support route subscriptions, severity threshold, geofences, digest mode, and push toggle
     - [x] Write feature tests for authz and payload validation
-- [ ] Task: Conductor - User Manual Verification 'Phase 1: Data Model & Preferences' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 1: Data Model & Preferences' (Protocol in workflow.md; verified 2026-02-10, log: `storage/logs/manual_tests/notifications_phase_1_data_model_preferences_2026_02_10_023053.log`)
 
 ## Phase 2: Notification Engine & Broadcasting
 Deliver only matching notifications in real-time and prepare digest generation.
