@@ -2,6 +2,20 @@
 
 All notable documentation-relevant changes are tracked here.
 
+## [February 10, 2026] - Notifications Phase 3 Manual Verification
+
+### Added
+- Added Phase 3 notifications manual verification runner:
+  - `tests/manual/verify_notifications_phase_3_frontend_settings_toasts.php`
+  - Covers settings/toast frontend contract checks, route wiring assertions,
+    and targeted Vitest execution for Phase 3 regressions.
+
+### Changed
+- Marked notifications track Phase 3 manual verification task complete in:
+  - `conductor/tracks/notifications_20260209/plan.md`
+  - Verification evidence log:
+    `storage/logs/manual_tests/notifications_phase_3_frontend_settings_toasts_2026_02_10_202027.log`
+
 ## [February 10, 2026] - Notifications Phase 1 Manual Verification
 
 ### Added

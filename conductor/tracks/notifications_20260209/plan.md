@@ -59,7 +59,7 @@ Build the Phase 1 UI controls and real-time in-app delivery UX.
     - [x] Install and configure `laravel-echo` and `pusher-js`
     - [x] Create persistent `NotificationToast` layout wrapper
     - [x] Verify toasts appear for matching mock WebSocket events only
-- [ ] Task: Conductor - User Manual Verification 'Phase 3: Frontend - Settings & Toasts' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 3: Frontend - Settings & Toasts' (Protocol in workflow.md; verified 2026-02-10, log: `storage/logs/manual_tests/notifications_phase_3_frontend_settings_toasts_2026_02_10_202027.log`)
 
 ## Phase 4: Notification Center (Inbox)
 Implement persistent history with read/dismiss plus digest visibility.
