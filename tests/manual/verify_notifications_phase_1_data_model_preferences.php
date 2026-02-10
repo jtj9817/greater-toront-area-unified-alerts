@@ -157,9 +157,6 @@ function validationErrorKeys(array $payload, bool $partial): array
     return $validator->errors()->keys();
 }
 
-/**
- * @return NotificationPreferenceUpdateRequest
- */
 function makeValidatedPreferenceRequest(User $user, array $payload): NotificationPreferenceUpdateRequest
 {
     $request = NotificationPreferenceUpdateRequest::create(

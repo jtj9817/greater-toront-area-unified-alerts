@@ -155,7 +155,7 @@ try {
         DB::connection()->getPdo();
     } catch (Throwable $e) {
         throw new RuntimeException(
-            "Database connection failed. Start Sail with testing profile and run this script via scripts/run-manual-test.sh.",
+            'Database connection failed. Start Sail with testing profile and run this script via scripts/run-manual-test.sh.',
             previous: $e
         );
     }

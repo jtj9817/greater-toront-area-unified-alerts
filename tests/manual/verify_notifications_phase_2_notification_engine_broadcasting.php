@@ -216,7 +216,7 @@ try {
     assertTrue(file_exists($channelsPath), 'routes/channels.php exists');
     $channelsContents = file_get_contents($channelsPath);
     assertTrue(is_string($channelsContents), 'routes/channels.php is readable');
-    assertContainsText("users.{userId}.notifications", $channelsContents, 'private user notifications channel is registered');
+    assertContainsText('users.{userId}.notifications', $channelsContents, 'private user notifications channel is registered');
 
     $schedule = app(Schedule::class);
     $digestScheduleEvent = null;
