@@ -3,20 +3,23 @@
 namespace App\Services\Notifications;
 
 use App\Models\NotificationPreference;
-use Illuminate\Support\Collection;
+use Illuminate\Support\LazyCollection;
 
 class NotificationMatcher
 {
     /**
-     * @return Collection<int, NotificationPreference>
+     * @return LazyCollection<int, NotificationPreference>
      */
-    public function matchingPreferences(NotificationAlert $alert): Collection
+    public function matchingPreferences(NotificationAlert $alert): LazyCollection
     {
+        $minimumSeverity = NotificationSeverity::rank($alert->severity);
+
         return NotificationPreference::query()
             ->where('push_enabled', true)
-            ->get()
-            ->filter(fn (NotificationPreference $preference): bool => $this->matches($preference, $alert))
-            ->values();
+            ->whereIn('alert_type', $this->candidateAlertTypes($alert))
+            ->whereIn('severity_threshold', $this->candidateSeverityThresholds($minimumSeverity))
+            ->cursor()
+            ->filter(fn (NotificationPreference $preference): bool => $this->matches($preference, $alert));
     }
 
     public function matches(NotificationPreference $preference, NotificationAlert $alert): bool
@@ -45,6 +48,39 @@ class NotificationMatcher
             'accessibility' => $this->isAccessibilityAlert($alert),
             default => false,
         };
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    private function candidateAlertTypes(NotificationAlert $alert): array
+    {
+        $types = ['all'];
+
+        if (in_array($alert->source, ['transit', 'go_transit'], true)) {
+            $types[] = 'transit';
+
+            if ($this->isAccessibilityAlert($alert)) {
+                $types[] = 'accessibility';
+            }
+        }
+
+        if (in_array($alert->source, ['fire', 'police'], true)) {
+            $types[] = 'emergency';
+        }
+
+        return array_values(array_unique($types));
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    private function candidateSeverityThresholds(int $minimumSeverity): array
+    {
+        return array_values(array_filter(
+            NotificationPreference::SEVERITY_THRESHOLDS,
+            static fn (string $threshold): bool => NotificationSeverity::rank($threshold) <= $minimumSeverity,
+        ));
     }
 
     private function matchesSeverityThreshold(NotificationPreference $preference, NotificationAlert $alert): bool

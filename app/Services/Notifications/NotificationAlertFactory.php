@@ -12,9 +12,9 @@ class NotificationAlertFactory
     public function fromFireIncident(FireIncident $incident): NotificationAlert
     {
         $severity = match (true) {
-            $incident->alarm_level >= 2 => 'critical',
-            $incident->alarm_level === 1 => 'major',
-            default => 'minor',
+            $incident->alarm_level >= 2 => NotificationSeverity::CRITICAL,
+            $incident->alarm_level === 1 => NotificationSeverity::MAJOR,
+            default => NotificationSeverity::MINOR,
         };
 
         return new NotificationAlert(
@@ -107,14 +107,14 @@ class NotificationAlertFactory
             || str_contains($haystack, 'homicide')
             || str_contains($haystack, 'stabb')
             || str_contains($haystack, 'gun')) {
-            return 'critical';
+            return NotificationSeverity::CRITICAL;
         }
 
         if (str_contains($haystack, 'in progress')) {
-            return 'major';
+            return NotificationSeverity::MAJOR;
         }
 
-        return 'major';
+        return NotificationSeverity::MAJOR;
     }
 
     private function mapTransitSeverity(?string $severity): string
@@ -122,18 +122,18 @@ class NotificationAlertFactory
         $value = strtolower(trim((string) $severity));
 
         if ($value === '') {
-            return 'minor';
+            return NotificationSeverity::MINOR;
         }
 
         if (str_contains($value, 'critical')) {
-            return 'critical';
+            return NotificationSeverity::CRITICAL;
         }
 
         if (str_contains($value, 'major') || str_contains($value, 'severe')) {
-            return 'major';
+            return NotificationSeverity::MAJOR;
         }
 
-        return 'minor';
+        return NotificationSeverity::MINOR;
     }
 
     private function mapGoTransitSeverity(?string $subCategory, string $subject): string
@@ -142,16 +142,16 @@ class NotificationAlertFactory
         $subjectLower = strtolower($subject);
 
         if (in_array($category, ['SADIS'], true)) {
-            return 'critical';
+            return NotificationSeverity::CRITICAL;
         }
 
         if (in_array($category, ['BCANCEL', 'BDETOUR'], true)
             || str_contains($subjectLower, 'cancel')
             || str_contains($subjectLower, 'suspended')) {
-            return 'major';
+            return NotificationSeverity::MAJOR;
         }
 
-        return 'minor';
+        return NotificationSeverity::MINOR;
     }
 
     /**

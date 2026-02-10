@@ -55,20 +55,40 @@ class DeliverAlertNotificationJob implements ShouldQueue
             ],
         );
 
-        if (in_array($log->status, ['delivered', 'read', 'dismissed'], true)) {
+        if (! $log->wasRecentlyCreated && in_array($log->status, ['delivered', 'read', 'dismissed'], true)) {
             return;
         }
 
-        event(new AlertNotificationSent(
-            userId: $this->userId,
-            alertId: $alert->alertId,
-            source: $alert->source,
-            severity: $alert->severity,
-            summary: $alert->summary,
-            sentAt: $log->sent_at?->toIso8601String() ?? now()->toIso8601String(),
-        ));
+        $claimed = NotificationLog::query()
+            ->whereKey($log->id)
+            ->where('status', 'sent')
+            ->update(['status' => 'processing']);
 
-        $log->status = 'delivered';
-        $log->save();
+        if ($claimed === 0) {
+            return;
+        }
+
+        $log->refresh();
+
+        try {
+            event(new AlertNotificationSent(
+                userId: $this->userId,
+                alertId: $alert->alertId,
+                source: $alert->source,
+                severity: $alert->severity,
+                summary: $alert->summary,
+                sentAt: $log->sent_at?->toIso8601String() ?? now()->toIso8601String(),
+            ));
+
+            $log->status = 'delivered';
+            $log->save();
+        } catch (\Throwable $exception) {
+            NotificationLog::query()
+                ->whereKey($log->id)
+                ->where('status', 'processing')
+                ->update(['status' => 'sent']);
+
+            throw $exception;
+        }
     }
 }

@@ -4,14 +4,22 @@ namespace App\Services\Notifications;
 
 class NotificationSeverity
 {
+    public const ALL = 'all';
+
+    public const MINOR = 'minor';
+
+    public const MAJOR = 'major';
+
+    public const CRITICAL = 'critical';
+
     /**
      * @var array<string, int>
      */
     private const RANKS = [
-        'all' => 0,
-        'minor' => 1,
-        'major' => 2,
-        'critical' => 3,
+        self::ALL => 0,
+        self::MINOR => 1,
+        self::MAJOR => 2,
+        self::CRITICAL => 3,
     ];
 
     public static function normalize(string $value): string
