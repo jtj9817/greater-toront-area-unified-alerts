@@ -37,7 +37,8 @@ test('notification tables exist with expected columns', function () {
 });
 
 test('notification logs include high-read indexes', function () {
-    expect(Schema::hasIndex('notification_logs', ['user_id']))->toBeTrue();
+    expect(Schema::hasIndex('notification_logs', ['user_id']))->toBeFalse();
+    expect(Schema::hasIndex('notification_logs', ['user_id', 'status', 'sent_at']))->toBeTrue();
     expect(Schema::hasIndex('notification_logs', ['status']))->toBeTrue();
     expect(Schema::hasIndex('notification_logs', ['sent_at']))->toBeTrue();
 });

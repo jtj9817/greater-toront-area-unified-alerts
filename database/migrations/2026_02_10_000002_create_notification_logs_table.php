@@ -20,7 +20,6 @@ return new class extends Migration
             $table->json('metadata');
             $table->timestamps();
 
-            $table->index('user_id');
             $table->index('status');
             $table->index('sent_at');
             $table->index(['user_id', 'status', 'sent_at']);

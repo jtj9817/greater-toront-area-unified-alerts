@@ -64,3 +64,23 @@ test('preference validation rules reject invalid payload', function () {
         'push_enabled',
     );
 });
+
+test('preference validation rules require complete geofence coordinates and radius', function () {
+    $validator = Validator::make([
+        'alert_type' => 'all',
+        'severity_threshold' => 'all',
+        'geofences' => [
+            ['name' => 'Incomplete Geofence'],
+        ],
+        'subscribed_routes' => [],
+        'digest_mode' => false,
+        'push_enabled' => true,
+    ], NotificationPreference::validationRules());
+
+    expect($validator->fails())->toBeTrue();
+    expect($validator->errors()->keys())->toContain(
+        'geofences.0.lat',
+        'geofences.0.lng',
+        'geofences.0.radius_km',
+    );
+});

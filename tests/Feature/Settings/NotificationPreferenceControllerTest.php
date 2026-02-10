@@ -165,6 +165,26 @@ test('notification settings update enforces geofence coordinate and radius bound
         ]);
 });
 
+test('notification settings update requires complete geofence coordinates and radius', function () {
+    $user = User::factory()->create();
+
+    $response = $this
+        ->actingAs($user)
+        ->patchJson('/settings/notifications', [
+            'geofences' => [
+                ['name' => 'Incomplete Geofence'],
+            ],
+        ]);
+
+    $response
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors([
+            'geofences.0.lat',
+            'geofences.0.lng',
+            'geofences.0.radius_km',
+        ]);
+});
+
 test('partial notification settings patch preserves untouched fields', function () {
     $user = User::factory()->create();
 

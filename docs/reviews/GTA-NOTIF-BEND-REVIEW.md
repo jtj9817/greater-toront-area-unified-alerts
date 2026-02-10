@@ -1,7 +1,7 @@
 # JIRA Ticket: GTA-NOTIF-BEND-REVIEW
 
 **Summary:** Notification Preferences Backend Code Review Findings
-**Status:** OPEN
+**Status:** RESOLVED
 **Priority:** HIGH
 **Component:** Backend - Notifications
 **Reporter:** Code Review Architect
@@ -31,6 +31,8 @@ The current validation uses `nullable` for `lat`, `lng`, and `radius_km`. This a
 +           'geofences.*.radius_km' => ['required', 'numeric', 'gt:0', 'max:100'],
 ```
 
+**Resolution:** Implemented. `lat`, `lng`, and `radius_km` are now required for each geofence entry.
+
 ---
 
 ### [LOW] Use the `id` property directly for better readability
@@ -43,6 +45,8 @@ While `getAuthIdentifier()` is technically correct, `$request->user()->id` is mo
 -           userId: (int) $request->user()->getAuthIdentifier(),
 +           userId: $request->user()->id,
 ```
+
+**Resolution:** Implemented. Controller now uses `$request->user()->id`.
 
 ---
 
@@ -57,6 +61,8 @@ Same as above; use `$request->user()->id` for consistency and clarity.
 +           userId: $request->user()->id,
 ```
 
+**Resolution:** Implemented. Controller now uses `$request->user()->id`.
+
 ---
 
 ### [LOW] Redundant index on `user_id`
@@ -69,3 +75,5 @@ The compound index on line 26 (`['user_id', 'status', 'sent_at']`) already cover
 -           $table->index('user_id');
             $table->index('status');
 ```
+
+**Resolution:** Implemented. Removed standalone `user_id` index and retained the compound index.

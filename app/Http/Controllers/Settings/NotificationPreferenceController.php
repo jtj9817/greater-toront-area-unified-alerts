@@ -13,7 +13,7 @@ class NotificationPreferenceController extends Controller
     public function show(Request $request): JsonResponse
     {
         $preference = $this->findOrCreatePreference(
-            userId: (int) $request->user()->getAuthIdentifier(),
+            userId: $request->user()->id,
         );
 
         return response()->json([
@@ -24,7 +24,7 @@ class NotificationPreferenceController extends Controller
     public function update(NotificationPreferenceUpdateRequest $request): JsonResponse
     {
         $preference = $this->findOrCreatePreference(
-            userId: (int) $request->user()->getAuthIdentifier(),
+            userId: $request->user()->id,
         );
 
         $preference->fill($request->validated());
