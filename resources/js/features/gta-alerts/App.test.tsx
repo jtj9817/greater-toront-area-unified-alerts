@@ -1,9 +1,64 @@
 import { render, screen } from '@testing-library/react';
 import React from 'react';
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
 import AlertsApp from './App';
 import type { UnifiedAlertResource } from './domain/alerts';
+
+type ToastHandler = (payload: Record<string, unknown>) => void;
+
+function setupEchoMock() {
+    let handler: ToastHandler | null = null;
+    let currentChannel: string | null = null;
+
+    const channel = {
+        listen: vi.fn((event: string, callback: ToastHandler) => {
+            handler = callback;
+            return channel;
+        }),
+        stopListening: vi.fn(() => channel),
+    };
+
+    const echo = {
+        private: vi.fn((channelName: string) => {
+            currentChannel = channelName;
+            return channel;
+        }),
+        leave: vi.fn((channelName: string) => {
+            if (currentChannel === channelName) {
+                currentChannel = null;
+            }
+        }),
+    };
+
+    window.Echo = echo as unknown as Window['Echo'];
+
+    return {
+        echo,
+        channel,
+        emit: (payload: Record<string, unknown>) => {
+            if (handler) {
+                handler(payload);
+            }
+        },
+    };
+}
+
+function buildBasePropsWithAuth(
+    alerts: UnifiedAlertResource[],
+    authUserId: number | null = null,
+) {
+    return {
+        alerts: {
+            data: alerts,
+            links: { prev: null, next: null },
+            meta: { current_page: 1, last_page: 1, total: alerts.length },
+        },
+        filters: { status: 'all' as const },
+        latestFeedUpdatedAt: null,
+        authUserId,
+    };
+}
 
 function buildBaseProps(alerts: UnifiedAlertResource[]) {
     return {
@@ -248,5 +303,142 @@ describe('GTA Alerts App (typed domain enforcement boundary)', () => {
         expect(domainWarnMessages(warn)).toEqual([]);
 
         warn.mockRestore();
+    });
+});
+
+describe('GTA Alerts App - Notification Toast Layer Integration', () => {
+    beforeEach(() => {
+        vi.stubGlobal('Echo', undefined);
+    });
+
+    afterEach(() => {
+        delete window.Echo;
+        vi.restoreAllMocks();
+    });
+
+    describe('toast layer mounting for authenticated users', () => {
+        it('mounts NotificationToastLayer and subscribes to private channel for authenticated users', () => {
+            const { echo, channel } = setupEchoMock();
+
+            render(
+                <AlertsApp
+                    {...buildBasePropsWithAuth(
+                        [fireResource({ title: 'TEST' })],
+                        42,
+                    )}
+                />,
+            );
+
+            // Should subscribe to user's private notification channel
+            expect(echo.private).toHaveBeenCalledWith('users.42.notifications');
+            expect(channel.listen).toHaveBeenCalledWith(
+                '.alert.notification.sent',
+                expect.any(Function),
+            );
+        });
+
+        it('does not subscribe to channel for guests', () => {
+            const { echo } = setupEchoMock();
+
+            render(
+                <AlertsApp
+                    {...buildBasePropsWithAuth(
+                        [fireResource({ title: 'TEST' })],
+                        null,
+                    )}
+                />,
+            );
+
+            // Should not subscribe to any channel
+            expect(echo.private).not.toHaveBeenCalled();
+        });
+    });
+
+    describe('channel cleanup on unmount', () => {
+        it('unsubscribes and leaves channel when app unmounts', () => {
+            const { echo, channel } = setupEchoMock();
+
+            const { unmount } = render(
+                <AlertsApp
+                    {...buildBasePropsWithAuth(
+                        [fireResource({ title: 'UNMOUNT TEST' })],
+                        42,
+                    )}
+                />,
+            );
+
+            // Verify subscription was made
+            expect(echo.private).toHaveBeenCalledWith('users.42.notifications');
+
+            unmount();
+
+            // Should clean up subscriptions
+            expect(channel.stopListening).toHaveBeenCalledWith(
+                '.alert.notification.sent',
+            );
+            expect(echo.leave).toHaveBeenCalledWith('users.42.notifications');
+        });
+    });
+
+    describe('auth user transitions', () => {
+        it('transitions channel subscription when authUserId changes', () => {
+            const { echo } = setupEchoMock();
+
+            const { rerender } = render(
+                <AlertsApp
+                    {...buildBasePropsWithAuth(
+                        [fireResource({ title: 'TEST' })],
+                        42,
+                    )}
+                />,
+            );
+
+            expect(echo.private).toHaveBeenCalledWith('users.42.notifications');
+            expect(echo.private).toHaveBeenCalledTimes(1);
+
+            // Change to different user
+            rerender(
+                <AlertsApp
+                    {...buildBasePropsWithAuth(
+                        [fireResource({ title: 'TEST' })],
+                        99,
+                    )}
+                />,
+            );
+
+            // Should leave old channel and join new
+            expect(echo.leave).toHaveBeenCalledWith('users.42.notifications');
+            expect(echo.private).toHaveBeenCalledWith('users.99.notifications');
+            expect(echo.private).toHaveBeenCalledTimes(2);
+        });
+
+        it('cleans up subscription when user logs out', () => {
+            const { echo } = setupEchoMock();
+
+            const { rerender } = render(
+                <AlertsApp
+                    {...buildBasePropsWithAuth(
+                        [fireResource({ title: 'TEST' })],
+                        42,
+                    )}
+                />,
+            );
+
+            expect(echo.private).toHaveBeenCalledTimes(1);
+
+            // Log out user (authUserId becomes null)
+            rerender(
+                <AlertsApp
+                    {...buildBasePropsWithAuth(
+                        [fireResource({ title: 'TEST' })],
+                        null,
+                    )}
+                />,
+            );
+
+            expect(echo.leave).toHaveBeenCalledWith('users.42.notifications');
+            // Should not create new private subscription
+            expect(echo.private).toHaveBeenCalledTimes(1);
+        });
     });
 });
