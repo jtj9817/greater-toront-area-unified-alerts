@@ -44,7 +44,7 @@ Deliver only matching notifications in real-time and prepare digest generation.
     - [x] Add scheduled job to aggregate daily notifications for `digest_mode = true`
     - [x] Persist digest entries in `notification_logs` for inbox visibility
     - [x] Write tests for digest aggregation window and duplicate prevention
-- [ ] Task: Conductor - User Manual Verification 'Phase 2: Notification Engine & Broadcasting' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 2: Notification Engine & Broadcasting' (Protocol in workflow.md; verified 2026-02-10, log: `storage/logs/manual_tests/notifications_phase_2_notification_engine_broadcasting_2026_02_10_181527.log`)
 
 ## Phase 3: Frontend - Settings & Toasts
 Build the Phase 1 UI controls and real-time in-app delivery UX.
