@@ -1,0 +1,34 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    public function up(): void
+    {
+        Schema::create('notification_logs', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('user_id')->constrained()->cascadeOnDelete();
+            $table->string('alert_id')->nullable();
+            $table->string('delivery_method')->default('in_app');
+            $table->string('status')->default('sent');
+            $table->timestamp('sent_at');
+            $table->timestamp('read_at')->nullable();
+            $table->timestamp('dismissed_at')->nullable();
+            $table->json('metadata');
+            $table->timestamps();
+
+            $table->index('user_id');
+            $table->index('status');
+            $table->index('sent_at');
+            $table->index(['user_id', 'status', 'sent_at']);
+        });
+    }
+
+    public function down(): void
+    {
+        Schema::dropIfExists('notification_logs');
+    }
+};

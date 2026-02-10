@@ -1,0 +1,66 @@
+<?php
+
+use App\Models\NotificationPreference;
+use Illuminate\Support\Facades\Validator;
+
+uses(Tests\TestCase::class);
+
+test('it has expected fillable attributes and casts', function () {
+    $preference = new NotificationPreference([
+        'geofences' => [['name' => 'Downtown', 'lat' => 43.65, 'lng' => -79.38, 'radius_km' => 2]],
+        'subscribed_routes' => ['1', '501'],
+        'digest_mode' => 1,
+        'push_enabled' => 0,
+    ]);
+
+    expect($preference->getFillable())->toBe([
+        'user_id',
+        'alert_type',
+        'severity_threshold',
+        'geofences',
+        'subscribed_routes',
+        'digest_mode',
+        'push_enabled',
+    ]);
+
+    expect($preference->geofences)->toBeArray();
+    expect($preference->subscribed_routes)->toBeArray();
+    expect($preference->digest_mode)->toBeTrue();
+    expect($preference->push_enabled)->toBeFalse();
+});
+
+test('preference validation rules accept valid payload', function () {
+    $validator = Validator::make([
+        'alert_type' => 'transit',
+        'severity_threshold' => 'major',
+        'geofences' => [
+            ['name' => 'Home', 'lat' => 43.7001, 'lng' => -79.4163, 'radius_km' => 1.5],
+        ],
+        'subscribed_routes' => ['1', 'GO-LW'],
+        'digest_mode' => false,
+        'push_enabled' => true,
+    ], NotificationPreference::validationRules());
+
+    expect($validator->fails())->toBeFalse();
+});
+
+test('preference validation rules reject invalid payload', function () {
+    $validator = Validator::make([
+        'alert_type' => 'invalid-type',
+        'severity_threshold' => 'urgent',
+        'geofences' => ['invalid-shape'],
+        'subscribed_routes' => [123],
+        'digest_mode' => 'yes',
+        'push_enabled' => 'sometimes',
+    ], NotificationPreference::validationRules());
+
+    expect($validator->fails())->toBeTrue();
+    expect($validator->errors()->keys())->toContain(
+        'alert_type',
+        'severity_threshold',
+        'geofences.0',
+        'subscribed_routes.0',
+        'digest_mode',
+        'push_enabled',
+    );
+});
