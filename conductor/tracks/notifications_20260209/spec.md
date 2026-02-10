@@ -1,45 +1,52 @@
-# Track Specification: In-App Notification System (Phase 1)
+# Track Specification: In-App Notification System (Phase 1 MVP)
 
-**Overview**
-This track implements the foundational infrastructure for real-time, in-app notifications. Users will be able to subscribe to specific transit routes and emergency agencies, filter these alerts by severity, and view a persistent history of notifications received.
+**Overview**  
+This track implements the Phase 1 MVP described in `docs/plans/notification-system-feature-plan.md`: in-app notifications with user preferences, severity filtering, simple geofenced matching, and a persistent notification center that includes daily digest entries.
 
 ---
 
 **Functional Requirements**
-1.  **User Subscriptions:**
-    *   Users can subscribe to specific transit routes (TTC, GO Transit).
-    *   Users can subscribe to emergency alert sources (Toronto Fire, Toronto Police).
-2.  **Severity Filtering:**
-    *   Users can explicitly toggle which severity levels (e.g., Critical, Major, Minor) trigger a notification for each subscription.
-3.  **Real-Time Delivery:**
-    *   Notifications must be delivered via in-app "Toasts" or "Banners" using WebSockets (Laravel Echo) while the user is active in the application.
-4.  **Notification Center (Inbox):**
-    *   A persistent UI component (Inbox) that lists all notifications received by the user.
-    *   Ability to mark individual notifications as "Read" or "Dismissed".
-    *   Database persistence for notification history (`notification_logs`).
-5.  **Preference Management:**
-    *   A settings interface for users to manage their active subscriptions and severity filters.
+1. **Preference Management**
+   - Users can manage subscriptions to alert types/sources and transit routes.
+   - Users can set severity threshold preferences.
+   - Users can configure simple geofence zones.
+   - Users can enable/disable real-time push and daily digest mode.
+2. **Matching Engine**
+   - New alerts are matched against user preferences by source/route, severity, and geofence rules.
+   - Non-matching alerts must not trigger user notifications.
+3. **Real-Time In-App Delivery**
+   - Matching alerts are delivered through in-app toasts/banners via WebSockets (Laravel Echo).
+4. **Notification Center (Inbox)**
+   - Persistent in-app history for delivered notifications (`notification_logs`).
+   - Users can mark notifications as read or dismissed.
+5. **Daily Digest**
+   - Users with digest mode enabled receive a daily digest entry in-app.
+   - Digest results are visible in the notification center.
+6. **In-App-Only Constraint**
+   - Delivery is strictly in-app for this track (no SMS/email/external channels).
 
 ---
 
 **Non-Functional Requirements**
-*   **Latency:** Real-time notifications should appear within < 5 seconds of the alert being synchronized to the database.
-*   **Scalability:** The notification processing engine must handle concurrent delivery to multiple active users.
-*   **Security:** Users can only view and manage their own notification history and preferences.
+- **Latency:** Real-time notifications should appear within <5 seconds of alert synchronization for matching users.
+- **Scalability:** Matching and delivery must support concurrent notifications across active users.
+- **Security:** Users can only view and manage their own preferences and notification history.
+- **Reliability:** Digest generation should run daily without duplicate entries for the same user/time window.
 
 ---
 
 **Acceptance Criteria**
-*   [ ] A user can subscribe to "TTC Line 1" and "Toronto Fire" in their settings.
-*   [ ] When a new "Toronto Fire" alert is created, an active user receives a toast notification immediately.
-*   [ ] The notification appears in the "Notification Center" history list.
-*   [ ] Disabling "Minor" alerts in settings successfully prevents toasts for minor-severity incidents.
-*   [ ] Refreshing the page does not clear the notification history in the Inbox.
+- [ ] A user can save preferences that include route/source subscriptions, severity threshold, geofence zones, and digest mode.
+- [ ] When a matching alert is created inside a user's configured geofence, the user receives an in-app toast in near real time.
+- [ ] When an alert does not match geofence or severity preferences, no toast is delivered.
+- [ ] Delivered notifications appear in the Notification Center and persist after page refresh.
+- [ ] A digest-enabled user receives a daily digest entry in the Notification Center.
+- [ ] A user cannot read or modify another user's preferences or notification logs.
 
 ---
 
-**Out of Scope (Phase 1)**
-*   Geofenced (location-based) notifications.
-*   SMS, Email, or Browser-native (Service Worker) Push notifications.
-*   Notification "Digest" or batched summary modes.
-*   Accessibility-specific modes (e.g., Voice announcements).
+**Out of Scope (Phase 1 MVP)**
+- SMS, Email, or browser-native service worker push notifications.
+- Advanced accessibility features (voice announcements, high-contrast mode, simplified UI mode).
+- Smartwatch integration, calendar integration, family sharing, analytics dashboards.
+- ML-based predictions, multilingual tourist mode, and third-party API exposure.

@@ -1,67 +1,89 @@
-# Implementation Plan: In-App Notification System (Phase 1)
+# Implementation Plan: In-App Notification System (Phase 1 MVP)
+
+This track is aligned to `docs/plans/notification-system-feature-plan.md` Phase 1 MVP scope:
+- User preference storage
+- In-app real-time delivery
+- Simple geofenced alerts
+- Severity-based filtering
+- Notification center with daily digest
 
 ## Phase 1: Data Model & Preferences
-Establish the database schema and user preference management logic.
+Establish schema and preference APIs that match the feature plan fields.
 
 - [ ] Task: Create Database Migrations
-    - [ ] Create `notification_preferences` table (user_id, alert_type, severity_filters, source_filters, etc.)
-    - [ ] Create `notification_logs` table (user_id, alert_id, read_at, dismissed_at, etc.)
+    - [ ] Create `notification_preferences` with: `user_id`, `alert_type`, `severity_threshold`, `geofences`, `subscribed_routes`, `digest_mode`, `push_enabled`, timestamps
+    - [ ] Create `notification_logs` with: `user_id`, `alert_id`, `delivery_method`, `status`, `sent_at`, `read_at`, `dismissed_at`, `metadata`, timestamps
+    - [ ] Add indexes for high-read paths (`user_id`, `status`, `sent_at`)
 - [ ] Task: Implement Models & Factories (TDD)
-    - [ ] Create `NotificationPreference` model with relationships and validation
-    - [ ] Create `NotificationLog` model with scopes (e.g., `unread()`)
+    - [ ] Create `NotificationPreference` model with casts for JSON fields and preference validation rules
+    - [ ] Create `NotificationLog` model with scopes (`unread()`, `undismissed()`)
     - [ ] Implement Pest tests for preference validation and log retrieval
-- [ ] Task: Preference Management API
+- [ ] Task: Preference Management API (TDD)
     - [ ] Scaffold `NotificationPreferenceController`
     - [ ] Implement `GET /settings/notifications` and `PATCH /settings/notifications`
-    - [ ] Write feature tests for updating preferences and severity filters
+    - [ ] Support route subscriptions, severity threshold, geofences, digest mode, and push toggle
+    - [ ] Write feature tests for authz and payload validation
 - [ ] Task: Conductor - User Manual Verification 'Phase 1: Data Model & Preferences' (Protocol in workflow.md)
 
 ## Phase 2: Notification Engine & Broadcasting
-Implement the logic that matches new alerts to user subscriptions and dispatches them in real-time.
+Deliver only matching notifications in real-time and prepare digest generation.
 
 - [ ] Task: Configure Real-time Infrastructure
-    - [ ] Set up Laravel Broadcasting (BroadcastServiceProvider)
-    - [ ] Configure `reverb` or `pusher` driver in `env.example`
+    - [ ] Set up Laravel Broadcasting
+    - [ ] Configure `reverb` or `pusher` in `.env.example`
 - [ ] Task: Create Alert Notification Event (TDD)
     - [ ] Create `AlertNotificationSent` broadcast event
+    - [ ] Include payload fields needed by toast + inbox (`alert_id`, source, severity, summary, sent_at)
     - [ ] Write test to verify event payload structure
 - [ ] Task: Implement Matcher Engine (TDD)
-    - [ ] Create a service to find users matching a new alert's source/route/severity
-    - [ ] Implement a Listener to hook into the existing `AlertCreated` or similar lifecycle
-    - [ ] Write tests ensuring only "matching" users are queued for notifications
+    - [ ] Match users by source/route/severity/geofence
+    - [ ] Respect `push_enabled` and user opt-outs
+    - [ ] Hook matcher into `AlertCreated` (or equivalent) lifecycle
+    - [ ] Write tests ensuring only matching users are queued
+- [ ] Task: Implement Daily Digest Aggregation (TDD)
+    - [ ] Add scheduled job to aggregate daily notifications for `digest_mode = true`
+    - [ ] Persist digest entries in `notification_logs` for inbox visibility
+    - [ ] Write tests for digest aggregation window and duplicate prevention
 - [ ] Task: Conductor - User Manual Verification 'Phase 2: Notification Engine & Broadcasting' (Protocol in workflow.md)
 
 ## Phase 3: Frontend - Settings & Toasts
-Build the UI for managing preferences and displaying real-time toasts.
+Build the Phase 1 UI controls and real-time in-app delivery UX.
 
 - [ ] Task: Build Notification Settings UI
-    - [ ] Create `NotificationSettings` view using Radix UI/Tailwind
-    - [ ] Integrate with the Preference API
+    - [ ] Create `NotificationSettings` UI with controls for source/route filters
+    - [ ] Add severity threshold selector
+    - [ ] Add simple geofence editor (initial zone list or radius presets)
+    - [ ] Add digest mode and push toggle controls
+    - [ ] Integrate with preference API
 - [ ] Task: Implement Real-time Toast Component
     - [ ] Install and configure `laravel-echo` and `pusher-js`
-    - [ ] Create a persistent `NotificationToast` layout wrapper
-    - [ ] Verify toasts appear when receiving a mock WebSocket event
+    - [ ] Create persistent `NotificationToast` layout wrapper
+    - [ ] Verify toasts appear for matching mock WebSocket events only
 - [ ] Task: Conductor - User Manual Verification 'Phase 3: Frontend - Settings & Toasts' (Protocol in workflow.md)
 
 ## Phase 4: Notification Center (Inbox)
-Implement the persistent history view for notifications.
+Implement persistent history with read/dismiss plus digest visibility.
 
 - [ ] Task: Build Notification Inbox UI
-    - [ ] Create a slide-over or dedicated page for the Notification Center
-    - [ ] Implement "Mark as Read" and "Clear All" functionality
+    - [ ] Create slide-over or dedicated Notification Center page
+    - [ ] Show individual alerts and daily digest items
+    - [ ] Implement "Mark as Read", "Dismiss", and "Clear All"
 - [ ] Task: Inbox API Integration (TDD)
-    - [ ] Implement endpoints for marking logs as read/dismissed
-    - [ ] Write tests for unauthorized access prevention (users can only modify their own logs)
+    - [ ] Implement endpoints for listing logs and marking read/dismissed
+    - [ ] Enforce ownership checks (users can only modify their own logs)
+    - [ ] Write feature tests for unauthorized access prevention
 - [ ] Task: Conductor - User Manual Verification 'Phase 4: Notification Center (Inbox)' (Protocol in workflow.md)
 
 ## Phase 5: Quality & Documentation
-Final verification and cleanup.
+Complete end-to-end validation for the aligned Phase 1 MVP.
 
 - [ ] Task: Full System Integration Test
-    - [ ] Manually verify end-to-end: Create alert -> Receive toast -> See in Inbox -> Mark as read
+    - [ ] Verify flow: Create matching alert -> receive toast -> appears in inbox -> mark as read
+    - [ ] Verify non-matching geofence alert does not toast
+    - [ ] Verify digest user receives daily digest item
 - [ ] Task: Coverage and Linting Verification
-    - [ ] Execute `./vendor/bin/sail artisan test --coverage` (target >90% on new modules)
-    - [ ] Run `pint` and `npm run lint`
+    - [ ] Execute `composer test`
+    - [ ] Run `composer lint` and `pnpm run lint`
 - [ ] Task: Documentation Update
-    - [ ] Update `docs/backend/notification-system.md`
+    - [ ] Update `docs/backend/notification-system.md` with schema, matching rules, and digest behavior
 - [ ] Task: Conductor - User Manual Verification 'Phase 5: Quality & Documentation' (Protocol in workflow.md)
