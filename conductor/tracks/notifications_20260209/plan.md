@@ -10,19 +10,19 @@ This track is aligned to `docs/plans/notification-system-feature-plan.md` Phase 
 ## Phase 1: Data Model & Preferences
 Establish schema and preference APIs that match the feature plan fields.
 
-- [ ] Task: Create Database Migrations
-    - [ ] Create `notification_preferences` with: `user_id`, `alert_type`, `severity_threshold`, `geofences`, `subscribed_routes`, `digest_mode`, `push_enabled`, timestamps
-    - [ ] Create `notification_logs` with: `user_id`, `alert_id`, `delivery_method`, `status`, `sent_at`, `read_at`, `dismissed_at`, `metadata`, timestamps
-    - [ ] Add indexes for high-read paths (`user_id`, `status`, `sent_at`)
-- [ ] Task: Implement Models & Factories (TDD)
-    - [ ] Create `NotificationPreference` model with casts for JSON fields and preference validation rules
-    - [ ] Create `NotificationLog` model with scopes (`unread()`, `undismissed()`)
-    - [ ] Implement Pest tests for preference validation and log retrieval
-- [ ] Task: Preference Management API (TDD)
-    - [ ] Scaffold `NotificationPreferenceController`
-    - [ ] Implement `GET /settings/notifications` and `PATCH /settings/notifications`
-    - [ ] Support route subscriptions, severity threshold, geofences, digest mode, and push toggle
-    - [ ] Write feature tests for authz and payload validation
+- [x] Task: Create Database Migrations
+    - [x] Create `notification_preferences` with: `user_id`, `alert_type`, `severity_threshold`, `geofences`, `subscribed_routes`, `digest_mode`, `push_enabled`, timestamps
+    - [x] Create `notification_logs` with: `user_id`, `alert_id`, `delivery_method`, `status`, `sent_at`, `read_at`, `dismissed_at`, `metadata`, timestamps
+    - [x] Add indexes for high-read paths (`user_id`, `status`, `sent_at`)
+- [x] Task: Implement Models & Factories (TDD)
+    - [x] Create `NotificationPreference` model with casts for JSON fields and preference validation rules
+    - [x] Create `NotificationLog` model with scopes (`unread()`, `undismissed()`)
+    - [x] Implement Pest tests for preference validation and log retrieval
+- [x] Task: Preference Management API (TDD)
+    - [x] Scaffold `NotificationPreferenceController`
+    - [x] Implement `GET /settings/notifications` and `PATCH /settings/notifications`
+    - [x] Support route subscriptions, severity threshold, geofences, digest mode, and push toggle
+    - [x] Write feature tests for authz and payload validation
 - [ ] Task: Conductor - User Manual Verification 'Phase 1: Data Model & Preferences' (Protocol in workflow.md)
 
 ## Phase 2: Notification Engine & Broadcasting
