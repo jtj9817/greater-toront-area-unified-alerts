@@ -1,50 +1,23 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { z } from 'zod';
 import { Icon } from './Icon';
 
 const TOAST_EVENT = '.alert.notification.sent';
 const MAX_TOASTS = 4;
 const TOAST_TIMEOUT_MS = 9000;
 
-type NotificationToastPayload = {
-    alert_id: string;
-    source: string;
-    severity: string;
-    summary: string;
-    sent_at: string;
-};
+const NotificationToastSchema = z.object({
+    alert_id: z.string().min(1),
+    source: z.string().min(1),
+    severity: z.string().min(1),
+    summary: z.string().min(1),
+    sent_at: z.string().min(1),
+});
+
+type NotificationToastPayload = z.infer<typeof NotificationToastSchema>;
 
 type NotificationToast = NotificationToastPayload & {
     id: string;
-};
-
-const isRecord = (value: unknown): value is Record<string, unknown> =>
-    typeof value === 'object' && value !== null;
-
-const asRequiredString = (value: unknown): string | null =>
-    typeof value === 'string' && value.length > 0 ? value : null;
-
-const normalizePayload = (payload: unknown): NotificationToastPayload | null => {
-    if (!isRecord(payload)) {
-        return null;
-    }
-
-    const alertId = asRequiredString(payload.alert_id);
-    const source = asRequiredString(payload.source);
-    const severity = asRequiredString(payload.severity);
-    const summary = asRequiredString(payload.summary);
-    const sentAt = asRequiredString(payload.sent_at);
-
-    if (!alertId || !source || !severity || !summary || !sentAt) {
-        return null;
-    }
-
-    return {
-        alert_id: alertId,
-        source,
-        severity,
-        summary,
-        sent_at: sentAt,
-    };
 };
 
 const severityStyle = (severity: string): string => {
@@ -103,21 +76,27 @@ export const NotificationToastLayer: React.FC<NotificationToastLayerProps> = ({
     authUserId,
 }) => {
     const [toasts, setToasts] = useState<NotificationToast[]>([]);
-    const timersRef = useRef<number[]>([]);
+    const timersRef = useRef<Record<string, number>>({});
 
     const dismissToast = useCallback((toastId: string): void => {
+        const timerId = timersRef.current[toastId];
+        if (timerId !== undefined) {
+            window.clearTimeout(timerId);
+            delete timersRef.current[toastId];
+        }
+
         setToasts((currentToasts) =>
             currentToasts.filter((toast) => toast.id !== toastId),
         );
     }, []);
 
     useEffect(() => {
-        const timerIds = timersRef.current;
+        const timers = timersRef.current;
 
         return () => {
-            for (const timerId of timerIds) {
-                window.clearTimeout(timerId);
-            }
+            Object.values(timers).forEach((timerId) =>
+                window.clearTimeout(timerId),
+            );
         };
     }, []);
 
@@ -130,11 +109,13 @@ export const NotificationToastLayer: React.FC<NotificationToastLayerProps> = ({
         const channel = window.Echo.private(channelName);
 
         channel.listen(TOAST_EVENT, (payload: unknown) => {
-            const normalizedPayload = normalizePayload(payload);
+            const result = NotificationToastSchema.safeParse(payload);
 
-            if (!normalizedPayload) {
+            if (!result.success) {
                 return;
             }
+
+            const normalizedPayload = result.data;
 
             const toastId = `${normalizedPayload.alert_id}-${Date.now()}-${Math.random()
                 .toString(36)
@@ -149,7 +130,7 @@ export const NotificationToastLayer: React.FC<NotificationToastLayerProps> = ({
             const timerId = window.setTimeout(() => {
                 dismissToast(toastId);
             }, TOAST_TIMEOUT_MS);
-            timersRef.current.push(timerId);
+            timersRef.current[toastId] = timerId;
         });
 
         return () => {

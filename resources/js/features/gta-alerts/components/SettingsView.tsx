@@ -11,6 +11,7 @@ import {
     type NotificationSeverityThreshold,
     updateNotificationPreference,
 } from '../services/NotificationPreferenceService';
+import { KNOWN_TRANSIT_ROUTES } from '../constants/routes';
 import { Icon } from './Icon';
 
 const ALERT_TYPE_OPTIONS: Array<{ value: NotificationAlertType; label: string }> =
@@ -41,7 +42,6 @@ const ZONE_PRESETS = [
 ];
 
 const RADIUS_PRESETS = [1, 2, 5, 10];
-const FALLBACK_ROUTES = ['1', '2', '4', '501', '504', 'GO-KI', 'GO-LW'];
 
 const formatCoordinates = (geofence: NotificationGeofence): string =>
     `${geofence.lat.toFixed(4)}, ${geofence.lng.toFixed(4)}`;
@@ -120,7 +120,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
         const mergedRoutes = [
             ...availableRoutes,
             ...preference.subscribed_routes,
-            ...FALLBACK_ROUTES,
+            ...KNOWN_TRANSIT_ROUTES,
         ]
             .map((route) => route.trim())
             .filter((route) => route.length > 0);
