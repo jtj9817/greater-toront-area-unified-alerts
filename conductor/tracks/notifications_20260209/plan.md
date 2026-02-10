@@ -28,22 +28,22 @@ Establish schema and preference APIs that match the feature plan fields.
 ## Phase 2: Notification Engine & Broadcasting
 Deliver only matching notifications in real-time and prepare digest generation.
 
-- [ ] Task: Configure Real-time Infrastructure
-    - [ ] Set up Laravel Broadcasting
-    - [ ] Configure `reverb` or `pusher` in `.env.example`
-- [ ] Task: Create Alert Notification Event (TDD)
-    - [ ] Create `AlertNotificationSent` broadcast event
-    - [ ] Include payload fields needed by toast + inbox (`alert_id`, source, severity, summary, sent_at)
-    - [ ] Write test to verify event payload structure
-- [ ] Task: Implement Matcher Engine (TDD)
-    - [ ] Match users by source/route/severity/geofence
-    - [ ] Respect `push_enabled` and user opt-outs
-    - [ ] Hook matcher into `AlertCreated` (or equivalent) lifecycle
-    - [ ] Write tests ensuring only matching users are queued
-- [ ] Task: Implement Daily Digest Aggregation (TDD)
-    - [ ] Add scheduled job to aggregate daily notifications for `digest_mode = true`
-    - [ ] Persist digest entries in `notification_logs` for inbox visibility
-    - [ ] Write tests for digest aggregation window and duplicate prevention
+- [x] Task: Configure Real-time Infrastructure
+    - [x] Set up Laravel Broadcasting
+    - [x] Configure `reverb` or `pusher` in `.env.example`
+- [x] Task: Create Alert Notification Event (TDD)
+    - [x] Create `AlertNotificationSent` broadcast event
+    - [x] Include payload fields needed by toast + inbox (`alert_id`, source, severity, summary, sent_at)
+    - [x] Write test to verify event payload structure
+- [x] Task: Implement Matcher Engine (TDD)
+    - [x] Match users by source/route/severity/geofence
+    - [x] Respect `push_enabled` and user opt-outs
+    - [x] Hook matcher into `AlertCreated` (or equivalent) lifecycle
+    - [x] Write tests ensuring only matching users are queued
+- [x] Task: Implement Daily Digest Aggregation (TDD)
+    - [x] Add scheduled job to aggregate daily notifications for `digest_mode = true`
+    - [x] Persist digest entries in `notification_logs` for inbox visibility
+    - [x] Write tests for digest aggregation window and duplicate prevention
 - [ ] Task: Conductor - User Manual Verification 'Phase 2: Notification Engine & Broadcasting' (Protocol in workflow.md)
 
 ## Phase 3: Frontend - Settings & Toasts

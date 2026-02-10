@@ -2,7 +2,9 @@
 
 namespace App\Console\Commands;
 
+use App\Events\AlertCreated;
 use App\Models\FireIncident;
+use App\Services\Notifications\NotificationAlertFactory;
 use App\Services\TorontoFireFeedService;
 use Illuminate\Console\Command;
 use Illuminate\Support\Carbon;
@@ -13,8 +15,10 @@ class FetchFireIncidentsCommand extends Command
 
     protected $description = 'Fetch active fire incidents from the Toronto Fire Services CAD feed';
 
-    public function handle(TorontoFireFeedService $service): int
-    {
+    public function handle(
+        TorontoFireFeedService $service,
+        NotificationAlertFactory $notificationAlertFactory,
+    ): int {
         $this->info('Fetching Toronto Fire active incidents...');
 
         try {
@@ -39,7 +43,7 @@ class FetchFireIncidentsCommand extends Command
                 return self::FAILURE;
             }
 
-            FireIncident::updateOrCreate(
+            $incident = FireIncident::updateOrCreate(
                 ['event_num' => $event['event_num']],
                 [
                     'event_type' => $event['event_type'],
@@ -53,6 +57,12 @@ class FetchFireIncidentsCommand extends Command
                     'feed_updated_at' => $feedUpdatedAt,
                 ]
             );
+
+            if ($incident->wasRecentlyCreated || ($incident->wasChanged('is_active') && $incident->is_active)) {
+                event(new AlertCreated(
+                    $notificationAlertFactory->fromFireIncident($incident),
+                ));
+            }
         }
 
         // Mark incidents no longer in the feed as inactive

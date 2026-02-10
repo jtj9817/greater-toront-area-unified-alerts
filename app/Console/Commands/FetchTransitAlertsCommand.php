@@ -2,7 +2,9 @@
 
 namespace App\Console\Commands;
 
+use App\Events\AlertCreated;
 use App\Models\TransitAlert;
+use App\Services\Notifications\NotificationAlertFactory;
 use App\Services\TtcAlertsFeedService;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
@@ -13,8 +15,10 @@ class FetchTransitAlertsCommand extends Command
 
     protected $description = 'Fetch active transit alerts from TTC sources';
 
-    public function handle(TtcAlertsFeedService $service): int
-    {
+    public function handle(
+        TtcAlertsFeedService $service,
+        NotificationAlertFactory $notificationAlertFactory,
+    ): int {
         $this->info('Fetching TTC transit alerts...');
 
         try {
@@ -36,13 +40,19 @@ class FetchTransitAlertsCommand extends Command
 
             $activeExternalIds[$externalId] = true;
 
-            TransitAlert::updateOrCreate(
+            $transitAlert = TransitAlert::updateOrCreate(
                 ['external_id' => $externalId],
                 array_merge($alert, [
                     'is_active' => true,
                     'feed_updated_at' => $feedUpdatedAt,
                 ])
             );
+
+            if ($transitAlert->wasRecentlyCreated || ($transitAlert->wasChanged('is_active') && $transitAlert->is_active)) {
+                event(new AlertCreated(
+                    $notificationAlertFactory->fromTransitAlert($transitAlert),
+                ));
+            }
         }
 
         $staleQuery = TransitAlert::query()->where('is_active', true);

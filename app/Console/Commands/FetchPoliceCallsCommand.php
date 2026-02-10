@@ -2,7 +2,9 @@
 
 namespace App\Console\Commands;
 
+use App\Events\AlertCreated;
 use App\Models\PoliceCall;
+use App\Services\Notifications\NotificationAlertFactory;
 use App\Services\TorontoPoliceFeedService;
 use Carbon\Carbon;
 use Exception;
@@ -28,8 +30,10 @@ class FetchPoliceCallsCommand extends Command
     /**
      * Execute the console command.
      */
-    public function handle(TorontoPoliceFeedService $service): int
-    {
+    public function handle(
+        TorontoPoliceFeedService $service,
+        NotificationAlertFactory $notificationAlertFactory,
+    ): int {
         $this->info('Fetching police calls from Toronto Police Service...');
 
         try {
@@ -49,13 +53,19 @@ class FetchPoliceCallsCommand extends Command
         foreach ($calls as $callData) {
             $objectIdsInFeed[] = $callData['object_id'];
 
-            PoliceCall::updateOrCreate(
+            $policeCall = PoliceCall::updateOrCreate(
                 ['object_id' => $callData['object_id']],
                 array_merge($callData, [
                     'is_active' => true,
                     'feed_updated_at' => $feedUpdatedAt,
                 ])
             );
+
+            if ($policeCall->wasRecentlyCreated || ($policeCall->wasChanged('is_active') && $policeCall->is_active)) {
+                event(new AlertCreated(
+                    $notificationAlertFactory->fromPoliceCall($policeCall),
+                ));
+            }
         }
 
         // Deactivate calls no longer in the feed

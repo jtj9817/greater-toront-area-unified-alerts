@@ -2,8 +2,10 @@
 
 namespace App\Console\Commands;
 
+use App\Events\AlertCreated;
 use App\Models\GoTransitAlert;
 use App\Services\GoTransitFeedService;
+use App\Services\Notifications\NotificationAlertFactory;
 use Illuminate\Console\Command;
 use Illuminate\Support\Carbon;
 
@@ -13,8 +15,10 @@ class FetchGoTransitAlertsCommand extends Command
 
     protected $description = 'Fetch active service alerts from the GO Transit / Metrolinx API';
 
-    public function handle(GoTransitFeedService $service): int
-    {
+    public function handle(
+        GoTransitFeedService $service,
+        NotificationAlertFactory $notificationAlertFactory,
+    ): int {
         $this->info('Fetching GO Transit service alerts...');
 
         try {
@@ -39,7 +43,7 @@ class FetchGoTransitAlertsCommand extends Command
                 return self::FAILURE;
             }
 
-            GoTransitAlert::updateOrCreate(
+            $goTransitAlert = GoTransitAlert::updateOrCreate(
                 ['external_id' => $alert['external_id']],
                 [
                     'alert_type' => $alert['alert_type'],
@@ -59,6 +63,12 @@ class FetchGoTransitAlertsCommand extends Command
                     'feed_updated_at' => $feedUpdatedAt,
                 ]
             );
+
+            if ($goTransitAlert->wasRecentlyCreated || ($goTransitAlert->wasChanged('is_active') && $goTransitAlert->is_active)) {
+                event(new AlertCreated(
+                    $notificationAlertFactory->fromGoTransitAlert($goTransitAlert),
+                ));
+            }
         }
 
         $deactivated = GoTransitAlert::where('is_active', true)

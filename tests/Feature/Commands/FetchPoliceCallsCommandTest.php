@@ -1,8 +1,10 @@
 <?php
 
+use App\Events\AlertCreated;
 use App\Models\PoliceCall;
 use App\Services\TorontoPoliceFeedService;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Event;
 use Mockery\MockInterface;
 
 uses(\Illuminate\Foundation\Testing\RefreshDatabase::class);
@@ -129,4 +131,31 @@ test('it returns failure on service exception', function () {
     $this->artisan('police:fetch-calls')
         ->expectsOutputToContain('Failed to fetch police calls: API Down')
         ->assertExitCode(1);
+});
+
+test('it dispatches alert created events for new calls', function () {
+    Event::fake([AlertCreated::class]);
+
+    $this->mock(TorontoPoliceFeedService::class, function (MockInterface $mock) {
+        $mock->shouldReceive('fetch')->once()->andReturn([
+            [
+                'object_id' => 123,
+                'call_type_code' => 'BREPR',
+                'call_type' => 'BREAK & ENTER IN PROGRESS',
+                'division' => 'D42',
+                'cross_streets' => 'BAY ST - YORK ST',
+                'latitude' => 43.65,
+                'longitude' => -79.38,
+                'occurrence_time' => Carbon::parse('2026-02-10T09:30:00Z'),
+            ],
+        ]);
+    });
+
+    $this->artisan('police:fetch-calls')->assertExitCode(0);
+
+    Event::assertDispatched(AlertCreated::class, function (AlertCreated $event): bool {
+        return $event->alert->alertId === 'police:123'
+            && $event->alert->source === 'police'
+            && $event->alert->severity === 'major';
+    });
 });
