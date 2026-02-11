@@ -76,6 +76,7 @@ export const NotificationInboxView: React.FC<NotificationInboxViewProps> = ({
     const [items, setItems] = useState<NotificationInboxItem[]>([]);
     const [unreadCount, setUnreadCount] = useState(0);
     const [isLoading, setIsLoading] = useState<boolean>(authUserId !== null);
+    const [hasLoadedInbox, setHasLoadedInbox] = useState(false);
     const [isClearing, setIsClearing] = useState(false);
     const [activeItemId, setActiveItemId] = useState<number | null>(null);
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -85,6 +86,7 @@ export const NotificationInboxView: React.FC<NotificationInboxViewProps> = ({
             setItems([]);
             setUnreadCount(0);
             setIsLoading(false);
+            setHasLoadedInbox(false);
             setErrorMessage(null);
             return;
         }
@@ -93,6 +95,7 @@ export const NotificationInboxView: React.FC<NotificationInboxViewProps> = ({
 
         const loadInbox = async (): Promise<void> => {
             setIsLoading(true);
+            setHasLoadedInbox(false);
             setErrorMessage(null);
 
             try {
@@ -104,6 +107,7 @@ export const NotificationInboxView: React.FC<NotificationInboxViewProps> = ({
 
                 setItems(page.data);
                 setUnreadCount(page.meta.unread_count);
+                setHasLoadedInbox(true);
             } catch (error) {
                 if (!isMounted) {
                     return;
@@ -279,7 +283,7 @@ export const NotificationInboxView: React.FC<NotificationInboxViewProps> = ({
                 </div>
             )}
 
-            {!isLoading && !hasItems && (
+            {!isLoading && hasLoadedInbox && !hasItems && (
                 <div className="rounded-xl border border-white/10 bg-surface-dark p-6">
                     <p className="text-sm font-medium text-white">
                         Your inbox is clear.

@@ -87,6 +87,49 @@ test('authenticated user can list their own inbox logs including digest entries'
     expect($listedIds)->not->toContain($dismissedLog->id);
 });
 
+test('pagination links preserve applied inbox query filters', function () {
+    $user = User::factory()->create();
+
+    NotificationLog::factory()->create([
+        'user_id' => $user->id,
+        'status' => 'delivered',
+        'sent_at' => CarbonImmutable::parse('2026-02-10T10:00:00Z'),
+        'read_at' => null,
+        'dismissed_at' => null,
+    ]);
+
+    NotificationLog::factory()->create([
+        'user_id' => $user->id,
+        'status' => 'delivered',
+        'sent_at' => CarbonImmutable::parse('2026-02-10T11:00:00Z'),
+        'read_at' => null,
+        'dismissed_at' => null,
+    ]);
+
+    NotificationLog::factory()->create([
+        'user_id' => $user->id,
+        'status' => 'dismissed',
+        'sent_at' => CarbonImmutable::parse('2026-02-10T12:00:00Z'),
+        'read_at' => CarbonImmutable::parse('2026-02-10T12:00:30Z'),
+        'dismissed_at' => CarbonImmutable::parse('2026-02-10T12:01:00Z'),
+    ]);
+
+    $response = $this
+        ->actingAs($user)
+        ->getJson('/notifications/inbox?include_dismissed=1&per_page=1&page=1');
+
+    $response
+        ->assertOk()
+        ->assertJsonPath('meta.per_page', 1)
+        ->assertJsonPath('meta.total', 3);
+
+    $nextLink = $response->json('links.next');
+
+    expect($nextLink)->not->toBeNull();
+    expect($nextLink)->toContain('include_dismissed=1');
+    expect($nextLink)->toContain('per_page=1');
+});
+
 test('authenticated user can mark their inbox log as read', function () {
     $user = User::factory()->create();
 

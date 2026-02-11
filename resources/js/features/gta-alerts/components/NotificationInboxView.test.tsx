@@ -304,4 +304,30 @@ describe('NotificationInboxView', () => {
         });
         expect(screen.getByText('Unread: 0')).toBeInTheDocument();
     });
+
+    it('does not show empty-state copy when inbox load fails', async () => {
+        const fetchMock = globalThis.fetch as FetchMock;
+
+        fetchMock.mockResolvedValueOnce(
+            mockJsonResponse(
+                {
+                    message: 'Server error',
+                },
+                false,
+                500,
+            ),
+        );
+
+        render(<NotificationInboxView authUserId={99} />);
+
+        await waitFor(() => {
+            expect(
+                screen.getByText(
+                    'Unable to load notifications right now. Please try again shortly.',
+                ),
+            ).toBeInTheDocument();
+        });
+
+        expect(screen.queryByText('Your inbox is clear.')).not.toBeInTheDocument();
+    });
 });

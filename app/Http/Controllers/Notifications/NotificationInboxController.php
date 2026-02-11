@@ -25,7 +25,7 @@ class NotificationInboxController extends Controller
             $query->whereNull('dismissed_at');
         }
 
-        $logs = $query->paginate($perPage);
+        $logs = $query->paginate($perPage)->withQueryString();
 
         return response()->json([
             'data' => $logs->getCollection()->map(
