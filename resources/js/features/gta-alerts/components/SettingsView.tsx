@@ -1,6 +1,7 @@
 import { Link } from '@inertiajs/react';
 import React, { useEffect, useMemo, useState } from 'react';
 import { login, register } from '@/routes';
+import { KNOWN_TRANSIT_ROUTES } from '../constants/routes';
 import {
     DEFAULT_NOTIFICATION_PREFERENCE,
     fetchNotificationPreference,
@@ -11,7 +12,6 @@ import {
     type NotificationSeverityThreshold,
     updateNotificationPreference,
 } from '../services/NotificationPreferenceService';
-import { KNOWN_TRANSIT_ROUTES } from '../constants/routes';
 import { Icon } from './Icon';
 
 const ALERT_TYPE_OPTIONS: Array<{ value: NotificationAlertType; label: string }> =
