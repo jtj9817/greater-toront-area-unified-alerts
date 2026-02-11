@@ -7,6 +7,7 @@ use App\Models\NotificationLog;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\DB;
 
 class NotificationInboxController extends Controller
 {
@@ -95,18 +96,11 @@ class NotificationInboxController extends Controller
         $userId = $request->user()->id;
         $now = now();
 
-        NotificationLog::query()
-            ->where('user_id', $userId)
-            ->whereNull('dismissed_at')
-            ->whereNull('read_at')
-            ->update([
-                'read_at' => $now,
-            ]);
-
         $dismissedCount = NotificationLog::query()
             ->where('user_id', $userId)
             ->whereNull('dismissed_at')
             ->update([
+                'read_at' => DB::raw('COALESCE(read_at, CURRENT_TIMESTAMP)'),
                 'dismissed_at' => $now,
                 'status' => 'dismissed',
             ]);

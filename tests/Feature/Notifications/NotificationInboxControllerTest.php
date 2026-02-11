@@ -228,6 +228,7 @@ test('dismiss enforces ownership boundaries', function () {
 test('authenticated user can clear all undismissed inbox logs', function () {
     $user = User::factory()->create();
     $otherUser = User::factory()->create();
+    $existingReadAt = CarbonImmutable::parse('2026-02-10T10:00:00Z');
 
     $toClearOne = NotificationLog::factory()->create([
         'user_id' => $user->id,
@@ -239,7 +240,7 @@ test('authenticated user can clear all undismissed inbox logs', function () {
     $toClearTwo = NotificationLog::factory()->create([
         'user_id' => $user->id,
         'status' => 'read',
-        'read_at' => CarbonImmutable::parse('2026-02-10T10:00:00Z'),
+        'read_at' => $existingReadAt,
         'dismissed_at' => null,
     ]);
 
@@ -274,6 +275,7 @@ test('authenticated user can clear all undismissed inbox logs', function () {
     expect($toClearOne->status)->toBe('dismissed');
 
     expect($toClearTwo->dismissed_at)->not->toBeNull();
+    expect($toClearTwo->read_at?->toISOString())->toBe($existingReadAt->toISOString());
     expect($toClearTwo->status)->toBe('dismissed');
 
     expect($alreadyDismissed->status)->toBe('dismissed');
