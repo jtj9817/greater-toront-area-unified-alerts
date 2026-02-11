@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Notifications\NotificationInboxController;
 use App\Http\Controllers\Settings\NotificationPreferenceController;
 use App\Http\Controllers\Settings\PasswordController;
 use App\Http\Controllers\Settings\ProfileController;
@@ -14,6 +15,10 @@ Route::middleware(['auth'])->group(function () {
     Route::patch('settings/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::get('settings/notifications', [NotificationPreferenceController::class, 'show'])->name('notifications.show');
     Route::patch('settings/notifications', [NotificationPreferenceController::class, 'update'])->name('notifications.update');
+    Route::get('notifications/inbox', [NotificationInboxController::class, 'index'])->name('notifications.inbox.index');
+    Route::patch('notifications/inbox/{notificationLog}/read', [NotificationInboxController::class, 'markRead'])->name('notifications.inbox.read');
+    Route::patch('notifications/inbox/{notificationLog}/dismiss', [NotificationInboxController::class, 'dismiss'])->name('notifications.inbox.dismiss');
+    Route::delete('notifications/inbox', [NotificationInboxController::class, 'clearAll'])->name('notifications.inbox.clear');
 });
 
 Route::middleware(['auth', 'verified'])->group(function () {

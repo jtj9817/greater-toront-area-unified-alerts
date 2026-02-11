@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import React from 'react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
@@ -303,6 +303,21 @@ describe('GTA Alerts App (typed domain enforcement boundary)', () => {
         expect(domainWarnMessages(warn)).toEqual([]);
 
         warn.mockRestore();
+    });
+
+    it('opens notification center from the header notification button', () => {
+        render(<AlertsApp {...buildBaseProps([fireResource()])} />);
+
+        fireEvent.click(
+            screen.getAllByRole('button', {
+                name: 'Open notification center',
+            })[0],
+        );
+
+        expect(screen.getByText('Notification Center')).toBeInTheDocument();
+        expect(
+            screen.getByText('Sign in to view your notification inbox'),
+        ).toBeInTheDocument();
     });
 });
 

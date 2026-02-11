@@ -20,6 +20,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 }) => {
     const navItems = [
         { id: 'feed', name: 'Feed', icon: 'grid_view', badge: '6' },
+        { id: 'inbox', name: 'Inbox', icon: 'notifications' },
         { id: 'saved', name: 'Saved', icon: 'bookmark' },
         { id: 'zones', name: 'Zones', icon: 'map' },
         { id: 'settings', name: 'Settings', icon: 'settings' },

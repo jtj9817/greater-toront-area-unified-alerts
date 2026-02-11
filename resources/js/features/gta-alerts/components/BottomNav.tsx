@@ -12,6 +12,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({
 }) => {
     const navItems = [
         { id: 'feed', name: 'Feed', icon: 'grid_view' },
+        { id: 'inbox', name: 'Inbox', icon: 'notifications' },
         { id: 'saved', name: 'Saved', icon: 'bookmark' },
         { id: 'zones', name: 'Zones', icon: 'map' },
         { id: 'settings', name: 'Settings', icon: 'settings' },

@@ -3,6 +3,7 @@ import { AlertDetailsView } from './components/AlertDetailsView';
 import { BottomNav } from './components/BottomNav';
 import { FeedView } from './components/FeedView';
 import { Icon } from './components/Icon';
+import { NotificationInboxView } from './components/NotificationInboxView';
 import { NotificationToastLayer } from './components/NotificationToastLayer';
 import { SavedView } from './components/SavedView';
 import { SettingsView } from './components/SettingsView';
@@ -141,6 +142,8 @@ const App: React.FC<AppProps> = ({
                         availableRoutes={routeOptions}
                     />
                 );
+            case 'inbox':
+                return <NotificationInboxView authUserId={authUserId} />;
             case 'feed':
             default:
                 return (
@@ -165,6 +168,8 @@ const App: React.FC<AppProps> = ({
                 return 'Active Zones';
             case 'settings':
                 return 'Settings';
+            case 'inbox':
+                return 'Notification Center';
             default:
                 return 'Live Feed';
         }
@@ -179,6 +184,8 @@ const App: React.FC<AppProps> = ({
                 return 'map';
             case 'settings':
                 return 'settings';
+            case 'inbox':
+                return 'notifications';
             default:
                 return 'dashboard';
         }
@@ -214,6 +221,7 @@ const App: React.FC<AppProps> = ({
                                 <button
                                     onClick={() => setIsMobileMenuOpen(true)}
                                     className="flex h-10 w-10 items-center justify-center rounded-lg bg-white/5 text-white/80 transition-colors hover:text-primary"
+                                    aria-label="Open menu"
                                 >
                                     <Icon
                                         name="menu"
@@ -226,8 +234,9 @@ const App: React.FC<AppProps> = ({
                             </div>
                             <div className="flex gap-3">
                                 <button
-                                    onClick={() => handleNavigate('settings')}
+                                    onClick={() => handleNavigate('inbox')}
                                     className="text-white/80 transition-colors hover:text-primary"
+                                    aria-label="Open notification center"
                                 >
                                     <Icon
                                         name="notifications"
@@ -237,6 +246,7 @@ const App: React.FC<AppProps> = ({
                                 <button
                                     onClick={() => handleNavigate('settings')}
                                     className="text-white/80 transition-colors hover:text-primary"
+                                    aria-label="Open settings"
                                 >
                                     <Icon
                                         name="settings"
@@ -286,7 +296,11 @@ const App: React.FC<AppProps> = ({
 
                             <div className="ml-auto hidden items-center gap-3 md:flex">
                                 <div className="mx-1 h-6 w-px bg-white/10"></div>
-                                <button className="relative flex h-10 w-10 items-center justify-center rounded-full border border-white/5 bg-surface-dark text-text-secondary transition-all hover:border-primary/30 hover:bg-white/5 hover:text-white">
+                                <button
+                                    className="relative flex h-10 w-10 items-center justify-center rounded-full border border-white/5 bg-surface-dark text-text-secondary transition-all hover:border-primary/30 hover:bg-white/5 hover:text-white"
+                                    onClick={() => handleNavigate('inbox')}
+                                    aria-label="Open notification center"
+                                >
                                     <Icon name="notifications" />
                                     <span className="absolute top-2 right-2.5 h-2 w-2 rounded-full border-2 border-surface-dark bg-amber"></span>
                                 </button>
