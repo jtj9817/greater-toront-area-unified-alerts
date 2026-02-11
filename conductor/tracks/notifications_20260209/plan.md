@@ -64,14 +64,14 @@ Build the Phase 1 UI controls and real-time in-app delivery UX.
 ## Phase 4: Notification Center (Inbox)
 Implement persistent history with read/dismiss plus digest visibility.
 
-- [ ] Task: Build Notification Inbox UI
-    - [ ] Create slide-over or dedicated Notification Center page
-    - [ ] Show individual alerts and daily digest items
-    - [ ] Implement "Mark as Read", "Dismiss", and "Clear All"
-- [ ] Task: Inbox API Integration (TDD)
-    - [ ] Implement endpoints for listing logs and marking read/dismissed
-    - [ ] Enforce ownership checks (users can only modify their own logs)
-    - [ ] Write feature tests for unauthorized access prevention
+- [x] Task: Build Notification Inbox UI
+    - [x] Create slide-over or dedicated Notification Center page
+    - [x] Show individual alerts and daily digest items
+    - [x] Implement "Mark as Read", "Dismiss", and "Clear All"
+- [x] Task: Inbox API Integration (TDD)
+    - [x] Implement endpoints for listing logs and marking read/dismissed
+    - [x] Enforce ownership checks (users can only modify their own logs)
+    - [x] Write feature tests for unauthorized access prevention
 - [ ] Task: Conductor - User Manual Verification 'Phase 4: Notification Center (Inbox)' (Protocol in workflow.md)
 
 ## Phase 5: Quality & Documentation
