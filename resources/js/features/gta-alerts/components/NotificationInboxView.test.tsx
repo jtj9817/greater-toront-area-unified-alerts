@@ -106,6 +106,156 @@ describe('NotificationInboxView', () => {
         ).toBeInTheDocument();
     });
 
+    it('loads older notifications when the load more control is used', async () => {
+        const fetchMock = globalThis.fetch as FetchMock;
+
+        fetchMock.mockResolvedValueOnce(
+            mockJsonResponse({
+                data: [
+                    {
+                        id: 21,
+                        alert_id: 'police:21',
+                        type: 'alert',
+                        delivery_method: 'in_app',
+                        status: 'delivered',
+                        sent_at: '2026-02-10T12:00:00+00:00',
+                        read_at: null,
+                        dismissed_at: null,
+                        metadata: {
+                            source: 'police',
+                            summary: 'Police response near Main Street',
+                        },
+                    },
+                ],
+                meta: {
+                    current_page: 1,
+                    last_page: 2,
+                    per_page: 50,
+                    total: 2,
+                    unread_count: 2,
+                },
+                links: {
+                    next: '/notifications/inbox?page=2&per_page=50',
+                    prev: null,
+                },
+            }),
+        );
+
+        fetchMock.mockResolvedValueOnce(
+            mockJsonResponse({
+                data: [
+                    {
+                        id: 10,
+                        alert_id: 'fire:10',
+                        type: 'alert',
+                        delivery_method: 'in_app',
+                        status: 'delivered',
+                        sent_at: '2026-02-10T10:00:00+00:00',
+                        read_at: null,
+                        dismissed_at: null,
+                        metadata: {
+                            source: 'fire',
+                            summary: 'Structure fire under control',
+                        },
+                    },
+                ],
+                meta: {
+                    current_page: 2,
+                    last_page: 2,
+                    per_page: 50,
+                    total: 2,
+                    unread_count: 2,
+                },
+                links: {
+                    next: null,
+                    prev: '/notifications/inbox?page=1&per_page=50',
+                },
+            }),
+        );
+
+        render(<NotificationInboxView authUserId={99} />);
+
+        await screen.findByText('Police response near Main Street');
+
+        fireEvent.click(
+            screen.getByRole('button', { name: /Load older notifications/i }),
+        );
+
+        await waitFor(() => {
+            expect(fetchMock).toHaveBeenCalledTimes(2);
+        });
+
+        const secondRequest = fetchMock.mock.calls[1] as [string, RequestInit];
+        expect(secondRequest[0]).toBe('/notifications/inbox?page=2&per_page=50');
+        expect(secondRequest[1].method).toBe('GET');
+
+        expect(
+            await screen.findByText('Structure fire under control'),
+        ).toBeInTheDocument();
+        expect(
+            screen.queryByRole('button', { name: /Load older notifications/i }),
+        ).not.toBeInTheDocument();
+    });
+
+    it('calls onOpenAlert when alert summary is selected', async () => {
+        const fetchMock = globalThis.fetch as FetchMock;
+        const onOpenAlert = vi.fn();
+
+        fetchMock.mockResolvedValueOnce(
+            mockJsonResponse({
+                data: [
+                    {
+                        id: 31,
+                        alert_id: 'police:31',
+                        type: 'alert',
+                        delivery_method: 'in_app',
+                        status: 'delivered',
+                        sent_at: '2026-02-10T13:00:00+00:00',
+                        read_at: null,
+                        dismissed_at: null,
+                        metadata: {
+                            source: 'police',
+                            summary: 'Road closure due to police activity',
+                        },
+                    },
+                    {
+                        id: 32,
+                        alert_id: 'digest:2026-02-10',
+                        type: 'digest',
+                        delivery_method: 'in_app_digest',
+                        status: 'sent',
+                        sent_at: '2026-02-10T14:00:00+00:00',
+                        read_at: null,
+                        dismissed_at: null,
+                        metadata: {
+                            type: 'daily_digest',
+                            digest_date: '2026-02-10',
+                            total_notifications: 5,
+                        },
+                    },
+                ],
+                meta: {
+                    current_page: 1,
+                    last_page: 1,
+                    per_page: 50,
+                    total: 2,
+                    unread_count: 2,
+                },
+                links: {
+                    next: null,
+                    prev: null,
+                },
+            }),
+        );
+
+        render(<NotificationInboxView authUserId={99} onOpenAlert={onOpenAlert} />);
+
+        fireEvent.click(await screen.findByText('Road closure due to police activity'));
+
+        expect(onOpenAlert).toHaveBeenCalledWith('police:31');
+        expect(onOpenAlert).toHaveBeenCalledTimes(1);
+    });
+
     it('marks notifications as read and dismisses items', async () => {
         const fetchMock = globalThis.fetch as FetchMock;
 

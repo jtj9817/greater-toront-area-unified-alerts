@@ -13,7 +13,13 @@ import { Icon } from './Icon';
 
 type NotificationInboxViewProps = {
     authUserId: number | null;
+    onOpenAlert?: (alertId: string) => void;
 };
+
+const inboxDateFormatter = new Intl.DateTimeFormat('en-CA', {
+    dateStyle: 'medium',
+    timeStyle: 'short',
+});
 
 const dateTimeLabel = (value: string | null): string => {
     if (!value) {
@@ -26,10 +32,7 @@ const dateTimeLabel = (value: string | null): string => {
         return 'Unknown time';
     }
 
-    return new Intl.DateTimeFormat('en-CA', {
-        dateStyle: 'medium',
-        timeStyle: 'short',
-    }).format(parsed);
+    return inboxDateFormatter.format(parsed);
 };
 
 const sourceLabel = (source: string | null): string => {
@@ -70,12 +73,32 @@ const alertSummary = (item: NotificationInboxItem): string => {
     return 'Alert details unavailable.';
 };
 
+const mergeItemsById = (
+    existingItems: NotificationInboxItem[],
+    incomingItems: NotificationInboxItem[],
+): NotificationInboxItem[] => {
+    const itemMap = new Map<number, NotificationInboxItem>();
+
+    for (const item of existingItems) {
+        itemMap.set(item.id, item);
+    }
+
+    for (const item of incomingItems) {
+        itemMap.set(item.id, item);
+    }
+
+    return [...itemMap.values()];
+};
+
 export const NotificationInboxView: React.FC<NotificationInboxViewProps> = ({
     authUserId,
+    onOpenAlert,
 }) => {
     const [items, setItems] = useState<NotificationInboxItem[]>([]);
     const [unreadCount, setUnreadCount] = useState(0);
+    const [nextPageUrl, setNextPageUrl] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState<boolean>(authUserId !== null);
+    const [isLoadingMore, setIsLoadingMore] = useState(false);
     const [hasLoadedInbox, setHasLoadedInbox] = useState(false);
     const [isClearing, setIsClearing] = useState(false);
     const [activeItemId, setActiveItemId] = useState<number | null>(null);
@@ -85,7 +108,9 @@ export const NotificationInboxView: React.FC<NotificationInboxViewProps> = ({
         if (authUserId === null) {
             setItems([]);
             setUnreadCount(0);
+            setNextPageUrl(null);
             setIsLoading(false);
+            setIsLoadingMore(false);
             setHasLoadedInbox(false);
             setErrorMessage(null);
             return;
@@ -96,6 +121,7 @@ export const NotificationInboxView: React.FC<NotificationInboxViewProps> = ({
         const loadInbox = async (): Promise<void> => {
             setIsLoading(true);
             setHasLoadedInbox(false);
+            setNextPageUrl(null);
             setErrorMessage(null);
 
             try {
@@ -107,6 +133,7 @@ export const NotificationInboxView: React.FC<NotificationInboxViewProps> = ({
 
                 setItems(page.data);
                 setUnreadCount(page.meta.unread_count);
+                setNextPageUrl(page.links.next);
                 setHasLoadedInbox(true);
             } catch (error) {
                 if (!isMounted) {
@@ -138,6 +165,7 @@ export const NotificationInboxView: React.FC<NotificationInboxViewProps> = ({
     }, [authUserId]);
 
     const hasItems = items.length > 0;
+    const hasMoreItems = nextPageUrl !== null;
 
     const sortedItems = useMemo(() => {
         return [...items].sort((left, right) => {
@@ -199,11 +227,35 @@ export const NotificationInboxView: React.FC<NotificationInboxViewProps> = ({
         try {
             const result = await clearNotificationInbox();
             setItems([]);
+            setNextPageUrl(null);
             setUnreadCount(result.unread_count);
         } catch {
             setErrorMessage('Unable to clear notifications.');
         } finally {
             setIsClearing(false);
+        }
+    };
+
+    const loadMore = async (): Promise<void> => {
+        if (!nextPageUrl || isLoadingMore) {
+            return;
+        }
+
+        setIsLoadingMore(true);
+        setErrorMessage(null);
+
+        try {
+            const page = await fetchNotificationInbox({
+                pageUrl: nextPageUrl,
+            });
+
+            setItems((currentItems) => mergeItemsById(currentItems, page.data));
+            setUnreadCount(page.meta.unread_count);
+            setNextPageUrl(page.links.next);
+        } catch {
+            setErrorMessage('Unable to load older notifications.');
+        } finally {
+            setIsLoadingMore(false);
         }
     };
 
@@ -303,8 +355,16 @@ export const NotificationInboxView: React.FC<NotificationInboxViewProps> = ({
                                 ? item.metadata.source
                                 : null,
                         );
+                        const alertId = item.alert_id;
+                        const canOpenAlert =
+                            !isDigest &&
+                            typeof alertId === 'string' &&
+                            alertId.trim().length > 0;
                         const isUnread = item.read_at === null;
                         const isBusy = activeItemId === item.id;
+                        const summaryText = isDigest
+                            ? digestDescription(item)
+                            : alertSummary(item);
 
                         return (
                             <article
@@ -338,9 +398,21 @@ export const NotificationInboxView: React.FC<NotificationInboxViewProps> = ({
                                 </div>
 
                                 <p className="mb-3 text-sm leading-snug font-medium text-white">
-                                    {isDigest
-                                        ? digestDescription(item)
-                                        : alertSummary(item)}
+                                    {canOpenAlert ? (
+                                        <button
+                                            type="button"
+                                            className="text-left hover:text-primary hover:underline"
+                                            onClick={() => {
+                                                if (alertId) {
+                                                    onOpenAlert?.(alertId);
+                                                }
+                                            }}
+                                        >
+                                            {summaryText}
+                                        </button>
+                                    ) : (
+                                        summaryText
+                                    )}
                                 </p>
 
                                 <div className="flex flex-wrap gap-2">
@@ -374,6 +446,23 @@ export const NotificationInboxView: React.FC<NotificationInboxViewProps> = ({
                             </article>
                         );
                     })}
+                    {hasMoreItems && (
+                        <div className="pt-2">
+                            <button
+                                type="button"
+                                className="inline-flex items-center gap-2 rounded-lg border border-white/20 bg-white/5 px-3 py-2 text-sm font-medium text-white transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-60"
+                                onClick={() => {
+                                    void loadMore();
+                                }}
+                                disabled={isLoadingMore}
+                            >
+                                <Icon name="expand_more" />
+                                {isLoadingMore
+                                    ? 'Loading older notifications...'
+                                    : 'Load older notifications'}
+                            </button>
+                        </div>
+                    )}
                 </div>
             )}
         </div>

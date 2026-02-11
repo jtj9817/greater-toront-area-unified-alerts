@@ -203,12 +203,37 @@ const apiHeaders = (): Record<string, string> => {
     return headers;
 };
 
+const normalizePageUrl = (url: string): string => {
+    try {
+        const base =
+            typeof window !== 'undefined' && typeof window.location?.origin === 'string'
+                ? window.location.origin
+                : 'http://localhost';
+        const parsed = new URL(url, base);
+
+        return `${parsed.pathname}${parsed.search}`;
+    } catch {
+        return url;
+    }
+};
+
 export const fetchNotificationInbox = async (
     options?: {
         includeDismissed?: boolean;
         perPage?: number;
+        page?: number;
+        pageUrl?: string;
     },
 ): Promise<NotificationInboxPage> => {
+    if (typeof options?.pageUrl === 'string' && options.pageUrl.trim() !== '') {
+        const payload = (await fetchJson(normalizePageUrl(options.pageUrl.trim()), {
+            method: 'GET',
+            headers: apiHeaders(),
+        })) as NotificationInboxPageResponse;
+
+        return normalizePage(payload);
+    }
+
     const params = new URLSearchParams();
 
     if (options?.includeDismissed) {
@@ -217,6 +242,10 @@ export const fetchNotificationInbox = async (
 
     if (typeof options?.perPage === 'number' && options.perPage > 0) {
         params.set('per_page', String(Math.floor(options.perPage)));
+    }
+
+    if (typeof options?.page === 'number' && options.page > 0) {
+        params.set('page', String(Math.floor(options.page)));
     }
 
     const url =

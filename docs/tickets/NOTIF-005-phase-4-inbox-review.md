@@ -2,7 +2,7 @@
 
 **ID:** NOTIF-005
 **Type:** Code Review / Refactor
-**Status:** Open
+**Status:** Done
 **Priority:** High
 **Created:** 2026-02-10
 **Component:** Notifications (Inbox)
@@ -96,3 +96,15 @@ const dateFormatter = new Intl.DateTimeFormat('en-CA', {
     timeStyle: 'short',
 });
 ```
+
+## Resolution (2026-02-11)
+
+- [x] Refactored `clearAll` to use direct query updates without loading IDs into memory.
+- [x] Added inbox pagination support in the frontend with a "Load older notifications" control.
+- [x] Added `onOpenAlert(alertId)` wiring from `App.tsx` to `NotificationInboxView` for non-digest items.
+- [x] Moved `Intl.DateTimeFormat` instantiation out of per-item render paths.
+
+### Validation
+
+- `php artisan test tests/Feature/Notifications/NotificationInboxControllerTest.php`
+- `CI=true LARAVEL_BYPASS_ENV_CHECK=1 pnpm exec vitest run resources/js/features/gta-alerts/components/NotificationInboxView.test.tsx resources/js/features/gta-alerts/App.test.tsx`

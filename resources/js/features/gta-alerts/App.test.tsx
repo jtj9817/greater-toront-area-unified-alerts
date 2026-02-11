@@ -7,6 +7,14 @@ import type { UnifiedAlertResource } from './domain/alerts';
 
 type ToastHandler = (payload: Record<string, unknown>) => void;
 
+function mockJsonResponse(payload: unknown, ok = true, status = 200): Response {
+    return {
+        ok,
+        status,
+        json: async () => payload,
+    } as unknown as Response;
+}
+
 function setupEchoMock() {
     let handler: ToastHandler | null = null;
     let currentChannel: string | null = null;
@@ -318,6 +326,69 @@ describe('GTA Alerts App (typed domain enforcement boundary)', () => {
         expect(
             screen.getByText('Sign in to view your notification inbox'),
         ).toBeInTheDocument();
+    });
+
+    it('opens alert details when selecting an inbox alert summary', async () => {
+        const fetchMock = vi.fn();
+
+        vi.stubGlobal('fetch', fetchMock);
+
+        try {
+            fetchMock.mockResolvedValueOnce(
+                mockJsonResponse({
+                    data: [
+                        {
+                            id: 41,
+                            alert_id: 'fire:E1',
+                            type: 'alert',
+                            delivery_method: 'in_app',
+                            status: 'delivered',
+                            sent_at: '2026-02-10T15:00:00+00:00',
+                            read_at: null,
+                            dismissed_at: null,
+                            metadata: {
+                                source: 'fire',
+                                summary: 'Structure fire reported on Main St',
+                            },
+                        },
+                    ],
+                    meta: {
+                        current_page: 1,
+                        last_page: 1,
+                        per_page: 50,
+                        total: 1,
+                        unread_count: 1,
+                    },
+                    links: {
+                        next: null,
+                        prev: null,
+                    },
+                }),
+            );
+
+            render(
+                <AlertsApp
+                    {...buildBasePropsWithAuth([fireResource()], 42)}
+                />,
+            );
+
+            fireEvent.click(
+                screen.getAllByRole('button', {
+                    name: 'Open notification center',
+                })[0],
+            );
+
+            fireEvent.click(
+                await screen.findByRole('button', {
+                    name: 'Structure fire reported on Main St',
+                }),
+            );
+
+            expect(screen.getByText('Incident Details')).toBeInTheDocument();
+            expect(screen.getByText(/FIRE:E1/)).toBeInTheDocument();
+        } finally {
+            vi.unstubAllGlobals();
+        }
     });
 });
 

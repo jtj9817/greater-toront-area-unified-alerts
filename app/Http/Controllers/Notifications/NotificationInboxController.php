@@ -95,31 +95,25 @@ class NotificationInboxController extends Controller
         $userId = $request->user()->id;
         $now = now();
 
-        $idsToDismiss = NotificationLog::query()
+        NotificationLog::query()
             ->where('user_id', $userId)
             ->whereNull('dismissed_at')
-            ->pluck('id')
-            ->all();
+            ->whereNull('read_at')
+            ->update([
+                'read_at' => $now,
+            ]);
 
-        if ($idsToDismiss !== []) {
-            NotificationLog::query()
-                ->whereIn('id', $idsToDismiss)
-                ->update([
-                    'dismissed_at' => $now,
-                    'status' => 'dismissed',
-                ]);
-
-            NotificationLog::query()
-                ->whereIn('id', $idsToDismiss)
-                ->whereNull('read_at')
-                ->update([
-                    'read_at' => $now,
-                ]);
-        }
+        $dismissedCount = NotificationLog::query()
+            ->where('user_id', $userId)
+            ->whereNull('dismissed_at')
+            ->update([
+                'dismissed_at' => $now,
+                'status' => 'dismissed',
+            ]);
 
         return response()->json([
             'meta' => [
-                'dismissed_count' => count($idsToDismiss),
+                'dismissed_count' => $dismissedCount,
                 'unread_count' => $this->unreadCount($userId),
             ],
         ]);

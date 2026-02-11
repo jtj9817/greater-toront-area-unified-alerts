@@ -143,7 +143,12 @@ const App: React.FC<AppProps> = ({
                     />
                 );
             case 'inbox':
-                return <NotificationInboxView authUserId={authUserId} />;
+                return (
+                    <NotificationInboxView
+                        authUserId={authUserId}
+                        onOpenAlert={setActiveAlertId}
+                    />
+                );
             case 'feed':
             default:
                 return (
