@@ -95,12 +95,13 @@ class NotificationInboxController extends Controller
     {
         $userId = $request->user()->id;
         $now = now();
+        $quotedNow = DB::connection()->getPdo()->quote($now->toDateTimeString());
 
         $dismissedCount = NotificationLog::query()
             ->where('user_id', $userId)
             ->whereNull('dismissed_at')
             ->update([
-                'read_at' => DB::raw('COALESCE(read_at, CURRENT_TIMESTAMP)'),
+                'read_at' => DB::raw("COALESCE(read_at, {$quotedNow})"),
                 'dismissed_at' => $now,
                 'status' => 'dismissed',
             ]);

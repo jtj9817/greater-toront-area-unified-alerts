@@ -282,3 +282,33 @@ test('authenticated user can clear all undismissed inbox logs', function () {
     expect($otherUserLog->dismissed_at)->toBeNull();
     expect($otherUserLog->status)->toBe('delivered');
 });
+
+test('clear all uses application clock for read and dismissed timestamps', function () {
+    $frozenNow = CarbonImmutable::parse('2026-02-11T15:45:30Z');
+    CarbonImmutable::setTestNow($frozenNow);
+
+    try {
+        $user = User::factory()->create();
+
+        $log = NotificationLog::factory()->create([
+            'user_id' => $user->id,
+            'status' => 'delivered',
+            'read_at' => null,
+            'dismissed_at' => null,
+        ]);
+
+        $this
+            ->actingAs($user)
+            ->deleteJson('/notifications/inbox')
+            ->assertOk()
+            ->assertJsonPath('meta.dismissed_count', 1)
+            ->assertJsonPath('meta.unread_count', 0);
+
+        $log->refresh();
+
+        expect($log->read_at?->toDateTimeString())->toBe($frozenNow->toDateTimeString());
+        expect($log->dismissed_at?->toDateTimeString())->toBe($frozenNow->toDateTimeString());
+    } finally {
+        CarbonImmutable::setTestNow();
+    }
+});
