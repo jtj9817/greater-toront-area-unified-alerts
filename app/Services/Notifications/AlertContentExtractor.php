@@ -66,16 +66,89 @@ class AlertContentExtractor
             }
         }
 
-        preg_match_all('/\b(50[1-8]|3\d{2})\b/', $text, $matches);
+        $configuredNumericRouteIds = $this->configuredNumericRouteIds();
 
-        foreach ($matches[1] ?? [] as $route) {
-            $normalized = $this->normalizeRouteId((string) $route);
-            if ($normalized !== null) {
+        // Legacy fallback if transit route config isn't available.
+        if ($configuredNumericRouteIds === []) {
+            preg_match_all('/\b(50[1-8]|3\d{2})\b/', $text, $matches);
+
+            foreach ($matches[1] ?? [] as $route) {
+                $normalized = $this->normalizeRouteId((string) $route);
+                if ($normalized !== null) {
+                    $matched[] = $normalized;
+                }
+            }
+
+            return array_values(array_unique($matched));
+        }
+
+        $configuredNumericLookup = array_fill_keys($configuredNumericRouteIds, true);
+
+        // Avoid matching random "1" or "2" occurrences by only accepting single-digit routes
+        // when they appear in a "Line X" context.
+        preg_match_all('/\bline\s*([0-9])\b/i', $text, $lineMatches);
+        foreach ($lineMatches[1] ?? [] as $lineId) {
+            $normalized = $this->normalizeRouteId((string) $lineId);
+            if ($normalized !== null && array_key_exists($normalized, $configuredNumericLookup)) {
                 $matched[] = $normalized;
             }
         }
 
+        $multiDigit = array_values(array_filter(
+            $configuredNumericRouteIds,
+            static fn (string $id): bool => strlen($id) >= 2,
+        ));
+
+        if ($multiDigit !== []) {
+            usort($multiDigit, static fn (string $a, string $b): int => strlen($b) <=> strlen($a));
+
+            $alternation = implode('|', array_map(
+                static fn (string $id): string => preg_quote($id, '/'),
+                $multiDigit,
+            ));
+
+            // Exclude hyphenated tokens like "29-minute" to reduce false-positive matches.
+            preg_match_all('/\b(?:'.$alternation.')\b(?!-)/', $text, $matches);
+
+            foreach ($matches[0] ?? [] as $route) {
+                $normalized = $this->normalizeRouteId((string) $route);
+                if ($normalized !== null) {
+                    $matched[] = $normalized;
+                }
+            }
+        }
+
         return array_values(array_unique($matched));
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    private function configuredNumericRouteIds(): array
+    {
+        $config = $this->transitData();
+        $routes = is_array($config['routes'] ?? null) ? $config['routes'] : [];
+
+        $ids = [];
+
+        foreach ($routes as $route) {
+            if (! is_array($route)) {
+                continue;
+            }
+
+            $id = $this->normalizeRouteId((string) ($route['id'] ?? ''));
+            if ($id === null) {
+                continue;
+            }
+
+            if (! ctype_digit($id)) {
+                continue;
+            }
+
+            $ids[] = $id;
+        }
+
+        return array_values(array_unique($ids));
     }
 
     /**

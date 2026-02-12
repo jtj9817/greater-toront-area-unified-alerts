@@ -15,6 +15,12 @@ class NotificationPreferenceUpdateRequest extends FormRequest
      */
     public function rules(): array
     {
-        return NotificationPreference::validationRules(partial: true);
+        $rules = NotificationPreference::validationRules(partial: true);
+
+        // Backwards-compat: older clients send `subscribed_routes` instead of `subscriptions`.
+        $rules['subscribed_routes'] = ['sometimes', 'array'];
+        $rules['subscribed_routes.*'] = ['string', 'max:64'];
+
+        return $rules;
     }
 }

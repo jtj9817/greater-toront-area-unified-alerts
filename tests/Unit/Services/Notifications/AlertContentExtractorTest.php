@@ -50,3 +50,26 @@ test('it returns deduplicated normalized urns', function () {
 
     expect($routeMatches)->toHaveCount(1);
 });
+
+test('it extracts all configured ttc routes from text and combined route tokens', function () {
+    $extractor = app(AlertContentExtractor::class);
+
+    $urns = $extractor->extract(new NotificationAlert(
+        alertId: 'transit:test3',
+        source: 'transit',
+        severity: 'minor',
+        summary: 'Service impacts on 510/310, 509, route 29, and Line 1',
+        occurredAt: CarbonImmutable::parse('2026-02-12T11:00:00Z'),
+        routes: ['510/310'],
+        metadata: [
+            'description' => 'Airport express 900 running with delays',
+        ],
+    ));
+
+    expect($urns)->toContain('route:510');
+    expect($urns)->toContain('route:310');
+    expect($urns)->toContain('route:509');
+    expect($urns)->toContain('route:29');
+    expect($urns)->toContain('route:900');
+    expect($urns)->toContain('route:1');
+});

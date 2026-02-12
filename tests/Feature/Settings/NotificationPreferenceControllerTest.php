@@ -280,6 +280,37 @@ test('notification settings update rejects unknown geofence keys', function () {
         ]);
 });
 
+test('notification settings update accepts legacy subscribed_routes payload', function () {
+    $user = User::factory()->create();
+
+    $response = $this
+        ->actingAs($user)
+        ->patchJson('/settings/notifications', [
+            'subscribed_routes' => ['1', '501', 'route:go-lw'],
+        ]);
+
+    $response
+        ->assertOk()
+        ->assertJsonPath('data.subscriptions', ['route:1', 'route:501', 'route:go-lw']);
+
+    expect(NotificationPreference::query()->where('user_id', $user->id)->firstOrFail()->subscriptions)
+        ->toBe(['route:1', 'route:501', 'route:go-lw']);
+});
+
+test('notification settings update validates legacy subscribed_routes payload', function () {
+    $user = User::factory()->create();
+
+    $this
+        ->actingAs($user)
+        ->patchJson('/settings/notifications', [
+            'subscribed_routes' => [123],
+        ])
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors([
+            'subscribed_routes.0',
+        ]);
+});
+
 test('repeated notification settings fetch and update do not create duplicate preference rows', function () {
     $user = User::factory()->create();
 

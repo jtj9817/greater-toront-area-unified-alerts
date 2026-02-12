@@ -9,7 +9,14 @@ class SubscriptionOptionsController extends Controller
 {
     public function __invoke(): JsonResponse
     {
-        $config = config('transit_data');
+        try {
+            $config = config('transit_data');
+        } catch (\Throwable) {
+            $config = [];
+        }
+
+        $config = is_array($config) ? $config : [];
+        $agency = is_array($config['agency'] ?? null) ? $config['agency'] : [];
 
         $routes = collect($config['routes'] ?? [])
             ->filter(static fn (mixed $route): bool => is_array($route))
@@ -47,8 +54,8 @@ class SubscriptionOptionsController extends Controller
         return response()->json([
             'data' => [
                 'agency' => [
-                    'urn' => 'agency:'.trim((string) ($config['agency']['slug'] ?? 'ttc')),
-                    'name' => trim((string) ($config['agency']['name'] ?? 'TTC')),
+                    'urn' => 'agency:'.trim((string) ($agency['slug'] ?? 'ttc')),
+                    'name' => trim((string) ($agency['name'] ?? 'TTC')),
                 ],
                 'routes' => $routes,
                 'stations' => $stations,
