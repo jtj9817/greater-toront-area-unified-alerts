@@ -2,25 +2,25 @@
 
 ## Phase 1: Static Geofencing & Address Search (Toronto Open Data)
 
-- [ ] Task: Database - Cleanup & Setup
-    - [ ] Create migration to drop unused `geofences` JSON column from `notification_preferences`.
-    - [ ] Create `SavedPlace` model and migration (user_id, name, lat, long, radius, type).
-    - [ ] Create `TorontoAddress` model/migration (street_num, street_name, lat, long, zip).
-    - [ ] Create `TorontoPointOfInterest` model/migration (name, category, lat, long).
-    - [ ] Create Console Command `data:import-toronto-geospatial` to ingest "Address Points" and "POI" CSV/JSON.
-- [ ] Task: Backend - Geocoding Service (Local)
-    - [ ] Create `LocalGeocodingService` to search `TorontoAddress` and `TorontoPointOfInterest` (using `LIKE` or FTS).
-    - [ ] Implement API endpoint `/api/geocoding/search` for frontend autocomplete.
-- [ ] Task: Backend - Saved Places Management
-    - [ ] Implement API endpoints for CRUD operations on `SavedPlace`.
-    - [ ] Add validation ensuring coordinates are within GTA bounds.
-- [ ] Task: Frontend - Address Search UI
-    - [ ] Create `SavedPlacesManager` component.
-    - [ ] Implement address/POI autocomplete input querying `/api/geocoding/search`.
-    - [ ] Connect UI to `SavedPlace` CRUD endpoints.
-- [ ] Task: Notification Engine - Geofence Matching Logic
-    - [ ] Update `NotificationMatcher` to query `SavedPlace` records instead of the dropped JSON column.
-    - [ ] Verify Haversine distance calculation works with the new model.
+- [x] Task: Database - Cleanup & Setup
+    - [x] Create migration to drop unused `geofences` JSON column from `notification_preferences`.
+    - [x] Create `SavedPlace` model and migration (user_id, name, lat, long, radius, type).
+    - [x] Create `TorontoAddress` model/migration (street_num, street_name, lat, long, zip).
+    - [x] Create `TorontoPointOfInterest` model/migration (name, category, lat, long).
+    - [x] Create Console Command `data:import-toronto-geospatial` to ingest "Address Points" and "POI" CSV/JSON.
+- [x] Task: Backend - Geocoding Service (Local)
+    - [x] Create `LocalGeocodingService` to search `TorontoAddress` and `TorontoPointOfInterest` (using `LIKE` or FTS).
+    - [x] Implement API endpoint `/api/geocoding/search` for frontend autocomplete.
+- [x] Task: Backend - Saved Places Management
+    - [x] Implement API endpoints for CRUD operations on `SavedPlace`.
+    - [x] Add validation ensuring coordinates are within GTA bounds.
+- [x] Task: Frontend - Address Search UI
+    - [x] Create `SavedPlacesManager` component.
+    - [x] Implement address/POI autocomplete input querying `/api/geocoding/search`.
+    - [x] Connect UI to `SavedPlace` CRUD endpoints.
+- [x] Task: Notification Engine - Geofence Matching Logic
+    - [x] Update `NotificationMatcher` to query `SavedPlace` records instead of the dropped JSON column.
+    - [x] Verify Haversine distance calculation works with the new model.
 - [ ] Task: Conductor - User Manual Verification 'Static Geofencing & Address Search' (Protocol in workflow.md)
 
 ## Phase 2: TTC Accessibility & Granular Subscriptions
