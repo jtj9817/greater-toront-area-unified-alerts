@@ -10,6 +10,18 @@ use RuntimeException;
 
 class ImportTorontoGeospatialDataCommand extends Command
 {
+    private const ADDRESS_REQUIRED_CSV_HEADER_GROUPS = [
+        ['streetname', 'street', 'roadname', 'streetline1', 'fulladdress', 'address'],
+        ['lat', 'latitude', 'y'],
+        ['long', 'longitude', 'lon', 'lng', 'x'],
+    ];
+
+    private const POI_REQUIRED_CSV_HEADER_GROUPS = [
+        ['name', 'placename', 'title', 'poi'],
+        ['lat', 'latitude', 'y'],
+        ['long', 'longitude', 'lon', 'lng', 'x'],
+    ];
+
     protected $signature = 'data:import-toronto-geospatial
         {--addresses= : Path to Toronto Address Points CSV/JSON}
         {--pois= : Path to Toronto Places of Interest CSV/JSON}
@@ -72,7 +84,7 @@ class ImportTorontoGeospatialDataCommand extends Command
         $inserted = 0;
         $buffer = [];
 
-        foreach ($this->rowsFromDataset($path) as $row) {
+        foreach ($this->rowsFromDataset($path, self::ADDRESS_REQUIRED_CSV_HEADER_GROUPS) as $row) {
             $mapped = $this->mapAddressRow($row);
 
             if ($mapped === null) {
@@ -101,7 +113,7 @@ class ImportTorontoGeospatialDataCommand extends Command
         $inserted = 0;
         $buffer = [];
 
-        foreach ($this->rowsFromDataset($path) as $row) {
+        foreach ($this->rowsFromDataset($path, self::POI_REQUIRED_CSV_HEADER_GROUPS) as $row) {
             $mapped = $this->mapPoiRow($row);
 
             if ($mapped === null) {
@@ -126,18 +138,23 @@ class ImportTorontoGeospatialDataCommand extends Command
     }
 
     /**
+     * @param  array<int, array<int, string>>  $requiredCsvHeaderGroups
      * @return \Generator<int, array<string, mixed>>
      */
-    private function rowsFromDataset(string $path): \Generator
+    private function rowsFromDataset(string $path, array $requiredCsvHeaderGroups = []): \Generator
     {
         if (! is_file($path)) {
             throw new RuntimeException("Dataset file not found: {$path}");
         }
 
+        if (! is_readable($path)) {
+            throw new RuntimeException("Dataset file is not readable: {$path}");
+        }
+
         $extension = strtolower((string) pathinfo($path, PATHINFO_EXTENSION));
 
         if ($extension === 'csv') {
-            yield from $this->rowsFromCsv($path);
+            yield from $this->rowsFromCsv($path, $requiredCsvHeaderGroups);
 
             return;
         }
@@ -152,9 +169,10 @@ class ImportTorontoGeospatialDataCommand extends Command
     }
 
     /**
+     * @param  array<int, array<int, string>>  $requiredCsvHeaderGroups
      * @return \Generator<int, array<string, mixed>>
      */
-    private function rowsFromCsv(string $path): \Generator
+    private function rowsFromCsv(string $path, array $requiredCsvHeaderGroups = []): \Generator
     {
         $handle = fopen($path, 'rb');
 
@@ -174,6 +192,8 @@ class ImportTorontoGeospatialDataCommand extends Command
             $headers,
         );
 
+        $this->validateCsvHeaders($normalizedHeaders, $requiredCsvHeaderGroups, $path);
+
         try {
             while (($row = fgetcsv($handle)) !== false) {
                 if (! is_array($row)) {
@@ -190,6 +210,26 @@ class ImportTorontoGeospatialDataCommand extends Command
             }
         } finally {
             fclose($handle);
+        }
+    }
+
+    /**
+     * @param  array<int, string>  $normalizedHeaders
+     * @param  array<int, array<int, string>>  $requiredHeaderGroups
+     */
+    private function validateCsvHeaders(array $normalizedHeaders, array $requiredHeaderGroups, string $path): void
+    {
+        if ($requiredHeaderGroups === []) {
+            return;
+        }
+
+        foreach ($requiredHeaderGroups as $group) {
+            if (array_intersect($group, $normalizedHeaders) !== []) {
+                continue;
+            }
+
+            $groupList = implode(', ', $group);
+            throw new RuntimeException("CSV file is missing required columns ({$groupList}): {$path}");
         }
     }
 

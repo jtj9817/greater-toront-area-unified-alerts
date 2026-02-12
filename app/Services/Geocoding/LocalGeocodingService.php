@@ -32,6 +32,7 @@ class LocalGeocodingService
                     $address->street_name,
                 ]))),
                 'secondary' => $address->zip,
+                'zip' => $address->zip,
                 'lat' => $address->lat,
                 'long' => $address->long,
             ],
@@ -43,6 +44,7 @@ class LocalGeocodingService
                 'type' => 'poi',
                 'name' => $poi->name,
                 'secondary' => $poi->category,
+                'zip' => null,
                 'lat' => $poi->lat,
                 'long' => $poi->long,
             ],
@@ -60,9 +62,11 @@ class LocalGeocodingService
      */
     private function searchAddresses(string $term, int $limit): Collection
     {
+        $prefix = $this->escapeLike(strtolower($term)).'%';
+
         return TorontoAddress::query()
             ->where(fn (Builder $query): Builder => $this->applyAddressTokenFilters($query, $term))
-            ->orderByRaw('CASE WHEN LOWER(street_name) LIKE ? THEN 0 ELSE 1 END', [strtolower($term).'%'])
+            ->orderByRaw("CASE WHEN LOWER(street_name) LIKE ? ESCAPE '!' THEN 0 ELSE 1 END", [$prefix])
             ->orderBy('street_name')
             ->limit($limit)
             ->get();
@@ -73,15 +77,17 @@ class LocalGeocodingService
      */
     private function searchPois(string $term, int $limit): Collection
     {
-        $like = '%'.strtolower($term).'%';
+        $escapedTerm = $this->escapeLike(strtolower($term));
+        $like = '%'.$escapedTerm.'%';
+        $prefix = $escapedTerm.'%';
 
         return TorontoPointOfInterest::query()
             ->where(function (Builder $query) use ($like): void {
                 $query
-                    ->whereRaw('LOWER(name) LIKE ?', [$like])
-                    ->orWhereRaw('LOWER(COALESCE(category, \'\')) LIKE ?', [$like]);
+                    ->whereRaw("LOWER(name) LIKE ? ESCAPE '!'", [$like])
+                    ->orWhereRaw("LOWER(COALESCE(category, '')) LIKE ? ESCAPE '!'", [$like]);
             })
-            ->orderByRaw('CASE WHEN LOWER(name) LIKE ? THEN 0 ELSE 1 END', [strtolower($term).'%'])
+            ->orderByRaw("CASE WHEN LOWER(name) LIKE ? ESCAPE '!' THEN 0 ELSE 1 END", [$prefix])
             ->orderBy('name')
             ->limit($limit)
             ->get();
@@ -98,16 +104,21 @@ class LocalGeocodingService
                 continue;
             }
 
-            $like = "%{$token}%";
+            $like = '%'.$this->escapeLike($token).'%';
 
             $query->where(function (Builder $nested) use ($like): void {
                 $nested
-                    ->whereRaw('LOWER(street_name) LIKE ?', [$like])
-                    ->orWhereRaw('LOWER(COALESCE(street_num, \'\')) LIKE ?', [$like])
-                    ->orWhereRaw('LOWER(COALESCE(zip, \'\')) LIKE ?', [$like]);
+                    ->whereRaw("LOWER(street_name) LIKE ? ESCAPE '!'", [$like])
+                    ->orWhereRaw("LOWER(COALESCE(street_num, '')) LIKE ? ESCAPE '!'", [$like])
+                    ->orWhereRaw("LOWER(COALESCE(zip, '')) LIKE ? ESCAPE '!'", [$like]);
             });
         }
 
         return $query;
+    }
+
+    private function escapeLike(string $value): string
+    {
+        return str_replace(['!', '%', '_'], ['!!', '!%', '!_'], $value);
     }
 }
