@@ -69,6 +69,6 @@ foreach ($geofences as $geofence) {
 - **Note:** When using `insert()`, Eloquent timestamps (`created_at`, `updated_at`) are not automatically managed, so they must be populated manually in the array preparation.
 
 ## Action Items
-- [ ] Refactor `ImportTorontoGeospatialDataCommand` to handle large JSON files safely or enforce size limits.
-- [ ] Optimize `LocalGeocodingService` queries to remove `LOWER()` and consider FTS for performance.
-- [ ] Refactor `NotificationPreferenceController::syncLegacyGeofences` to use bulk inserts.
+- [x] Refactor `ImportTorontoGeospatialDataCommand` to handle large JSON files safely or enforce size limits.
+- [x] Optimize `LocalGeocodingService` queries to remove `LOWER()` and consider FTS for performance.
+- [x] Refactor `NotificationPreferenceController::syncLegacyGeofences` to use bulk inserts.
