@@ -24,7 +24,7 @@ test('authenticated user can fetch notification settings defaults', function () 
         ->assertJsonPath('data.alert_type', 'all')
         ->assertJsonPath('data.severity_threshold', 'all')
         ->assertJsonPath('data.geofences', [])
-        ->assertJsonPath('data.subscribed_routes', [])
+        ->assertJsonPath('data.subscriptions', [])
         ->assertJsonPath('data.digest_mode', false)
         ->assertJsonPath('data.push_enabled', true);
 
@@ -46,7 +46,7 @@ test('authenticated user can update notification settings', function () {
         'geofences' => [
             ['name' => 'Home', 'lat' => 43.7001, 'lng' => -79.4163, 'radius_km' => 2],
         ],
-        'subscribed_routes' => ['1', '501', 'GO-LW'],
+        'subscriptions' => ['route:1', 'route:501', 'route:go-lw'],
         'digest_mode' => true,
         'push_enabled' => false,
     ];
@@ -59,7 +59,7 @@ test('authenticated user can update notification settings', function () {
         ->assertOk()
         ->assertJsonPath('data.alert_type', 'transit')
         ->assertJsonPath('data.severity_threshold', 'major')
-        ->assertJsonPath('data.subscribed_routes', ['1', '501', 'GO-LW'])
+        ->assertJsonPath('data.subscriptions', ['route:1', 'route:501', 'route:go-lw'])
         ->assertJsonPath('data.digest_mode', true)
         ->assertJsonPath('data.push_enabled', false);
 
@@ -80,7 +80,7 @@ test('notification settings update validates payload', function () {
         ->patchJson('/settings/notifications', [
             'severity_threshold' => 'urgent',
             'geofences' => ['invalid-geofence-shape'],
-            'subscribed_routes' => [123],
+            'subscriptions' => [123],
             'digest_mode' => 'yes',
         ]);
 
@@ -89,7 +89,7 @@ test('notification settings update validates payload', function () {
         ->assertJsonValidationErrors([
             'severity_threshold',
             'geofences.0',
-            'subscribed_routes.0',
+            'subscriptions.0',
             'digest_mode',
         ]);
 });
@@ -102,13 +102,13 @@ test('notification settings updates only affect the authenticated user', functio
         'user_id' => $otherUser->id,
         'alert_type' => 'emergency',
         'severity_threshold' => 'critical',
-        'subscribed_routes' => ['GO-KI'],
+        'subscriptions' => ['route:go-ki'],
     ]);
 
     $this->actingAs($user)->patchJson('/settings/notifications', [
         'alert_type' => 'transit',
         'severity_threshold' => 'minor',
-        'subscribed_routes' => ['1'],
+        'subscriptions' => ['route:1'],
     ])->assertOk();
 
     expect(NotificationPreference::query()->where('user_id', $otherUser->id)->firstOrFail()->severity_threshold)
@@ -193,7 +193,7 @@ test('partial notification settings patch preserves untouched fields', function 
         'user_id' => $user->id,
         'alert_type' => 'transit',
         'severity_threshold' => 'major',
-        'subscribed_routes' => ['1', 'GO-LW'],
+        'subscriptions' => ['route:1', 'route:go-lw'],
         'digest_mode' => false,
         'push_enabled' => true,
     ]);
@@ -215,7 +215,7 @@ test('partial notification settings patch preserves untouched fields', function 
         ->assertOk()
         ->assertJsonPath('data.alert_type', 'transit')
         ->assertJsonPath('data.severity_threshold', 'critical')
-        ->assertJsonPath('data.subscribed_routes', ['1', 'GO-LW'])
+        ->assertJsonPath('data.subscriptions', ['route:1', 'route:go-lw'])
         ->assertJsonPath('data.digest_mode', false)
         ->assertJsonPath('data.push_enabled', true);
 });
@@ -227,11 +227,11 @@ test('notification settings update accepts empty arrays for geofences and subscr
         ->actingAs($user)
         ->patchJson('/settings/notifications', [
             'geofences' => [],
-            'subscribed_routes' => [],
+            'subscriptions' => [],
         ])
         ->assertOk()
         ->assertJsonPath('data.geofences', [])
-        ->assertJsonPath('data.subscribed_routes', []);
+        ->assertJsonPath('data.subscriptions', []);
 });
 
 test('notification settings update rejects null scalar preference fields', function () {

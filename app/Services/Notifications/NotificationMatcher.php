@@ -9,6 +9,10 @@ use Illuminate\Support\LazyCollection;
 
 class NotificationMatcher
 {
+    public function __construct(
+        private readonly AlertContentExtractor $alertContentExtractor,
+    ) {}
+
     /** @var array<int, Collection<int, SavedPlace>> */
     private array $savedPlacesCache = [];
 
@@ -38,7 +42,7 @@ class NotificationMatcher
             return false;
         }
 
-        if (! $this->matchesSubscribedRoutes($preference, $alert)) {
+        if (! $this->matchesSubscriptions($preference, $alert)) {
             return false;
         }
 
@@ -49,7 +53,7 @@ class NotificationMatcher
     {
         return match ($preference->alert_type) {
             'all' => true,
-            'transit' => in_array($alert->source, ['transit', 'go_transit'], true),
+            'transit' => in_array($alert->source, ['transit', 'go_transit', 'ttc_accessibility'], true),
             'emergency' => in_array($alert->source, ['fire', 'police'], true),
             'accessibility' => $this->isAccessibilityAlert($alert),
             default => false,
@@ -63,7 +67,7 @@ class NotificationMatcher
     {
         $types = ['all'];
 
-        if (in_array($alert->source, ['transit', 'go_transit'], true)) {
+        if (in_array($alert->source, ['transit', 'go_transit', 'ttc_accessibility'], true)) {
             $types[] = 'transit';
 
             if ($this->isAccessibilityAlert($alert)) {
@@ -97,24 +101,25 @@ class NotificationMatcher
         return $alertSeverity >= $threshold;
     }
 
-    private function matchesSubscribedRoutes(NotificationPreference $preference, NotificationAlert $alert): bool
+    private function matchesSubscriptions(NotificationPreference $preference, NotificationAlert $alert): bool
     {
-        $subscribedRoutes = $this->normalizeRoutes($preference->subscribed_routes);
+        $subscriptions = $this->normalizeSubscriptions($preference->subscriptions);
 
-        if ($subscribedRoutes === []) {
+        if ($subscriptions === []) {
             return true;
         }
 
-        if (! in_array($alert->source, ['transit', 'go_transit'], true)) {
+        if (! in_array($alert->source, ['transit', 'go_transit', 'ttc_accessibility'], true)) {
             return true;
         }
 
-        $alertRoutes = $this->normalizeRoutes($alert->routes);
-        if ($alertRoutes === []) {
+        $alertUrns = $this->alertSubscriptionUrns($alert);
+
+        if ($alertUrns === []) {
             return false;
         }
 
-        return array_intersect($subscribedRoutes, $alertRoutes) !== [];
+        return array_intersect($subscriptions, $alertUrns) !== [];
     }
 
     private function matchesGeofence(NotificationPreference $preference, NotificationAlert $alert): bool
@@ -160,28 +165,56 @@ class NotificationMatcher
     }
 
     /**
-     * @param  array<int, mixed>|null  $routes
+     * @param  array<int, mixed>|null  $subscriptions
      * @return array<int, string>
      */
-    private function normalizeRoutes(?array $routes): array
+    private function normalizeSubscriptions(?array $subscriptions): array
     {
-        if (! is_array($routes)) {
+        if (! is_array($subscriptions)) {
             return [];
         }
 
-        $normalized = array_map(
-            static fn (mixed $route): string => strtoupper(trim((string) $route)),
-            $routes,
-        );
+        $normalized = array_map(static function (mixed $subscription): string {
+            $value = strtolower(trim((string) $subscription));
+            if ($value === '') {
+                return '';
+            }
+
+            if (! str_contains($value, ':')) {
+                return 'route:'.$value;
+            }
+
+            return $value;
+        }, $subscriptions);
 
         return array_values(array_unique(array_filter(
             $normalized,
-            static fn (string $route): bool => $route !== '',
+            static fn (string $subscription): bool => $subscription !== '',
+        )));
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    private function alertSubscriptionUrns(NotificationAlert $alert): array
+    {
+        $urns = $this->alertContentExtractor->extract($alert);
+
+        return array_values(array_unique(array_filter(
+            array_map(
+                static fn (string $urn): string => strtolower(trim($urn)),
+                $urns,
+            ),
+            static fn (string $urn): bool => $urn !== '',
         )));
     }
 
     private function isAccessibilityAlert(NotificationAlert $alert): bool
     {
+        if ($alert->source === 'ttc_accessibility') {
+            return true;
+        }
+
         if (! in_array($alert->source, ['transit', 'go_transit'], true)) {
             return false;
         }

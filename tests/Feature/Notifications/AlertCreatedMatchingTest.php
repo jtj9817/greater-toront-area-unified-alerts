@@ -17,7 +17,7 @@ test('alert created queues notification jobs only for matching preferences', fun
     $matching = NotificationPreference::factory()->create([
         'alert_type' => 'emergency',
         'severity_threshold' => 'major',
-        'subscribed_routes' => [],
+        'subscriptions' => [],
         'push_enabled' => true,
     ]);
 
@@ -33,28 +33,28 @@ test('alert created queues notification jobs only for matching preferences', fun
     NotificationPreference::factory()->create([
         'alert_type' => 'emergency',
         'severity_threshold' => 'major',
-        'subscribed_routes' => [],
+        'subscriptions' => [],
         'push_enabled' => false,
     ]);
 
     NotificationPreference::factory()->create([
         'alert_type' => 'transit',
         'severity_threshold' => 'minor',
-        'subscribed_routes' => [],
+        'subscriptions' => [],
         'push_enabled' => true,
     ]);
 
     NotificationPreference::factory()->create([
         'alert_type' => 'emergency',
         'severity_threshold' => 'critical',
-        'subscribed_routes' => [],
+        'subscriptions' => [],
         'push_enabled' => true,
     ]);
 
     NotificationPreference::factory()->create([
         'alert_type' => 'emergency',
         'severity_threshold' => 'major',
-        'subscribed_routes' => [],
+        'subscriptions' => [],
         'push_enabled' => true,
     ]);
 
@@ -100,14 +100,14 @@ test('transit alerts respect subscribed route matching when provided', function 
     $matching = NotificationPreference::factory()->create([
         'alert_type' => 'transit',
         'severity_threshold' => 'minor',
-        'subscribed_routes' => ['501', 'GO-LW'],
+        'subscriptions' => ['route:501', 'route:go-lw'],
         'push_enabled' => true,
     ]);
 
     NotificationPreference::factory()->create([
         'alert_type' => 'transit',
         'severity_threshold' => 'minor',
-        'subscribed_routes' => ['504'],
+        'subscriptions' => ['route:504'],
         'push_enabled' => true,
     ]);
 

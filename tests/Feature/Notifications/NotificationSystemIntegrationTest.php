@@ -27,7 +27,7 @@ test('matching alert flows through dispatch, delivery, broadcast, inbox, and mar
         'user_id' => $user->id,
         'alert_type' => 'emergency',
         'severity_threshold' => 'major',
-        'subscribed_routes' => [],
+        'subscriptions' => [],
         'push_enabled' => true,
         'digest_mode' => false,
     ]);
@@ -120,7 +120,7 @@ test('non-matching geofence alert does not dispatch notification job', function 
     NotificationPreference::factory()->create([
         'alert_type' => 'emergency',
         'severity_threshold' => 'major',
-        'subscribed_routes' => [],
+        'subscriptions' => [],
         'push_enabled' => true,
     ]);
 
@@ -158,7 +158,7 @@ test('digest user receives daily digest entry in inbox', function () {
             'user_id' => $user->id,
             'digest_mode' => true,
             'push_enabled' => true,
-            'subscribed_routes' => [],
+            'subscriptions' => [],
         ]);
 
         // Create notification logs from the previous day (within digest window)

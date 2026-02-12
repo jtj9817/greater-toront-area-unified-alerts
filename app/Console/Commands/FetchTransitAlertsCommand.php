@@ -40,6 +40,11 @@ class FetchTransitAlertsCommand extends Command
 
             $activeExternalIds[$externalId] = true;
 
+            /** @var TransitAlert|null $existing */
+            $existing = TransitAlert::query()->where('external_id', $externalId)->first();
+            $previousEffect = $existing?->effect;
+            $previousActive = $existing?->is_active ?? false;
+
             $transitAlert = TransitAlert::updateOrCreate(
                 ['external_id' => $externalId],
                 array_merge($alert, [
@@ -48,7 +53,11 @@ class FetchTransitAlertsCommand extends Command
                 ])
             );
 
-            if ($transitAlert->wasRecentlyCreated || ($transitAlert->wasChanged('is_active') && $transitAlert->is_active)) {
+            if ($this->shouldDispatchNotification(
+                transitAlert: $transitAlert,
+                previousEffect: $previousEffect,
+                wasPreviouslyActive: $previousActive,
+            )) {
                 event(new AlertCreated(
                     $notificationAlertFactory->fromTransitAlert($transitAlert),
                 ));
@@ -71,5 +80,39 @@ class FetchTransitAlertsCommand extends Command
         ));
 
         return self::SUCCESS;
+    }
+
+    private function shouldDispatchNotification(TransitAlert $transitAlert, ?string $previousEffect, bool $wasPreviouslyActive): bool
+    {
+        if ($transitAlert->source_feed === 'ttc_accessibility') {
+            if (! $this->isOutOfServiceEffect($transitAlert->effect)) {
+                return false;
+            }
+
+            if ($transitAlert->wasRecentlyCreated) {
+                return true;
+            }
+
+            return ! $this->isOutOfServiceEffect($previousEffect);
+        }
+
+        if ($transitAlert->wasRecentlyCreated) {
+            return true;
+        }
+
+        return ! $wasPreviouslyActive && $transitAlert->is_active;
+    }
+
+    private function isOutOfServiceEffect(?string $effect): bool
+    {
+        if ($effect === null) {
+            return false;
+        }
+
+        $normalized = strtoupper(trim($effect));
+
+        return $normalized === 'OUT_OF_SERVICE'
+            || str_contains($normalized, 'NOT_IN_SERVICE')
+            || str_contains($normalized, 'UNAVAILABLE');
     }
 }

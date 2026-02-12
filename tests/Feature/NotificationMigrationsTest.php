@@ -1,10 +1,10 @@
 <?php
 
 use App\Models\User;
+use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
-use Illuminate\Database\Schema\Blueprint;
 
 uses(RefreshDatabase::class);
 
@@ -15,7 +15,7 @@ test('notification tables exist with expected columns', function () {
         'user_id',
         'alert_type',
         'severity_threshold',
-        'subscribed_routes',
+        'subscriptions',
         'digest_mode',
         'push_enabled',
         'created_at',
@@ -99,7 +99,7 @@ test('geofence drop migration backfills saved places before removing legacy colu
             ['name' => null, 'lat' => 43.7615, 'lng' => -79.4111, 'radius_km' => 1.2],
             ['name' => 'Invalid', 'lat' => null, 'lng' => -79.5, 'radius_km' => 3],
         ], JSON_THROW_ON_ERROR),
-        'subscribed_routes' => json_encode([], JSON_THROW_ON_ERROR),
+        'subscriptions' => json_encode([], JSON_THROW_ON_ERROR),
         'digest_mode' => false,
         'push_enabled' => true,
         'created_at' => now(),
@@ -125,4 +125,39 @@ test('geofence drop migration backfills saved places before removing legacy colu
     expect($savedPlaces[1]->name)->toBe('Saved Zone');
     expect((int) $savedPlaces[1]->radius)->toBe(1200);
     expect($savedPlaces[1]->type)->toBe('legacy_geofence');
+});
+
+test('subscription rename migration copies subscribed routes into subscriptions', function () {
+    $user = User::factory()->create();
+
+    Schema::table('notification_preferences', function (Blueprint $table): void {
+        $table->json('subscribed_routes')->nullable();
+    });
+
+    DB::table('notification_preferences')->insert([
+        'user_id' => $user->id,
+        'alert_type' => 'transit',
+        'severity_threshold' => 'minor',
+        'subscribed_routes' => json_encode(['route:501', 'station:union'], JSON_THROW_ON_ERROR),
+        'digest_mode' => false,
+        'push_enabled' => true,
+        'created_at' => now(),
+        'updated_at' => now(),
+    ]);
+
+    Schema::table('notification_preferences', function (Blueprint $table): void {
+        $table->dropColumn('subscriptions');
+    });
+
+    $migration = require database_path('migrations/2026_02_12_000005_rename_subscribed_routes_to_subscriptions_in_notification_preferences_table.php');
+    $migration->up();
+
+    expect(Schema::hasColumn('notification_preferences', 'subscribed_routes'))->toBeFalse();
+    expect(Schema::hasColumn('notification_preferences', 'subscriptions'))->toBeTrue();
+
+    $subscriptions = DB::table('notification_preferences')
+        ->where('user_id', $user->id)
+        ->value('subscriptions');
+
+    expect($subscriptions)->toBe(json_encode(['route:501', 'station:union'], JSON_THROW_ON_ERROR));
 });

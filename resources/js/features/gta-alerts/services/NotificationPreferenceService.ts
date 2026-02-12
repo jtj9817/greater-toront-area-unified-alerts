@@ -22,7 +22,7 @@ export type NotificationPreference = {
     alert_type: NotificationAlertType;
     severity_threshold: NotificationSeverityThreshold;
     geofences: NotificationGeofence[];
-    subscribed_routes: string[];
+    subscriptions: string[];
     digest_mode: boolean;
     push_enabled: boolean;
 };
@@ -44,7 +44,7 @@ export const DEFAULT_NOTIFICATION_PREFERENCE: NotificationPreference = {
     alert_type: 'all',
     severity_threshold: 'all',
     geofences: [],
-    subscribed_routes: [],
+    subscriptions: [],
     digest_mode: false,
     push_enabled: true,
 };
@@ -124,7 +124,12 @@ const normalizeRoutes = (value: unknown): string[] => {
 
     const routes = value
         .map(asString)
-        .filter((routeId): routeId is string => routeId !== null);
+        .filter((routeId): routeId is string => routeId !== null)
+        .map((routeId) =>
+            routeId.includes(':')
+                ? routeId.toLowerCase()
+                : `route:${routeId}`.toLowerCase(),
+        );
 
     return Array.from(new Set(routes));
 };
@@ -138,7 +143,9 @@ const normalizePreference = (input: unknown): NotificationPreference => {
         alert_type: normalizeAlertType(input.alert_type),
         severity_threshold: normalizeSeverity(input.severity_threshold),
         geofences: normalizeGeofences(input.geofences),
-        subscribed_routes: normalizeRoutes(input.subscribed_routes),
+        subscriptions: normalizeRoutes(
+            input.subscriptions ?? input.subscribed_routes,
+        ),
         digest_mode: asBoolean(
             input.digest_mode,
             DEFAULT_NOTIFICATION_PREFERENCE.digest_mode,

@@ -21,7 +21,7 @@ test('it retries broadcast for existing sent notification log and marks delivere
         'push_enabled' => true,
         'alert_type' => 'all',
         'severity_threshold' => 'all',
-        'subscribed_routes' => [],
+        'subscriptions' => [],
     ]);
 
     NotificationLog::factory()->create([
@@ -71,7 +71,7 @@ test('it skips rebroadcast when notification log is already delivered', function
         'push_enabled' => true,
         'alert_type' => 'all',
         'severity_threshold' => 'all',
-        'subscribed_routes' => [],
+        'subscriptions' => [],
     ]);
 
     NotificationLog::factory()->create([

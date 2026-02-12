@@ -1,7 +1,6 @@
 import { Link } from '@inertiajs/react';
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { login, register } from '@/routes';
-import { KNOWN_TRANSIT_ROUTES } from '../constants/routes';
 import {
     DEFAULT_NOTIFICATION_PREFERENCE,
     fetchNotificationPreference,
@@ -14,14 +13,17 @@ import {
 } from '../services/NotificationPreferenceService';
 import { Icon } from './Icon';
 import { SavedPlacesManager } from './SavedPlacesManager';
+import { SubscriptionManager } from './SubscriptionManager';
 
-const ALERT_TYPE_OPTIONS: Array<{ value: NotificationAlertType; label: string }> =
-    [
-        { value: 'all', label: 'All alerts' },
-        { value: 'transit', label: 'Transit only' },
-        { value: 'emergency', label: 'Emergency only' },
-        { value: 'accessibility', label: 'Accessibility alerts' },
-    ];
+const ALERT_TYPE_OPTIONS: Array<{
+    value: NotificationAlertType;
+    label: string;
+}> = [
+    { value: 'all', label: 'All alerts' },
+    { value: 'transit', label: 'Transit only' },
+    { value: 'emergency', label: 'Emergency only' },
+    { value: 'accessibility', label: 'Accessibility alerts' },
+];
 
 const SEVERITY_OPTIONS: Array<{
     value: NotificationSeverityThreshold;
@@ -35,10 +37,25 @@ const SEVERITY_OPTIONS: Array<{
 
 const ZONE_PRESETS = [
     { id: 'downtown', label: 'Downtown Core', lat: 43.6535, lng: -79.3839 },
-    { id: 'north-york', label: 'North York Centre', lat: 43.7615, lng: -79.4111 },
-    { id: 'scarborough', label: 'Scarborough Town Centre', lat: 43.7756, lng: -79.2576 },
+    {
+        id: 'north-york',
+        label: 'North York Centre',
+        lat: 43.7615,
+        lng: -79.4111,
+    },
+    {
+        id: 'scarborough',
+        label: 'Scarborough Town Centre',
+        lat: 43.7756,
+        lng: -79.2576,
+    },
     { id: 'etobicoke', label: 'Etobicoke Centre', lat: 43.6205, lng: -79.5132 },
-    { id: 'mississauga', label: 'Mississauga City Centre', lat: 43.589, lng: -79.6441 },
+    {
+        id: 'mississauga',
+        label: 'Mississauga City Centre',
+        lat: 43.589,
+        lng: -79.6441,
+    },
     { id: 'markham', label: 'Markham Centre', lat: 43.8567, lng: -79.337 },
 ];
 
@@ -117,24 +134,6 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
         };
     }, [authUserId]);
 
-    const routeOptions = useMemo(() => {
-        const mergedRoutes = [
-            ...availableRoutes,
-            ...preference.subscribed_routes,
-            ...KNOWN_TRANSIT_ROUTES,
-        ]
-            .map((route) => route.trim())
-            .filter((route) => route.length > 0);
-
-        return Array.from(new Set(mergedRoutes)).sort((left, right) =>
-            left.localeCompare(right, undefined, { numeric: true }),
-        );
-    }, [availableRoutes, preference.subscribed_routes]);
-
-    const routesDisabled =
-        preference.alert_type === 'emergency' ||
-        preference.alert_type === 'accessibility';
-
     const updatePreference = <K extends keyof NotificationPreference>(
         key: K,
         value: NotificationPreference[K],
@@ -146,22 +145,10 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
         setSuccessMessage(null);
     };
 
-    const toggleRoute = (routeId: string): void => {
-        setPreference((current) => {
-            const alreadySelected = current.subscribed_routes.includes(routeId);
-
-            return {
-                ...current,
-                subscribed_routes: alreadySelected
-                    ? current.subscribed_routes.filter((route) => route !== routeId)
-                    : [...current.subscribed_routes, routeId],
-            };
-        });
-        setSuccessMessage(null);
-    };
-
     const addGeofence = (): void => {
-        const selectedZone = ZONE_PRESETS.find((zone) => zone.id === selectedZoneId);
+        const selectedZone = ZONE_PRESETS.find(
+            (zone) => zone.id === selectedZoneId,
+        );
 
         if (!selectedZone) {
             return;
@@ -181,7 +168,9 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
         );
 
         if (duplicateExists) {
-            setErrorMessage('That zone and radius combination is already added.');
+            setErrorMessage(
+                'That zone and radius combination is already added.',
+            );
             return;
         }
 
@@ -209,7 +198,8 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
         setSuccessMessage(null);
 
         try {
-            const savedPreference = await updateNotificationPreference(preference);
+            const savedPreference =
+                await updateNotificationPreference(preference);
             setPreference(savedPreference);
             setSuccessMessage('Notification settings saved.');
         } catch (error) {
@@ -240,8 +230,8 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                     </h2>
                     <p className="mb-6 max-w-2xl text-sm text-text-secondary">
                         The live feed is public, but notification settings and
-                        real-time personal alerts are available for signed-in users
-                        only.
+                        real-time personal alerts are available for signed-in
+                        users only.
                     </p>
                     <div className="flex flex-wrap gap-3">
                         <Link
@@ -278,12 +268,15 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
         <div className="mx-auto w-full max-w-5xl p-4 md:p-6">
             <div className="mb-6 flex flex-col gap-2 border-b border-white/10 pb-5">
                 <h2 className="flex items-center gap-3 text-2xl font-bold text-white">
-                    <Icon name="notifications_active" className="text-primary" />
+                    <Icon
+                        name="notifications_active"
+                        className="text-primary"
+                    />
                     Notification Settings
                 </h2>
                 <p className="text-sm text-text-secondary">
-                    Configure what alerts you receive and how they are delivered in
-                    the app.
+                    Configure what alerts you receive and how they are delivered
+                    in the app.
                 </p>
             </div>
 
@@ -327,6 +320,22 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                             </option>
                         ))}
                     </select>
+                    <label className="mt-3 flex items-center justify-between gap-3 rounded-lg border border-white/15 bg-background-dark/60 px-3 py-2 text-sm text-white">
+                        Accessibility alerts only
+                        <input
+                            type="checkbox"
+                            checked={preference.alert_type === 'accessibility'}
+                            onChange={(event) => {
+                                updatePreference(
+                                    'alert_type',
+                                    event.target.checked
+                                        ? 'accessibility'
+                                        : 'transit',
+                                );
+                            }}
+                            className="h-4 w-4 accent-primary"
+                        />
+                    </label>
                 </section>
 
                 <section className="rounded-xl border border-white/10 bg-surface-dark p-4 md:p-5">
@@ -345,7 +354,8 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                         onChange={(event) =>
                             updatePreference(
                                 'severity_threshold',
-                                event.target.value as NotificationSeverityThreshold,
+                                event.target
+                                    .value as NotificationSeverityThreshold,
                             )
                         }
                         className="w-full rounded-lg border border-white/15 bg-background-dark px-3 py-2 text-sm text-white focus:border-primary/60 focus:outline-none"
@@ -362,42 +372,14 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                     </select>
                 </section>
 
-                <section className="rounded-xl border border-white/10 bg-surface-dark p-4 md:p-5">
-                    <div className="mb-4 flex items-center justify-between">
-                        <h3 className="text-sm font-semibold tracking-wide text-primary uppercase">
-                            Route Filters
-                        </h3>
-                        {routesDisabled && (
-                            <span className="text-xs text-text-secondary">
-                                Disabled when source is non-transit
-                            </span>
-                        )}
-                    </div>
-                    <div className="grid gap-2 sm:grid-cols-2 md:grid-cols-3">
-                        {routeOptions.map((routeId) => (
-                            <label
-                                key={routeId}
-                                className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-sm transition ${
-                                    routesDisabled
-                                        ? 'border-white/10 bg-white/5 text-text-secondary'
-                                        : 'border-white/15 bg-background-dark/60 text-white hover:border-primary/40'
-                                }`}
-                            >
-                                <input
-                                    type="checkbox"
-                                    aria-label={`Route ${routeId}`}
-                                    checked={preference.subscribed_routes.includes(
-                                        routeId,
-                                    )}
-                                    disabled={routesDisabled}
-                                    onChange={() => toggleRoute(routeId)}
-                                    className="h-4 w-4 accent-primary"
-                                />
-                                {routeId}
-                            </label>
-                        ))}
-                    </div>
-                </section>
+                <SubscriptionManager
+                    authUserId={authUserId}
+                    selectedSubscriptions={preference.subscriptions}
+                    onChange={(subscriptions) =>
+                        updatePreference('subscriptions', subscriptions)
+                    }
+                    fallbackRoutes={availableRoutes}
+                />
 
                 <section className="rounded-xl border border-white/10 bg-surface-dark p-4 md:p-5">
                     <h3 className="mb-4 text-sm font-semibold tracking-wide text-primary uppercase">

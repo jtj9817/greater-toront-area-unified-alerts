@@ -55,9 +55,13 @@ class NotificationAlertFactory
 
     public function fromTransitAlert(TransitAlert $alert): NotificationAlert
     {
+        $source = $alert->source_feed === 'ttc_accessibility'
+            ? 'ttc_accessibility'
+            : 'transit';
+
         return new NotificationAlert(
             alertId: "transit:{$alert->external_id}",
-            source: 'transit',
+            source: $source,
             severity: $this->mapTransitSeverity($alert->severity),
             summary: $alert->title,
             occurredAt: $alert->active_period_start ?? $alert->created_at,
@@ -65,9 +69,12 @@ class NotificationAlertFactory
             metadata: [
                 'route' => $alert->route,
                 'route_type' => $alert->route_type,
+                'type' => $alert->route_type,
                 'effect' => $alert->effect,
                 'description' => $alert->description,
                 'source_feed' => $alert->source_feed,
+                'stop_start' => $alert->stop_start,
+                'stop_end' => $alert->stop_end,
             ],
         );
     }

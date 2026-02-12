@@ -30,7 +30,19 @@ test('it fetches and normalizes TTC alerts from live API, SXA, and static source
                     'url' => 'https://www.ttc.ca/service-alerts',
                 ],
             ],
-            'accessibility' => [],
+            'accessibility' => [
+                [
+                    'id' => 'acc-42',
+                    'stationName' => 'Union',
+                    'deviceType' => 'Elevator',
+                    'status' => 'Out of Service',
+                    'description' => 'Elevator outage at Union Station.',
+                    'activePeriod' => [
+                        'start' => '2026-02-02T12:00:00.000Z',
+                        'end' => '0001-01-01T00:00:00Z',
+                    ],
+                ],
+            ],
             'siteWideCustom' => [],
             'generalCustom' => [],
             'stops' => [],
@@ -68,6 +80,7 @@ test('it fetches and normalizes TTC alerts from live API, SXA, and static source
     expect($result['updated_at'])->toBeInstanceOf(CarbonInterface::class);
 
     $apiAlert = collect($result['alerts'])->firstWhere('external_id', 'api:61748');
+    $accessibilityAlert = collect($result['alerts'])->firstWhere('external_id', 'api:accessibility:acc-42');
     $sxaAlert = collect($result['alerts'])->firstWhere('external_id', 'sxa:4976b805-daf7-43f7-96c1-c3da717a7877');
     $staticAlert = collect($result['alerts'])->first(fn (array $alert) => str_starts_with($alert['external_id'], 'static:'));
 
@@ -78,6 +91,13 @@ test('it fetches and normalizes TTC alerts from live API, SXA, and static source
     expect($apiAlert['description'])->not->toContain('<script>');
     expect($apiAlert['active_period_end'])->toBeNull();
     expect($apiAlert['active_period_start'])->toBeInstanceOf(CarbonInterface::class);
+
+    expect($accessibilityAlert)->not->toBeNull();
+    expect($accessibilityAlert['source_feed'])->toBe('ttc_accessibility');
+    expect($accessibilityAlert['alert_type'])->toBe('accessibility');
+    expect($accessibilityAlert['route_type'])->toBe('elevator');
+    expect($accessibilityAlert['effect'])->toBe('OUT_OF_SERVICE');
+    expect($accessibilityAlert['stop_start'])->toBe('Union');
 
     expect($sxaAlert)->not->toBeNull();
     expect($sxaAlert['source_feed'])->toBe('sxa');

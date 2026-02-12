@@ -76,7 +76,7 @@ class TtcAlertsFeedService
                     continue;
                 }
 
-                $normalized = $this->normalizeLiveApiAlert($record);
+                $normalized = $this->normalizeLiveApiAlert($record, $bucket);
                 if ($normalized !== null) {
                     $alerts[] = $normalized;
                 }
@@ -170,8 +170,12 @@ class TtcAlertsFeedService
      * @param  array<string, mixed>  $record
      * @return array<string, mixed>|null
      */
-    protected function normalizeLiveApiAlert(array $record): ?array
+    protected function normalizeLiveApiAlert(array $record, string $bucket): ?array
     {
+        if ($bucket === 'accessibility') {
+            return $this->normalizeAccessibilityAlert($record);
+        }
+
         $externalSourceId = $this->stringValue($record['id'] ?? null);
         $title = $this->stringValue($record['title'] ?? $record['headerText'] ?? $record['customHeaderText'] ?? null);
 
@@ -199,6 +203,59 @@ class TtcAlertsFeedService
             'direction' => $this->stringValue($record['direction'] ?? null),
             'stop_start' => $this->stringValue($record['stopStart'] ?? null),
             'stop_end' => $this->stringValue($record['stopEnd'] ?? null),
+            'url' => $this->stringValue($record['url'] ?? null),
+        ];
+    }
+
+    /**
+     * @param  array<string, mixed>  $record
+     * @return array<string, mixed>|null
+     */
+    protected function normalizeAccessibilityAlert(array $record): ?array
+    {
+        $externalSourceId = $this->stringValue($record['id'] ?? null);
+        if ($externalSourceId === null) {
+            return null;
+        }
+
+        $status = $this->extractAccessibilityStatus($record);
+        $station = $this->extractAccessibilityStation($record);
+        $deviceType = $this->extractAccessibilityDeviceType($record);
+        $description = $this->sanitizeDescription($record['description'] ?? $record['detail'] ?? null);
+
+        $activePeriod = is_array($record['activePeriod'] ?? null) ? $record['activePeriod'] : [];
+        $activeStart = $this->parseIsoTimestamp($activePeriod['start'] ?? null, false);
+        $activeEnd = $this->parseIsoTimestamp($activePeriod['end'] ?? null, false);
+
+        $title = $this->stringValue($record['title'] ?? $record['headerText'] ?? $record['customHeaderText'] ?? null)
+            ?? trim(implode(' ', array_filter([
+                $station,
+                $deviceType !== null ? ucfirst($deviceType) : null,
+                $status,
+            ])));
+
+        if ($title === '') {
+            return null;
+        }
+
+        $route = $this->normalizeRouteValue($record['route'] ?? $record['line'] ?? null);
+
+        return [
+            'external_id' => 'api:accessibility:'.$externalSourceId,
+            'source_feed' => 'ttc_accessibility',
+            'alert_type' => 'accessibility',
+            'route_type' => $deviceType,
+            'route' => $route,
+            'title' => $title,
+            'description' => $description,
+            'severity' => $this->isOutOfServiceStatus($status) ? 'Major' : 'Minor',
+            'effect' => $status,
+            'cause' => $this->stringValue($record['causeDescription'] ?? $record['cause'] ?? null),
+            'active_period_start' => $activeStart,
+            'active_period_end' => $activeEnd,
+            'direction' => null,
+            'stop_start' => $station,
+            'stop_end' => null,
             'url' => $this->stringValue($record['url'] ?? null),
         ];
     }
@@ -442,6 +499,100 @@ class TtcAlertsFeedService
         $text = trim((string) $value);
 
         return $text === '' ? null : $text;
+    }
+
+    /**
+     * @param  array<string, mixed>  $record
+     */
+    protected function extractAccessibilityStatus(array $record): string
+    {
+        $rawStatus = $this->stringValue(
+            $record['status']
+            ?? $record['currentStatus']
+            ?? $record['effect']
+            ?? $record['deviceStatus']
+            ?? null
+        );
+
+        if ($rawStatus === null) {
+            $fallback = strtolower(implode(' ', array_filter([
+                (string) ($record['title'] ?? ''),
+                (string) ($record['description'] ?? ''),
+            ])));
+
+            if (str_contains($fallback, 'out of service')) {
+                return 'OUT_OF_SERVICE';
+            }
+
+            if (str_contains($fallback, 'in service')) {
+                return 'IN_SERVICE';
+            }
+
+            return 'UNKNOWN';
+        }
+
+        $status = strtoupper(str_replace([' ', '-'], '_', $rawStatus));
+
+        if (str_contains($status, 'OUT_OF_SERVICE') || str_contains($status, 'NOT_IN_SERVICE')) {
+            return 'OUT_OF_SERVICE';
+        }
+
+        if (str_contains($status, 'IN_SERVICE') || str_contains($status, 'RESTORED')) {
+            return 'IN_SERVICE';
+        }
+
+        return $status;
+    }
+
+    /**
+     * @param  array<string, mixed>  $record
+     */
+    protected function extractAccessibilityStation(array $record): ?string
+    {
+        return $this->stringValue(
+            $record['stationName']
+            ?? $record['station']
+            ?? $record['stopName']
+            ?? $record['location']
+            ?? $record['stopStart']
+            ?? null
+        );
+    }
+
+    /**
+     * @param  array<string, mixed>  $record
+     */
+    protected function extractAccessibilityDeviceType(array $record): ?string
+    {
+        $raw = strtolower(trim((string) (
+            $record['deviceType']
+            ?? $record['equipmentType']
+            ?? $record['device']
+            ?? $record['title']
+            ?? $record['description']
+            ?? ''
+        )));
+
+        if ($raw === '') {
+            return null;
+        }
+
+        if (str_contains($raw, 'escalator')) {
+            return 'escalator';
+        }
+
+        if (str_contains($raw, 'elevator') || str_contains($raw, 'lift')) {
+            return 'elevator';
+        }
+
+        return null;
+    }
+
+    protected function isOutOfServiceStatus(string $status): bool
+    {
+        return $status === 'OUT_OF_SERVICE'
+            || str_contains($status, 'NOT_IN_SERVICE')
+            || str_contains($status, 'UNAVAILABLE');
     }
 
     /**

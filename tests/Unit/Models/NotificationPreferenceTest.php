@@ -7,7 +7,7 @@ uses(Tests\TestCase::class);
 
 test('it has expected fillable attributes and casts', function () {
     $preference = new NotificationPreference([
-        'subscribed_routes' => ['1', '501'],
+        'subscriptions' => ['route:1', 'route:501'],
         'digest_mode' => 1,
         'push_enabled' => 0,
     ]);
@@ -16,12 +16,12 @@ test('it has expected fillable attributes and casts', function () {
         'user_id',
         'alert_type',
         'severity_threshold',
-        'subscribed_routes',
+        'subscriptions',
         'digest_mode',
         'push_enabled',
     ]);
 
-    expect($preference->subscribed_routes)->toBeArray();
+    expect($preference->subscriptions)->toBeArray();
     expect($preference->digest_mode)->toBeTrue();
     expect($preference->push_enabled)->toBeFalse();
 });
@@ -33,7 +33,7 @@ test('preference validation rules accept valid payload', function () {
         'geofences' => [
             ['name' => 'Home', 'lat' => 43.7001, 'lng' => -79.4163, 'radius_km' => 1.5],
         ],
-        'subscribed_routes' => ['1', 'GO-LW'],
+        'subscriptions' => ['route:1', 'route:go-lw'],
         'digest_mode' => false,
         'push_enabled' => true,
     ], NotificationPreference::validationRules());
@@ -46,7 +46,7 @@ test('preference validation rules reject invalid payload', function () {
         'alert_type' => 'invalid-type',
         'severity_threshold' => 'urgent',
         'geofences' => ['invalid-shape'],
-        'subscribed_routes' => [123],
+        'subscriptions' => [123],
         'digest_mode' => 'yes',
         'push_enabled' => 'sometimes',
     ], NotificationPreference::validationRules());
@@ -56,7 +56,7 @@ test('preference validation rules reject invalid payload', function () {
         'alert_type',
         'severity_threshold',
         'geofences.0',
-        'subscribed_routes.0',
+        'subscriptions.0',
         'digest_mode',
         'push_enabled',
     );
@@ -69,7 +69,7 @@ test('preference validation rules require complete geofence coordinates and radi
         'geofences' => [
             ['name' => 'Incomplete Geofence'],
         ],
-        'subscribed_routes' => [],
+        'subscriptions' => [],
         'digest_mode' => false,
         'push_enabled' => true,
     ], NotificationPreference::validationRules());

@@ -4,6 +4,7 @@ use App\Models\TransitAlert;
 use App\Services\TtcAlertsFeedService;
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Event;
 use Mockery\MockInterface;
 
 uses(RefreshDatabase::class);
@@ -101,4 +102,83 @@ test('it returns failure when feed fetch throws', function () {
     $this->artisan('transit:fetch-alerts')
         ->expectsOutput('Feed fetch failed: Primary source unavailable')
         ->assertExitCode(1);
+});
+
+test('it dispatches accessibility notifications only when status transitions to out of service', function () {
+    Event::fake();
+
+    TransitAlert::factory()->create([
+        'external_id' => 'api:accessibility:union-elevator',
+        'source_feed' => 'ttc_accessibility',
+        'effect' => 'IN_SERVICE',
+        'is_active' => true,
+    ]);
+
+    $feedUpdatedAt = CarbonImmutable::parse('2026-02-05T15:00:00Z');
+
+    $this->mock(TtcAlertsFeedService::class, function (MockInterface $mock) use ($feedUpdatedAt) {
+        $mock->shouldReceive('fetch')->once()->andReturn([
+            'updated_at' => $feedUpdatedAt,
+            'alerts' => [
+                [
+                    'external_id' => 'api:accessibility:union-elevator',
+                    'source_feed' => 'ttc_accessibility',
+                    'alert_type' => 'accessibility',
+                    'route_type' => 'elevator',
+                    'route' => '1',
+                    'title' => 'Union elevator outage',
+                    'description' => 'Union elevator is out of service',
+                    'severity' => 'Major',
+                    'effect' => 'OUT_OF_SERVICE',
+                    'cause' => null,
+                    'active_period_start' => CarbonImmutable::parse('2026-02-05T14:00:00Z'),
+                    'active_period_end' => null,
+                    'direction' => null,
+                    'stop_start' => 'Union',
+                    'stop_end' => null,
+                    'url' => 'https://www.ttc.ca/',
+                ],
+            ],
+        ]);
+    });
+
+    $this->artisan('transit:fetch-alerts')->assertExitCode(0);
+
+    $updated = TransitAlert::query()->where('external_id', 'api:accessibility:union-elevator')->firstOrFail();
+
+    expect($updated->effect)->toBe('OUT_OF_SERVICE');
+
+    Event::assertDispatched(\App\Events\AlertCreated::class);
+
+    Event::fake();
+
+    $this->mock(TtcAlertsFeedService::class, function (MockInterface $mock) use ($feedUpdatedAt) {
+        $mock->shouldReceive('fetch')->once()->andReturn([
+            'updated_at' => $feedUpdatedAt,
+            'alerts' => [
+                [
+                    'external_id' => 'api:accessibility:union-elevator',
+                    'source_feed' => 'ttc_accessibility',
+                    'alert_type' => 'accessibility',
+                    'route_type' => 'elevator',
+                    'route' => '1',
+                    'title' => 'Union elevator outage',
+                    'description' => 'Union elevator is out of service',
+                    'severity' => 'Major',
+                    'effect' => 'OUT_OF_SERVICE',
+                    'cause' => null,
+                    'active_period_start' => CarbonImmutable::parse('2026-02-05T14:00:00Z'),
+                    'active_period_end' => null,
+                    'direction' => null,
+                    'stop_start' => 'Union',
+                    'stop_end' => null,
+                    'url' => 'https://www.ttc.ca/',
+                ],
+            ],
+        ]);
+    });
+
+    $this->artisan('transit:fetch-alerts')->assertExitCode(0);
+
+    Event::assertNotDispatched(\App\Events\AlertCreated::class);
 });

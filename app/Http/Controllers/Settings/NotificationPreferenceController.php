@@ -30,12 +30,22 @@ class NotificationPreferenceController extends Controller
 
         $validated = $request->validated();
 
+        if (array_key_exists('subscribed_routes', $validated) && ! array_key_exists('subscriptions', $validated)) {
+            $validated['subscriptions'] = $validated['subscribed_routes'];
+        }
+
+        unset($validated['subscribed_routes']);
+
         if (array_key_exists('geofences', $validated) && is_array($validated['geofences'])) {
             $this->syncLegacyGeofences(
                 userId: $request->user()->id,
                 geofences: $validated['geofences'],
             );
             unset($validated['geofences']);
+        }
+
+        if (array_key_exists('subscriptions', $validated) && is_array($validated['subscriptions'])) {
+            $validated['subscriptions'] = $this->normalizeSubscriptions($validated['subscriptions']);
         }
 
         $preference->fill($validated);
@@ -63,7 +73,7 @@ class NotificationPreferenceController extends Controller
             'alert_type' => $preference->alert_type,
             'severity_threshold' => $preference->severity_threshold,
             'geofences' => $this->serializeLegacyGeofences($preference->user_id),
-            'subscribed_routes' => $preference->subscribed_routes,
+            'subscriptions' => $preference->subscriptions,
             'digest_mode' => $preference->digest_mode,
             'push_enabled' => $preference->push_enabled,
         ];
@@ -118,5 +128,30 @@ class NotificationPreferenceController extends Controller
             ])
             ->values()
             ->all();
+    }
+
+    /**
+     * @param  array<int, mixed>  $subscriptions
+     * @return array<int, string>
+     */
+    private function normalizeSubscriptions(array $subscriptions): array
+    {
+        $normalized = array_map(static function (mixed $subscription): string {
+            $value = strtolower(trim((string) $subscription));
+            if ($value === '') {
+                return '';
+            }
+
+            if (! str_contains($value, ':')) {
+                return 'route:'.$value;
+            }
+
+            return $value;
+        }, $subscriptions);
+
+        return array_values(array_unique(array_filter(
+            $normalized,
+            static fn (string $value): bool => $value !== '',
+        )));
     }
 }

@@ -30,7 +30,7 @@ class NotificationPreference extends Model
         'user_id',
         'alert_type',
         'severity_threshold',
-        'subscribed_routes',
+        'subscriptions',
         'digest_mode',
         'push_enabled',
     ];
@@ -38,7 +38,7 @@ class NotificationPreference extends Model
     protected function casts(): array
     {
         return [
-            'subscribed_routes' => 'array',
+            'subscriptions' => 'array',
             'digest_mode' => 'boolean',
             'push_enabled' => 'boolean',
         ];
@@ -52,7 +52,7 @@ class NotificationPreference extends Model
         return [
             'alert_type' => 'all',
             'severity_threshold' => 'all',
-            'subscribed_routes' => [],
+            'subscriptions' => [],
             'digest_mode' => false,
             'push_enabled' => true,
         ];
@@ -74,8 +74,8 @@ class NotificationPreference extends Model
             'geofences.*.lat' => ['required', 'numeric', 'between:-90,90'],
             'geofences.*.lng' => ['required', 'numeric', 'between:-180,180'],
             'geofences.*.radius_km' => ['required', 'numeric', 'gt:0', 'max:100'],
-            'subscribed_routes' => [...$required, 'array'],
-            'subscribed_routes.*' => ['string', 'max:64'],
+            'subscriptions' => [...$required, 'array'],
+            'subscriptions.*' => ['string', 'max:64'],
             'digest_mode' => [...$required, 'boolean'],
             'push_enabled' => [...$required, 'boolean'],
         ];
