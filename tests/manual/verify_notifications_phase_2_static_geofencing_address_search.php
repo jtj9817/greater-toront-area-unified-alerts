@@ -283,11 +283,16 @@ $usingSqliteFallback = false;
 $sqliteFallbackPath = storage_path("app/private/manual_tests/{$testRunId}.sqlite");
 $sqliteSuitePath = storage_path("app/private/manual_tests/{$testRunId}_suite.sqlite");
 
+if ($allowSqliteFallback) {
+    configureSqliteFallback($sqliteFallbackPath);
+    $usingSqliteFallback = true;
+}
+
 try {
     try {
         DB::connection()->getPdo();
     } catch (Throwable $e) {
-        if (! $allowSqliteFallback) {
+        if (! $allowSqliteFallback || $usingSqliteFallback) {
             throw new RuntimeException(
                 "Database connection failed. If you're using Sail, run: ./scripts/init-testing-environment.sh or set MANUAL_TEST_USE_SQLITE=1 to allow sqlite fallback.",
                 previous: $e
