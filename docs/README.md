@@ -23,6 +23,7 @@ docs/
 │   ├── fire-incidents.md
 │   ├── mappers.md
 │   ├── production-scheduler.md
+│   ├── notification-system.md
 │   ├── unified-alerts-qa.md
 │   └── unified-alerts-system.md
 ├── frontend/
@@ -60,6 +61,7 @@ The unified feed currently aggregates four source types:
 4. **[backend/dtos.md](backend/dtos.md)**
 5. **[frontend/types.md](frontend/types.md)**
 6. **[frontend/alert-service.md](frontend/alert-service.md)**
+7. **[backend/notification-system.md](backend/notification-system.md)**
 
 ## Source Integration Docs
 
@@ -88,4 +90,5 @@ The unified feed currently aggregates four source types:
 | GO Transit Integration | Implemented | [sources/go-transit.md](sources/go-transit.md) |
 | Unified Alerts Query | Implemented | [backend/unified-alerts-system.md](backend/unified-alerts-system.md) |
 | Production Scheduler | Implemented | [backend/production-scheduler.md](backend/production-scheduler.md) |
+| In-App Notifications | Implemented | [backend/notification-system.md](backend/notification-system.md) |
 | Dynamic Zones | Planned | [architecture/dynamic-zones.md](architecture/dynamic-zones.md) |

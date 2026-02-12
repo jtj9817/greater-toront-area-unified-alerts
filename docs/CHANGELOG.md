@@ -2,6 +2,24 @@
 
 All notable documentation-relevant changes are tracked here.
 
+## [February 11, 2026] - Notifications Phase 5 Quality & Documentation
+
+### Added
+- Full system integration test: `tests/Feature/Notifications/NotificationSystemIntegrationTest.php`
+  - End-to-end matching alert flow (event -> job -> delivery -> inbox -> mark-as-read)
+  - Non-matching geofence verification
+  - Digest user daily digest inbox flow
+- Architecture documentation: `docs/backend/notification-system.md`
+  - Covers overview, event-driven pipeline, database schema, matching engine,
+    delivery pipeline, daily digest, broadcasting, API endpoints, frontend integration
+- Phase 5 manual verification runner:
+  - `tests/manual/verify_notifications_phase_5_quality_documentation.php`
+
+### Changed
+- Updated `docs/README.md` with notification-system.md in structure, reading order, and status table
+- Updated `CLAUDE.md` with notification system architecture references
+- Archived notifications track in conductor registry
+
 ## [February 10, 2026] - Notifications Phase 3 Manual Verification
 
 ### Added

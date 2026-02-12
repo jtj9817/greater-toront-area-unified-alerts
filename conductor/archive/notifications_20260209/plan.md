@@ -72,18 +72,18 @@ Implement persistent history with read/dismiss plus digest visibility.
     - [x] Implement endpoints for listing logs and marking read/dismissed
     - [x] Enforce ownership checks (users can only modify their own logs)
     - [x] Write feature tests for unauthorized access prevention
-- [ ] Task: Conductor - User Manual Verification 'Phase 4: Notification Center (Inbox)' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 4: Notification Center (Inbox)' (Protocol in workflow.md; verified 2026-02-12, log: `storage/logs/manual_tests/notifications_phase_4_notification_center_inbox_2026_02_12_002314.log`)
 
 ## Phase 5: Quality & Documentation
 Complete end-to-end validation for the aligned Phase 1 MVP.
 
-- [ ] Task: Full System Integration Test
-    - [ ] Verify flow: Create matching alert -> receive toast -> appears in inbox -> mark as read
-    - [ ] Verify non-matching geofence alert does not toast
-    - [ ] Verify digest user receives daily digest item
-- [ ] Task: Coverage and Linting Verification
-    - [ ] Execute `composer test`
-    - [ ] Run `composer lint` and `pnpm run lint`
-- [ ] Task: Documentation Update
-    - [ ] Update `docs/backend/notification-system.md` with schema, matching rules, and digest behavior
-- [ ] Task: Conductor - User Manual Verification 'Phase 5: Quality & Documentation' (Protocol in workflow.md)
+- [x] Task: Full System Integration Test
+    - [x] Verify flow: Create matching alert -> receive toast -> appears in inbox -> mark as read
+    - [x] Verify non-matching geofence alert does not toast
+    - [x] Verify digest user receives daily digest item
+- [x] Task: Coverage and Linting Verification
+    - [x] Execute `composer test`
+    - [x] Run `composer lint` and `pnpm run lint`
+- [x] Task: Documentation Update
+    - [x] Update `docs/backend/notification-system.md` with schema, matching rules, and digest behavior
+- [x] Task: Conductor - User Manual Verification 'Phase 5: Quality & Documentation' (Protocol in workflow.md; verified 2026-02-11)

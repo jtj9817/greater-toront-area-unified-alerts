@@ -137,6 +137,23 @@ AlertPresentation (frontend view model)
 - Command marks missing alerts as `is_active = false`
 - Scheduled every 5 minutes in `routes/console.php`
 
+### In-App Notification System
+
+Event-driven notification pipeline for user-targeted alerts:
+
+```
+AlertCreated event → DispatchAlertNotifications listener → DeliverAlertNotificationJob → NotificationLog + AlertNotificationSent broadcast
+```
+
+- **Matching Engine:** `NotificationMatcher` evaluates alert type, severity threshold, geofence (Haversine), and route subscriptions against `NotificationPreference` records
+- **Delivery:** `DeliverAlertNotificationJob` with optimistic locking and idempotent `firstOrCreate`
+- **Daily Digest:** `GenerateDailyDigestJob` aggregates prior-day notifications for `digest_mode` users
+- **Broadcasting:** `AlertNotificationSent` on `private-users.{userId}.notifications` channel
+- **Inbox API:** `NotificationInboxController` — list, mark read, dismiss, clear all (ownership-enforced)
+- **Preferences API:** `NotificationPreferenceController` — GET/PATCH at `/settings/notifications`
+
+See `docs/backend/notification-system.md` for full documentation.
+
 ### Frontend Structure
 
 Inertia.js renders React pages from `resources/js/pages/`. The main public page is `gta-alerts.tsx` which mounts the feature module at `resources/js/features/gta-alerts/`.
@@ -217,4 +234,5 @@ See `docs/` for detailed architecture:
 - `docs/deployment/production-seeding.md` - Forge-safe production seed migration runbook
 - `docs/backend/sources/` - Individual data source documentation
 - `docs/architecture/provider-adapter-pattern.md` - Provider pattern explanation
+- `docs/backend/notification-system.md` - In-app notification system (IMPLEMENTED)
 - `docs/architecture/dynamic-zones.md` - Dynamic zones feature (PLANNED)

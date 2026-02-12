@@ -6,10 +6,12 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ## Active Tracks
 
-- [ ] **Track: In-App Notification System (Phase 1)**
-*Link: [./tracks/notifications_20260209/](./tracks/notifications_20260209/)*
+*(No active tracks)*
 
 ## Archived Tracks
+
+- [x] **Track: In-App Notification System (Phase 1)**
+*Link: [./archive/notifications_20260209/](./archive/notifications_20260209/)*
 
 - [x] **Track: Production Data Migration**
 *Link: [./archive/production_data_migration_20260207/](./archive/production_data_migration_20260207/)*
