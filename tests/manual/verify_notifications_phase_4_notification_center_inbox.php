@@ -554,6 +554,11 @@ try {
     assertEqual($otherUserBeforeClear->status, 'delivered', 'clear-all does not affect other users');
 
     logInfo('Phase 3: Execute targeted backend and frontend regression suites');
+    if ($txStarted && DB::transactionLevel() > 0) {
+        DB::rollBack();
+        $txStarted = false;
+        logInfo('Released manual transaction before spawning regression suites to avoid cross-process DB lock contention.');
+    }
 
     $backendCommand = 'php artisan test tests/Feature/Notifications/NotificationInboxControllerTest.php';
     if ($allowSqliteFallback) {
@@ -593,7 +598,7 @@ try {
         'line' => $e->getLine(),
     ]);
 } finally {
-    if ($txStarted) {
+    if ($txStarted && DB::transactionLevel() > 0) {
         DB::rollBack();
         logInfo('Rolled back transaction; no persistent data changes were kept.');
     }
