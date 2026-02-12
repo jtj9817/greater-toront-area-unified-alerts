@@ -6,7 +6,8 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ## Active Tracks
 
-*(No active tracks)*
+- [ ] **Track: In-App Notification System (Phase 2): Geofencing, Accessibility, and Maintenance**
+*Link: [./tracks/notifications_phase_2_20260211/](./tracks/notifications_phase_2_20260211/)*
 
 ## Archived Tracks
 
