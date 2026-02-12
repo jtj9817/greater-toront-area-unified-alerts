@@ -85,6 +85,11 @@ class FetchTransitAlertsCommand extends Command
     private function shouldDispatchNotification(TransitAlert $transitAlert, ?string $previousEffect, bool $wasPreviouslyActive): bool
     {
         if ($transitAlert->source_feed === 'ttc_accessibility') {
+            // Dispatch if status changed, even if new status is IN_SERVICE
+            if ($previousEffect !== null && $previousEffect !== $transitAlert->effect) {
+                return true;
+            }
+
             if (! $this->isOutOfServiceEffect($transitAlert->effect)) {
                 return false;
             }

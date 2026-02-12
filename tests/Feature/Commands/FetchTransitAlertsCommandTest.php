@@ -182,3 +182,54 @@ test('it dispatches accessibility notifications only when status transitions to 
 
     Event::assertNotDispatched(\App\Events\AlertCreated::class);
 });
+
+test('it dispatches notification when accessibility alert transitions to IN_SERVICE (restored)', function () {
+    Event::fake();
+
+    // Existing alert is OUT_OF_SERVICE
+    TransitAlert::factory()->create([
+        'external_id' => 'api:accessibility:elevator-restored',
+        'source_feed' => 'ttc_accessibility',
+        'alert_type' => 'accessibility',
+        'route_type' => 'elevator',
+        'effect' => 'OUT_OF_SERVICE',
+        'is_active' => true,
+    ]);
+
+    $feedUpdatedAt = CarbonImmutable::parse('2026-02-05T16:00:00Z');
+
+    $this->mock(TtcAlertsFeedService::class, function (MockInterface $mock) use ($feedUpdatedAt) {
+        $mock->shouldReceive('fetch')->once()->andReturn([
+            'updated_at' => $feedUpdatedAt,
+            'alerts' => [
+                [
+                    'external_id' => 'api:accessibility:elevator-restored',
+                    'source_feed' => 'ttc_accessibility',
+                    'alert_type' => 'accessibility',
+                    'route_type' => 'elevator',
+                    'route' => '1',
+                    'title' => 'Union elevator restored',
+                    'description' => 'Union elevator is now in service',
+                    'severity' => 'Minor',
+                    'effect' => 'IN_SERVICE', // Status changed to IN_SERVICE
+                    'cause' => null,
+                    'active_period_start' => CarbonImmutable::parse('2026-02-05T14:00:00Z'),
+                    'active_period_end' => null,
+                    'direction' => null,
+                    'stop_start' => 'Union',
+                    'stop_end' => null,
+                    'url' => 'https://www.ttc.ca/',
+                ],
+            ],
+        ]);
+    });
+
+    $this->artisan('transit:fetch-alerts')->assertExitCode(0);
+
+    // Verify database updated
+    $updated = TransitAlert::query()->where('external_id', 'api:accessibility:elevator-restored')->firstOrFail();
+    expect($updated->effect)->toBe('IN_SERVICE');
+
+    // Verify event dispatched
+    Event::assertDispatched(\App\Events\AlertCreated::class);
+});

@@ -520,11 +520,11 @@ class TtcAlertsFeedService
                 (string) ($record['description'] ?? ''),
             ])));
 
-            if (str_contains($fallback, 'out of service')) {
+            if (str_contains($fallback, 'out of service') || str_contains($fallback, 'not in service')) {
                 return 'OUT_OF_SERVICE';
             }
 
-            if (str_contains($fallback, 'in service')) {
+            if (str_contains($fallback, 'in service') || str_contains($fallback, 'restored')) {
                 return 'IN_SERVICE';
             }
 

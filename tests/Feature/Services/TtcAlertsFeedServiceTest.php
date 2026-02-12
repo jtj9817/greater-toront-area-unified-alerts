@@ -200,3 +200,38 @@ test('it logs warnings and continues when SXA or static sources fail', function 
         ->withArgs(fn (string $message): bool => str_contains($message, 'TTC static source failed'))
         ->once();
 });
+
+test('it correctly parses "Not in Service" as OUT_OF_SERVICE', function () {
+    Http::fake([
+        'https://alerts.ttc.ca/api/alerts/live-alerts*' => Http::response([
+            'lastUpdated' => '2026-02-03T04:41:06.633Z',
+            'routes' => [],
+            'accessibility' => [
+                [
+                    'id' => 'acc-elevator-not-in-service',
+                    'stationName' => 'Union',
+                    'deviceType' => 'Elevator',
+                    // 'status' => null, // Status missing to trigger fallback
+                    'description' => 'Elevator not in service at Union Station.',
+                    'activePeriod' => [
+                        'start' => '2026-02-02T12:00:00.000Z',
+                        'end' => '0001-01-01T00:00:00Z',
+                    ],
+                ],
+            ],
+            'siteWideCustom' => [],
+            'generalCustom' => [],
+            'stops' => [],
+            'status' => 'success',
+        ], 200),
+        '*sxa/search/results*' => Http::response(['Results' => []], 200),
+        'https://www.ttc.ca/service-advisories/Streetcar-Service-Changes*' => Http::response('', 200),
+    ]);
+
+    $result = (new TtcAlertsFeedService)->fetch();
+
+    $alert = collect($result['alerts'])->firstWhere('external_id', 'api:accessibility:acc-elevator-not-in-service');
+
+    expect($alert)->not->toBeNull();
+    expect($alert['effect'])->toBe('OUT_OF_SERVICE');
+});
