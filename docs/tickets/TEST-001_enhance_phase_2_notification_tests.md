@@ -1,10 +1,39 @@
 # Ticket: TEST-001 - Enhance Test Coverage for Notifications Phase 2
 
-**Status:** Open
+**Status:** Closed
 **Priority:** Medium
 **Type:** Technical Improvement
 **Assignee:** Unassigned
 **Component:** Backend / Testing
+
+## Resolution
+**Completed via Commit:** `4e9fc87` (and verified in follow-up review)
+
+The test suite has been successfully expanded to cover the edge cases and requirements outlined in this ticket.
+
+### 1. Geospatial Data Import
+- **Truncation:** Verified that running with `--truncate` removes pre-existing data.
+- **File Errors:** Added tests for missing, unreadable, and unsupported file types.
+- **Data Integrity:** Added tests for malformed CSV columns and invalid JSON payloads.
+- **Append Mode:** Confirmed that omitting `--truncate` appends data (allowing duplicates, which is expected behavior for this raw import).
+
+### 2. Local Geocoding Search
+- **Contract:** Response structure is now explicitly validated for `id`, `type`, `lat`, `long`, etc.
+- **Edge Cases:**
+  - Queries < 3 characters return empty results.
+  - Non-matching queries return empty arrays.
+  - Results are limited to 10 items.
+- **Security:** Special characters (`%`, `_`, `'`, `<script>`) are handled safely without SQL errors or injection.
+
+### 3. Saved Places Management
+- **Validation:**
+  - `radius` is enforced to be > 0 and <= 100,000 meters.
+  - `name` length is limited (tested with > 120 chars).
+- **Behavior:**
+  - Duplicate names are allowed for the same user (UX decision verified).
+  - Scope checks (owner vs. other user) remain robust.
+
+All tests are passing as of the latest build.
 
 ## Summary
 The initial implementation of Notifications Phase 2 (Geospatial Data Import, Local Geocoding, Saved Places) includes foundational "happy path" tests. To ensure system resilience and data integrity, we need to expand the test suite to cover identified edge cases, input boundaries, and error handling scenarios.
