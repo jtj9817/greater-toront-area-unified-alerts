@@ -9,9 +9,6 @@ class LocalGeocodingService
 {
     /**
      * Search addresses by query string.
-     *
-     * @param string $query
-     * @return Collection
      */
     public function searchAddresses(string $query): Collection
     {
@@ -22,16 +19,13 @@ class LocalGeocodingService
 
         return DB::table('addresses')
             ->select('id', 'address', 'latitude', 'longitude')
-            ->where('address', 'like', $query . '%')
+            ->where('address', 'like', $query.'%')
             ->limit(10)
             ->get();
     }
 
     /**
      * Search POIs by query string.
-     *
-     * @param string $query
-     * @return Collection
      */
     public function searchPois(string $query): Collection
     {
@@ -42,7 +36,7 @@ class LocalGeocodingService
 
         return DB::table('pois')
             ->select('id', 'name', 'category', 'latitude', 'longitude')
-            ->where('name', 'like', $query . '%')
+            ->where('name', 'like', $query.'%')
             ->limit(10)
             ->get();
     }

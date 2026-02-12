@@ -29,7 +29,7 @@ class LocalGeocodingServiceTest extends TestCase
         DB::shouldReceive('limit')->with(10)->andReturnSelf();
         DB::shouldReceive('get')->andReturn(collect([]));
 
-        $service = new LocalGeocodingService();
+        $service = new LocalGeocodingService;
         $service->searchAddresses('foo');
     }
 
@@ -54,7 +54,7 @@ class LocalGeocodingServiceTest extends TestCase
         DB::shouldReceive('limit')->with(10)->andReturnSelf();
         DB::shouldReceive('get')->andReturn(collect([]));
 
-        $service = new LocalGeocodingService();
+        $service = new LocalGeocodingService;
         $service->searchPois('bar');
     }
 }

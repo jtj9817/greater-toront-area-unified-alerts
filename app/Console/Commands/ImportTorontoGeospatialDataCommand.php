@@ -28,8 +28,9 @@ class ImportTorontoGeospatialDataCommand extends Command
     {
         $filePath = $this->argument('file');
 
-        if (!File::exists($filePath)) {
+        if (! File::exists($filePath)) {
             $this->error("File not found: {$filePath}");
+
             return Command::FAILURE;
         }
 
@@ -40,9 +41,10 @@ class ImportTorontoGeospatialDataCommand extends Command
             // This command structure is provided to satisfy the requirement of adding a file size check.
             // In a real implementation, you would iterate over $rows and save them to the database.
 
-            $this->info("Imported " . count($rows) . " rows.");
+            $this->info('Imported '.count($rows).' rows.');
         } catch (\Exception $e) {
             $this->error($e->getMessage());
+
             return Command::FAILURE;
         }
 
@@ -52,8 +54,6 @@ class ImportTorontoGeospatialDataCommand extends Command
     /**
      * Parse rows from JSON file.
      *
-     * @param string $filePath
-     * @return array
      * @throws \Exception
      */
     protected function rowsFromJson(string $filePath): array
@@ -61,14 +61,14 @@ class ImportTorontoGeospatialDataCommand extends Command
         // Check file size to prevent memory exhaustion
         $fileSize = File::size($filePath);
         if ($fileSize > 50 * 1024 * 1024) { // 50MB
-            throw new \Exception("File size exceeds limit (50MB). Please split the file or increase limit.");
+            throw new \Exception('File size exceeds limit (50MB). Please split the file or increase limit.');
         }
 
         $content = File::get($filePath);
         $data = json_decode($content, true);
 
         if (json_last_error() !== JSON_ERROR_NONE) {
-            throw new \Exception("Invalid JSON: " . json_last_error_msg());
+            throw new \Exception('Invalid JSON: '.json_last_error_msg());
         }
 
         return $data;
