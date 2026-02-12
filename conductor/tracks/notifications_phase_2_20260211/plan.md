@@ -1,39 +1,50 @@
 # Implementation Plan - In-App Notification System (Phase 2)
 
-## Phase 1: Static Geofencing & Address Search
+## Phase 1: Static Geofencing & Address Search (Toronto Open Data)
 
-- [ ] Task: Install & Configure Google Maps/Mapbox SDK
-    - [ ] Install necessary PHP/JS libraries for geocoding.
-    - [ ] Configure API keys in `.env` and `config/services.php`.
-    - [ ] Create a `GeocodingService` wrapper to handle API requests and potential errors.
+- [ ] Task: Database - Cleanup & Setup
+    - [ ] Create migration to drop unused `geofences` JSON column from `notification_preferences`.
+    - [ ] Create `SavedPlace` model and migration (user_id, name, lat, long, radius, type).
+    - [ ] Create `TorontoAddress` model/migration (street_num, street_name, lat, long, zip).
+    - [ ] Create `TorontoPointOfInterest` model/migration (name, category, lat, long).
+    - [ ] Create Console Command `data:import-toronto-geospatial` to ingest "Address Points" and "POI" CSV/JSON.
+- [ ] Task: Backend - Geocoding Service (Local)
+    - [ ] Create `LocalGeocodingService` to search `TorontoAddress` and `TorontoPointOfInterest` (using `LIKE` or FTS).
+    - [ ] Implement API endpoint `/api/geocoding/search` for frontend autocomplete.
 - [ ] Task: Backend - Saved Places Management
-    - [ ] Create `SavedPlace` model and migration (user_id, name, lat, long, radius).
-    - [ ] Implement API endpoints for CRUD operations on saved places.
-    - [ ] Add request validation for address search and geofence parameters.
+    - [ ] Implement API endpoints for CRUD operations on `SavedPlace`.
+    - [ ] Add validation ensuring coordinates are within GTA bounds.
 - [ ] Task: Frontend - Address Search UI
-    - [ ] Create a "Saved Places" settings component.
-    - [ ] Implement an address autocomplete input using the geocoding service.
-    - [ ] visualizing the selected location on a small map preview (optional but recommended).
-    - [ ] Connect the UI to the backend API to save the user's geofence.
+    - [ ] Create `SavedPlacesManager` component.
+    - [ ] Implement address/POI autocomplete input querying `/api/geocoding/search`.
+    - [ ] Connect UI to `SavedPlace` CRUD endpoints.
 - [ ] Task: Notification Engine - Geofence Matching Logic
-    - [ ] Update `AlertProcessingEngine` to check incoming alerts against active `SavedPlace` records.
-    - [ ] Implement efficient distance calculation (e.g., Haversine formula or database spatial functions).
-    - [ ] Trigger notifications when an alert falls within a user's defined radius.
+    - [ ] Update `NotificationMatcher` to query `SavedPlace` records instead of the dropped JSON column.
+    - [ ] Verify Haversine distance calculation works with the new model.
 - [ ] Task: Conductor - User Manual Verification 'Static Geofencing & Address Search' (Protocol in workflow.md)
 
-## Phase 2: TTC Accessibility Integration
+## Phase 2: TTC Accessibility & Granular Subscriptions
 
-- [ ] Task: Feed Integration - TTC Elevator/Escalator Status
-    - [ ] Create `TtcAccessibilityFeedService` to fetch the external feed.
-    - [ ] Parse the feed (XML/JSON) to extract Station, Device, Status, and Return-to-Service time.
-    - [ ] Handle API failures and malformed data gracefully (logging errors without crashing).
-- [ ] Task: Backend - Accessibility Alerts
-    - [ ] Create `AccessibilityAlert` model/migration (or reuse existing Alert structure with specific type).
-    - [ ] Implement logic to detect status changes (e.g., In Service -> Out of Service).
-    - [ ] Trigger notifications for subscribed users when a relevant status change occurs.
-- [ ] Task: Frontend - Accessibility Preferences
-    - [ ] Add a section in Notification Settings for "Accessibility Alerts".
-    - [ ] Allow users to subscribe to specific stations or lines (optional: global "All Accessibility Alerts").
+- [ ] Task: Database - Subscriptions Schema
+    - [ ] Create migration to rename `subscribed_routes` column to `subscriptions` in `notification_preferences`.
+    - [ ] Update `NotificationPreference` model to cast `subscriptions` as array.
+    - [ ] Create `config/transit_data.php` containing static lists of Stations, Lines, and major Routes.
+- [ ] Task: Feed Integration - Refactor TTC Service
+    - [ ] Refactor `TtcAlertsFeedService` to extract `accessibility` data.
+    - [ ] Map accessibility data to `Alert` model (Source: `ttc_accessibility`, Type: `elevator`/`escalator`).
+- [ ] Task: Backend - Subscription Logic (URN System)
+    - [ ] Implement `AlertContentExtractor` service.
+        - [ ] Implement Regex matchers for Routes (e.g., `/\b(50[1-8]|3\d{2})\b/`).
+        - [ ] Implement Keyword matchers for Stations using `config/transit_data.php`.
+        - [ ] Return array of URNs (e.g., `['route:504', 'station:union']`).
+    - [ ] Update `NotificationMatcher` to intersect alert URNs with user `subscriptions`.
+    - [ ] Create endpoint `/api/subscriptions/options` returning data from `config/transit_data.php`.
+- [ ] Task: Frontend - Accessibility & Subscription UI
+    - [ ] Update `NotificationSettings` to include "Accessibility Alerts" toggle.
+    - [ ] Create `SubscriptionManager` component.
+        - [ ] Implement Tabs: "Routes", "Stations", "Lines".
+        - [ ] Implement Searchable Multi-Select using URNs as values.
+        - [ ] Fetch options from `/api/subscriptions/options`.
 - [ ] Task: Conductor - User Manual Verification 'TTC Accessibility Integration' (Protocol in workflow.md)
 
 ## Phase 3: Automated Data Pruning & Inbox QoL
