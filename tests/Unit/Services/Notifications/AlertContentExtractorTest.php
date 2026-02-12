@@ -73,3 +73,56 @@ test('it extracts all configured ttc routes from text and combined route tokens'
     expect($urns)->toContain('route:900');
     expect($urns)->toContain('route:1');
 });
+
+test('it extracts standard bus routes not in config', function () {
+    $extractor = app(AlertContentExtractor::class);
+
+    // Route 100 is NOT in transit_data.php
+    $urns = $extractor->extract(new NotificationAlert(
+        alertId: 'transit:test-bus',
+        source: 'transit',
+        severity: 'minor',
+        summary: 'Route 100 Flemingdon Park diverting',
+        occurredAt: CarbonImmutable::parse('2026-02-12T10:00:00Z'),
+        routes: [], // Metadata empty
+        metadata: [],
+    ));
+
+    expect($urns)->toContain('route:100');
+});
+
+test('it extracts standard bus routes like 29 even if only in text', function () {
+    $extractor = app(AlertContentExtractor::class);
+
+    // Route 29 IS in transit_data.php, so it should work already, but let's verify
+    $urns = $extractor->extract(new NotificationAlert(
+        alertId: 'transit:test-bus-29',
+        source: 'transit',
+        severity: 'minor',
+        summary: 'Route 29 Dufferin diverting',
+        occurredAt: CarbonImmutable::parse('2026-02-12T10:00:00Z'),
+        routes: [],
+        metadata: [],
+    ));
+
+    expect($urns)->toContain('route:29');
+});
+
+test('it does not extract time strings as routes', function () {
+    $extractor = app(AlertContentExtractor::class);
+
+    $urns = $extractor->extract(new NotificationAlert(
+        alertId: 'transit:test-time',
+        source: 'transit',
+        severity: 'minor',
+        summary: 'Shuttle runs 11:29 PM until 5 : 35 am',
+        occurredAt: CarbonImmutable::parse('2026-02-12T10:00:00Z'),
+        routes: [],
+        metadata: [],
+    ));
+
+    expect($urns)->not->toContain('route:11');
+    expect($urns)->not->toContain('route:29');
+    expect($urns)->not->toContain('route:5');
+    expect($urns)->not->toContain('route:35');
+});

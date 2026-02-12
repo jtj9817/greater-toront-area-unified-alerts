@@ -68,57 +68,79 @@ class AlertContentExtractor
 
         $configuredNumericRouteIds = $this->configuredNumericRouteIds();
 
-        // Legacy fallback if transit route config isn't available.
-        if ($configuredNumericRouteIds === []) {
-            preg_match_all('/\b(50[1-8]|3\d{2})\b/', $text, $matches);
-
-            foreach ($matches[1] ?? [] as $route) {
-                $normalized = $this->normalizeRouteId((string) $route);
-                if ($normalized !== null) {
-                    $matched[] = $normalized;
-                }
-            }
-
-            return array_values(array_unique($matched));
-        }
-
         $configuredNumericLookup = array_fill_keys($configuredNumericRouteIds, true);
 
-        // Avoid matching random "1" or "2" occurrences by only accepting single-digit routes
-        // when they appear in a "Line X" context.
+        // 1. Line X context (safest for single digits)
         preg_match_all('/\bline\s*([0-9])\b/i', $text, $lineMatches);
         foreach ($lineMatches[1] ?? [] as $lineId) {
             $normalized = $this->normalizeRouteId((string) $lineId);
-            if ($normalized !== null && array_key_exists($normalized, $configuredNumericLookup)) {
+            if ($normalized !== null && ($configuredNumericRouteIds === [] || array_key_exists($normalized, $configuredNumericLookup))) {
                 $matched[] = $normalized;
             }
         }
 
-        $multiDigit = array_values(array_filter(
-            $configuredNumericRouteIds,
-            static fn (string $id): bool => strlen($id) >= 2,
-        ));
+        // 2. Broad regex for standard bus routes and others (1-3 digits).
+        // Exclude time-like patterns such as "11:29" (with or without spaces).
+        preg_match_all(
+            '/\b(50[1-8]|3\d{2}|[1-9]\d{0,2})\b(?!\s*(?:am|pm|min|sec|hour|day|week|month|year)|-)/i',
+            $text,
+            $matches,
+            PREG_OFFSET_CAPTURE,
+        );
 
-        if ($multiDigit !== []) {
-            usort($multiDigit, static fn (string $a, string $b): int => strlen($b) <=> strlen($a));
+        foreach ($matches[1] ?? [] as $match) {
+            $route = is_array($match) ? (string) ($match[0] ?? '') : (string) $match;
+            $offset = is_array($match) ? (int) ($match[1] ?? -1) : -1;
 
-            $alternation = implode('|', array_map(
-                static fn (string $id): string => preg_quote($id, '/'),
-                $multiDigit,
-            ));
+            if ($offset >= 0 && $this->isTimeAdjacentToken($text, $route, $offset)) {
+                continue;
+            }
 
-            // Exclude hyphenated tokens like "29-minute" to reduce false-positive matches.
-            preg_match_all('/\b(?:'.$alternation.')\b(?!-)/', $text, $matches);
+            $normalized = $this->normalizeRouteId($route);
+            if ($normalized === null) {
+                continue;
+            }
 
-            foreach ($matches[0] ?? [] as $route) {
-                $normalized = $this->normalizeRouteId((string) $route);
-                if ($normalized !== null) {
-                    $matched[] = $normalized;
-                }
+            // Accept if it's in the config OR if config is empty (legacy mode)
+            // OR if it's a multi-digit number (standard bus routes are often not all in config)
+            // We treat single digits cautiously unless they were matched by "Line X" logic or are in config.
+            if ($configuredNumericRouteIds === [] || array_key_exists($normalized, $configuredNumericLookup) || strlen($normalized) >= 2) {
+                $matched[] = $normalized;
             }
         }
 
         return array_values(array_unique($matched));
+    }
+
+    private function isTimeAdjacentToken(string $text, string $token, int $offset): bool
+    {
+        $tokenLen = strlen($token);
+        if ($tokenLen === 0) {
+            return false;
+        }
+
+        // Look left for the nearest non-whitespace character.
+        for ($i = $offset - 1; $i >= 0; $i--) {
+            $char = $text[$i];
+            if (! ctype_space($char)) {
+                if ($char === ':') {
+                    return true;
+                }
+                break;
+            }
+        }
+
+        // Look right for the nearest non-whitespace character.
+        $rightStart = $offset + $tokenLen;
+        $textLen = strlen($text);
+        for ($i = $rightStart; $i < $textLen; $i++) {
+            $char = $text[$i];
+            if (! ctype_space($char)) {
+                return $char === ':';
+            }
+        }
+
+        return false;
     }
 
     /**
@@ -232,18 +254,18 @@ class AlertContentExtractor
      */
     private function containsAnyKeyword(string $text, array $keywords): bool
     {
-        foreach ($keywords as $keyword) {
-            if ($keyword === '') {
-                continue;
-            }
+        $validKeywords = array_filter($keywords, static fn (string $k): bool => $k !== '');
 
-            $pattern = '/\b'.str_replace('\ ', '\s+', preg_quote($keyword, '/')).'\b/i';
-            if (preg_match($pattern, $text) === 1) {
-                return true;
-            }
+        if ($validKeywords === []) {
+            return false;
         }
 
-        return false;
+        $pattern = '/\b(?:'.implode('|', array_map(
+            static fn (string $keyword): string => str_replace('\ ', '\s+', preg_quote($keyword, '/')),
+            $validKeywords
+        )).')\b/i';
+
+        return preg_match($pattern, $text) === 1;
     }
 
     private function normalizeRouteId(string $route): ?string
