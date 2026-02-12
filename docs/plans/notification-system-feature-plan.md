@@ -490,17 +490,6 @@ This document outlines the planning for a focused **In-App Notification System**
 | Elevator/Escalator Status | P0       | Mobility challenged | TTC accessibility alerts  |
 | Simplified UI Mode        | P1       | Seniors             | Reduced complexity        |
 
-### Advanced Features
-
-| Feature                | Priority | Personas              | Description               |
-| ---------------------- | -------- | --------------------- | ------------------------- |
-| Calendar Integration   | P2       | Students, event-goers | Sync with schedules       |
-| Smartwatch Support     | P2       | Cyclists              | Apple Watch, Wear OS      |
-| Family Sharing         | P2       | Parents               | Share alerts with partner |
-| Professional Dashboard | P2       | First responders      | Real-time map view        |
-| Analytics/Insights     | P3       | Business owners       | Foot traffic predictions  |
-| ML-Based Predictions   | P3       | Commuters             | Delay probability         |
-
 ---
 
 ## Technical Architecture
@@ -571,7 +560,7 @@ Schema::create('notification_logs', function (Blueprint $table) {
 
 ## Implementation Phases
 
-### Phase 1: MVP (Weeks 1-4)
+### Phase 1: MVP
 
 **Goal:** Basic in-app notification infrastructure
 
@@ -588,76 +577,19 @@ Schema::create('notification_logs', function (Blueprint $table) {
 - Daily Commuters (basic route alerts)
 - Remote Workers (digest mode)
 
-### Phase 2: Enhanced Targeting (Weeks 5-8)
+### Phase 2: System Completion & Accessibility
 
-**Goal:** Precision in-app delivery
-
-**Features:**
-
-- Route-specific subscriptions
-- Real-time in-app updates
-- Alternative route suggestions
-- Persistent banner notifications
-
-**Personas Served:**
-
-- Daily Commuters (full feature set)
-- Parents (school zone alerts)
-
-### Phase 3: Accessibility & Inclusion (Weeks 9-12)
-
-**Goal:** Universal access
+**Goal:** Finalize the engine for reliability and high-value transit data.
 
 **Features:**
-
-- TTC elevator/escalator status
-- Large text/high contrast modes
-- Screen reader optimization
-- Simplified UI mode
-- Voice notifications (optional)
+- **Static Geofencing:** Users define "Saved Places" (radius around a point) for server-side matching.
+- **TTC Accessibility Integration:** Feed elevator/escalator outages into the notification engine (High-value P0).
+- **Automated Data Pruning:** Scheduled cleanup of logs older than 30 days to maintain DB performance.
+- **Inbox Quality of Life:** "Mark all as read" and "Clear all" functionality.
 
 **Personas Served:**
-
-- Seniors
-- Mobility-challenged users
-- Visually impaired
-
-### Phase 4: Advanced Features (Weeks 13-16)
-
-**Goal:** Power user features
-
-**Features:**
-
-- Smartwatch integration
-- Calendar sync
-- Family sharing
-- ML-based predictions
-- Professional dashboard
-
-**Personas Served:**
-
-- Cyclists (smartwatch)
-- Students (calendar)
-- Parents (family sharing)
-- First responders (dashboard)
-
-### Phase 5: Business & Tourism (Weeks 17-20)
-
-**Goal:** Commercial viability
-
-**Features:**
-
-- Business analytics
-- Multi-language support
-- Tourist mode
-- Event integration
-- API for third parties
-
-**Personas Served:**
-
-- Business owners
-- Tourists
-- Event-goers
+- Mobility-Challenged Users (Elevator status)
+- All users (Reliability and data hygiene)
 
 ---
 
@@ -698,22 +630,16 @@ Schema::create('notification_logs', function (Blueprint $table) {
 | Risk                 | Impact | Mitigation                                               |
 | -------------------- | ------ | -------------------------------------------------------- |
 | Notification fatigue | High   | Smart throttling, relevance scoring, easy unsubscribe    |
-| Battery drain        | Medium | Efficient geofencing, batch processing                   |
-| Privacy concerns     | High   | Clear data usage policy, local processing where possible |
+| Privacy concerns     | Medium | Clear data usage policy, static geofencing only          |
 | Scale challenges     | Medium | Queue-based architecture, rate limiting                  |
-| Accessibility gaps   | High   | WCAG compliance testing, user feedback loops             |
 | False positives      | Medium | Severity verification, user feedback on accuracy         |
 
 ---
 
 ## Open Questions
 
-1. **Privacy:** How precise should geofencing be? (Exact address vs neighborhood)
-2. **Storage:** How long should notification history be retained?
-3. **Partnerships:** Should we integrate with TTC/GO official apps?
-4. **Moderation:** User-generated alerts - verification process?
-5. **International:** Support for visitors (multiple languages)?
-6. **Battery:** How to balance real-time geofencing with battery life?
+1. **Storage:** Should we offer users the ability to export their notification history before pruning?
+2. **Partnerships:** Should we integrate with TTC/GO official apps?
 
 ---
 
