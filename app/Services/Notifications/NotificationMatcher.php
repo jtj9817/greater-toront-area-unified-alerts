@@ -3,15 +3,21 @@
 namespace App\Services\Notifications;
 
 use App\Models\NotificationPreference;
+use App\Models\SavedPlace;
+use Illuminate\Support\Collection;
 use Illuminate\Support\LazyCollection;
 
 class NotificationMatcher
 {
+    /** @var array<int, Collection<int, SavedPlace>> */
+    private array $savedPlacesCache = [];
+
     /**
      * @return LazyCollection<int, NotificationPreference>
      */
     public function matchingPreferences(NotificationAlert $alert): LazyCollection
     {
+        $this->savedPlacesCache = [];
         $minimumSeverity = NotificationSeverity::rank($alert->severity);
 
         return NotificationPreference::query()
@@ -113,8 +119,9 @@ class NotificationMatcher
 
     private function matchesGeofence(NotificationPreference $preference, NotificationAlert $alert): bool
     {
-        $geofences = is_array($preference->geofences) ? $preference->geofences : [];
-        if ($geofences === []) {
+        $savedPlaces = $this->savedPlacesForUser($preference->user_id);
+
+        if ($savedPlaces->isEmpty()) {
             return true;
         }
 
@@ -122,28 +129,34 @@ class NotificationMatcher
             return false;
         }
 
-        foreach ($geofences as $geofence) {
-            if (! is_array($geofence)) {
-                continue;
-            }
-
-            if (! isset($geofence['lat'], $geofence['lng'], $geofence['radius_km'])) {
-                continue;
-            }
-
+        foreach ($savedPlaces as $savedPlace) {
             $distanceKm = $this->distanceInKilometers(
                 lat1: $alert->lat,
                 lng1: $alert->lng,
-                lat2: (float) $geofence['lat'],
-                lng2: (float) $geofence['lng'],
+                lat2: (float) $savedPlace->lat,
+                lng2: (float) $savedPlace->long,
             );
 
-            if ($distanceKm <= (float) $geofence['radius_km']) {
+            if ($distanceKm <= ((float) $savedPlace->radius / 1000)) {
                 return true;
             }
         }
 
         return false;
+    }
+
+    /**
+     * @return Collection<int, SavedPlace>
+     */
+    private function savedPlacesForUser(int $userId): Collection
+    {
+        if (! array_key_exists($userId, $this->savedPlacesCache)) {
+            $this->savedPlacesCache[$userId] = SavedPlace::query()
+                ->where('user_id', $userId)
+                ->get();
+        }
+
+        return $this->savedPlacesCache[$userId];
     }
 
     /**

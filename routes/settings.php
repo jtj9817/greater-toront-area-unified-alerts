@@ -1,6 +1,8 @@
 <?php
 
+use App\Http\Controllers\Geocoding\LocalGeocodingSearchController;
 use App\Http\Controllers\Notifications\NotificationInboxController;
+use App\Http\Controllers\Notifications\SavedPlaceController;
 use App\Http\Controllers\Settings\NotificationPreferenceController;
 use App\Http\Controllers\Settings\PasswordController;
 use App\Http\Controllers\Settings\ProfileController;
@@ -19,6 +21,11 @@ Route::middleware(['auth'])->group(function () {
     Route::patch('notifications/inbox/{notificationLog}/read', [NotificationInboxController::class, 'markRead'])->name('notifications.inbox.read');
     Route::patch('notifications/inbox/{notificationLog}/dismiss', [NotificationInboxController::class, 'dismiss'])->name('notifications.inbox.dismiss');
     Route::delete('notifications/inbox', [NotificationInboxController::class, 'clearAll'])->name('notifications.inbox.clear');
+    Route::get('api/geocoding/search', LocalGeocodingSearchController::class)->name('api.geocoding.search');
+    Route::get('api/saved-places', [SavedPlaceController::class, 'index'])->name('api.saved-places.index');
+    Route::post('api/saved-places', [SavedPlaceController::class, 'store'])->name('api.saved-places.store');
+    Route::patch('api/saved-places/{savedPlace}', [SavedPlaceController::class, 'update'])->name('api.saved-places.update');
+    Route::delete('api/saved-places/{savedPlace}', [SavedPlaceController::class, 'destroy'])->name('api.saved-places.destroy');
 });
 
 Route::middleware(['auth', 'verified'])->group(function () {

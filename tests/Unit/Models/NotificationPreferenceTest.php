@@ -7,7 +7,6 @@ uses(Tests\TestCase::class);
 
 test('it has expected fillable attributes and casts', function () {
     $preference = new NotificationPreference([
-        'geofences' => [['name' => 'Downtown', 'lat' => 43.65, 'lng' => -79.38, 'radius_km' => 2]],
         'subscribed_routes' => ['1', '501'],
         'digest_mode' => 1,
         'push_enabled' => 0,
@@ -17,13 +16,11 @@ test('it has expected fillable attributes and casts', function () {
         'user_id',
         'alert_type',
         'severity_threshold',
-        'geofences',
         'subscribed_routes',
         'digest_mode',
         'push_enabled',
     ]);
 
-    expect($preference->geofences)->toBeArray();
     expect($preference->subscribed_routes)->toBeArray();
     expect($preference->digest_mode)->toBeTrue();
     expect($preference->push_enabled)->toBeFalse();

@@ -3,6 +3,7 @@
 use App\Events\AlertCreated;
 use App\Jobs\DeliverAlertNotificationJob;
 use App\Models\NotificationPreference;
+use App\Models\SavedPlace;
 use App\Services\Notifications\NotificationAlert;
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -16,19 +17,22 @@ test('alert created queues notification jobs only for matching preferences', fun
     $matching = NotificationPreference::factory()->create([
         'alert_type' => 'emergency',
         'severity_threshold' => 'major',
-        'geofences' => [
-            ['name' => 'Downtown', 'lat' => 43.7000, 'lng' => -79.4000, 'radius_km' => 3],
-        ],
         'subscribed_routes' => [],
         'push_enabled' => true,
+    ]);
+
+    SavedPlace::factory()->create([
+        'user_id' => $matching->user_id,
+        'name' => 'Downtown',
+        'lat' => 43.7000,
+        'long' => -79.4000,
+        'radius' => 3000,
+        'type' => 'address',
     ]);
 
     NotificationPreference::factory()->create([
         'alert_type' => 'emergency',
         'severity_threshold' => 'major',
-        'geofences' => [
-            ['name' => 'Downtown', 'lat' => 43.7000, 'lng' => -79.4000, 'radius_km' => 3],
-        ],
         'subscribed_routes' => [],
         'push_enabled' => false,
     ]);
@@ -36,7 +40,6 @@ test('alert created queues notification jobs only for matching preferences', fun
     NotificationPreference::factory()->create([
         'alert_type' => 'transit',
         'severity_threshold' => 'minor',
-        'geofences' => [],
         'subscribed_routes' => [],
         'push_enabled' => true,
     ]);
@@ -44,7 +47,6 @@ test('alert created queues notification jobs only for matching preferences', fun
     NotificationPreference::factory()->create([
         'alert_type' => 'emergency',
         'severity_threshold' => 'critical',
-        'geofences' => [],
         'subscribed_routes' => [],
         'push_enabled' => true,
     ]);
@@ -52,11 +54,25 @@ test('alert created queues notification jobs only for matching preferences', fun
     NotificationPreference::factory()->create([
         'alert_type' => 'emergency',
         'severity_threshold' => 'major',
-        'geofences' => [
-            ['name' => 'Far Away', 'lat' => 44.1000, 'lng' => -79.1000, 'radius_km' => 1],
-        ],
         'subscribed_routes' => [],
         'push_enabled' => true,
+    ]);
+
+    $farAway = NotificationPreference::query()
+        ->where('alert_type', 'emergency')
+        ->where('severity_threshold', 'major')
+        ->where('push_enabled', true)
+        ->where('user_id', '!=', $matching->user_id)
+        ->latest('id')
+        ->firstOrFail();
+
+    SavedPlace::factory()->create([
+        'user_id' => $farAway->user_id,
+        'name' => 'Far Away',
+        'lat' => 44.1000,
+        'long' => -79.1000,
+        'radius' => 1000,
+        'type' => 'address',
     ]);
 
     event(new AlertCreated(new NotificationAlert(
@@ -84,7 +100,6 @@ test('transit alerts respect subscribed route matching when provided', function 
     $matching = NotificationPreference::factory()->create([
         'alert_type' => 'transit',
         'severity_threshold' => 'minor',
-        'geofences' => [],
         'subscribed_routes' => ['501', 'GO-LW'],
         'push_enabled' => true,
     ]);
@@ -92,7 +107,6 @@ test('transit alerts respect subscribed route matching when provided', function 
     NotificationPreference::factory()->create([
         'alert_type' => 'transit',
         'severity_threshold' => 'minor',
-        'geofences' => [],
         'subscribed_routes' => ['504'],
         'push_enabled' => true,
     ]);

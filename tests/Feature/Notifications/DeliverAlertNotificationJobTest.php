@@ -21,7 +21,6 @@ test('it retries broadcast for existing sent notification log and marks delivere
         'push_enabled' => true,
         'alert_type' => 'all',
         'severity_threshold' => 'all',
-        'geofences' => [],
         'subscribed_routes' => [],
     ]);
 
@@ -72,7 +71,6 @@ test('it skips rebroadcast when notification log is already delivered', function
         'push_enabled' => true,
         'alert_type' => 'all',
         'severity_threshold' => 'all',
-        'geofences' => [],
         'subscribed_routes' => [],
     ]);
 

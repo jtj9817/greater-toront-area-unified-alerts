@@ -1,0 +1,28 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    public function up(): void
+    {
+        Schema::create('toronto_pois', function (Blueprint $table): void {
+            $table->id();
+            $table->string('name', 180);
+            $table->string('category', 120)->nullable();
+            $table->decimal('lat', 10, 7);
+            $table->decimal('long', 10, 7);
+            $table->timestamps();
+
+            $table->index('name');
+            $table->index('category');
+        });
+    }
+
+    public function down(): void
+    {
+        Schema::dropIfExists('toronto_pois');
+    }
+};

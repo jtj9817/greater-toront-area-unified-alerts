@@ -30,7 +30,6 @@ class NotificationPreference extends Model
         'user_id',
         'alert_type',
         'severity_threshold',
-        'geofences',
         'subscribed_routes',
         'digest_mode',
         'push_enabled',
@@ -39,7 +38,6 @@ class NotificationPreference extends Model
     protected function casts(): array
     {
         return [
-            'geofences' => 'array',
             'subscribed_routes' => 'array',
             'digest_mode' => 'boolean',
             'push_enabled' => 'boolean',
@@ -54,7 +52,6 @@ class NotificationPreference extends Model
         return [
             'alert_type' => 'all',
             'severity_threshold' => 'all',
-            'geofences' => [],
             'subscribed_routes' => [],
             'digest_mode' => false,
             'push_enabled' => true,

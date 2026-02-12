@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\NotificationPreference;
+use App\Models\SavedPlace;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
@@ -192,12 +193,18 @@ test('partial notification settings patch preserves untouched fields', function 
         'user_id' => $user->id,
         'alert_type' => 'transit',
         'severity_threshold' => 'major',
-        'geofences' => [
-            ['name' => 'Home', 'lat' => 43.7, 'lng' => -79.4, 'radius_km' => 2],
-        ],
         'subscribed_routes' => ['1', 'GO-LW'],
         'digest_mode' => false,
         'push_enabled' => true,
+    ]);
+
+    SavedPlace::factory()->create([
+        'user_id' => $user->id,
+        'name' => 'Home',
+        'lat' => 43.7,
+        'long' => -79.4,
+        'radius' => 2000,
+        'type' => 'legacy_geofence',
     ]);
 
     $this
@@ -282,4 +289,24 @@ test('repeated notification settings fetch and update do not create duplicate pr
     $this->actingAs($user)->patchJson('/settings/notifications', ['digest_mode' => false])->assertOk();
 
     expect(NotificationPreference::query()->where('user_id', $user->id)->count())->toBe(1);
+});
+
+test('notification settings geofences are synced to legacy saved places', function () {
+    $user = User::factory()->create();
+
+    $this->actingAs($user)
+        ->patchJson('/settings/notifications', [
+            'geofences' => [
+                ['name' => 'Home', 'lat' => 43.7001, 'lng' => -79.4163, 'radius_km' => 1.2],
+            ],
+        ])
+        ->assertOk()
+        ->assertJsonPath('data.geofences.0.name', 'Home');
+
+    $savedPlace = SavedPlace::query()->where('user_id', $user->id)->firstOrFail();
+
+    expect($savedPlace->type)->toBe('legacy_geofence');
+    expect($savedPlace->lat)->toBe(43.7001);
+    expect($savedPlace->long)->toBe(-79.4163);
+    expect($savedPlace->radius)->toBe(1200);
 });

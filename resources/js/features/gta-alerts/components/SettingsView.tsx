@@ -13,6 +13,7 @@ import {
     updateNotificationPreference,
 } from '../services/NotificationPreferenceService';
 import { Icon } from './Icon';
+import { SavedPlacesManager } from './SavedPlacesManager';
 
 const ALERT_TYPE_OPTIONS: Array<{ value: NotificationAlertType; label: string }> =
     [
@@ -478,6 +479,8 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                         </div>
                     )}
                 </section>
+
+                <SavedPlacesManager authUserId={authUserId} />
 
                 <section className="rounded-xl border border-white/10 bg-surface-dark p-4 md:p-5">
                     <h3 className="mb-4 text-sm font-semibold tracking-wide text-primary uppercase">

@@ -15,14 +15,12 @@ test('daily digest aggregates only prior day notifications and prevents duplicat
     $digestPreference = NotificationPreference::factory()->create([
         'digest_mode' => true,
         'push_enabled' => true,
-        'geofences' => [],
         'subscribed_routes' => [],
     ]);
 
     $nonDigestPreference = NotificationPreference::factory()->create([
         'digest_mode' => false,
         'push_enabled' => true,
-        'geofences' => [],
         'subscribed_routes' => [],
     ]);
 

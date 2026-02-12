@@ -6,6 +6,7 @@ use App\Jobs\DeliverAlertNotificationJob;
 use App\Jobs\GenerateDailyDigestJob;
 use App\Models\NotificationLog;
 use App\Models\NotificationPreference;
+use App\Models\SavedPlace;
 use App\Models\User;
 use App\Services\Notifications\NotificationAlert;
 use Carbon\CarbonImmutable;
@@ -26,12 +27,18 @@ test('matching alert flows through dispatch, delivery, broadcast, inbox, and mar
         'user_id' => $user->id,
         'alert_type' => 'emergency',
         'severity_threshold' => 'major',
-        'geofences' => [
-            ['name' => 'Downtown Toronto', 'lat' => 43.6532, 'lng' => -79.3832, 'radius_km' => 5],
-        ],
         'subscribed_routes' => [],
         'push_enabled' => true,
         'digest_mode' => false,
+    ]);
+
+    SavedPlace::factory()->create([
+        'user_id' => $preference->user_id,
+        'name' => 'Downtown Toronto',
+        'lat' => 43.6532,
+        'long' => -79.3832,
+        'radius' => 5000,
+        'type' => 'address',
     ]);
 
     $alert = new NotificationAlert(
@@ -113,11 +120,19 @@ test('non-matching geofence alert does not dispatch notification job', function 
     NotificationPreference::factory()->create([
         'alert_type' => 'emergency',
         'severity_threshold' => 'major',
-        'geofences' => [
-            ['name' => 'Vancouver', 'lat' => 49.2827, 'lng' => -123.1207, 'radius_km' => 5],
-        ],
         'subscribed_routes' => [],
         'push_enabled' => true,
+    ]);
+
+    $preference = NotificationPreference::query()->latest('id')->firstOrFail();
+
+    SavedPlace::factory()->create([
+        'user_id' => $preference->user_id,
+        'name' => 'Vancouver',
+        'lat' => 49.2827,
+        'long' => -123.1207,
+        'radius' => 5000,
+        'type' => 'address',
     ]);
 
     event(new AlertCreated(new NotificationAlert(
@@ -143,7 +158,6 @@ test('digest user receives daily digest entry in inbox', function () {
             'user_id' => $user->id,
             'digest_mode' => true,
             'push_enabled' => true,
-            'geofences' => [],
             'subscribed_routes' => [],
         ]);
 

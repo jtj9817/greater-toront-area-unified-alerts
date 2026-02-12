@@ -12,10 +12,45 @@ test('notification tables exist with expected columns', function () {
         'user_id',
         'alert_type',
         'severity_threshold',
-        'geofences',
         'subscribed_routes',
         'digest_mode',
         'push_enabled',
+        'created_at',
+        'updated_at',
+    ]))->toBeTrue();
+
+    expect(Schema::hasTable('saved_places'))->toBeTrue();
+    expect(Schema::hasColumns('saved_places', [
+        'id',
+        'user_id',
+        'name',
+        'lat',
+        'long',
+        'radius',
+        'type',
+        'created_at',
+        'updated_at',
+    ]))->toBeTrue();
+
+    expect(Schema::hasTable('toronto_addresses'))->toBeTrue();
+    expect(Schema::hasColumns('toronto_addresses', [
+        'id',
+        'street_num',
+        'street_name',
+        'lat',
+        'long',
+        'zip',
+        'created_at',
+        'updated_at',
+    ]))->toBeTrue();
+
+    expect(Schema::hasTable('toronto_pois'))->toBeTrue();
+    expect(Schema::hasColumns('toronto_pois', [
+        'id',
+        'name',
+        'category',
+        'lat',
+        'long',
         'created_at',
         'updated_at',
     ]))->toBeTrue();
