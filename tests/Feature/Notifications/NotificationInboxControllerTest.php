@@ -130,6 +130,50 @@ test('pagination links preserve applied inbox query filters', function () {
     expect($nextLink)->toContain('per_page=1');
 });
 
+test('pagination previous link preserves applied inbox query filters', function () {
+    $user = User::factory()->create();
+
+    NotificationLog::factory()->create([
+        'user_id' => $user->id,
+        'status' => 'delivered',
+        'sent_at' => CarbonImmutable::parse('2026-02-10T10:00:00Z'),
+        'read_at' => null,
+        'dismissed_at' => null,
+    ]);
+
+    NotificationLog::factory()->create([
+        'user_id' => $user->id,
+        'status' => 'delivered',
+        'sent_at' => CarbonImmutable::parse('2026-02-10T11:00:00Z'),
+        'read_at' => null,
+        'dismissed_at' => null,
+    ]);
+
+    NotificationLog::factory()->create([
+        'user_id' => $user->id,
+        'status' => 'dismissed',
+        'sent_at' => CarbonImmutable::parse('2026-02-10T12:00:00Z'),
+        'read_at' => CarbonImmutable::parse('2026-02-10T12:00:30Z'),
+        'dismissed_at' => CarbonImmutable::parse('2026-02-10T12:01:00Z'),
+    ]);
+
+    $response = $this
+        ->actingAs($user)
+        ->getJson('/notifications/inbox?include_dismissed=1&per_page=1&page=2');
+
+    $response
+        ->assertOk()
+        ->assertJsonPath('meta.current_page', 2)
+        ->assertJsonPath('meta.per_page', 1)
+        ->assertJsonPath('meta.total', 3);
+
+    $prevLink = $response->json('links.prev');
+
+    expect($prevLink)->not->toBeNull();
+    expect($prevLink)->toContain('include_dismissed=1');
+    expect($prevLink)->toContain('per_page=1');
+});
+
 test('authenticated user can mark their inbox log as read', function () {
     $user = User::factory()->create();
 
@@ -153,6 +197,34 @@ test('authenticated user can mark their inbox log as read', function () {
 
     expect($log->read_at)->not->toBeNull();
     expect($log->status)->toBe('read');
+});
+
+test('mark as read preserves dismissed status and existing timestamps', function () {
+    $user = User::factory()->create();
+    $existingReadAt = CarbonImmutable::parse('2026-02-10T09:00:00Z');
+    $existingDismissedAt = CarbonImmutable::parse('2026-02-10T09:01:00Z');
+
+    $log = NotificationLog::factory()->create([
+        'user_id' => $user->id,
+        'status' => 'dismissed',
+        'read_at' => $existingReadAt,
+        'dismissed_at' => $existingDismissedAt,
+    ]);
+
+    $response = $this
+        ->actingAs($user)
+        ->patchJson("/notifications/inbox/{$log->id}/read");
+
+    $response
+        ->assertOk()
+        ->assertJsonPath('data.id', $log->id)
+        ->assertJsonPath('data.status', 'dismissed');
+
+    $log->refresh();
+
+    expect($log->status)->toBe('dismissed');
+    expect($log->read_at?->toISOString())->toBe($existingReadAt->toISOString());
+    expect($log->dismissed_at?->toISOString())->toBe($existingDismissedAt->toISOString());
 });
 
 test('mark as read enforces ownership boundaries', function () {

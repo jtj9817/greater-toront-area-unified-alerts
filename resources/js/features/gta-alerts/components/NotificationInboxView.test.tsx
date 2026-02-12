@@ -135,7 +135,7 @@ describe('NotificationInboxView', () => {
                     unread_count: 2,
                 },
                 links: {
-                    next: '/notifications/inbox?page=2&per_page=50',
+                    next: 'https://example.test/notifications/inbox?page=2&per_page=50&include_dismissed=1',
                     prev: null,
                 },
             }),
@@ -186,7 +186,9 @@ describe('NotificationInboxView', () => {
         });
 
         const secondRequest = fetchMock.mock.calls[1] as [string, RequestInit];
-        expect(secondRequest[0]).toBe('/notifications/inbox?page=2&per_page=50');
+        expect(secondRequest[0]).toBe(
+            '/notifications/inbox?page=2&per_page=50&include_dismissed=1',
+        );
         expect(secondRequest[1].method).toBe('GET');
 
         expect(
@@ -254,6 +256,50 @@ describe('NotificationInboxView', () => {
 
         expect(onOpenAlert).toHaveBeenCalledWith('police:31');
         expect(onOpenAlert).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not call onOpenAlert for digest summaries', async () => {
+        const fetchMock = globalThis.fetch as FetchMock;
+        const onOpenAlert = vi.fn();
+
+        fetchMock.mockResolvedValueOnce(
+            mockJsonResponse({
+                data: [
+                    {
+                        id: 32,
+                        alert_id: 'digest:2026-02-10',
+                        type: 'digest',
+                        delivery_method: 'in_app_digest',
+                        status: 'sent',
+                        sent_at: '2026-02-10T14:00:00+00:00',
+                        read_at: null,
+                        dismissed_at: null,
+                        metadata: {
+                            type: 'daily_digest',
+                            digest_date: '2026-02-10',
+                            total_notifications: 5,
+                        },
+                    },
+                ],
+                meta: {
+                    current_page: 1,
+                    last_page: 1,
+                    per_page: 50,
+                    total: 1,
+                    unread_count: 1,
+                },
+                links: {
+                    next: null,
+                    prev: null,
+                },
+            }),
+        );
+
+        render(<NotificationInboxView authUserId={99} onOpenAlert={onOpenAlert} />);
+
+        fireEvent.click(await screen.findByText('5 alerts for 2026-02-10'));
+
+        expect(onOpenAlert).not.toHaveBeenCalled();
     });
 
     it('marks notifications as read and dismisses items', async () => {
