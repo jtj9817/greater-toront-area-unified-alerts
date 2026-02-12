@@ -21,7 +21,7 @@
 - [x] Task: Notification Engine - Geofence Matching Logic
     - [x] Update `NotificationMatcher` to query `SavedPlace` records instead of the dropped JSON column.
     - [x] Verify Haversine distance calculation works with the new model.
-- [ ] Task: Conductor - User Manual Verification 'Static Geofencing & Address Search' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Static Geofencing & Address Search' (Protocol in workflow.md; verified 2026-02-12, log: `storage/logs/manual_tests/notifications_phase_2_static_geofencing_address_search_2026_02_12_072653.log`, script: `tests/manual/verify_notifications_phase_2_static_geofencing_address_search.php`)
 
 ## Phase 2: TTC Accessibility & Granular Subscriptions
 
