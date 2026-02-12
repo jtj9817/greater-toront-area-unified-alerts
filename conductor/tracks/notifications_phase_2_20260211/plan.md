@@ -25,26 +25,26 @@
 
 ## Phase 2: TTC Accessibility & Granular Subscriptions
 
-- [ ] Task: Database - Subscriptions Schema
-    - [ ] Create migration to rename `subscribed_routes` column to `subscriptions` in `notification_preferences`.
-    - [ ] Update `NotificationPreference` model to cast `subscriptions` as array.
-    - [ ] Create `config/transit_data.php` containing static lists of Stations, Lines, and major Routes.
-- [ ] Task: Feed Integration - Refactor TTC Service
-    - [ ] Refactor `TtcAlertsFeedService` to extract `accessibility` data.
-    - [ ] Map accessibility data to `Alert` model (Source: `ttc_accessibility`, Type: `elevator`/`escalator`).
-- [ ] Task: Backend - Subscription Logic (URN System)
-    - [ ] Implement `AlertContentExtractor` service.
-        - [ ] Implement Regex matchers for Routes (e.g., `/\b(50[1-8]|3\d{2})\b/`).
-        - [ ] Implement Keyword matchers for Stations using `config/transit_data.php`.
-        - [ ] Return array of URNs (e.g., `['route:504', 'station:union']`).
-    - [ ] Update `NotificationMatcher` to intersect alert URNs with user `subscriptions`.
-    - [ ] Create endpoint `/api/subscriptions/options` returning data from `config/transit_data.php`.
-- [ ] Task: Frontend - Accessibility & Subscription UI
-    - [ ] Update `NotificationSettings` to include "Accessibility Alerts" toggle.
-    - [ ] Create `SubscriptionManager` component.
-        - [ ] Implement Tabs: "Routes", "Stations", "Lines".
-        - [ ] Implement Searchable Multi-Select using URNs as values.
-        - [ ] Fetch options from `/api/subscriptions/options`.
+- [x] Task: Database - Subscriptions Schema
+    - [x] Create migration to rename `subscribed_routes` column to `subscriptions` in `notification_preferences`.
+    - [x] Update `NotificationPreference` model to cast `subscriptions` as array.
+    - [x] Create `config/transit_data.php` containing static lists of Stations, Lines, and major Routes.
+- [x] Task: Feed Integration - Refactor TTC Service
+    - [x] Refactor `TtcAlertsFeedService` to extract `accessibility` data.
+    - [x] Map accessibility data to `Alert` model (Source: `ttc_accessibility`, Type: `elevator`/`escalator`).
+- [x] Task: Backend - Subscription Logic (URN System)
+    - [x] Implement `AlertContentExtractor` service.
+        - [x] Implement Regex matchers for Routes (e.g., `/\b(50[1-8]|3\d{2})\b/`).
+        - [x] Implement Keyword matchers for Stations using `config/transit_data.php`.
+        - [x] Return array of URNs (e.g., `['route:504', 'station:union']`).
+    - [x] Update `NotificationMatcher` to intersect alert URNs with user `subscriptions`.
+    - [x] Create endpoint `/api/subscriptions/options` returning data from `config/transit_data.php`.
+- [x] Task: Frontend - Accessibility & Subscription UI
+    - [x] Update `NotificationSettings` to include "Accessibility Alerts" toggle.
+    - [x] Create `SubscriptionManager` component.
+        - [x] Implement Tabs: "Routes", "Stations", "Lines".
+        - [x] Implement Searchable Multi-Select using URNs as values.
+        - [x] Fetch options from `/api/subscriptions/options`.
 - [ ] Task: Conductor - User Manual Verification 'TTC Accessibility Integration' (Protocol in workflow.md)
 
 ## Phase 3: Automated Data Pruning & Inbox QoL
