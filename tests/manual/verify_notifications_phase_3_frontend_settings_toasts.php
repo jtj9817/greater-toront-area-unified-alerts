@@ -132,9 +132,6 @@ function runCommand(string $command, string $label): array
     ];
 }
 
-/**
- * @return string
- */
 function readFileContents(string $relativePath): string
 {
     $absolutePath = base_path($relativePath);
@@ -196,7 +193,7 @@ try {
 
     $echoContents = readFileContents('resources/js/lib/echo.ts');
     assertContainsText("authEndpoint: '/broadcasting/auth'", $echoContents, 'echo uses broadcasting auth endpoint');
-    assertContainsText("window.Echo = new Echo({", $echoContents, 'echo client is initialized when key exists');
+    assertContainsText('window.Echo = new Echo({', $echoContents, 'echo client is initialized when key exists');
     assertContainsText("enabledTransports: ['ws', 'wss']", $echoContents, 'echo websocket transports are configured');
 
     $bootstrapContents = readFileContents('resources/js/app.tsx');

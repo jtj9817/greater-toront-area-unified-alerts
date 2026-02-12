@@ -163,9 +163,6 @@ function runCommand(string $command, string $label): array
     ];
 }
 
-/**
- * @return string
- */
 function readFileContents(string $relativePath): string
 {
     $absolutePath = base_path($relativePath);
@@ -358,7 +355,7 @@ try {
     assertContainsText('const [nextPageUrl, setNextPageUrl] = useState<string | null>(null);', $inboxViewContents, 'inbox view tracks next-page pagination link');
     assertContainsText('const [hasLoadedInbox, setHasLoadedInbox] = useState(false);', $inboxViewContents, 'inbox view gates empty-state rendering after successful load');
     assertContainsText('const inboxDateFormatter = new Intl.DateTimeFormat(', $inboxViewContents, 'inbox view reuses a module-level date formatter');
-    assertContainsText("onOpenAlert?: (alertId: string) => void;", $inboxViewContents, 'inbox view accepts alert-open callback');
+    assertContainsText('onOpenAlert?: (alertId: string) => void;', $inboxViewContents, 'inbox view accepts alert-open callback');
     assertContainsText("'Load older notifications'", $inboxViewContents, 'inbox view includes load-more control');
 
     $inboxServiceContents = readFileContents('resources/js/features/gta-alerts/services/NotificationInboxService.ts');

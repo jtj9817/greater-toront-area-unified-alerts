@@ -666,13 +666,13 @@ try {
 
     logInfo('Protocol Step 4/5: Proposed manual browser verification plan');
     $manualSteps = [
-        "Start the local stack: ./vendor/bin/sail up -d && ./vendor/bin/sail pnpm run dev",
-        "Sign in to the app and open the GTA Alerts landing page.",
-        "Open Notification Settings and expand Saved Places Manager.",
+        'Start the local stack: ./vendor/bin/sail up -d && ./vendor/bin/sail pnpm run dev',
+        'Sign in to the app and open the GTA Alerts landing page.',
+        'Open Notification Settings and expand Saved Places Manager.',
         "Search for '100 Queen St W' and save as 500m radius.",
         "Search for 'CN Tower' and save as 1000m radius.",
-        "Confirm both places appear in the saved list; delete one and verify it disappears immediately.",
-        "Open browser network tab and verify autocomplete calls /api/geocoding/search and CRUD calls /api/saved-places.",
+        'Confirm both places appear in the saved list; delete one and verify it disappears immediately.',
+        'Open browser network tab and verify autocomplete calls /api/geocoding/search and CRUD calls /api/saved-places.',
     ];
 
     foreach ($manualSteps as $index => $step) {

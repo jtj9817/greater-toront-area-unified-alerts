@@ -239,7 +239,7 @@ class ImportTorontoGeospatialDataCommand extends Command
     private function rowsFromJson(string $path): \Generator
     {
         if (filesize($path) > 50 * 1024 * 1024) {
-            throw new RuntimeException("JSON file too large (>50MB). Please split the file or convert to CSV.");
+            throw new RuntimeException('JSON file too large (>50MB). Please split the file or convert to CSV.');
         }
 
         $decoded = json_decode((string) file_get_contents($path), true);
