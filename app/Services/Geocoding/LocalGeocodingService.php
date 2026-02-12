@@ -66,7 +66,7 @@ class LocalGeocodingService
 
         return TorontoAddress::query()
             ->where(fn (Builder $query): Builder => $this->applyAddressTokenFilters($query, $term))
-            ->orderByRaw("CASE WHEN LOWER(street_name) LIKE ? ESCAPE '!' THEN 0 ELSE 1 END", [$prefix])
+            ->orderByRaw("CASE WHEN street_name LIKE ? ESCAPE '!' THEN 0 ELSE 1 END", [$prefix])
             ->orderBy('street_name')
             ->limit($limit)
             ->get();
@@ -84,10 +84,10 @@ class LocalGeocodingService
         return TorontoPointOfInterest::query()
             ->where(function (Builder $query) use ($like): void {
                 $query
-                    ->whereRaw("LOWER(name) LIKE ? ESCAPE '!'", [$like])
-                    ->orWhereRaw("LOWER(COALESCE(category, '')) LIKE ? ESCAPE '!'", [$like]);
+                    ->whereRaw("name LIKE ? ESCAPE '!'", [$like])
+                    ->orWhereRaw("COALESCE(category, '') LIKE ? ESCAPE '!'", [$like]);
             })
-            ->orderByRaw("CASE WHEN LOWER(name) LIKE ? ESCAPE '!' THEN 0 ELSE 1 END", [$prefix])
+            ->orderByRaw("CASE WHEN name LIKE ? ESCAPE '!' THEN 0 ELSE 1 END", [$prefix])
             ->orderBy('name')
             ->limit($limit)
             ->get();
@@ -108,9 +108,9 @@ class LocalGeocodingService
 
             $query->where(function (Builder $nested) use ($like): void {
                 $nested
-                    ->whereRaw("LOWER(street_name) LIKE ? ESCAPE '!'", [$like])
-                    ->orWhereRaw("LOWER(COALESCE(street_num, '')) LIKE ? ESCAPE '!'", [$like])
-                    ->orWhereRaw("LOWER(COALESCE(zip, '')) LIKE ? ESCAPE '!'", [$like]);
+                    ->whereRaw("street_name LIKE ? ESCAPE '!'", [$like])
+                    ->orWhereRaw("COALESCE(street_num, '') LIKE ? ESCAPE '!'", [$like])
+                    ->orWhereRaw("COALESCE(zip, '') LIKE ? ESCAPE '!'", [$like]);
             });
         }
 

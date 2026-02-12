@@ -79,15 +79,24 @@ class NotificationPreferenceController extends Controller
             ->where('type', 'legacy_geofence')
             ->delete();
 
+        $now = now();
+        $records = [];
+
         foreach ($geofences as $geofence) {
-            SavedPlace::query()->create([
+            $records[] = [
                 'user_id' => $userId,
                 'name' => trim((string) ($geofence['name'] ?? 'Saved Zone')),
                 'lat' => (float) $geofence['lat'],
                 'long' => (float) $geofence['lng'],
                 'radius' => max(100, (int) round((float) $geofence['radius_km'] * 1000)),
                 'type' => 'legacy_geofence',
-            ]);
+                'created_at' => $now,
+                'updated_at' => $now,
+            ];
+        }
+
+        if ($records !== []) {
+            SavedPlace::query()->insert($records);
         }
     }
 
