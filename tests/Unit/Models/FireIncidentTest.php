@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\FireIncident;
+use App\Models\IncidentUpdate;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
 uses(Tests\TestCase::class, RefreshDatabase::class);
@@ -44,4 +45,16 @@ test('it can scope active incidents', function () {
     FireIncident::factory()->create(['is_active' => false]);
 
     expect(FireIncident::active()->count())->toBe(2);
+});
+
+test('it has many incident updates', function () {
+    $incident = FireIncident::factory()->create();
+    $otherIncident = FireIncident::factory()->create();
+
+    IncidentUpdate::factory()->count(2)->create(['event_num' => $incident->event_num]);
+    IncidentUpdate::factory()->create(['event_num' => $otherIncident->event_num]);
+
+    expect($incident->incidentUpdates)->toHaveCount(2);
+    expect($incident->incidentUpdates->pluck('event_num')->unique()->all())
+        ->toBe([$incident->event_num]);
 });

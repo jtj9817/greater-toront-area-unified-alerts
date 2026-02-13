@@ -1,22 +1,22 @@
 # Implementation Plan - Scene Intel Feature
 
 ## Phase 1: Database & Models (TDD)
-- [ ] Task: Create `incident_updates` migration and model
-    - [ ] Create migration file with `event_num`, `update_type`, `content`, `metadata` (JSON), `source`, `created_by`, timestamps, and indexes
-    - [ ] Add FK: `incident_updates.event_num` -> `fire_incidents.event_num` (unique in current schema) with `ON DELETE CASCADE`
-    - [ ] Create `IncidentUpdate` model with casted attributes and relationships (`fireIncident`, `creator`)
-    - [ ] Create `IncidentUpdateType` Enum with v1 cases: `MILESTONE`, `RESOURCE_STATUS`, `ALARM_CHANGE`, `PHASE_CHANGE`, `MANUAL_NOTE`
-        - [ ] Note: `SAFETY_NOTICE` / `WEATHER_ALERT` are defined in the basis plan but are deferred unless needed by an additional data source.
-    - [ ] Test: Verify model creation, relationships, and JSON casting
-- [ ] Task: Create `SceneIntelRepository`
-    - [ ] Implement `getLatestForIncident(eventNum, limit)`
-    - [ ] Implement `getTimeline(eventNum)` (chronological ascending)
-    - [ ] Implement `getSummaryForIncident(eventNum, limit)` (for optional `intel_summary` embedding)
-    - [ ] Implement `addManualEntry(eventNum, content, userId, metadata)`
-    - [ ] Test: Verify repository methods with factory data
-- [ ] Task: Update `FireIncident` model
-    - [ ] Add `hasMany` relationship to `IncidentUpdate`
-    - [ ] Test: Verify relationship
+- [x] Task: Create `incident_updates` migration and model
+    - [x] Create migration file with `event_num`, `update_type`, `content`, `metadata` (JSON), `source`, `created_by`, timestamps, and indexes
+    - [x] Add FK: `incident_updates.event_num` -> `fire_incidents.event_num` (unique in current schema) with `ON DELETE CASCADE`
+    - [x] Create `IncidentUpdate` model with casted attributes and relationships (`fireIncident`, `creator`)
+    - [x] Create `IncidentUpdateType` Enum with v1 cases: `MILESTONE`, `RESOURCE_STATUS`, `ALARM_CHANGE`, `PHASE_CHANGE`, `MANUAL_NOTE`
+        - [x] Note: `SAFETY_NOTICE` / `WEATHER_ALERT` are defined in the basis plan but are deferred unless needed by an additional data source.
+    - [x] Test: Verify model creation, relationships, and JSON casting
+- [x] Task: Create `SceneIntelRepository`
+    - [x] Implement `getLatestForIncident(eventNum, limit)`
+    - [x] Implement `getTimeline(eventNum)` (chronological ascending)
+    - [x] Implement `getSummaryForIncident(eventNum, limit)` (for optional `intel_summary` embedding)
+    - [x] Implement `addManualEntry(eventNum, content, userId, metadata)`
+    - [x] Test: Verify repository methods with factory data
+- [x] Task: Update `FireIncident` model
+    - [x] Add `hasMany` relationship to `IncidentUpdate`
+    - [x] Test: Verify relationship
 - [ ] Task: Conductor - User Manual Verification 'Phase 1: Database & Models' (Protocol in workflow.md)
 
 ## Phase 2: Synthetic Intel Generation (TDD)
