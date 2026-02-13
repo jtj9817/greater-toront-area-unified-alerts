@@ -132,6 +132,38 @@ function assertEqual(mixed $actual, mixed $expected, string $label): void
     logInfo("Assertion passed: {$label}");
 }
 
+function isListArray(array $value): bool
+{
+    if (function_exists('array_is_list')) {
+        return array_is_list($value);
+    }
+
+    return $value === [] || array_keys($value) === range(0, count($value) - 1);
+}
+
+function normalizeAssociativeArray(array $value): array
+{
+    if (! isListArray($value)) {
+        ksort($value);
+    }
+
+    foreach ($value as $key => $item) {
+        if (is_array($item)) {
+            $value[$key] = normalizeAssociativeArray($item);
+        }
+    }
+
+    return $value;
+}
+
+function assertArrayEquivalent(array $actual, array $expected, string $label): void
+{
+    $normalizedActual = normalizeAssociativeArray($actual);
+    $normalizedExpected = normalizeAssociativeArray($expected);
+
+    assertEqual($normalizedActual, $normalizedExpected, $label);
+}
+
 function hasIndex(array $indexRows, string $columns, bool $unique): bool
 {
     foreach ($indexRows as $row) {
@@ -351,7 +383,11 @@ try {
     assertTrue($castedUpdate instanceof IncidentUpdate, 'incident update persisted');
     assertTrue($castedUpdate->update_type instanceof IncidentUpdateType, 'update_type cast to IncidentUpdateType enum');
     assertEqual($castedUpdate->update_type, IncidentUpdateType::MILESTONE, 'update_type enum value preserved');
-    assertEqual($castedUpdate->metadata, ['unitCode' => 'P144', 'phase' => 'arrival'], 'metadata cast to array');
+    assertArrayEquivalent(
+        $castedUpdate->metadata ?? [],
+        ['unitCode' => 'P144', 'phase' => 'arrival'],
+        'metadata cast to array'
+    );
     assertEqual($castedUpdate->created_by, $creator->id, 'created_by cast to integer');
     assertTrue($castedUpdate->fireIncident?->is($incident) ?? false, 'IncidentUpdate belongsTo FireIncident via event_num');
     assertTrue($castedUpdate->creator?->is($creator) ?? false, 'IncidentUpdate belongsTo creator user');
@@ -418,7 +454,7 @@ try {
     assertEqual($summary[0]['type_label'], 'Alarm Level Change', 'summary includes enum label');
     assertEqual($summary[0]['icon'], 'trending_up', 'summary includes enum icon');
     assertEqual($summary[0]['content'], 'Escalated to 2-Alarm', 'summary includes content');
-    assertEqual($summary[0]['metadata'], ['newLevel' => 2], 'summary includes metadata array');
+    assertArrayEquivalent($summary[0]['metadata'] ?? [], ['newLevel' => 2], 'summary includes metadata array');
     assertTrue(is_string($summary[0]['timestamp']) && str_contains($summary[0]['timestamp'], 'T'), 'summary includes ISO timestamp');
 
     $manualEntry = $repository->addManualEntry(
@@ -432,7 +468,11 @@ try {
     assertEqual($manualEntry->update_type, IncidentUpdateType::MANUAL_NOTE, 'addManualEntry stores manual_note type');
     assertEqual($manualEntry->source, 'manual', 'addManualEntry stores manual source');
     assertEqual($manualEntry->created_by, $creator->id, 'addManualEntry stores creator id');
-    assertEqual($manualEntry->metadata, ['milestoneType' => 'primary_search_complete'], 'addManualEntry stores metadata');
+    assertArrayEquivalent(
+        $manualEntry->metadata ?? [],
+        ['milestoneType' => 'primary_search_complete'],
+        'addManualEntry stores metadata'
+    );
 
     logInfo('=== Manual Test Completed Successfully ===');
 } catch (Throwable $e) {
