@@ -301,7 +301,13 @@ export const NotificationInboxView: React.FC<NotificationInboxViewProps> = ({
     };
 
     const loadMore = async (): Promise<void> => {
-        if (!nextPageUrl || isLoadingMore || isMarkingAllRead || isClearing) {
+        if (
+            !nextPageUrl ||
+            isLoadingMore ||
+            isMarkingAllRead ||
+            isClearing ||
+            activeItemId !== null
+        ) {
             return;
         }
 
