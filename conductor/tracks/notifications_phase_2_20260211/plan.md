@@ -59,7 +59,7 @@
 - [x] Task: Frontend - Inbox Actions
     - [x] Add "Mark All Read" and "Clear All" buttons to the Notification Center header.
     - [x] Connect buttons to the backend API and update local state optimistically.
-- [ ] Task: Conductor - User Manual Verification 'Automated Data Pruning & Inbox QoL' (Protocol in workflow.md)
+- [ ] Task: Conductor - User Manual Verification 'Automated Data Pruning & Inbox QoL' (Protocol in workflow.md; script: `tests/manual/verify_notifications_phase_3_automated_data_pruning_inbox_qol.php`)
 
 ## Phase 4: Quality Assurance & Documentation
 
