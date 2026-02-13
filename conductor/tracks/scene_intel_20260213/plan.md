@@ -20,19 +20,19 @@
 - [ ] Task: Conductor - User Manual Verification 'Phase 1: Database & Models' (Protocol in workflow.md)
 
 ## Phase 2: Synthetic Intel Generation (TDD)
-- [ ] Task: Create `SceneIntelProcessor` Service
-    - [ ] Implement `processIncidentUpdate(incident, previousData)`
-    - [ ] Implement detection logic for `ALARM_CHANGE` (up/down)
-    - [ ] Implement diffing logic for `RESOURCE_STATUS` (dispatched/cleared units)
-    - [ ] Implement detection logic for `PHASE_CHANGE` (incident closure)
-    - [ ] Test: Verify processor correctly generates `IncidentUpdate` records for various scenarios (alarm level up, unit added/removed, incident closed)
-- [ ] Task: Integrate with `FetchFireIncidentsCommand`
-    - [ ] Update the command (not the job wrapper) to capture `previousData` before `updateOrCreate`
-    - [ ] Call `processIncidentUpdate` after successful update
-    - [ ] Implement closure intel generation for deactivated incidents
-        - [ ] The command currently bulk-updates `is_active=false` via `whereNotIn`; closure intel must explicitly process the deactivated set.
-        - [ ] Add jitter guard (avoid duplicate closure entries)
-    - [ ] Test: Run command with mocked feed data and verify `incident_updates` are created for alarm/unit changes and deactivations
+- [x] Task: Create `SceneIntelProcessor` Service
+    - [x] Implement `processIncidentUpdate(incident, previousData)`
+    - [x] Implement detection logic for `ALARM_CHANGE` (up/down)
+    - [x] Implement diffing logic for `RESOURCE_STATUS` (dispatched/cleared units)
+    - [x] Implement detection logic for `PHASE_CHANGE` (incident closure)
+    - [x] Test: Verify processor correctly generates `IncidentUpdate` records for various scenarios (alarm level up, unit added/removed, incident closed)
+- [x] Task: Integrate with `FetchFireIncidentsCommand`
+    - [x] Update the command (not the job wrapper) to capture `previousData` before `updateOrCreate`
+    - [x] Call `processIncidentUpdate` after successful update
+    - [x] Implement closure intel generation for deactivated incidents
+        - [x] The command currently bulk-updates `is_active=false` via `whereNotIn`; closure intel must explicitly process the deactivated set.
+        - [x] Add jitter guard (avoid duplicate closure entries)
+    - [x] Test: Run command with mocked feed data and verify `incident_updates` are created for alarm/unit changes and deactivations
 - [ ] Task: Conductor - User Manual Verification 'Phase 2: Synthetic Intel Generation' (Protocol in workflow.md)
 
 ## Phase 3: API (Polling-First) (TDD)
