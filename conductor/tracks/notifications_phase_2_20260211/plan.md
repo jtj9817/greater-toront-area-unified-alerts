@@ -49,16 +49,16 @@
 
 ## Phase 3: Automated Data Pruning & Inbox QoL
 
-- [ ] Task: Scheduled Job - Prune Old Notifications
-    - [ ] Create a Laravel Command (e.g., `notifications:prune`).
-    - [ ] Implement logic to delete `NotificationLog` records older than 30 days.
-    - [ ] Schedule the command to run daily in `app/Console/Kernel.php` (or `routes/console.php`).
-- [ ] Task: Backend - Inbox Management API
-    - [ ] Add API endpoint for "Mark All as Read".
-    - [ ] Add API endpoint for "Clear All" (soft delete or hide).
-- [ ] Task: Frontend - Inbox Actions
-    - [ ] Add "Mark All Read" and "Clear All" buttons to the Notification Center header.
-    - [ ] Connect buttons to the backend API and update local state optimistically.
+- [x] Task: Scheduled Job - Prune Old Notifications
+    - [x] Create a Laravel Command (e.g., `notifications:prune`).
+    - [x] Implement logic to delete `NotificationLog` records older than 30 days.
+    - [x] Schedule the command to run daily in `app/Console/Kernel.php` (or `routes/console.php`).
+- [x] Task: Backend - Inbox Management API
+    - [x] Add API endpoint for "Mark All as Read".
+    - [x] Add API endpoint for "Clear All" (soft delete or hide).
+- [x] Task: Frontend - Inbox Actions
+    - [x] Add "Mark All Read" and "Clear All" buttons to the Notification Center header.
+    - [x] Connect buttons to the backend API and update local state optimistically.
 - [ ] Task: Conductor - User Manual Verification 'Automated Data Pruning & Inbox QoL' (Protocol in workflow.md)
 
 ## Phase 4: Quality Assurance & Documentation
