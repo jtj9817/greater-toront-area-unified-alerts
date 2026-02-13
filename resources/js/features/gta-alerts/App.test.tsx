@@ -367,9 +367,7 @@ describe('GTA Alerts App (typed domain enforcement boundary)', () => {
             );
 
             render(
-                <AlertsApp
-                    {...buildBasePropsWithAuth([fireResource()], 42)}
-                />,
+                <AlertsApp {...buildBasePropsWithAuth([fireResource()], 42)} />,
             );
 
             fireEvent.click(

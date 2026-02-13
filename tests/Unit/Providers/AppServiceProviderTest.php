@@ -30,8 +30,20 @@ test('app service provider uses 8-char password default outside production', fun
     $reflection = new ReflectionClass($rule);
     $min = $reflection->getProperty('min');
     $min->setAccessible(true);
+    $mixedCase = $reflection->getProperty('mixedCase');
+    $mixedCase->setAccessible(true);
+    $letters = $reflection->getProperty('letters');
+    $letters->setAccessible(true);
+    $numbers = $reflection->getProperty('numbers');
+    $numbers->setAccessible(true);
+    $symbols = $reflection->getProperty('symbols');
+    $symbols->setAccessible(true);
 
-    expect($min->getValue($rule))->toBe(8);
+    expect($min->getValue($rule))->toBe(8)
+        ->and($mixedCase->getValue($rule))->toBeTrue()
+        ->and($letters->getValue($rule))->toBeTrue()
+        ->and($numbers->getValue($rule))->toBeTrue()
+        ->and($symbols->getValue($rule))->toBeTrue();
 });
 
 test('app service provider uses 12-char password default in production', function () {
@@ -45,6 +57,21 @@ test('app service provider uses 12-char password default in production', functio
     $reflection = new ReflectionClass($rule);
     $min = $reflection->getProperty('min');
     $min->setAccessible(true);
+    $mixedCase = $reflection->getProperty('mixedCase');
+    $mixedCase->setAccessible(true);
+    $letters = $reflection->getProperty('letters');
+    $letters->setAccessible(true);
+    $numbers = $reflection->getProperty('numbers');
+    $numbers->setAccessible(true);
+    $symbols = $reflection->getProperty('symbols');
+    $symbols->setAccessible(true);
+    $uncompromised = $reflection->getProperty('uncompromised');
+    $uncompromised->setAccessible(true);
 
-    expect($min->getValue($rule))->toBe(12);
+    expect($min->getValue($rule))->toBe(12)
+        ->and($mixedCase->getValue($rule))->toBeTrue()
+        ->and($letters->getValue($rule))->toBeTrue()
+        ->and($numbers->getValue($rule))->toBeTrue()
+        ->and($symbols->getValue($rule))->toBeTrue()
+        ->and($uncompromised->getValue($rule))->toBeTrue();
 });
