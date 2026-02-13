@@ -68,6 +68,28 @@ class NotificationInboxController extends Controller
         ]);
     }
 
+    public function markAllRead(Request $request): JsonResponse
+    {
+        $userId = $request->user()->id;
+        $now = now();
+
+        $markedReadCount = NotificationLog::query()
+            ->where('user_id', $userId)
+            ->whereNull('read_at')
+            ->whereNull('dismissed_at')
+            ->update([
+                'read_at' => $now,
+                'status' => 'read',
+            ]);
+
+        return response()->json([
+            'meta' => [
+                'marked_read_count' => $markedReadCount,
+                'unread_count' => $this->unreadCount($userId),
+            ],
+        ]);
+    }
+
     public function dismiss(Request $request, int $notificationLog): JsonResponse
     {
         $log = $this->ownedLog(

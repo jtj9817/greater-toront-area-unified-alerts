@@ -6,6 +6,7 @@ import {
     dismissNotification,
     fetchNotificationInbox,
     markNotificationAsRead,
+    markAllNotificationsAsRead,
     NotificationInboxServiceError,
     type NotificationInboxItem,
 } from '../services/NotificationInboxService';
@@ -100,6 +101,7 @@ export const NotificationInboxView: React.FC<NotificationInboxViewProps> = ({
     const [isLoading, setIsLoading] = useState<boolean>(authUserId !== null);
     const [isLoadingMore, setIsLoadingMore] = useState(false);
     const [hasLoadedInbox, setHasLoadedInbox] = useState(false);
+    const [isMarkingAllRead, setIsMarkingAllRead] = useState(false);
     const [isClearing, setIsClearing] = useState(false);
     const [activeItemId, setActiveItemId] = useState<number | null>(null);
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -112,6 +114,7 @@ export const NotificationInboxView: React.FC<NotificationInboxViewProps> = ({
             setIsLoading(false);
             setIsLoadingMore(false);
             setHasLoadedInbox(false);
+            setIsMarkingAllRead(false);
             setErrorMessage(null);
             return;
         }
@@ -165,6 +168,7 @@ export const NotificationInboxView: React.FC<NotificationInboxViewProps> = ({
     }, [authUserId]);
 
     const hasItems = items.length > 0;
+    const hasUnread = unreadCount > 0;
     const hasMoreItems = nextPageUrl !== null;
 
     const sortedItems = useMemo(() => {
@@ -221,18 +225,60 @@ export const NotificationInboxView: React.FC<NotificationInboxViewProps> = ({
     };
 
     const clearAll = async (): Promise<void> => {
+        const previousItems = items;
+        const previousUnreadCount = unreadCount;
+        const previousNextPageUrl = nextPageUrl;
+
         setIsClearing(true);
         setErrorMessage(null);
+        setItems([]);
+        setUnreadCount(0);
+        setNextPageUrl(null);
 
         try {
             const result = await clearNotificationInbox();
-            setItems([]);
-            setNextPageUrl(null);
             setUnreadCount(result.unread_count);
         } catch {
+            setItems(previousItems);
+            setUnreadCount(previousUnreadCount);
+            setNextPageUrl(previousNextPageUrl);
             setErrorMessage('Unable to clear notifications.');
         } finally {
             setIsClearing(false);
+        }
+    };
+
+    const markAllRead = async (): Promise<void> => {
+        const previousItems = items;
+        const previousUnreadCount = unreadCount;
+        const readAt = new Date().toISOString();
+
+        setIsMarkingAllRead(true);
+        setErrorMessage(null);
+        setItems((current) =>
+            current.map((item) => {
+                if (item.read_at !== null || item.dismissed_at !== null) {
+                    return item;
+                }
+
+                return {
+                    ...item,
+                    read_at: readAt,
+                    status: item.status === 'dismissed' ? item.status : 'read',
+                };
+            }),
+        );
+        setUnreadCount(0);
+
+        try {
+            const result = await markAllNotificationsAsRead();
+            setUnreadCount(result.unread_count);
+        } catch {
+            setItems(previousItems);
+            setUnreadCount(previousUnreadCount);
+            setErrorMessage('Unable to mark all notifications as read.');
+        } finally {
+            setIsMarkingAllRead(false);
         }
     };
 
@@ -312,9 +358,21 @@ export const NotificationInboxView: React.FC<NotificationInboxViewProps> = ({
                         type="button"
                         className="inline-flex items-center gap-2 rounded-lg border border-white/15 bg-white/5 px-3 py-2 text-sm font-medium text-white transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-60"
                         onClick={() => {
+                            void markAllRead();
+                        }}
+                        disabled={!hasUnread || isMarkingAllRead || isClearing}
+                        aria-label="Mark all notifications as read"
+                    >
+                        <Icon name="mark_email_read" />
+                        {isMarkingAllRead ? 'Marking...' : 'Mark all read'}
+                    </button>
+                    <button
+                        type="button"
+                        className="inline-flex items-center gap-2 rounded-lg border border-white/15 bg-white/5 px-3 py-2 text-sm font-medium text-white transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-60"
+                        onClick={() => {
                             void clearAll();
                         }}
-                        disabled={!hasItems || isClearing}
+                        disabled={!hasItems || isClearing || isMarkingAllRead}
                         aria-label="Clear all notifications"
                     >
                         <Icon name="delete_sweep" />

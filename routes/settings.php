@@ -19,6 +19,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('settings/notifications', [NotificationPreferenceController::class, 'show'])->name('notifications.show');
     Route::patch('settings/notifications', [NotificationPreferenceController::class, 'update'])->name('notifications.update');
     Route::get('notifications/inbox', [NotificationInboxController::class, 'index'])->name('notifications.inbox.index');
+    Route::patch('notifications/inbox/read-all', [NotificationInboxController::class, 'markAllRead'])->name('notifications.inbox.read-all');
     Route::patch('notifications/inbox/{notificationLog}/read', [NotificationInboxController::class, 'markRead'])->name('notifications.inbox.read');
     Route::patch('notifications/inbox/{notificationLog}/dismiss', [NotificationInboxController::class, 'dismiss'])->name('notifications.inbox.dismiss');
     Route::delete('notifications/inbox', [NotificationInboxController::class, 'clearAll'])->name('notifications.inbox.clear');

@@ -18,6 +18,16 @@ function mockJsonResponse(payload: unknown, ok = true, status = 200): Response {
     } as unknown as Response;
 }
 
+function createDeferredResponse() {
+    let resolve!: (value: Response) => void;
+
+    const promise = new Promise<Response>((resolvePromise) => {
+        resolve = resolvePromise;
+    });
+
+    return { promise, resolve };
+}
+
 describe('NotificationInboxView', () => {
     beforeEach(() => {
         vi.stubGlobal('fetch', vi.fn());
@@ -437,8 +447,98 @@ describe('NotificationInboxView', () => {
         });
     });
 
+    it('marks all notifications as read from the inbox header action', async () => {
+        const fetchMock = globalThis.fetch as FetchMock;
+        const deferredMarkAll = createDeferredResponse();
+
+        fetchMock.mockResolvedValueOnce(
+            mockJsonResponse({
+                data: [
+                    {
+                        id: 11,
+                        alert_id: 'police:11',
+                        type: 'alert',
+                        delivery_method: 'in_app',
+                        status: 'delivered',
+                        sent_at: '2026-02-10T11:00:00+00:00',
+                        read_at: null,
+                        dismissed_at: null,
+                        metadata: {
+                            source: 'police',
+                            summary: 'Police response in progress',
+                        },
+                    },
+                    {
+                        id: 12,
+                        alert_id: 'fire:12',
+                        type: 'alert',
+                        delivery_method: 'in_app',
+                        status: 'sent',
+                        sent_at: '2026-02-10T10:00:00+00:00',
+                        read_at: null,
+                        dismissed_at: null,
+                        metadata: {
+                            source: 'fire',
+                            summary: 'Structure fire update',
+                        },
+                    },
+                ],
+                meta: {
+                    current_page: 1,
+                    last_page: 1,
+                    per_page: 50,
+                    total: 2,
+                    unread_count: 2,
+                },
+                links: {
+                    next: null,
+                    prev: null,
+                },
+            }),
+        );
+        fetchMock.mockReturnValueOnce(deferredMarkAll.promise);
+
+        render(<NotificationInboxView authUserId={99} />);
+
+        await screen.findByText('Police response in progress');
+
+        fireEvent.click(
+            screen.getByRole('button', {
+                name: /Mark all notifications as read/i,
+            }),
+        );
+
+        await waitFor(() => {
+            expect(fetchMock).toHaveBeenCalledTimes(2);
+        });
+
+        const markAllRequest = fetchMock.mock.calls[1] as [string, RequestInit];
+        expect(markAllRequest[0]).toBe('/notifications/inbox/read-all');
+        expect(markAllRequest[1].method).toBe('PATCH');
+        expect(screen.getByText('Unread: 0')).toBeInTheDocument();
+        expect(
+            screen.queryAllByRole('button', {
+                name: /Mark notification as read/i,
+            }),
+        ).toHaveLength(0);
+
+        deferredMarkAll.resolve(
+            mockJsonResponse({
+                meta: {
+                    marked_read_count: 2,
+                    unread_count: 0,
+                },
+            }),
+        );
+
+        await waitFor(() => {
+            expect(screen.getByText('Unread: 0')).toBeInTheDocument();
+        });
+    });
+
     it('clears all notifications from the inbox', async () => {
         const fetchMock = globalThis.fetch as FetchMock;
+        const deferredClear = createDeferredResponse();
 
         fetchMock.mockResolvedValueOnce(
             mockJsonResponse({
@@ -471,15 +571,7 @@ describe('NotificationInboxView', () => {
                 },
             }),
         );
-
-        fetchMock.mockResolvedValueOnce(
-            mockJsonResponse({
-                meta: {
-                    dismissed_count: 1,
-                    unread_count: 0,
-                },
-            }),
-        );
+        fetchMock.mockReturnValueOnce(deferredClear.promise);
 
         render(<NotificationInboxView authUserId={99} />);
 
@@ -494,6 +586,17 @@ describe('NotificationInboxView', () => {
         const clearRequest = fetchMock.mock.calls[1] as [string, RequestInit];
         expect(clearRequest[0]).toBe('/notifications/inbox');
         expect(clearRequest[1].method).toBe('DELETE');
+        expect(screen.getByText('Your inbox is clear.')).toBeInTheDocument();
+        expect(screen.getByText('Unread: 0')).toBeInTheDocument();
+
+        deferredClear.resolve(
+            mockJsonResponse({
+                meta: {
+                    dismissed_count: 1,
+                    unread_count: 0,
+                },
+            }),
+        );
 
         await waitFor(() => {
             expect(screen.getByText('Your inbox is clear.')).toBeInTheDocument();

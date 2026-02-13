@@ -11,6 +11,7 @@ test('notification inbox endpoints require authentication', function () {
     $log = NotificationLog::factory()->create();
 
     $this->getJson('/notifications/inbox')->assertUnauthorized();
+    $this->patchJson('/notifications/inbox/read-all')->assertUnauthorized();
     $this->patchJson("/notifications/inbox/{$log->id}/read")->assertUnauthorized();
     $this->patchJson("/notifications/inbox/{$log->id}/dismiss")->assertUnauthorized();
     $this->deleteJson('/notifications/inbox')->assertUnauthorized();
@@ -247,6 +248,103 @@ test('mark as read enforces ownership boundaries', function () {
 
     expect($otherUserLog->read_at)->toBeNull();
     expect($otherUserLog->status)->toBe('delivered');
+});
+
+test('authenticated user can mark all unread undismissed logs as read', function () {
+    $user = User::factory()->create();
+    $otherUser = User::factory()->create();
+    $existingReadAt = CarbonImmutable::parse('2026-02-10T10:00:00Z');
+
+    $toMarkOne = NotificationLog::factory()->create([
+        'user_id' => $user->id,
+        'status' => 'delivered',
+        'read_at' => null,
+        'dismissed_at' => null,
+    ]);
+
+    $toMarkTwo = NotificationLog::factory()->create([
+        'user_id' => $user->id,
+        'status' => 'sent',
+        'read_at' => null,
+        'dismissed_at' => null,
+    ]);
+
+    $alreadyRead = NotificationLog::factory()->create([
+        'user_id' => $user->id,
+        'status' => 'read',
+        'read_at' => $existingReadAt,
+        'dismissed_at' => null,
+    ]);
+
+    $dismissedLog = NotificationLog::factory()->create([
+        'user_id' => $user->id,
+        'status' => 'dismissed',
+        'read_at' => CarbonImmutable::parse('2026-02-10T10:05:00Z'),
+        'dismissed_at' => CarbonImmutable::parse('2026-02-10T10:06:00Z'),
+    ]);
+
+    $otherUserLog = NotificationLog::factory()->create([
+        'user_id' => $otherUser->id,
+        'status' => 'delivered',
+        'read_at' => null,
+        'dismissed_at' => null,
+    ]);
+
+    $this
+        ->actingAs($user)
+        ->patchJson('/notifications/inbox/read-all')
+        ->assertOk()
+        ->assertJsonPath('meta.marked_read_count', 2)
+        ->assertJsonPath('meta.unread_count', 0);
+
+    $toMarkOne->refresh();
+    $toMarkTwo->refresh();
+    $alreadyRead->refresh();
+    $dismissedLog->refresh();
+    $otherUserLog->refresh();
+
+    expect($toMarkOne->read_at)->not->toBeNull();
+    expect($toMarkOne->status)->toBe('read');
+
+    expect($toMarkTwo->read_at)->not->toBeNull();
+    expect($toMarkTwo->status)->toBe('read');
+
+    expect($alreadyRead->read_at?->toISOString())->toBe($existingReadAt->toISOString());
+    expect($alreadyRead->status)->toBe('read');
+
+    expect($dismissedLog->status)->toBe('dismissed');
+    expect($otherUserLog->read_at)->toBeNull();
+    expect($otherUserLog->status)->toBe('delivered');
+});
+
+test('mark all read uses application clock for read timestamp', function () {
+    $frozenNow = CarbonImmutable::parse('2026-02-11T15:45:30Z');
+    CarbonImmutable::setTestNow($frozenNow);
+
+    try {
+        $user = User::factory()->create();
+
+        $log = NotificationLog::factory()->create([
+            'user_id' => $user->id,
+            'status' => 'delivered',
+            'read_at' => null,
+            'dismissed_at' => null,
+        ]);
+
+        $this
+            ->actingAs($user)
+            ->patchJson('/notifications/inbox/read-all')
+            ->assertOk()
+            ->assertJsonPath('meta.marked_read_count', 1)
+            ->assertJsonPath('meta.unread_count', 0);
+
+        $log->refresh();
+
+        expect($log->read_at?->toDateTimeString())->toBe($frozenNow->toDateTimeString());
+        expect($log->status)->toBe('read');
+    } finally {
+        CarbonImmutable::setTestNow();
+    }
 });
 
 test('authenticated user can dismiss an inbox log', function () {

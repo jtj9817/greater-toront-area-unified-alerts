@@ -37,8 +37,17 @@ type NotificationInboxPageResponse = {
     links: unknown;
 };
 
+type MarkAllReadResponse = {
+    meta: unknown;
+};
+
 type ClearInboxResponse = {
     meta: unknown;
+};
+
+export type MarkAllReadResult = {
+    marked_read_count: number;
+    unread_count: number;
 };
 
 export type ClearInboxResult = {
@@ -303,6 +312,23 @@ export const dismissNotification = async (
     }
 
     return item;
+};
+
+export const markAllNotificationsAsRead = async (): Promise<MarkAllReadResult> => {
+    const payload = (await fetchJson(`${INBOX_BASE_URL}/read-all`, {
+        method: 'PATCH',
+        headers: {
+            ...apiHeaders(),
+            'Content-Type': 'application/json',
+        },
+    })) as MarkAllReadResponse;
+
+    const meta = isRecord(payload.meta) ? payload.meta : {};
+
+    return {
+        marked_read_count: asNumberOr(meta.marked_read_count, 0),
+        unread_count: asNumberOr(meta.unread_count, 0),
+    };
 };
 
 export const clearNotificationInbox = async (): Promise<ClearInboxResult> => {
