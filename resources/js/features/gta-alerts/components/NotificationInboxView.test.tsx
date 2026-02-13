@@ -485,13 +485,13 @@ describe('NotificationInboxView', () => {
                 ],
                 meta: {
                     current_page: 1,
-                    last_page: 1,
+                    last_page: 2,
                     per_page: 50,
                     total: 2,
                     unread_count: 2,
                 },
                 links: {
-                    next: null,
+                    next: '/notifications/inbox?page=2&per_page=50',
                     prev: null,
                 },
             }),
@@ -521,6 +521,19 @@ describe('NotificationInboxView', () => {
                 name: /Mark notification as read/i,
             }),
         ).toHaveLength(0);
+        const dismissButton = screen.getAllByRole('button', {
+            name: /Dismiss notification/i,
+        })[0];
+        expect(dismissButton).toBeDisabled();
+        fireEvent.click(dismissButton);
+
+        const loadMoreButton = screen.getByRole('button', {
+            name: /Load older notifications/i,
+        });
+        expect(loadMoreButton).toBeDisabled();
+        fireEvent.click(loadMoreButton);
+
+        expect(fetchMock).toHaveBeenCalledTimes(2);
 
         deferredMarkAll.resolve(
             mockJsonResponse({

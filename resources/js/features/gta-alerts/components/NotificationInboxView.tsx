@@ -170,6 +170,8 @@ export const NotificationInboxView: React.FC<NotificationInboxViewProps> = ({
     const hasItems = items.length > 0;
     const hasUnread = unreadCount > 0;
     const hasMoreItems = nextPageUrl !== null;
+    const hasInFlightItemOrPagingAction =
+        activeItemId !== null || isLoadingMore;
 
     const sortedItems = useMemo(() => {
         return [...items].sort((left, right) => {
@@ -185,6 +187,10 @@ export const NotificationInboxView: React.FC<NotificationInboxViewProps> = ({
     }, [items]);
 
     const markRead = async (logId: number): Promise<void> => {
+        if (isMarkingAllRead || isClearing) {
+            return;
+        }
+
         setActiveItemId(logId);
         setErrorMessage(null);
 
@@ -203,6 +209,10 @@ export const NotificationInboxView: React.FC<NotificationInboxViewProps> = ({
     };
 
     const dismiss = async (logId: number): Promise<void> => {
+        if (isMarkingAllRead || isClearing) {
+            return;
+        }
+
         setActiveItemId(logId);
         setErrorMessage(null);
 
@@ -225,6 +235,10 @@ export const NotificationInboxView: React.FC<NotificationInboxViewProps> = ({
     };
 
     const clearAll = async (): Promise<void> => {
+        if (isMarkingAllRead || hasInFlightItemOrPagingAction) {
+            return;
+        }
+
         const previousItems = items;
         const previousUnreadCount = unreadCount;
         const previousNextPageUrl = nextPageUrl;
@@ -249,6 +263,10 @@ export const NotificationInboxView: React.FC<NotificationInboxViewProps> = ({
     };
 
     const markAllRead = async (): Promise<void> => {
+        if (isClearing || isMarkingAllRead || hasInFlightItemOrPagingAction) {
+            return;
+        }
+
         const previousItems = items;
         const previousUnreadCount = unreadCount;
         const readAt = new Date().toISOString();
@@ -283,7 +301,7 @@ export const NotificationInboxView: React.FC<NotificationInboxViewProps> = ({
     };
 
     const loadMore = async (): Promise<void> => {
-        if (!nextPageUrl || isLoadingMore) {
+        if (!nextPageUrl || isLoadingMore || isMarkingAllRead || isClearing) {
             return;
         }
 
@@ -360,7 +378,12 @@ export const NotificationInboxView: React.FC<NotificationInboxViewProps> = ({
                         onClick={() => {
                             void markAllRead();
                         }}
-                        disabled={!hasUnread || isMarkingAllRead || isClearing}
+                        disabled={
+                            !hasUnread ||
+                            isMarkingAllRead ||
+                            isClearing ||
+                            hasInFlightItemOrPagingAction
+                        }
                         aria-label="Mark all notifications as read"
                     >
                         <Icon name="mark_email_read" />
@@ -372,7 +395,12 @@ export const NotificationInboxView: React.FC<NotificationInboxViewProps> = ({
                         onClick={() => {
                             void clearAll();
                         }}
-                        disabled={!hasItems || isClearing || isMarkingAllRead}
+                        disabled={
+                            !hasItems ||
+                            isClearing ||
+                            isMarkingAllRead ||
+                            hasInFlightItemOrPagingAction
+                        }
                         aria-label="Clear all notifications"
                     >
                         <Icon name="delete_sweep" />
@@ -419,7 +447,7 @@ export const NotificationInboxView: React.FC<NotificationInboxViewProps> = ({
                             typeof alertId === 'string' &&
                             alertId.trim().length > 0;
                         const isUnread = item.read_at === null;
-                        const isBusy = activeItemId === item.id;
+                        const isBusy = activeItemId === item.id || isMarkingAllRead;
                         const summaryText = isDigest
                             ? digestDescription(item)
                             : alertSummary(item);
@@ -512,7 +540,12 @@ export const NotificationInboxView: React.FC<NotificationInboxViewProps> = ({
                                 onClick={() => {
                                     void loadMore();
                                 }}
-                                disabled={isLoadingMore}
+                                disabled={
+                                    isLoadingMore ||
+                                    isMarkingAllRead ||
+                                    isClearing ||
+                                    activeItemId !== null
+                                }
                             >
                                 <Icon name="expand_more" />
                                 {isLoadingMore
