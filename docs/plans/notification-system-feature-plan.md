@@ -1,5 +1,9 @@
 # Notification System Feature Plan
 
+> Historical planning document.
+> Current implemented contracts are documented in `docs/backend/notification-system.md` and `docs/backend/maintenance.md`.
+> Terminology note: persisted `geofences`/`subscribed_routes` in this plan were implemented as `saved_places` + `subscriptions` (legacy payload keys remain supported for compatibility).
+
 ## Executive Summary
 
 This document outlines the planning for a focused **In-App Notification System** feature for GTA Alerts. The system will enable users to receive personalized, real-time alerts based on their specific needs, locations, and preferences — all delivered within the application. By constraining notifications to in-app only, we maintain simplicity, reduce infrastructure complexity, and avoid external service dependencies.
@@ -534,10 +538,21 @@ Schema::create('notification_preferences', function (Blueprint $table) {
     // In-app only - no channel selection needed
     $table->string('alert_type'); // 'transit', 'emergency', 'accessibility'
     $table->string('severity_threshold'); // 'all', 'minor', 'major', 'critical'
-    $table->json('geofences'); // Array of location zones
-    $table->json('subscribed_routes'); // TTC/GO route IDs
+    $table->json('subscriptions')->nullable(); // route/station/line/agency URNs
     $table->boolean('digest_mode')->default(false); // In-app digest
     $table->boolean('push_enabled')->default(true);
+    $table->timestamps();
+});
+
+// saved_places table
+Schema::create('saved_places', function (Blueprint $table) {
+    $table->id();
+    $table->foreignId('user_id')->constrained()->onDelete('cascade');
+    $table->string('name');
+    $table->decimal('lat', 10, 7);
+    $table->decimal('long', 10, 7);
+    $table->unsignedInteger('radius'); // meters
+    $table->string('type')->default('custom'); // address, poi, custom, legacy_geofence
     $table->timestamps();
 });
 
@@ -545,9 +560,9 @@ Schema::create('notification_preferences', function (Blueprint $table) {
 Schema::create('notification_logs', function (Blueprint $table) {
     $table->id();
     $table->foreignId('user_id')->constrained();
-    $table->foreignId('alert_id')->nullable();
-    $table->string('delivery_method')->default('push'); // 'push', 'in-app'
-    $table->string('status'); // 'sent', 'delivered', 'failed', 'read', 'dismissed'
+    $table->string('alert_id')->nullable();
+    $table->string('delivery_method')->default('in_app'); // 'in_app', 'in_app_digest'
+    $table->string('status'); // 'sent', 'processing', 'delivered', 'read', 'dismissed'
     $table->timestamp('sent_at');
     $table->timestamp('read_at')->nullable();
     $table->timestamp('dismissed_at')->nullable();

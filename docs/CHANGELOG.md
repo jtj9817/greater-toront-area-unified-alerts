@@ -2,6 +2,24 @@
 
 All notable documentation-relevant changes are tracked here.
 
+## [February 13, 2026] - Notifications Phase 4 QA & Documentation Alignment
+
+### Added
+- Added backend maintenance runbook for notification retention:
+  - `docs/backend/maintenance.md`
+  - Documents `notifications:prune`, daily schedule, boundary behavior, and verification paths.
+- Added Phase 4 manual verification entrypoint:
+  - `tests/manual/verify_notifications_phase_4_quality_documentation.php`
+  - Wraps `tests/manual/verify_notifications_phase_5_quality_documentation.php` for track naming continuity.
+
+### Changed
+- Rewrote `docs/backend/notification-system.md` to match the current implementation:
+  - Persisted model: `saved_places` + `subscriptions`
+  - Legacy payload compatibility: `geofences`, `subscribed_routes`
+  - Inbox API now explicitly includes `PATCH /notifications/inbox/read-all`
+- Updated `docs/README.md` to index `docs/backend/maintenance.md`.
+- Updated manual QA script to run reliably in non-Sail environments by overriding test DB env vars to in-memory SQLite during scripted test execution.
+
 ## [February 11, 2026] - Notifications Phase 5 Quality & Documentation
 
 ### Added

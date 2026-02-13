@@ -63,13 +63,13 @@
 
 ## Phase 4: Quality Assurance & Documentation
 
-- [ ] Task: Comprehensive Testing
-    - [ ] Write Feature tests for Geocoding Service (mocking the external API).
-    - [ ] Write Feature tests for Geofence Matching logic (edge cases, boundary conditions).
-    - [ ] Write Feature tests for Accessibility Feed parsing and alert triggering.
-    - [ ] Verify Pruning Command execution and retention policy logic.
-- [ ] Task: Documentation Update
-    - [ ] Update `docs/backend/notifications.md` (or similar) with details on Geofencing and Accessibility integration.
-    - [ ] Document the Pruning policy in `docs/backend/maintenance.md`.
-    - [ ] Update API documentation if applicable.
-- [ ] Task: Conductor - User Manual Verification 'Quality Assurance & Documentation' (Protocol in workflow.md)
+- [x] Task: Comprehensive Testing
+    - [x] Write Feature tests for Geocoding Service (local Toronto Open Data search behavior, auth/validation/limits, special-character hardening).
+    - [x] Write Feature tests for Geofence Matching logic (edge cases, boundary conditions, missing coordinates, multi-place match behavior).
+    - [x] Write Feature tests for Accessibility Feed parsing and alert triggering.
+    - [x] Verify Pruning Command execution and retention policy logic.
+- [x] Task: Documentation Update
+    - [x] Update `docs/backend/notification-system.md` with current Saved Places + subscriptions architecture, matching flow, and inbox API.
+    - [x] Document pruning policy in `docs/backend/maintenance.md`.
+    - [x] Update docs registry/API references (`docs/README.md`, inbox `read-all` endpoint surface).
+- [x] Task: Conductor - User Manual Verification 'Quality Assurance & Documentation' (Protocol in workflow.md; verified 2026-02-13, script: `tests/manual/verify_notifications_phase_4_quality_documentation.php` -> `tests/manual/verify_notifications_phase_5_quality_documentation.php`, log: `storage/logs/manual_tests/notifications_phase_5_quality_documentation_2026_02_13_191815.log`)

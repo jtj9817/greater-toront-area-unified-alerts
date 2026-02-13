@@ -1,49 +1,36 @@
 # In-App Notification System
 
-This document describes the architecture, data flow, and API surface for the in-app notification system (Phase 1 MVP).
+This document describes the current architecture, schema, matching logic, and API surface for the in-app notification system.
 
 ## Overview
 
-The notification system delivers real-time, user-targeted alerts based on configurable preferences. Users set alert type filters, severity thresholds, geographic geofences, and route subscriptions. When a new alert is created, the system matches it against all active preferences and delivers in-app notifications to qualifying users. A daily digest mode aggregates prior-day notifications for users who prefer batched updates.
+The notification system delivers real-time, user-targeted alerts based on notification preferences and saved places.
 
-**Phase 1 MVP scope:**
-- User preference storage (alert type, severity, geofence, routes, digest mode)
-- In-app real-time delivery via Laravel Broadcasting
-- Geofence matching (Haversine distance)
-- Severity-based filtering with ranked thresholds
-- Notification center (inbox) with read/dismiss/clear-all
-- Daily digest aggregation
+Users can configure:
+- Alert type filters (`all`, `emergency`, `transit`, `accessibility`)
+- Severity thresholds (`all`, `minor`, `major`, `critical`)
+- Granular subscriptions (`route:*`, `line:*`, `station:*`, `agency:*`)
+- Digest mode and push toggle
+- Saved places (separate resource used for geofence matching)
+
+The pipeline is event-driven and supports real-time delivery plus inbox management.
 
 ## Architecture
 
-The system follows an event-driven pipeline:
-
 ```
-Alert Source (Fire/Police/Transit/GO Transit fetch command)
+Alert source command/service
     ↓
-AlertCreated event (carries NotificationAlert DTO)
+AlertCreated event (NotificationAlert DTO)
     ↓
 DispatchAlertNotifications listener
-    ↓  (matches preferences via NotificationMatcher)
+    ↓
+NotificationMatcher (type + severity + subscriptions + saved-place geofence)
+    ↓
 DeliverAlertNotificationJob (per matching user)
-    ↓  (creates NotificationLog, optimistic lock, broadcast)
-NotificationLog persisted (status: delivered)
-    +
-AlertNotificationSent broadcast event
     ↓
-Frontend toast + inbox update via Echo/WebSocket
-```
-
-**Daily digest flow (scheduled):**
-
-```
-GenerateDailyDigestJob (daily schedule)
-    ↓  (queries digest_mode preferences)
-Aggregate prior-day notification counts per user
+NotificationLog persisted + AlertNotificationSent broadcast
     ↓
-NotificationLog entry (delivery_method: in_app_digest)
-    ↓
-Visible in inbox as digest item
+Frontend toast + inbox refresh
 ```
 
 ## Database Schema
@@ -53,17 +40,28 @@ Visible in inbox as digest item
 | Column | Type | Description |
 |---|---|---|
 | `id` | bigint (PK) | Auto-increment primary key |
-| `user_id` | bigint (FK, unique) | One preference record per user |
-| `alert_type` | string | Filter: `all`, `emergency`, `transit`, `accessibility` |
-| `severity_threshold` | string | Minimum severity: `all`, `minor`, `major`, `critical` |
-| `geofences` | json | Array of `{name, lat, lng, radius_km}` objects |
-| `subscribed_routes` | json | Array of route identifiers (e.g., `["501", "GO-LW"]`) |
-| `digest_mode` | boolean | When true, receives daily digest instead of real-time |
-| `push_enabled` | boolean | Master toggle for notifications |
-| `created_at` | timestamp | Record creation time |
+| `user_id` | bigint (FK, unique) | One preference row per user |
+| `alert_type` | string | `all`, `emergency`, `transit`, `accessibility` |
+| `severity_threshold` | string | `all`, `minor`, `major`, `critical` |
+| `subscriptions` | json | Array of normalized subscription URNs |
+| `digest_mode` | boolean | Daily digest toggle |
+| `push_enabled` | boolean | Master enable/disable toggle |
+| `created_at` | timestamp | Creation time |
 | `updated_at` | timestamp | Last update time |
 
-**Indexes:** `unique(user_id)`
+### `saved_places`
+
+| Column | Type | Description |
+|---|---|---|
+| `id` | bigint (PK) | Auto-increment primary key |
+| `user_id` | bigint (FK) | Owning user |
+| `name` | string | User-friendly location name |
+| `lat` | decimal | Latitude |
+| `long` | decimal | Longitude |
+| `radius` | integer | Match radius in meters |
+| `type` | string | Place type (`address`, `poi`, `custom`, `legacy_geofence`) |
+| `created_at` | timestamp | Creation time |
+| `updated_at` | timestamp | Last update time |
 
 ### `notification_logs`
 
@@ -71,195 +69,117 @@ Visible in inbox as digest item
 |---|---|---|
 | `id` | bigint (PK) | Auto-increment primary key |
 | `user_id` | bigint (FK) | Owning user |
-| `alert_id` | string (nullable) | Alert composite ID (e.g., `police:123`) or digest ID (`digest:2026-02-10`) |
-| `delivery_method` | string | `in_app` for real-time, `in_app_digest` for digest entries |
-| `status` | string | Lifecycle status (see status transitions below) |
-| `sent_at` | timestamp | When the notification was created/sent |
-| `read_at` | timestamp (nullable) | When the user read the notification |
-| `dismissed_at` | timestamp (nullable) | When the user dismissed the notification |
-| `metadata` | json | Source-specific data (source, severity, summary, occurred_at, routes) |
-| `created_at` | timestamp | Record creation time |
+| `alert_id` | string (nullable) | Alert ID or digest ID |
+| `delivery_method` | string | `in_app` or `in_app_digest` |
+| `status` | string | `sent`, `processing`, `delivered`, `read`, `dismissed` |
+| `sent_at` | timestamp | Delivery timestamp |
+| `read_at` | timestamp (nullable) | Read timestamp |
+| `dismissed_at` | timestamp (nullable) | Dismiss timestamp |
+| `metadata` | json | Alert/digest payload |
+| `created_at` | timestamp | Creation time |
 | `updated_at` | timestamp | Last update time |
-
-**Indexes:** `status`, `sent_at`, `(user_id, status, sent_at)`
 
 ## Matching Engine
 
-`App\Services\Notifications\NotificationMatcher` evaluates each active preference against an incoming `NotificationAlert`. All four criteria must pass:
+`App\Services\Notifications\NotificationMatcher` requires all checks below to pass:
 
-### Alert Type Mapping
+1. Alert type check (`all`/`emergency`/`transit`/`accessibility`)
+2. Severity threshold check
+3. Subscription intersection check for transit-family sources
+4. Saved place geofence distance check (Haversine)
 
-| Preference `alert_type` | Matches sources |
-|---|---|
-| `all` | Any source |
-| `emergency` | `fire`, `police` |
-| `transit` | `transit`, `go_transit` |
-| `accessibility` | Transit sources containing accessibility keywords |
+### Geofence Behavior
 
-### Severity Ranking
+- If a user has no saved places, geofence check passes.
+- If a user has saved places and alert coordinates are missing, geofence check fails.
+- Matching uses `distance_km <= radius_meters / 1000`.
+- Matching succeeds when any saved place is in range.
 
-Severities are ranked numerically: `all` (0) < `minor` (1) < `major` (2) < `critical` (3). A preference with threshold `major` matches alerts with severity `major` or `critical`.
+### Subscription Behavior
 
-### Geofence (Haversine)
-
-Each geofence defines a center point (`lat`, `lng`) and `radius_km`. The matcher calculates great-circle distance using the Haversine formula. If the alert has coordinates and falls within any configured geofence, it matches. An empty geofence array matches all alerts. Alerts without coordinates do not match non-empty geofences.
-
-### Route Subscription
-
-If `subscribed_routes` is non-empty and the alert is a transit source, the alert's route list must intersect the subscribed routes. Non-transit alerts always pass this check. Empty subscribed routes match all alerts.
+- Empty subscriptions match all alerts.
+- Non-transit alerts bypass subscription filtering.
+- Transit-family alerts (`transit`, `go_transit`, `ttc_accessibility`) require an intersection between user subscriptions and extractor-derived URNs.
 
 ## Delivery Pipeline
 
-`App\Jobs\DeliverAlertNotificationJob` handles per-user delivery:
+`App\Jobs\DeliverAlertNotificationJob`:
 
-1. Verify preference still exists and `push_enabled` is true
-2. Validate alert payload (non-empty `alertId` and `source`)
-3. `firstOrCreate` a `NotificationLog` (deduplicate by `user_id` + `alert_id` + `delivery_method`)
-4. Skip if log already in terminal state (`delivered`, `read`, `dismissed`)
-5. Optimistic lock: atomically `UPDATE ... SET status = 'processing' WHERE status = 'sent'`
-6. Broadcast `AlertNotificationSent` event
-7. Update status to `delivered`
-8. On exception: rollback status from `processing` to `sent`, re-throw
-
-### Status Transitions
-
-```
-sent → processing → delivered → read → dismissed
-                                  ↘ dismissed (via dismiss action)
-```
+1. Validates user preference + `push_enabled`
+2. Creates or reuses `NotificationLog` idempotently
+3. Uses optimistic state transition (`sent` → `processing`)
+4. Broadcasts `AlertNotificationSent`
+5. Marks log `delivered`
 
 ## Daily Digest
 
-`App\Jobs\GenerateDailyDigestJob`:
-
-- **Aggregation window:** Previous day 00:00 UTC to current day 00:00 UTC
-- **Eligible users:** Preferences with `digest_mode = true` and `push_enabled = true`
-- **Duplicate prevention:** Checks for existing `digest:{date}` log per user before creating
-- **Metadata format:**
-  ```json
-  {
-    "type": "daily_digest",
-    "digest_date": "2026-02-10",
-    "total_notifications": 4,
-    "window_start": "2026-02-10T00:00:00+00:00",
-    "window_end": "2026-02-11T00:00:00+00:00"
-  }
-  ```
-
-## Broadcasting
-
-### Channel Authorization
-
-Private channel: `users.{userId}.notifications`
-
-Authorized in `routes/channels.php`:
-```php
-Broadcast::channel('users.{userId}.notifications', function ($user, int $userId): bool {
-    return $user->id === $userId;
-});
-```
-
-### Event Payload
-
-`AlertNotificationSent` implements `ShouldBroadcastNow`:
-
-- **Channel:** `private-users.{userId}.notifications`
-- **Event name:** `alert.notification.sent`
-- **Payload:** `alert_id`, `source`, `severity`, `summary`, `sent_at`
+`App\Jobs\GenerateDailyDigestJob` aggregates prior-day delivered notifications for users with `digest_mode = true` and writes an `in_app_digest` log entry.
 
 ## API Endpoints
 
-All notification endpoints require authentication (`auth` middleware).
+All endpoints below require authentication.
 
-### Preferences
+### Notification preferences
 
 | Method | URI | Description |
 |---|---|---|
-| `GET` | `/settings/notifications` | Retrieve current user's notification preferences |
-| `PATCH` | `/settings/notifications` | Update notification preferences |
+| `GET` | `/settings/notifications` | Return current user notification preferences |
+| `PATCH` | `/settings/notifications` | Update preferences |
 
-**PATCH payload fields:** `alert_type`, `severity_threshold`, `geofences`, `subscribed_routes`, `digest_mode`, `push_enabled`
+`PATCH` supports current fields:
+- `alert_type`
+- `severity_threshold`
+- `subscriptions`
+- `digest_mode`
+- `push_enabled`
+
+Backwards-compatibility is preserved for legacy clients:
+- `geofences` payload is accepted and synchronized into `saved_places` with type `legacy_geofence`
+- `subscribed_routes` payload is accepted and normalized into `subscriptions`
 
 ### Inbox
 
 | Method | URI | Description |
 |---|---|---|
-| `GET` | `/notifications/inbox` | List inbox (paginated, excludes dismissed by default) |
-| `PATCH` | `/notifications/inbox/{id}/read` | Mark notification as read |
-| `PATCH` | `/notifications/inbox/{id}/dismiss` | Dismiss notification |
-| `DELETE` | `/notifications/inbox` | Clear all undismissed notifications |
+| `GET` | `/notifications/inbox` | List inbox items |
+| `PATCH` | `/notifications/inbox/read-all` | Mark all unread items as read |
+| `PATCH` | `/notifications/inbox/{id}/read` | Mark one item as read |
+| `PATCH` | `/notifications/inbox/{id}/dismiss` | Dismiss one item |
+| `DELETE` | `/notifications/inbox` | Clear all undismissed items |
 
-**Inbox query parameters:** `include_dismissed` (boolean), `per_page` (1-100, default 25), `page`
+## Pruning Policy
 
-**Inbox response shape:**
-```json
-{
-  "data": [
-    {
-      "id": 1,
-      "alert_id": "police:123",
-      "type": "alert",
-      "delivery_method": "in_app",
-      "status": "delivered",
-      "sent_at": "2026-02-11T14:00:00+00:00",
-      "read_at": null,
-      "dismissed_at": null,
-      "metadata": { "source": "police", "severity": "major", "summary": "..." }
-    }
-  ],
-  "meta": { "current_page": 1, "last_page": 1, "per_page": 25, "total": 1, "unread_count": 1 },
-  "links": { "next": null, "prev": null }
-}
-```
-
-## Frontend Integration
-
-- **Toast layer:** `NotificationToast` component listens to Echo private channel and renders real-time alerts
-- **Inbox view:** `NotificationInboxView` component with pagination, mark-as-read, dismiss, and clear-all actions
-- **Settings UI:** `NotificationSettings` component under the settings view for managing preferences
-- **Service:** `NotificationInboxService.ts` handles API calls with pagination URL normalization
+Notification retention is documented in `docs/backend/maintenance.md`.
 
 ## File Reference
 
 ### Backend
 
-| Path | Purpose |
-|---|---|
-| `app/Events/AlertCreated.php` | Event fired when a new alert is ingested |
-| `app/Events/AlertNotificationSent.php` | Broadcast event for real-time delivery |
-| `app/Listeners/DispatchAlertNotifications.php` | Listener that matches preferences and dispatches jobs |
-| `app/Jobs/DeliverAlertNotificationJob.php` | Per-user delivery with optimistic locking |
-| `app/Jobs/GenerateDailyDigestJob.php` | Daily digest aggregation |
-| `app/Models/NotificationPreference.php` | Preference model with validation rules |
-| `app/Models/NotificationLog.php` | Notification log model with scopes |
-| `app/Services/Notifications/NotificationAlert.php` | Alert DTO for the notification pipeline |
-| `app/Services/Notifications/NotificationAlertFactory.php` | Creates NotificationAlert from source models |
-| `app/Services/Notifications/NotificationMatcher.php` | Matching engine (type, severity, geofence, routes) |
-| `app/Services/Notifications/NotificationSeverity.php` | Severity ranking and normalization |
-| `app/Http/Controllers/Notifications/NotificationInboxController.php` | Inbox API (list, read, dismiss, clear-all) |
-| `app/Http/Controllers/Settings/NotificationPreferenceController.php` | Preference API (show, update) |
-| `database/migrations/2026_02_10_000001_create_notification_preferences_table.php` | Preferences schema |
-| `database/migrations/2026_02_10_000002_create_notification_logs_table.php` | Logs schema |
-| `database/factories/NotificationPreferenceFactory.php` | Test factory for preferences |
-| `database/factories/NotificationLogFactory.php` | Test factory for logs |
-| `routes/channels.php` | Broadcast channel authorization |
-| `routes/settings.php` | Notification route definitions |
+- `app/Services/Notifications/NotificationMatcher.php`
+- `app/Services/Notifications/NotificationAlert.php`
+- `app/Services/Notifications/AlertContentExtractor.php`
+- `app/Listeners/DispatchAlertNotifications.php`
+- `app/Jobs/DeliverAlertNotificationJob.php`
+- `app/Jobs/GenerateDailyDigestJob.php`
+- `app/Http/Controllers/Settings/NotificationPreferenceController.php`
+- `app/Http/Controllers/Notifications/NotificationInboxController.php`
+- `app/Models/NotificationPreference.php`
+- `app/Models/SavedPlace.php`
+- `app/Models/NotificationLog.php`
+- `routes/settings.php`
 
 ### Frontend
 
-| Path | Purpose |
-|---|---|
-| `resources/js/features/gta-alerts/components/NotificationInboxView.tsx` | Inbox UI component |
-| `resources/js/features/gta-alerts/components/NotificationSettings.tsx` | Settings UI component |
-| `resources/js/features/gta-alerts/components/NotificationToast.tsx` | Real-time toast component |
-| `resources/js/features/gta-alerts/services/NotificationInboxService.ts` | Inbox API service |
+- `resources/js/features/gta-alerts/components/NotificationSettings.tsx`
+- `resources/js/features/gta-alerts/components/SubscriptionManager.tsx`
+- `resources/js/features/gta-alerts/components/SavedPlacesManager.tsx`
+- `resources/js/features/gta-alerts/components/NotificationInboxView.tsx`
+- `resources/js/features/gta-alerts/services/NotificationInboxService.ts`
 
 ### Tests
 
-| Path | Purpose |
-|---|---|
-| `tests/Feature/Notifications/NotificationSystemIntegrationTest.php` | End-to-end system integration (3 tests) |
-| `tests/Feature/Notifications/AlertCreatedMatchingTest.php` | Matching engine integration |
-| `tests/Feature/Notifications/DeliverAlertNotificationJobTest.php` | Delivery job behavior |
-| `tests/Feature/Notifications/GenerateDailyDigestJobTest.php` | Digest aggregation |
-| `tests/Feature/Notifications/NotificationInboxControllerTest.php` | Inbox API |
+- `tests/Feature/Notifications/AlertCreatedMatchingTest.php`
+- `tests/Feature/Notifications/NotificationSystemIntegrationTest.php`
+- `tests/Feature/Commands/FetchTransitAlertsCommandTest.php`
+- `tests/Feature/Commands/PruneNotificationsCommandTest.php`
+- `tests/Feature/Geocoding/LocalGeocodingSearchControllerTest.php`

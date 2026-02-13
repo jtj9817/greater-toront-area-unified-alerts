@@ -21,6 +21,7 @@ docs/
 │   ├── dtos.md
 │   ├── enums.md
 │   ├── fire-incidents.md
+│   ├── maintenance.md
 │   ├── mappers.md
 │   ├── production-scheduler.md
 │   ├── notification-system.md
@@ -62,6 +63,7 @@ The unified feed currently aggregates four source types:
 5. **[frontend/types.md](frontend/types.md)**
 6. **[frontend/alert-service.md](frontend/alert-service.md)**
 7. **[backend/notification-system.md](backend/notification-system.md)**
+8. **[backend/maintenance.md](backend/maintenance.md)**
 
 ## Source Integration Docs
 
@@ -79,6 +81,13 @@ The unified feed currently aggregates four source types:
 ## Plan Docs
 
 - **[plans/production-data-migration.md](plans/production-data-migration.md)** - Implementation and completion record for production data migration/export tooling.
+
+## Historical Docs Notes
+
+- Some files in `docs/plans/`, `docs/tickets/`, and `docs/reviews/` preserve historical terminology used during implementation (for example `geofences` or `subscribed_routes`).
+- For the current backend contract, use:
+  - `docs/backend/notification-system.md` (notifications architecture + API)
+  - `docs/backend/maintenance.md` (retention/pruning policy)
 
 ## Implementation Status
 

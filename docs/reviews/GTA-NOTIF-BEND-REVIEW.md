@@ -1,5 +1,8 @@
 # JIRA Ticket: GTA-NOTIF-BEND-REVIEW
 
+> Historical review record.
+> Current implementation uses `saved_places` + `subscriptions`; references to `geofences` here describe the legacy request payload compatibility contract active at the time of review.
+
 **Summary:** Notification Preferences Backend Code Review Findings
 **Status:** RESOLVED
 **Priority:** HIGH

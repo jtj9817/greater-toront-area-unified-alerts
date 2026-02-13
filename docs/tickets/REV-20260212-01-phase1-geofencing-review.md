@@ -1,5 +1,8 @@
 # [REV-001] Code Review: Phase 1 Geofencing Implementation
 
+> Historical review record.
+> This document references `geofences` as the legacy settings payload shape. Persisted geofence data is implemented via `saved_places` in the current schema.
+
 **Status:** Open
 **Priority:** High
 **Assignee:** Joshua Jadulco

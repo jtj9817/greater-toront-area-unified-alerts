@@ -123,3 +123,111 @@ test('transit alerts respect subscribed route matching when provided', function 
     Queue::assertPushed(DeliverAlertNotificationJob::class, 1);
     Queue::assertPushed(DeliverAlertNotificationJob::class, fn (DeliverAlertNotificationJob $job): bool => $job->userId === $matching->user_id);
 });
+
+test('geofence matching includes alerts exactly on the saved-place boundary', function () {
+    Queue::fake();
+
+    $preference = NotificationPreference::factory()->create([
+        'alert_type' => 'emergency',
+        'severity_threshold' => 'minor',
+        'subscriptions' => [],
+        'push_enabled' => true,
+    ]);
+
+    $centerLat = 43.6532;
+    $centerLng = -79.3832;
+
+    SavedPlace::factory()->create([
+        'user_id' => $preference->user_id,
+        'name' => 'Boundary Place',
+        'lat' => $centerLat,
+        'long' => $centerLng,
+        'radius' => 0,
+        'type' => 'address',
+    ]);
+
+    event(new AlertCreated(new NotificationAlert(
+        alertId: 'police:boundary-001',
+        source: 'police',
+        severity: 'major',
+        summary: 'Alert exactly on geofence boundary',
+        occurredAt: CarbonImmutable::parse('2026-02-12T16:00:00Z'),
+        lat: $centerLat,
+        lng: $centerLng,
+    )));
+
+    Queue::assertPushed(DeliverAlertNotificationJob::class, 1);
+    Queue::assertPushed(DeliverAlertNotificationJob::class, fn (DeliverAlertNotificationJob $job): bool => $job->userId === $preference->user_id);
+});
+
+test('alerts with missing coordinates do not match users with saved places', function () {
+    Queue::fake();
+
+    $preference = NotificationPreference::factory()->create([
+        'alert_type' => 'emergency',
+        'severity_threshold' => 'minor',
+        'subscriptions' => [],
+        'push_enabled' => true,
+    ]);
+
+    SavedPlace::factory()->create([
+        'user_id' => $preference->user_id,
+        'name' => 'Coordinate Required',
+        'lat' => 43.6532,
+        'long' => -79.3832,
+        'radius' => 2000,
+        'type' => 'address',
+    ]);
+
+    event(new AlertCreated(new NotificationAlert(
+        alertId: 'police:no-lat-lng',
+        source: 'police',
+        severity: 'major',
+        summary: 'Coordinates unavailable',
+        occurredAt: CarbonImmutable::parse('2026-02-12T17:00:00Z'),
+    )));
+
+    Queue::assertNotPushed(DeliverAlertNotificationJob::class);
+});
+
+test('geofence matching succeeds when at least one saved place is within range', function () {
+    Queue::fake();
+
+    $preference = NotificationPreference::factory()->create([
+        'alert_type' => 'emergency',
+        'severity_threshold' => 'minor',
+        'subscriptions' => [],
+        'push_enabled' => true,
+    ]);
+
+    SavedPlace::factory()->create([
+        'user_id' => $preference->user_id,
+        'name' => 'Far Place',
+        'lat' => 44.2000,
+        'long' => -79.8000,
+        'radius' => 500,
+        'type' => 'address',
+    ]);
+
+    SavedPlace::factory()->create([
+        'user_id' => $preference->user_id,
+        'name' => 'Nearby Place',
+        'lat' => 43.7000,
+        'long' => -79.4000,
+        'radius' => 2000,
+        'type' => 'address',
+    ]);
+
+    event(new AlertCreated(new NotificationAlert(
+        alertId: 'police:multi-place-001',
+        source: 'police',
+        severity: 'major',
+        summary: 'Nearby alert',
+        occurredAt: CarbonImmutable::parse('2026-02-12T18:00:00Z'),
+        lat: 43.7010,
+        lng: -79.4010,
+    )));
+
+    Queue::assertPushed(DeliverAlertNotificationJob::class, 1);
+    Queue::assertPushed(DeliverAlertNotificationJob::class, fn (DeliverAlertNotificationJob $job): bool => $job->userId === $preference->user_id);
+});

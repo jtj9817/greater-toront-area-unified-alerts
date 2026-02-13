@@ -1,5 +1,8 @@
 # NOTIF-004: Phase 3 Frontend Test Expansion (Spec + Implementation Plan)
 
+> Historical ticket/spec.
+> Current backend preference terminology is `subscriptions` (with legacy `subscribed_routes` payload compatibility), so references below to `subscribed_routes` represent the original compatibility target.
+
 **Issue Type**: Story  
 **Priority**: High  
 **Status**: Backlog  

@@ -1,11 +1,12 @@
 <?php
 
 /**
- * Manual Test: Notifications - Phase 5 Quality & Documentation
+ * Manual Test: Notifications - Phase 4 Quality Assurance & Documentation
  * Generated: 2026-02-11
- * Purpose: Verify Phase 5 quality gate deliverables:
+ * Purpose: Verify quality/documentation deliverables:
  * - Integration test file exists with expected test count
- * - Architecture documentation exists with key sections
+ * - Backend docs exist with current schema/API details
+ * - Maintenance docs include pruning policy
  * - docs/README.md references notification-system
  * - CLAUDE.md references notification system
  * - All notification feature tests pass
@@ -148,7 +149,7 @@ function runCommand(string $command, string $label): array
 $exitCode = 0;
 
 try {
-    logInfo('=== Manual Test: Notifications Phase 5 Quality & Documentation ===');
+    logInfo('=== Manual Test: Notifications Phase 4 Quality Assurance & Documentation ===');
 
     // Phase 1: Verify artifact existence and content
 
@@ -161,7 +162,7 @@ try {
     assertContainsText('digest user receives daily digest entry', $integrationTestContents, 'integration test contains digest user test');
 
     $testCount = preg_match_all('/\btest\s*\(/', $integrationTestContents);
-    assertTrue($testCount === 3, 'integration test file contains exactly 3 tests', ['count' => $testCount]);
+    assertTrue($testCount >= 3, 'integration test file contains at least 3 tests', ['count' => $testCount]);
 
     // Architecture documentation
     $notificationDocContents = readFileContents('docs/backend/notification-system.md');
@@ -171,14 +172,22 @@ try {
     assertContainsText('## Matching Engine', $notificationDocContents, 'notification docs contains Matching Engine section');
     assertContainsText('## Delivery Pipeline', $notificationDocContents, 'notification docs contains Delivery Pipeline section');
     assertContainsText('## Daily Digest', $notificationDocContents, 'notification docs contains Daily Digest section');
-    assertContainsText('## Broadcasting', $notificationDocContents, 'notification docs contains Broadcasting section');
     assertContainsText('## API Endpoints', $notificationDocContents, 'notification docs contains API Endpoints section');
-    assertContainsText('## Frontend Integration', $notificationDocContents, 'notification docs contains Frontend Integration section');
     assertContainsText('## File Reference', $notificationDocContents, 'notification docs contains File Reference section');
+    assertContainsText('saved_places', $notificationDocContents, 'notification docs reference saved_places schema');
+    assertContainsText('subscriptions', $notificationDocContents, 'notification docs reference subscriptions');
+    assertContainsText('/notifications/inbox/read-all', $notificationDocContents, 'notification docs include read-all inbox endpoint');
+    assertContainsText('docs/backend/maintenance.md', $notificationDocContents, 'notification docs link pruning maintenance doc');
+
+    $maintenanceDocContents = readFileContents('docs/backend/maintenance.md');
+    assertContainsText('# Backend Maintenance', $maintenanceDocContents, 'maintenance doc contains title');
+    assertContainsText('notifications:prune', $maintenanceDocContents, 'maintenance doc references prune command');
+    assertContainsText('30 days', $maintenanceDocContents, 'maintenance doc includes retention period');
 
     // docs/README.md references
     $readmeContents = readFileContents('docs/README.md');
     assertContainsText('notification-system.md', $readmeContents, 'docs/README.md references notification-system.md');
+    assertContainsText('maintenance.md', $readmeContents, 'docs/README.md references maintenance.md');
     assertContainsText('In-App Notifications', $readmeContents, 'docs/README.md contains In-App Notifications in status table');
 
     // CLAUDE.md references
@@ -192,7 +201,7 @@ try {
     logInfo('Phase 2: Execute notification system integration tests');
 
     $integrationTests = runCommand(
-        'php artisan test --filter=NotificationSystemIntegrationTest',
+        'APP_ENV=testing DB_CONNECTION=sqlite DB_DATABASE=:memory: CACHE_STORE=array QUEUE_CONNECTION=sync SESSION_DRIVER=array php artisan test --filter=NotificationSystemIntegrationTest',
         'Notification system integration test suite'
     );
     assertTrue(
@@ -206,7 +215,7 @@ try {
     logInfo('Phase 3: Execute all notification feature test suites');
 
     $allNotificationTests = runCommand(
-        'php artisan test tests/Feature/Notifications/',
+        'APP_ENV=testing DB_CONNECTION=sqlite DB_DATABASE=:memory: CACHE_STORE=array QUEUE_CONNECTION=sync SESSION_DRIVER=array php artisan test tests/Feature/Notifications/',
         'All notification feature test suites'
     );
     assertTrue(
