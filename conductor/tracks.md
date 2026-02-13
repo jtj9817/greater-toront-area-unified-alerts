@@ -6,6 +6,9 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ## Active Tracks
 
+- [ ] **Track: Scene Intel Feature**
+*Link: [./tracks/scene_intel_20260213/](./tracks/scene_intel_20260213/)*
+
 ## Archived Tracks
 
 - [x] **Track: In-App Notification System (Phase 2): Geofencing, Accessibility, and Maintenance**
