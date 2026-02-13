@@ -5,6 +5,7 @@ namespace App\Console\Commands;
 use App\Events\AlertCreated;
 use App\Models\FireIncident;
 use App\Services\Notifications\NotificationAlertFactory;
+use App\Services\SceneIntel\SceneIntelProcessor;
 use App\Services\TorontoFireFeedService;
 use Illuminate\Console\Command;
 use Illuminate\Support\Carbon;
@@ -18,6 +19,7 @@ class FetchFireIncidentsCommand extends Command
     public function handle(
         TorontoFireFeedService $service,
         NotificationAlertFactory $notificationAlertFactory,
+        SceneIntelProcessor $sceneIntelProcessor,
     ): int {
         $this->info('Fetching Toronto Fire active incidents...');
 
@@ -31,9 +33,25 @@ class FetchFireIncidentsCommand extends Command
         }
 
         $activeEventNums = [];
+        $existingIncidentsByEventNum = collect();
+
+        if ($data['events'] !== []) {
+            $incomingEventNums = array_values(array_unique(array_map(
+                static fn (array $event): string => $event['event_num'],
+                $data['events'],
+            )));
+
+            $existingIncidentsByEventNum = FireIncident::query()
+                ->whereIn('event_num', $incomingEventNums)
+                ->get()
+                ->keyBy('event_num');
+        }
 
         foreach ($data['events'] as $event) {
             $activeEventNums[] = $event['event_num'];
+            $previousData = $existingIncidentsByEventNum
+                ->get($event['event_num'])
+                ?->only(['alarm_level', 'units_dispatched', 'is_active']);
 
             try {
                 $dispatchTime = Carbon::parse($event['dispatch_time'], 'America/Toronto')->utc();
@@ -63,12 +81,31 @@ class FetchFireIncidentsCommand extends Command
                     $notificationAlertFactory->fromFireIncident($incident),
                 ));
             }
+
+            $sceneIntelProcessor->processIncidentUpdate($incident, $previousData);
         }
 
-        // Mark incidents no longer in the feed as inactive
-        $deactivated = FireIncident::where('is_active', true)
-            ->whereNotIn('event_num', $activeEventNums)
-            ->update(['is_active' => false]);
+        $deactivationQuery = FireIncident::query()->where('is_active', true);
+
+        if ($activeEventNums !== []) {
+            $deactivationQuery->whereNotIn('event_num', $activeEventNums);
+        }
+
+        $deactivatedIncidents = $deactivationQuery->get();
+        $deactivated = $deactivatedIncidents->count();
+
+        if ($deactivatedIncidents->isNotEmpty()) {
+            FireIncident::query()
+                ->whereIn('id', $deactivatedIncidents->pluck('id'))
+                ->update(['is_active' => false]);
+
+            foreach ($deactivatedIncidents as $deactivatedIncident) {
+                $previousData = $deactivatedIncident->only(['alarm_level', 'units_dispatched', 'is_active']);
+                $deactivatedIncident->is_active = false;
+
+                $sceneIntelProcessor->processIncidentUpdate($deactivatedIncident, $previousData);
+            }
+        }
 
         $this->info(sprintf(
             'Done. %d active incidents synced, %d marked inactive. Feed time: %s',
