@@ -45,7 +45,7 @@
         - [x] Implement Tabs: "Routes", "Stations", "Lines".
         - [x] Implement Searchable Multi-Select using URNs as values.
         - [x] Fetch options from `/api/subscriptions/options`.
-- [ ] Task: Conductor - User Manual Verification 'TTC Accessibility Integration' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'TTC Accessibility Integration' (Protocol in workflow.md; verified 2026-02-13)
 
 ## Phase 3: Automated Data Pruning & Inbox QoL
 
@@ -59,7 +59,7 @@
 - [x] Task: Frontend - Inbox Actions
     - [x] Add "Mark All Read" and "Clear All" buttons to the Notification Center header.
     - [x] Connect buttons to the backend API and update local state optimistically.
-- [ ] Task: Conductor - User Manual Verification 'Automated Data Pruning & Inbox QoL' (Protocol in workflow.md; script: `tests/manual/verify_notifications_phase_3_automated_data_pruning_inbox_qol.php`)
+- [x] Task: Conductor - User Manual Verification 'Automated Data Pruning & Inbox QoL' (Protocol in workflow.md; verified 2026-02-13, script: `tests/manual/verify_notifications_phase_3_automated_data_pruning_inbox_qol.php`)
 
 ## Phase 4: Quality Assurance & Documentation
 
