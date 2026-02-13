@@ -16,6 +16,7 @@ class SceneIntelRepository
         return IncidentUpdate::query()
             ->forIncident($eventNum)
             ->orderByDesc('created_at')
+            ->orderByDesc('id')
             ->limit($limit)
             ->get();
     }
@@ -28,6 +29,7 @@ class SceneIntelRepository
         return IncidentUpdate::query()
             ->forIncident($eventNum)
             ->orderBy('created_at')
+            ->orderBy('id')
             ->get();
     }
 
@@ -47,6 +49,7 @@ class SceneIntelRepository
         return IncidentUpdate::query()
             ->forIncident($eventNum)
             ->orderByDesc('created_at')
+            ->orderByDesc('id')
             ->limit($limit)
             ->get()
             ->map(function (IncidentUpdate $update): array {

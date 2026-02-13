@@ -3,7 +3,6 @@
 namespace Database\Factories;
 
 use App\Enums\IncidentUpdateType;
-use App\Models\FireIncident;
 use App\Models\IncidentUpdate;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -17,7 +16,7 @@ class IncidentUpdateFactory extends Factory
     public function definition(): array
     {
         return [
-            'event_num' => FireIncident::factory()->create()->event_num,
+            'event_num' => $this->faker->numerify('E########'),
             'update_type' => $this->faker->randomElement(IncidentUpdateType::cases()),
             'content' => $this->faker->sentence(),
             'metadata' => [

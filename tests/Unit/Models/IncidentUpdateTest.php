@@ -53,3 +53,22 @@ test('it belongs to a fire incident and creator', function () {
     expect($update->creator)->not->toBeNull();
     expect($update->creator->is($user))->toBeTrue();
 });
+
+test('incident update factory make does not persist a fire incident', function () {
+    expect(FireIncident::query()->count())->toBe(0);
+
+    IncidentUpdate::factory()->make();
+
+    expect(FireIncident::query()->count())->toBe(0);
+});
+
+test('incident update factory does not create extra fire incident when event_num is overridden', function () {
+    $incident = FireIncident::factory()->create();
+    $startingCount = FireIncident::query()->count();
+
+    IncidentUpdate::factory()->create([
+        'event_num' => $incident->event_num,
+    ]);
+
+    expect(FireIncident::query()->count())->toBe($startingCount);
+});

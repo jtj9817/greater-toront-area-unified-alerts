@@ -49,6 +49,37 @@ test('it returns latest updates for an incident with limit', function () {
         ]);
 });
 
+test('it uses id as a deterministic tiebreaker for latest and summary queries', function () {
+    $incident = FireIncident::factory()->create();
+    $createdAt = Carbon::parse('2026-02-13 10:00:00');
+
+    $oldestId = IncidentUpdate::factory()->create([
+        'event_num' => $incident->event_num,
+        'content' => 'First same-second update',
+        'created_at' => $createdAt,
+    ])->id;
+
+    $middleId = IncidentUpdate::factory()->create([
+        'event_num' => $incident->event_num,
+        'content' => 'Second same-second update',
+        'created_at' => $createdAt,
+    ])->id;
+
+    $newestId = IncidentUpdate::factory()->create([
+        'event_num' => $incident->event_num,
+        'content' => 'Third same-second update',
+        'created_at' => $createdAt,
+    ])->id;
+
+    $latest = $this->repository->getLatestForIncident($incident->event_num, 2);
+    $summary = $this->repository->getSummaryForIncident($incident->event_num, 2);
+
+    expect($latest->pluck('id')->all())->toBe([$newestId, $middleId]);
+    expect($summary)->toHaveCount(2);
+    expect(array_column($summary, 'id'))->toBe([$newestId, $middleId]);
+    expect($oldestId)->toBeLessThan($middleId)->toBeLessThan($newestId);
+});
+
 test('it returns timeline in chronological order', function () {
     $incident = FireIncident::factory()->create();
 
@@ -75,6 +106,30 @@ test('it returns timeline in chronological order', function () {
             '2026-02-13 10:01:00',
             '2026-02-13 10:02:00',
         ]);
+});
+
+test('it uses id as a deterministic tiebreaker for timeline queries', function () {
+    $incident = FireIncident::factory()->create();
+    $createdAt = Carbon::parse('2026-02-13 10:00:00');
+
+    $first = IncidentUpdate::factory()->create([
+        'event_num' => $incident->event_num,
+        'created_at' => $createdAt,
+    ]);
+
+    $second = IncidentUpdate::factory()->create([
+        'event_num' => $incident->event_num,
+        'created_at' => $createdAt,
+    ]);
+
+    $third = IncidentUpdate::factory()->create([
+        'event_num' => $incident->event_num,
+        'created_at' => $createdAt,
+    ]);
+
+    $timeline = $this->repository->getTimeline($incident->event_num);
+
+    expect($timeline->pluck('id')->all())->toBe([$first->id, $second->id, $third->id]);
 });
 
 test('it returns intel summary payload for an incident', function () {
