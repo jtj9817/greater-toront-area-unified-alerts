@@ -65,15 +65,15 @@
 - [x] Task: Conductor - User Manual Verification 'Phase 4: Frontend Implementation' (Protocol in workflow.md) [`8ffc060`]
 
 ## Phase 5: Optimization & Hardening
-- [ ] Task: Embed `intel_summary` In Fire Alert Selection
-    - [ ] Extend `FireAlertSelectProvider` query to include `intel_summary` column
-        - [ ] Implement efficient subquery or JSON aggregation to fetch latest 3 updates
-        - [ ] Ensure JSON compatibility for both SQLite (testing) and MySQL (production)
-    - [ ] Add `intel_last_updated` column (max `created_at` from updates)
-    - [ ] Align columns in `Police` and `Transit` providers (add `NULL` or empty JSON placeholders) to satisfy `UNION` requirements
-- [ ] Task: Frontend Integration of Embedded Data
-    - [ ] Update `AlertService.ts` to consume `intel_summary` from the main feed
-    - [ ] Update `AlertDetailsView` to initialize from `intel_summary` before first poll
+- [x] Task: Embed `intel_summary` In Fire Alert Selection [`b5a98f6`]
+    - [x] Extend `FireAlertSelectProvider` query to include `intel_summary` column
+        - [x] Implement efficient subquery or JSON aggregation to fetch latest 3 updates
+        - [x] Ensure JSON compatibility for both SQLite (testing) and MySQL (production)
+    - [x] Add `intel_last_updated` column (max `created_at` from updates)
+    - [x] Align columns in `Police` and `Transit` providers (add `NULL` or empty JSON placeholders) to satisfy `UNION` requirements
+- [x] Task: Frontend Integration of Embedded Data [`b5a98f6`]
+    - [x] Update `AlertService.ts` to consume `intel_summary` from the main feed
+    - [x] Update `AlertDetailsView` to initialize from `intel_summary` before first poll
 - [ ] Task: Conductor - User Manual Verification 'Phase 5: Optimization & Hardening' (Protocol in workflow.md)
 
 ## Phase 6: Maintenance
