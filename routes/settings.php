@@ -4,6 +4,7 @@ use App\Http\Controllers\Geocoding\LocalGeocodingSearchController;
 use App\Http\Controllers\Notifications\NotificationInboxController;
 use App\Http\Controllers\Notifications\SavedPlaceController;
 use App\Http\Controllers\Notifications\SubscriptionOptionsController;
+use App\Http\Controllers\SceneIntelController;
 use App\Http\Controllers\Settings\NotificationPreferenceController;
 use App\Http\Controllers\Settings\PasswordController;
 use App\Http\Controllers\Settings\ProfileController;
@@ -46,4 +47,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::get('settings/two-factor', [TwoFactorAuthenticationController::class, 'show'])
         ->name('two-factor.show');
+
+    Route::post('api/incidents/{eventNum}/intel', [SceneIntelController::class, 'store'])
+        ->middleware('can:scene-intel.create-manual-entry')
+        ->name('api.incidents.intel.store');
 });

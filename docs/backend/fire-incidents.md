@@ -57,6 +57,16 @@ This document describes the current structure and data flow for the Toronto Fire
 
 - `routes/web.php`
   - `GET /dashboard` now routes to `DashboardController::class` (auth + verified middleware)
+  - `GET /api/incidents/{eventNum}/intel` exposes a public read-only Scene Intel timeline for the dashboard
+
+- `routes/settings.php`
+  - `POST /api/incidents/{eventNum}/intel` allows manual Scene Intel notes behind `auth` + `verified` and Gate ability `scene-intel.create-manual-entry`
+
+### Scene Intel manual-entry authorization
+
+- Gate definition: `scene-intel.create-manual-entry` in `app/Providers/AppServiceProvider.php`
+- Default rule: any authenticated, verified user is allowed
+- Tightening rule: set `SCENE_INTEL_MANUAL_ENTRY_ALLOWED_EMAILS` (comma-separated). When configured, only those verified emails are allowed to post manual notes.
 
 ## Database structure
 
@@ -106,4 +116,3 @@ To verify the dashboard integration:
 ```bash
 ./vendor/bin/sail artisan test --filter DashboardTest
 ```
-

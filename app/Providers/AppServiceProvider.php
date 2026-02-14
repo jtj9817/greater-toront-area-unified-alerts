@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Models\User;
 use App\Services\Alerts\Providers\FireAlertSelectProvider;
 use App\Services\Alerts\Providers\GoTransitAlertSelectProvider;
 use App\Services\Alerts\Providers\PoliceAlertSelectProvider;
@@ -9,6 +10,7 @@ use App\Services\Alerts\Providers\TransitAlertSelectProvider;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
 
@@ -33,6 +35,7 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->configureDefaults();
+        $this->configureSceneIntelAuthorization();
     }
 
     protected function configureDefaults(): void
@@ -52,5 +55,26 @@ class AppServiceProvider extends ServiceProvider
                 ->uncompromised()
             : null
         );
+    }
+
+    protected function configureSceneIntelAuthorization(): void
+    {
+        Gate::define('scene-intel.create-manual-entry', function (User $user): bool {
+            if ($user->email_verified_at === null) {
+                return false;
+            }
+
+            $allowedEmails = config('scene_intel.manual_entry.allowed_emails', []);
+
+            if (! is_array($allowedEmails) || $allowedEmails === []) {
+                return true;
+            }
+
+            return in_array(
+                strtolower((string) $user->email),
+                $allowedEmails,
+                true,
+            );
+        });
     }
 }
