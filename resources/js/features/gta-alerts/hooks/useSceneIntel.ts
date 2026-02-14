@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { z } from 'zod/v4';
 import { SceneIntelItemSchema } from '../domain/alerts/fire/scene-intel';
 import type { SceneIntelItem } from '../domain/alerts/fire/scene-intel';
@@ -25,11 +25,18 @@ export function useSceneIntel(
     const [items, setItems] = useState<SceneIntelItem[]>(initialItems);
     const [loading, setLoading] = useState<boolean>(false);
     const [error, setError] = useState<Error | null>(null);
+    const hasDataRef = useRef<boolean>(initialItems.length > 0);
 
-    const fetchData = useCallback(async () => {
+    const fetchData = useCallback(async (signal?: AbortSignal) => {
+        if (!eventNum) return;
+
         try {
-            setLoading(true);
+            if (!hasDataRef.current) {
+                setLoading(true);
+            }
+            
             const response = await fetch(`/api/incidents/${eventNum}/intel`, {
+                signal,
                 headers: {
                     Accept: 'application/json',
                 },
@@ -54,8 +61,12 @@ export function useSceneIntel(
             }
 
             setItems(result.data.data);
+            hasDataRef.current = result.data.data.length > 0;
             setError(null);
         } catch (err) {
+            if (err instanceof Error && err.name === 'AbortError') {
+                return;
+            }
             console.error('Error fetching scene intel:', err);
             setError(err instanceof Error ? err : new Error('Unknown error'));
         } finally {
@@ -64,14 +75,17 @@ export function useSceneIntel(
     }, [eventNum]);
 
     useEffect(() => {
+        const controller = new AbortController();
+
         // Initial fetch to ensure we have the full timeline
-        void fetchData();
+        void fetchData(controller.signal);
 
         const intervalId = setInterval(() => {
-            void fetchData();
+            void fetchData(controller.signal);
         }, 30000); // 30 seconds
 
         return () => {
+            controller.abort();
             clearInterval(intervalId);
         };
     }, [fetchData]);
@@ -80,6 +94,6 @@ export function useSceneIntel(
         items,
         loading,
         error,
-        refresh: fetchData,
+        refresh: () => fetchData(),
     };
 }
