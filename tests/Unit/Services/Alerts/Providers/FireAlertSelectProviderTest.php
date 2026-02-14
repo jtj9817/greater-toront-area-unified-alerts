@@ -91,6 +91,32 @@ test('fire alert select provider includes intel summary and last updated', funct
     expect($second['type'])->toBe('alarm_change');
 });
 
+test('fire alert select provider limits embedded intel summary to latest 3 updates', function () {
+    FireIncident::factory()->create(['event_num' => 'F77777']);
+
+    $baseTime = CarbonImmutable::parse('2026-02-14 10:00:00');
+
+    foreach (range(1, 5) as $offset) {
+        IncidentUpdate::factory()->create([
+            'event_num' => 'F77777',
+            'update_type' => IncidentUpdateType::MILESTONE,
+            'content' => "Update {$offset}",
+            'created_at' => $baseTime->addMinutes($offset),
+        ]);
+    }
+
+    $row = (new FireAlertSelectProvider)->select()->first();
+    $meta = UnifiedAlertMapper::decodeMeta($row->meta);
+
+    expect($meta['intel_summary'])->toBeArray();
+    expect($meta['intel_summary'])->toHaveCount(3);
+    expect(array_column($meta['intel_summary'], 'content'))->toBe([
+        'Update 5',
+        'Update 4',
+        'Update 3',
+    ]);
+});
+
 test('fire alert select provider uses non-sqlite expressions when driver is not sqlite', function () {
     DB::partialMock()
         ->shouldReceive('getDriverName')

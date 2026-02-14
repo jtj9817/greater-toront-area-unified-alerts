@@ -87,7 +87,7 @@ class FireAlertSelectProvider implements AlertSelectProvider
                     FROM incident_updates
                     WHERE incident_updates.event_num = fire_incidents.event_num
                     ORDER BY created_at DESC
-                    LIMIT 5
+                    LIMIT 3
                 )
             ";
         }
@@ -122,7 +122,7 @@ class FireAlertSelectProvider implements AlertSelectProvider
                 FROM incident_updates
                 WHERE incident_updates.event_num = fire_incidents.event_num
                 ORDER BY created_at DESC
-                LIMIT 5
+                LIMIT 3
             ) as t
         ";
     }
