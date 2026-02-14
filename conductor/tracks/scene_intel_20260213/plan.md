@@ -36,18 +36,18 @@
 - [x] Task: Conductor - User Manual Verification 'Phase 2: Synthetic Intel Generation' (Protocol in workflow.md)
 
 ## Phase 3: API (Polling-First) (TDD)
-- [ ] Task: API Endpoints
-    - [ ] Create `SceneIntelController`
-    - [ ] Implement `timeline(eventNum)` endpoint (GET)
-    - [ ] Implement `store(eventNum)` endpoint (POST) with validation and authorization check
-    - [ ] Define routes (this repo has no `routes/api.php`)
-        - [ ] Public: `GET /api/incidents/{eventNum}/intel` in `routes/web.php` (read-only for the public dashboard)
-        - [ ] Protected: `POST /api/incidents/{eventNum}/intel` in `routes/settings.php` behind `auth` + `verified` + Policy/Gate
-    - [ ] Test: Verify endpoints return correct JSON structure and enforce auth
-- [ ] Task: Authorization Strategy For Manual Entry
-    - [ ] Implement a Policy/Gate for creating manual intel entries (repo does not currently model dispatcher/admin roles)
-    - [ ] Document the initial rule (e.g., verified users only, or explicit allowlist) and keep it easy to tighten later
-- [ ] Task: Conductor - User Manual Verification 'Phase 3: API (Polling-First)' (Protocol in workflow.md)
+- [x] Task: API Endpoints
+    - [x] Create `SceneIntelController`
+    - [x] Implement `timeline(eventNum)` endpoint (GET)
+    - [x] Implement `store(eventNum)` endpoint (POST) with validation and authorization check
+    - [x] Define routes (this repo has no `routes/api.php`)
+        - [x] Public: `GET /api/incidents/{eventNum}/intel` in `routes/web.php` (read-only for the public dashboard)
+        - [x] Protected: `POST /api/incidents/{eventNum}/intel` in `routes/settings.php` behind `auth` + `verified` + Policy/Gate
+    - [x] Test: Verify endpoints return correct JSON structure and enforce auth
+- [x] Task: Authorization Strategy For Manual Entry
+    - [x] Implement a Policy/Gate for creating manual intel entries (repo does not currently model dispatcher/admin roles)
+    - [x] Document the initial rule (e.g., verified users only, or explicit allowlist) and keep it easy to tighten later
+- [x] Task: Conductor - User Manual Verification 'Phase 3: API (Polling-First)' (Protocol in workflow.md)
 
 ## Phase 4: Frontend Implementation
 - [ ] Task: Update Frontend Domain
