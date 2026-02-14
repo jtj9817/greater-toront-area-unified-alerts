@@ -62,14 +62,19 @@
     - [x] Add a `useSceneIntel` hook (or similar) using `fetch` (current repo does not use React Query)
     - [x] Poll timeline for active incidents (e.g., every 30 seconds)
     - [x] Seed initial UI from `intel_summary` if present, then reconcile with fetched timeline
-- [ ] Task: Conductor - User Manual Verification 'Phase 4: Frontend Implementation' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 4: Frontend Implementation' (Protocol in workflow.md) [`8ffc060`]
 
-## Phase 5: Backend Optimization (Optional)
-- [ ] Task: Embed `intel_summary` In Fire Meta (MySQL-first)
-    - [ ] Update `app/Services/Alerts/Providers/FireAlertSelectProvider.php` to include `intel_summary` (latest 3-5 updates)
-    - [ ] Include `intel_last_updated` derived from the newest `incident_updates.created_at` for the incident
-    - [ ] Keep implementation compatible with the test database strategy (MySQL in `compose.yaml`; avoid relying on SQLite-only JSON behavior)
-    - [ ] Load/perf check: ensure the unified alerts query remains acceptable under expected traffic
+## Phase 5: Optimization & Hardening
+- [ ] Task: Embed `intel_summary` In Fire Alert Selection
+    - [ ] Extend `FireAlertSelectProvider` query to include `intel_summary` column
+        - [ ] Implement efficient subquery or JSON aggregation to fetch latest 3 updates
+        - [ ] Ensure JSON compatibility for both SQLite (testing) and MySQL (production)
+    - [ ] Add `intel_last_updated` column (max `created_at` from updates)
+    - [ ] Align columns in `Police` and `Transit` providers (add `NULL` or empty JSON placeholders) to satisfy `UNION` requirements
+- [ ] Task: Frontend Integration of Embedded Data
+    - [ ] Update `AlertService.ts` to consume `intel_summary` from the main feed
+    - [ ] Update `AlertDetailsView` to initialize from `intel_summary` before first poll
+- [ ] Task: Conductor - User Manual Verification 'Phase 5: Optimization & Hardening' (Protocol in workflow.md)
 
 ## Phase 6: Maintenance
 - [ ] Task: Scene Intel Pruning
