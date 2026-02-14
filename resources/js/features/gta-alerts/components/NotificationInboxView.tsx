@@ -45,7 +45,9 @@ const sourceLabel = (source: string | null): string => {
         return 'GO Transit';
     }
 
-    return source.replace('_', ' ').replace(/\b\w/g, (char) => char.toUpperCase());
+    return source
+        .replace('_', ' ')
+        .replace(/\b\w/g, (char) => char.toUpperCase());
 };
 
 const digestDescription = (item: NotificationInboxItem): string => {
@@ -147,7 +149,9 @@ export const NotificationInboxView: React.FC<NotificationInboxViewProps> = ({
                     error instanceof NotificationInboxServiceError &&
                     error.status === 401
                 ) {
-                    setErrorMessage('Please sign in again to view notifications.');
+                    setErrorMessage(
+                        'Please sign in again to view notifications.',
+                    );
                 } else {
                     setErrorMessage(
                         'Unable to load notifications right now. Please try again shortly.',
@@ -179,8 +183,12 @@ export const NotificationInboxView: React.FC<NotificationInboxViewProps> = ({
                 return right.id - left.id;
             }
 
-            const leftTime = left.sent_at ? new Date(left.sent_at).getTime() : 0;
-            const rightTime = right.sent_at ? new Date(right.sent_at).getTime() : 0;
+            const leftTime = left.sent_at
+                ? new Date(left.sent_at).getTime()
+                : 0;
+            const rightTime = right.sent_at
+                ? new Date(right.sent_at).getTime()
+                : 0;
 
             return rightTime - leftTime;
         });
@@ -338,8 +346,8 @@ export const NotificationInboxView: React.FC<NotificationInboxViewProps> = ({
                         Sign in to view your notification inbox
                     </h2>
                     <p className="mb-6 max-w-2xl text-sm text-text-secondary">
-                        Your notification center is available to signed-in users so
-                        alerts remain private to your account.
+                        Your notification center is available to signed-in users
+                        so alerts remain private to your account.
                     </p>
                     <div className="flex flex-wrap gap-3">
                         <Link
@@ -367,7 +375,10 @@ export const NotificationInboxView: React.FC<NotificationInboxViewProps> = ({
             <div className="mb-6 flex flex-wrap items-center justify-between gap-3 border-b border-white/10 pb-5">
                 <div>
                     <h2 className="mb-1 flex items-center gap-3 text-2xl font-bold text-white">
-                        <Icon name="notifications_active" className="text-primary" />
+                        <Icon
+                            name="notifications_active"
+                            className="text-primary"
+                        />
                         Notification Center
                     </h2>
                     <p className="text-sm text-text-secondary">
@@ -453,7 +464,8 @@ export const NotificationInboxView: React.FC<NotificationInboxViewProps> = ({
                             typeof alertId === 'string' &&
                             alertId.trim().length > 0;
                         const isUnread = item.read_at === null;
-                        const isBusy = activeItemId === item.id || isMarkingAllRead;
+                        const isBusy =
+                            activeItemId === item.id || isMarkingAllRead;
                         const summaryText = isDigest
                             ? digestDescription(item)
                             : alertSummary(item);
@@ -476,7 +488,9 @@ export const NotificationInboxView: React.FC<NotificationInboxViewProps> = ({
                                                     : 'bg-white/10 text-white'
                                             }`}
                                         >
-                                            {isDigest ? 'Daily Digest' : itemSource}
+                                            {isDigest
+                                                ? 'Daily Digest'
+                                                : itemSource}
                                         </span>
                                         {isUnread && (
                                             <span className="rounded-full bg-primary/20 px-2 py-0.5 text-[11px] font-semibold text-primary uppercase">

@@ -46,7 +46,9 @@ describe('SceneIntelTimeline', () => {
 
         expect(screen.getByText('Scene Intel')).toBeInTheDocument();
         expect(screen.getByText('Command established')).toBeInTheDocument();
-        expect(screen.getByText('Alarm level increased to Level 2')).toBeInTheDocument();
+        expect(
+            screen.getByText('Alarm level increased to Level 2'),
+        ).toBeInTheDocument();
         expect(screen.getByText('Milestone')).toBeInTheDocument();
         expect(screen.getByText('Alarm Level Change')).toBeInTheDocument();
     });

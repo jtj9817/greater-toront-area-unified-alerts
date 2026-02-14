@@ -40,7 +40,7 @@ describe('useSceneIntel', () => {
         // We want to test that initial items are returned and loading is false because we already have data
         const { result } = renderHook(() => useSceneIntel('12345', mockItems));
         expect(result.current.items).toEqual(mockItems);
-        expect(result.current.loading).toBe(false); 
+        expect(result.current.loading).toBe(false);
 
         // Wait for the fetch to complete to avoid act warnings
         await waitFor(() => {
@@ -59,10 +59,13 @@ describe('useSceneIntel', () => {
 
         expect(result.current.items).toEqual(mockItems);
         expect(result.current.error).toBeNull();
-        expect(global.fetch).toHaveBeenCalledWith('/api/incidents/12345/intel', expect.objectContaining({
-            headers: { Accept: 'application/json' },
-            signal: expect.any(AbortSignal),
-        }));
+        expect(global.fetch).toHaveBeenCalledWith(
+            '/api/incidents/12345/intel',
+            expect.objectContaining({
+                headers: { Accept: 'application/json' },
+                signal: expect.any(AbortSignal),
+            }),
+        );
     });
 
     it('handles fetch error', async () => {
@@ -94,6 +97,8 @@ describe('useSceneIntel', () => {
         });
 
         expect(result.current.error).toBeTruthy();
-        expect(result.current.error?.message).toBe('Invalid data received from server');
+        expect(result.current.error?.message).toBe(
+            'Invalid data received from server',
+        );
     });
 });

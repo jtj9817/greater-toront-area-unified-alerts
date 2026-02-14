@@ -43,7 +43,9 @@ const sourceLabel = (source: string): string => {
         return 'GO Transit';
     }
 
-    return source.replace('_', ' ').replace(/\b\w/g, (char) => char.toUpperCase());
+    return source
+        .replace('_', ' ')
+        .replace(/\b\w/g, (char) => char.toUpperCase());
 };
 
 const relativeTimeLabel = (sentAt: string): string => {
@@ -101,7 +103,11 @@ export const NotificationToastLayer: React.FC<NotificationToastLayerProps> = ({
     }, []);
 
     useEffect(() => {
-        if (authUserId === null || typeof window === 'undefined' || !window.Echo) {
+        if (
+            authUserId === null ||
+            typeof window === 'undefined' ||
+            !window.Echo
+        ) {
             return;
         }
 
@@ -125,7 +131,9 @@ export const NotificationToastLayer: React.FC<NotificationToastLayerProps> = ({
                 ...normalizedPayload,
             };
 
-            setToasts((currentToasts) => [toast, ...currentToasts].slice(0, MAX_TOASTS));
+            setToasts((currentToasts) =>
+                [toast, ...currentToasts].slice(0, MAX_TOASTS),
+            );
 
             const timerId = window.setTimeout(() => {
                 dismissToast(toastId);
@@ -155,7 +163,10 @@ export const NotificationToastLayer: React.FC<NotificationToastLayerProps> = ({
                 >
                     <div className="mb-2 flex items-start justify-between gap-2">
                         <div className="flex items-center gap-2">
-                            <Icon name="notifications" className="text-primary" />
+                            <Icon
+                                name="notifications"
+                                className="text-primary"
+                            />
                             <span className="text-xs font-semibold tracking-wide text-white uppercase">
                                 {sourceLabel(toast.source)}
                             </span>

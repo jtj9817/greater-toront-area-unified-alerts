@@ -27,52 +27,60 @@ export function useSceneIntel(
     const [error, setError] = useState<Error | null>(null);
     const hasDataRef = useRef<boolean>(initialItems.length > 0);
 
-    const fetchData = useCallback(async (signal?: AbortSignal) => {
-        if (!eventNum) return;
+    const fetchData = useCallback(
+        async (signal?: AbortSignal) => {
+            if (!eventNum) return;
 
-        try {
-            if (!hasDataRef.current) {
-                setLoading(true);
-            }
-            
-            const response = await fetch(`/api/incidents/${eventNum}/intel`, {
-                signal,
-                headers: {
-                    Accept: 'application/json',
-                },
-            });
+            try {
+                if (!hasDataRef.current) {
+                    setLoading(true);
+                }
 
-            if (!response.ok) {
-                throw new Error(
-                    `Failed to fetch scene intel: ${response.statusText}`,
+                const response = await fetch(
+                    `/api/incidents/${eventNum}/intel`,
+                    {
+                        signal,
+                        headers: {
+                            Accept: 'application/json',
+                        },
+                    },
                 );
-            }
 
-            const json = await response.json();
-            const result = ResponseSchema.safeParse(json);
+                if (!response.ok) {
+                    throw new Error(
+                        `Failed to fetch scene intel: ${response.statusText}`,
+                    );
+                }
 
-            if (!result.success) {
-                console.error(
-                    'Scene intel schema validation failed:',
-                    result.error,
+                const json = await response.json();
+                const result = ResponseSchema.safeParse(json);
+
+                if (!result.success) {
+                    console.error(
+                        'Scene intel schema validation failed:',
+                        result.error,
+                    );
+                    setError(new Error('Invalid data received from server'));
+                    return;
+                }
+
+                setItems(result.data.data);
+                hasDataRef.current = result.data.data.length > 0;
+                setError(null);
+            } catch (err) {
+                if (err instanceof Error && err.name === 'AbortError') {
+                    return;
+                }
+                console.error('Error fetching scene intel:', err);
+                setError(
+                    err instanceof Error ? err : new Error('Unknown error'),
                 );
-                setError(new Error('Invalid data received from server'));
-                return;
+            } finally {
+                setLoading(false);
             }
-
-            setItems(result.data.data);
-            hasDataRef.current = result.data.data.length > 0;
-            setError(null);
-        } catch (err) {
-            if (err instanceof Error && err.name === 'AbortError') {
-                return;
-            }
-            console.error('Error fetching scene intel:', err);
-            setError(err instanceof Error ? err : new Error('Unknown error'));
-        } finally {
-            setLoading(false);
-        }
-    }, [eventNum]);
+        },
+        [eventNum],
+    );
 
     useEffect(() => {
         const controller = new AbortController();

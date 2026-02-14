@@ -108,9 +108,7 @@ describe('NotificationInboxView', () => {
 
         expect(screen.getByText('Unread: 2')).toBeInTheDocument();
         expect(screen.getByText('Daily Digest')).toBeInTheDocument();
-        expect(
-            screen.getByText('3 alerts for 2026-02-10'),
-        ).toBeInTheDocument();
+        expect(screen.getByText('3 alerts for 2026-02-10')).toBeInTheDocument();
         expect(
             screen.getByText('Police response in progress'),
         ).toBeInTheDocument();
@@ -260,9 +258,13 @@ describe('NotificationInboxView', () => {
             }),
         );
 
-        render(<NotificationInboxView authUserId={99} onOpenAlert={onOpenAlert} />);
+        render(
+            <NotificationInboxView authUserId={99} onOpenAlert={onOpenAlert} />,
+        );
 
-        fireEvent.click(await screen.findByText('Road closure due to police activity'));
+        fireEvent.click(
+            await screen.findByText('Road closure due to police activity'),
+        );
 
         expect(onOpenAlert).toHaveBeenCalledWith('police:31');
         expect(onOpenAlert).toHaveBeenCalledTimes(1);
@@ -305,7 +307,9 @@ describe('NotificationInboxView', () => {
             }),
         );
 
-        render(<NotificationInboxView authUserId={99} onOpenAlert={onOpenAlert} />);
+        render(
+            <NotificationInboxView authUserId={99} onOpenAlert={onOpenAlert} />,
+        );
 
         fireEvent.click(await screen.findByText('5 alerts for 2026-02-10'));
 
@@ -612,7 +616,9 @@ describe('NotificationInboxView', () => {
         );
 
         await waitFor(() => {
-            expect(screen.getByText('Your inbox is clear.')).toBeInTheDocument();
+            expect(
+                screen.getByText('Your inbox is clear.'),
+            ).toBeInTheDocument();
         });
         expect(screen.getByText('Unread: 0')).toBeInTheDocument();
     });
@@ -640,6 +646,8 @@ describe('NotificationInboxView', () => {
             ).toBeInTheDocument();
         });
 
-        expect(screen.queryByText('Your inbox is clear.')).not.toBeInTheDocument();
+        expect(
+            screen.queryByText('Your inbox is clear.'),
+        ).not.toBeInTheDocument();
     });
 });
