@@ -3,8 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\SceneIntel\StoreSceneIntelEntryRequest;
+use App\Http\Resources\IncidentUpdateResource;
 use App\Models\FireIncident;
-use App\Models\IncidentUpdate;
 use App\Services\SceneIntel\SceneIntelRepository;
 use Illuminate\Http\JsonResponse;
 
@@ -21,10 +21,7 @@ class SceneIntelController extends Controller
         $timeline = $this->repository->getTimeline($eventNum);
 
         return response()->json([
-            'data' => $timeline
-                ->map(fn (IncidentUpdate $update): array => $this->serializeUpdate($update))
-                ->values()
-                ->all(),
+            'data' => IncidentUpdateResource::collection($timeline),
             'meta' => [
                 'event_num' => $eventNum,
                 'count' => $timeline->count(),
@@ -46,38 +43,14 @@ class SceneIntelController extends Controller
         );
 
         return response()->json([
-            'data' => $this->serializeUpdate($entry),
+            'data' => new IncidentUpdateResource($entry),
         ], 201);
     }
 
     private function assertIncidentExists(string $eventNum): void
     {
-        FireIncident::query()
-            ->where('event_num', $eventNum)
-            ->firstOrFail();
-    }
-
-    /**
-     * @return array{
-     *     id: int,
-     *     type: string,
-     *     type_label: string,
-     *     icon: string,
-     *     content: string,
-     *     timestamp: string,
-     *     metadata: array<string, mixed>|null
-     * }
-     */
-    private function serializeUpdate(IncidentUpdate $update): array
-    {
-        return [
-            'id' => $update->id,
-            'type' => $update->update_type->value,
-            'type_label' => $update->update_type->label(),
-            'icon' => $update->update_type->icon(),
-            'content' => $update->content,
-            'timestamp' => $update->created_at->toIso8601String(),
-            'metadata' => $update->metadata,
-        ];
+        if (! FireIncident::where('event_num', $eventNum)->exists()) {
+            abort(404);
+        }
     }
 }
