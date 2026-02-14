@@ -33,7 +33,7 @@
         - [x] The command currently bulk-updates `is_active=false` via `whereNotIn`; closure intel must explicitly process the deactivated set.
         - [x] Add jitter guard (avoid duplicate closure entries)
     - [x] Test: Run command with mocked feed data and verify `incident_updates` are created for alarm/unit changes and deactivations
-- [ ] Task: Conductor - User Manual Verification 'Phase 2: Synthetic Intel Generation' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 2: Synthetic Intel Generation' (Protocol in workflow.md)
 
 ## Phase 3: API (Polling-First) (TDD)
 - [ ] Task: API Endpoints
