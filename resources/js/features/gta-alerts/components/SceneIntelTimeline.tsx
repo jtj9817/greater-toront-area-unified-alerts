@@ -1,8 +1,8 @@
 import React, { useMemo } from 'react';
-import { useSceneIntel } from '../hooks/useSceneIntel';
-import type { SceneIntelItem, SceneIntelType } from '../domain/alerts/fire/scene-intel';
-import { Icon } from './Icon';
 import { formatTimestampEST, cn } from '@/lib/utils';
+import type { SceneIntelItem, SceneIntelType } from '../domain/alerts/fire/scene-intel';
+import { useSceneIntel } from '../hooks/useSceneIntel';
+import { Icon } from './Icon';
 
 interface SceneIntelTimelineProps {
     eventNum: string;

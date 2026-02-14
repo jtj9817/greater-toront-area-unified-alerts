@@ -1,9 +1,9 @@
-import React from 'react';
 import { render, screen } from '@testing-library/react';
+import React from 'react';
 import { describe, expect, it, vi, beforeEach } from 'vitest';
-import { SceneIntelTimeline } from './SceneIntelTimeline';
 import type { SceneIntelItem } from '../domain/alerts/fire/scene-intel';
 import * as useSceneIntelHook from '../hooks/useSceneIntel';
+import { SceneIntelTimeline } from './SceneIntelTimeline';
 
 // Mock the hook
 vi.mock('../hooks/useSceneIntel', () => ({

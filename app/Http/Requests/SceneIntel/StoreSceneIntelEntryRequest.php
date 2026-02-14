@@ -22,7 +22,8 @@ class StoreSceneIntelEntryRequest extends FormRequest
 
         if (is_string($content)) {
             $this->merge([
-                'content' => trim($content),
+                // Sentinel: Sanitize content to prevent Stored XSS
+                'content' => strip_tags(trim($content)),
             ]);
         }
     }

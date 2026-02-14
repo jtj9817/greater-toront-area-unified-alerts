@@ -1,7 +1,7 @@
 import { renderHook, waitFor } from '@testing-library/react';
 import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest';
-import { useSceneIntel } from './useSceneIntel';
 import type { SceneIntelItem } from '../domain/alerts/fire/scene-intel';
+import { useSceneIntel } from './useSceneIntel';
 
 describe('useSceneIntel', () => {
     const mockItems: SceneIntelItem[] = [
