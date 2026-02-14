@@ -1,6 +1,8 @@
 <?php
 
+use App\Enums\IncidentUpdateType;
 use App\Models\FireIncident;
+use App\Models\IncidentUpdate;
 use App\Services\Alerts\Mappers\UnifiedAlertMapper;
 use App\Services\Alerts\Providers\FireAlertSelectProvider;
 use Carbon\CarbonImmutable;
@@ -41,6 +43,52 @@ test('fire alert select provider maps unified columns', function () {
     expect($meta['units_dispatched'])->toBe('P1, P2');
     expect($meta['beat'])->toBe('12A');
     expect($meta['event_num'])->toBe('F12345');
+    // Verify defaults when no updates exist
+    expect($meta['intel_summary'])->toBeArray();
+    expect($meta['intel_summary'])->toBeEmpty();
+    expect($meta['intel_last_updated'])->toBeNull();
+});
+
+test('fire alert select provider includes intel summary and last updated', function () {
+    $incident = FireIncident::factory()->create(['event_num' => 'F99999']);
+
+    IncidentUpdate::factory()->create([
+        'event_num' => 'F99999',
+        'update_type' => IncidentUpdateType::ALARM_CHANGE,
+        'content' => 'Alarm level increased',
+        'created_at' => CarbonImmutable::now()->subMinutes(10),
+    ]);
+
+    IncidentUpdate::factory()->create([
+        'event_num' => 'F99999',
+        'update_type' => IncidentUpdateType::RESOURCE_STATUS,
+        'content' => 'Units arrived',
+        'created_at' => CarbonImmutable::now()->subMinutes(5),
+    ]);
+
+    $row = (new FireAlertSelectProvider)->select()->first();
+    $meta = UnifiedAlertMapper::decodeMeta($row->meta);
+
+    expect($meta['intel_last_updated'])->not->toBeNull();
+    // Verify last updated is roughly now - 5 minutes
+    // Actually, SQL created_at might be string, so let's check it's a string
+    expect($meta['intel_last_updated'])->toBeString();
+    // Verify summary timestamp format (SQLite strftime output)
+    expect($meta['intel_summary'][0]['timestamp'])->toMatch('/\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z/');
+
+    expect($meta['intel_summary'])->toBeArray();
+    expect($meta['intel_summary'])->toHaveCount(2);
+
+    // Verify order (descending by created_at)
+    $first = $meta['intel_summary'][0];
+    $second = $meta['intel_summary'][1];
+
+    expect($first['type'])->toBe('resource_status');
+    expect($first['type_label'])->toBe('Resource Update');
+    expect($first['icon'])->toBe('local_fire_department');
+    expect($first['content'])->toBe('Units arrived');
+
+    expect($second['type'])->toBe('alarm_change');
 });
 
 test('fire alert select provider uses non-sqlite expressions when driver is not sqlite', function () {
@@ -53,5 +101,10 @@ test('fire alert select provider uses non-sqlite expressions when driver is not 
     expect($sql)->toContain("CONCAT('fire:', event_num)");
     expect($sql)->toContain('CAST(event_num AS CHAR)');
     expect($sql)->toContain("NULLIF(CONCAT_WS(' / ', prime_street, cross_streets), '')");
-    expect($sql)->toContain("JSON_OBJECT('alarm_level'");
+    expect($sql)->toContain('JSON_OBJECT(');
+    expect($sql)->toContain("'alarm_level', alarm_level");
+
+    // Verify MySQL specific syntax
+    expect($sql)->toContain('LATERAL');
+    expect($sql)->toContain('DATE_FORMAT');
 });
