@@ -74,7 +74,7 @@
 - [x] Task: Frontend Integration of Embedded Data [`b5a98f6`]
     - [x] Update `AlertService.ts` to consume `intel_summary` from the main feed
     - [x] Update `AlertDetailsView` to initialize from `intel_summary` before first poll
-- [ ] Task: Conductor - User Manual Verification 'Phase 5: Optimization & Hardening' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 5: Optimization & Hardening' (Protocol in workflow.md; verified 2026-02-14, script: `tests/manual/verify_scene_intel_phase_5_optimization_hardening.php`, log: `storage/logs/manual_tests/scene_intel_phase_5_optimization_hardening_2026_02_14_214049.log`)
 
 ## Phase 6: Maintenance
 - [ ] Task: Scene Intel Pruning
