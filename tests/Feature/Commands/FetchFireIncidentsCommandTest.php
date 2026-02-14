@@ -171,7 +171,7 @@ test('it generates synthetic intel updates for changed incidents and deactivatio
     expect($deactivatedIncidentUpdates[0]->content)->toBe('Incident marked as resolved');
 });
 
-test('it does not duplicate closure intel updates during deactivation', function () {
+test('it does not duplicate closure intel updates for the same transition during deactivation', function () {
     $incident = FireIncident::factory()->create([
         'event_num' => 'F26037777',
         'event_type' => 'FIRE',
@@ -207,4 +207,74 @@ test('it does not duplicate closure intel updates during deactivation', function
         ->count();
 
     expect($closureUpdates)->toBe(1);
+});
+
+test('it records a new closure intel update after an incident is reactivated', function () {
+    $incident = FireIncident::factory()->create([
+        'event_num' => 'F26037778',
+        'event_type' => 'FIRE',
+        'is_active' => false,
+    ]);
+
+    IncidentUpdate::factory()->create([
+        'event_num' => $incident->event_num,
+        'update_type' => IncidentUpdateType::PHASE_CHANGE,
+        'content' => 'Incident marked as resolved',
+        'metadata' => [
+            'previous_phase' => 'active',
+            'new_phase' => 'resolved',
+        ],
+        'source' => 'synthetic',
+    ]);
+
+    $reactivationFeedData = [
+        'updated_at' => '2026-02-13 08:50:00',
+        'events' => [
+            [
+                'event_num' => $incident->event_num,
+                'event_type' => 'FIRE',
+                'prime_street' => 'QUEEN ST W',
+                'cross_streets' => 'SPADINA AVE / AUGUSTA AVE',
+                'dispatch_time' => '2026-02-13T08:40:00',
+                'alarm_level' => 1,
+                'beat' => '143',
+                'units_dispatched' => 'P143',
+            ],
+        ],
+    ];
+
+    $deactivationFeedData = [
+        'updated_at' => '2026-02-13 08:55:00',
+        'events' => [],
+    ];
+
+    $this->mock(TorontoFireFeedService::class, function (MockInterface $mock) use ($reactivationFeedData, $deactivationFeedData) {
+        $mock->shouldReceive('fetch')->twice()->andReturn(
+            $reactivationFeedData,
+            $deactivationFeedData,
+        );
+    });
+
+    $this->artisan('fire:fetch-incidents')->assertExitCode(0);
+    $this->artisan('fire:fetch-incidents')->assertExitCode(0);
+
+    $closureUpdates = IncidentUpdate::query()
+        ->forIncident($incident->event_num)
+        ->where('update_type', IncidentUpdateType::PHASE_CHANGE)
+        ->where('content', 'Incident marked as resolved')
+        ->orderBy('id')
+        ->get();
+
+    expect($closureUpdates)->toHaveCount(2);
+    expect(
+        IncidentUpdate::query()
+            ->forIncident($incident->event_num)
+            ->where('update_type', IncidentUpdateType::PHASE_CHANGE)
+            ->where('content', 'Incident marked as active')
+            ->count()
+    )->toBe(1);
+    expect($closureUpdates->last()->metadata)->toBe([
+        'previous_phase' => 'active',
+        'new_phase' => 'resolved',
+    ]);
 });

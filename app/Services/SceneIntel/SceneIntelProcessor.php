@@ -23,7 +23,7 @@ class SceneIntelProcessor
 
         $this->processAlarmLevelChange($incident, $previousData);
         $this->processUnitChanges($incident, $previousData);
-        $this->processClosureChange($incident, $previousData);
+        $this->processPhaseChange($incident, $previousData);
     }
 
     /**
@@ -105,37 +105,58 @@ class SceneIntelProcessor
      *     is_active?: bool|int|string|null
      * }  $previousData
      */
-    private function processClosureChange(FireIncident $incident, array $previousData): void
+    private function processPhaseChange(FireIncident $incident, array $previousData): void
     {
         $wasActive = (bool) ($previousData['is_active'] ?? false);
+        $isActive = (bool) $incident->is_active;
 
-        if (! $wasActive || $incident->is_active) {
+        if ($wasActive === $isActive) {
             return;
         }
 
-        if ($this->hasSyntheticClosureUpdate($incident->event_num)) {
+        $newPhase = $isActive ? 'active' : 'resolved';
+        $previousPhase = $wasActive ? 'active' : 'resolved';
+
+        if ($this->latestSyntheticPhase($incident->event_num) === $newPhase) {
             return;
         }
 
         $this->createSyntheticUpdate(
             eventNum: $incident->event_num,
             updateType: IncidentUpdateType::PHASE_CHANGE,
-            content: 'Incident marked as resolved',
+            content: $isActive ? 'Incident marked as active' : 'Incident marked as resolved',
             metadata: [
-                'previous_phase' => 'active',
-                'new_phase' => 'resolved',
+                'previous_phase' => $previousPhase,
+                'new_phase' => $newPhase,
             ],
         );
     }
 
-    private function hasSyntheticClosureUpdate(string $eventNum): bool
+    private function latestSyntheticPhase(string $eventNum): ?string
     {
-        return IncidentUpdate::query()
+        $latestPhaseChange = IncidentUpdate::query()
             ->where('event_num', $eventNum)
             ->where('update_type', IncidentUpdateType::PHASE_CHANGE)
             ->where('source', 'synthetic')
-            ->where('content', 'Incident marked as resolved')
-            ->exists();
+            ->orderByDesc('created_at')
+            ->orderByDesc('id')
+            ->first();
+
+        if ($latestPhaseChange === null) {
+            return null;
+        }
+
+        $metadata = $latestPhaseChange->metadata;
+
+        if (is_array($metadata) && is_string($metadata['new_phase'] ?? null)) {
+            return $metadata['new_phase'];
+        }
+
+        return match ($latestPhaseChange->content) {
+            'Incident marked as active' => 'active',
+            'Incident marked as resolved' => 'resolved',
+            default => null,
+        };
     }
 
     /**

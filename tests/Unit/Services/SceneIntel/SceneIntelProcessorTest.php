@@ -95,3 +95,48 @@ test('it does not generate updates without previous incident data', function () 
 
     expect(IncidentUpdate::query()->forIncident($incident->event_num)->count())->toBe(0);
 });
+
+test('it records phase changes across reactivation and deactivation cycles', function () {
+    $incident = FireIncident::factory()->create([
+        'event_num' => 'F26020003',
+        'is_active' => true,
+    ]);
+
+    $this->processor->processIncidentUpdate($incident, [
+        'alarm_level' => $incident->alarm_level,
+        'units_dispatched' => $incident->units_dispatched,
+        'is_active' => false,
+    ]);
+
+    $incident->is_active = false;
+
+    $this->processor->processIncidentUpdate($incident, [
+        'alarm_level' => $incident->alarm_level,
+        'units_dispatched' => $incident->units_dispatched,
+        'is_active' => true,
+    ]);
+
+    $this->processor->processIncidentUpdate($incident, [
+        'alarm_level' => $incident->alarm_level,
+        'units_dispatched' => $incident->units_dispatched,
+        'is_active' => true,
+    ]);
+
+    $phaseUpdates = IncidentUpdate::query()
+        ->forIncident($incident->event_num)
+        ->where('update_type', IncidentUpdateType::PHASE_CHANGE)
+        ->orderBy('id')
+        ->get();
+
+    expect($phaseUpdates)->toHaveCount(2);
+    expect($phaseUpdates[0]->content)->toBe('Incident marked as active');
+    expect($phaseUpdates[0]->metadata)->toBe([
+        'previous_phase' => 'resolved',
+        'new_phase' => 'active',
+    ]);
+    expect($phaseUpdates[1]->content)->toBe('Incident marked as resolved');
+    expect($phaseUpdates[1]->metadata)->toBe([
+        'previous_phase' => 'active',
+        'new_phase' => 'resolved',
+    ]);
+});
