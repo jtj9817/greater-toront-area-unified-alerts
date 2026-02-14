@@ -50,18 +50,18 @@
 - [x] Task: Conductor - User Manual Verification 'Phase 3: API (Polling-First)' (Protocol in workflow.md)
 
 ## Phase 4: Frontend Implementation
-- [ ] Task: Update Frontend Domain
-    - [ ] Add `SceneIntelItem` type definition (and Zod schema) for API responses
-    - [ ] Extend `FireMetaSchema` to optionally include `intel_summary` (default empty array) and `intel_last_updated` (nullable ISO string) for the optimization path
-- [ ] Task: Create `SceneIntelTimeline` Component
-    - [ ] Create component with list layout
-    - [ ] Implement distinct styles/icons for `update_type` (Enum mapping)
-    - [ ] Implement "Live" indicator for polling freshness (WebSocket "instant" is deferred)
-- [ ] Task: Integrate with `AlertDetailsView`
-    - [ ] Replace hardcoded mock list with `SceneIntelTimeline`
-    - [ ] Add a `useSceneIntel` hook (or similar) using `fetch` (current repo does not use React Query)
-    - [ ] Poll timeline for active incidents (e.g., every 30 seconds)
-    - [ ] Seed initial UI from `intel_summary` if present, then reconcile with fetched timeline
+- [x] Task: Update Frontend Domain
+    - [x] Add `SceneIntelItem` type definition (and Zod schema) for API responses
+    - [x] Extend `FireMetaSchema` to optionally include `intel_summary` (default empty array) and `intel_last_updated` (nullable ISO string) for the optimization path
+- [x] Task: Create `SceneIntelTimeline` Component
+    - [x] Create component with list layout
+    - [x] Implement distinct styles/icons for `update_type` (Enum mapping)
+    - [x] Implement "Live" indicator for polling freshness (WebSocket "instant" is deferred)
+- [x] Task: Integrate with `AlertDetailsView`
+    - [x] Replace hardcoded mock list with `SceneIntelTimeline`
+    - [x] Add a `useSceneIntel` hook (or similar) using `fetch` (current repo does not use React Query)
+    - [x] Poll timeline for active incidents (e.g., every 30 seconds)
+    - [x] Seed initial UI from `intel_summary` if present, then reconcile with fetched timeline
 - [ ] Task: Conductor - User Manual Verification 'Phase 4: Frontend Implementation' (Protocol in workflow.md)
 
 ## Phase 5: Backend Optimization (Optional)
