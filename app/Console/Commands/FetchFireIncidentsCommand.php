@@ -42,6 +42,7 @@ class FetchFireIncidentsCommand extends Command
             )));
 
             $existingIncidentsByEventNum = FireIncident::query()
+                ->select(['id', 'event_num', 'alarm_level', 'units_dispatched', 'is_active'])
                 ->whereIn('event_num', $incomingEventNums)
                 ->get()
                 ->keyBy('event_num');
@@ -82,7 +83,11 @@ class FetchFireIncidentsCommand extends Command
                 ));
             }
 
-            $sceneIntelProcessor->processIncidentUpdate($incident, $previousData);
+            try {
+                $sceneIntelProcessor->processIncidentUpdate($incident, $previousData);
+            } catch (\Throwable $e) {
+                $this->error("Failed to generate scene intel for event {$incident->event_num}: {$e->getMessage()}");
+            }
         }
 
         $deactivationQuery = FireIncident::query()->where('is_active', true);
