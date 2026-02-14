@@ -1,9 +1,9 @@
-import React from 'react';
 import { render, screen } from '@testing-library/react';
+import React from 'react';
 import { describe, expect, it, vi, beforeEach } from 'vitest';
-import { SceneIntelTimeline } from './SceneIntelTimeline';
 import type { SceneIntelItem } from '../domain/alerts/fire/scene-intel';
 import * as useSceneIntelHook from '../hooks/useSceneIntel';
+import { SceneIntelTimeline } from './SceneIntelTimeline';
 
 // Mock the hook
 vi.mock('../hooks/useSceneIntel', () => ({
@@ -35,7 +35,7 @@ describe('SceneIntelTimeline', () => {
     });
 
     it('renders list of items', () => {
-        (useSceneIntelHook.useSceneIntel as any).mockReturnValue({
+        vi.mocked(useSceneIntelHook.useSceneIntel).mockReturnValue({
             items: mockItems,
             loading: false,
             error: null,
@@ -46,13 +46,15 @@ describe('SceneIntelTimeline', () => {
 
         expect(screen.getByText('Scene Intel')).toBeInTheDocument();
         expect(screen.getByText('Command established')).toBeInTheDocument();
-        expect(screen.getByText('Alarm level increased to Level 2')).toBeInTheDocument();
+        expect(
+            screen.getByText('Alarm level increased to Level 2'),
+        ).toBeInTheDocument();
         expect(screen.getByText('Milestone')).toBeInTheDocument();
         expect(screen.getByText('Alarm Level Change')).toBeInTheDocument();
     });
 
     it('shows loading state', () => {
-        (useSceneIntelHook.useSceneIntel as any).mockReturnValue({
+        vi.mocked(useSceneIntelHook.useSceneIntel).mockReturnValue({
             items: [],
             loading: true,
             error: null,
@@ -65,7 +67,7 @@ describe('SceneIntelTimeline', () => {
     });
 
     it('shows error state', () => {
-        (useSceneIntelHook.useSceneIntel as any).mockReturnValue({
+        vi.mocked(useSceneIntelHook.useSceneIntel).mockReturnValue({
             items: [],
             loading: false,
             error: new Error('Failed to load'),
@@ -79,7 +81,7 @@ describe('SceneIntelTimeline', () => {
     });
 
     it('shows empty state', () => {
-        (useSceneIntelHook.useSceneIntel as any).mockReturnValue({
+        vi.mocked(useSceneIntelHook.useSceneIntel).mockReturnValue({
             items: [],
             loading: false,
             error: null,
@@ -93,7 +95,7 @@ describe('SceneIntelTimeline', () => {
 
     it('calls refresh when try again is clicked', () => {
         const refreshMock = vi.fn();
-        (useSceneIntelHook.useSceneIntel as any).mockReturnValue({
+        vi.mocked(useSceneIntelHook.useSceneIntel).mockReturnValue({
             items: [],
             loading: false,
             error: new Error('Failed to load'),

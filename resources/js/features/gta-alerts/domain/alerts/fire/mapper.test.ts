@@ -91,7 +91,9 @@ describe('mapFireAlert', () => {
 
         const alert = mapFireAlert(resource);
         expect(alert).not.toBeNull();
-        expect(alert?.meta.intel_last_updated).toBe('2026-02-14T09:28:21+00:00');
+        expect(alert?.meta.intel_last_updated).toBe(
+            '2026-02-14T09:28:21+00:00',
+        );
         expect(alert?.meta.intel_summary[0]?.timestamp).toBe(
             '2026-02-14T09:28:21+00:00',
         );

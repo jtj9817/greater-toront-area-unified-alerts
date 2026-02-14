@@ -215,7 +215,8 @@ const apiHeaders = (): Record<string, string> => {
 const normalizePageUrl = (url: string): string => {
     try {
         const base =
-            typeof window !== 'undefined' && typeof window.location?.origin === 'string'
+            typeof window !== 'undefined' &&
+            typeof window.location?.origin === 'string'
                 ? window.location.origin
                 : 'http://localhost';
         const parsed = new URL(url, base);
@@ -226,19 +227,20 @@ const normalizePageUrl = (url: string): string => {
     }
 };
 
-export const fetchNotificationInbox = async (
-    options?: {
-        includeDismissed?: boolean;
-        perPage?: number;
-        page?: number;
-        pageUrl?: string;
-    },
-): Promise<NotificationInboxPage> => {
+export const fetchNotificationInbox = async (options?: {
+    includeDismissed?: boolean;
+    perPage?: number;
+    page?: number;
+    pageUrl?: string;
+}): Promise<NotificationInboxPage> => {
     if (typeof options?.pageUrl === 'string' && options.pageUrl.trim() !== '') {
-        const payload = (await fetchJson(normalizePageUrl(options.pageUrl.trim()), {
-            method: 'GET',
-            headers: apiHeaders(),
-        })) as NotificationInboxPageResponse;
+        const payload = (await fetchJson(
+            normalizePageUrl(options.pageUrl.trim()),
+            {
+                method: 'GET',
+                headers: apiHeaders(),
+            },
+        )) as NotificationInboxPageResponse;
 
         return normalizePage(payload);
     }
@@ -258,7 +260,9 @@ export const fetchNotificationInbox = async (
     }
 
     const url =
-        params.size > 0 ? `${INBOX_BASE_URL}?${params.toString()}` : INBOX_BASE_URL;
+        params.size > 0
+            ? `${INBOX_BASE_URL}?${params.toString()}`
+            : INBOX_BASE_URL;
 
     const payload = (await fetchJson(url, {
         method: 'GET',
@@ -314,22 +318,23 @@ export const dismissNotification = async (
     return item;
 };
 
-export const markAllNotificationsAsRead = async (): Promise<MarkAllReadResult> => {
-    const payload = (await fetchJson(`${INBOX_BASE_URL}/read-all`, {
-        method: 'PATCH',
-        headers: {
-            ...apiHeaders(),
-            'Content-Type': 'application/json',
-        },
-    })) as MarkAllReadResponse;
+export const markAllNotificationsAsRead =
+    async (): Promise<MarkAllReadResult> => {
+        const payload = (await fetchJson(`${INBOX_BASE_URL}/read-all`, {
+            method: 'PATCH',
+            headers: {
+                ...apiHeaders(),
+                'Content-Type': 'application/json',
+            },
+        })) as MarkAllReadResponse;
 
-    const meta = isRecord(payload.meta) ? payload.meta : {};
+        const meta = isRecord(payload.meta) ? payload.meta : {};
 
-    return {
-        marked_read_count: asNumberOr(meta.marked_read_count, 0),
-        unread_count: asNumberOr(meta.unread_count, 0),
+        return {
+            marked_read_count: asNumberOr(meta.marked_read_count, 0),
+            unread_count: asNumberOr(meta.unread_count, 0),
+        };
     };
-};
 
 export const clearNotificationInbox = async (): Promise<ClearInboxResult> => {
     const payload = (await fetchJson(INBOX_BASE_URL, {

@@ -178,3 +178,21 @@ test('manual intel entry gate allows configured allowlist users', function () {
         ->assertCreated()
         ->assertJsonPath('data.content', 'Dispatcher note');
 });
+
+test('manual intel entry strips html tags from content', function () {
+    $incident = FireIncident::factory()->create();
+    $user = User::factory()->create();
+
+    $this
+        ->actingAs($user)
+        ->postJson("/api/incidents/{$incident->event_num}/intel", [
+            'content' => '<script>alert("XSS")</script>Fire is <b>active</b>',
+        ])
+        ->assertCreated()
+        ->assertJsonPath('data.content', 'alert("XSS")Fire is active');
+
+    $this->assertDatabaseHas('incident_updates', [
+        'event_num' => $incident->event_num,
+        'content' => 'alert("XSS")Fire is active',
+    ]);
+});
