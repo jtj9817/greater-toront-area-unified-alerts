@@ -21,6 +21,8 @@ function makeFireAlert(title = 'GAS LEAK'): FireAlert {
             event_num: 'E1',
             units_dispatched: null,
             beat: null,
+            intel_summary: [],
+            intel_last_updated: null,
         },
     };
 }

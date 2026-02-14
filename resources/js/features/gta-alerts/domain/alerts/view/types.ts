@@ -1,3 +1,5 @@
+import type { SceneIntelItem } from '../fire/scene-intel';
+
 export type AlertPresentationType =
     | 'fire'
     | 'police'
@@ -21,6 +23,8 @@ export interface AlertPresentationMetadata {
     effect?: string;
     direction?: string;
     sourceFeed?: string;
+    intelSummary?: SceneIntelItem[];
+    intelLastUpdated?: string | null;
 }
 
 export interface AlertPresentation {

@@ -1,5 +1,5 @@
 import { fireEvent, render, screen } from '@testing-library/react';
-import { describe, expect, it, vi } from 'vitest';
+import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import type { UnifiedAlertResource } from '../domain/alerts';
 import { AlertService } from '../services/AlertService';
 import { AlertDetailsView } from './AlertDetailsView';
@@ -15,6 +15,23 @@ function toDomainAlert(resource: UnifiedAlertResource) {
 
 describe('AlertDetailsView', () => {
     const timestamp = new Date('2026-02-03T12:00:00Z').toISOString();
+
+    beforeAll(() => {
+        global.fetch = vi.fn(() =>
+            Promise.resolve({
+                ok: true,
+                json: () =>
+                    Promise.resolve({
+                        data: [],
+                        meta: { event_num: 'E1', count: 0 },
+                    }),
+            }),
+        ) as unknown as typeof fetch;
+    });
+
+    afterAll(() => {
+        vi.restoreAllMocks();
+    });
 
     it('renders fire detail branch and supports back navigation', () => {
         const onBack = vi.fn();

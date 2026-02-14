@@ -5,6 +5,7 @@ import {
     type DomainAlert,
 } from '../domain/alerts';
 import { Icon } from './Icon';
+import { SceneIntelTimeline } from './SceneIntelTimeline';
 
 interface DetailsProps {
     alert: DomainAlert;
@@ -249,26 +250,10 @@ function buildFireSections(alert: PresentationAlert): DetailSections {
                         </span>
                     </div>
                 </div>
-                <div className="rounded-2xl border border-white/5 bg-surface-dark p-6">
-                    <h4 className="mb-4 flex items-center gap-2 text-xs font-bold text-primary uppercase">
-                        <Icon name="list_alt" className="text-sm" /> Scene Intel
-                    </h4>
-                    <ul className="space-y-3">
-                        {[
-                            'Hydrant confirmed operational',
-                            'Search of Floor 1 complete',
-                            'Command established - Pumper 12',
-                        ].map((intel, i) => (
-                            <li
-                                key={i}
-                                className="flex gap-3 text-sm text-gray-400"
-                            >
-                                <span className="font-bold text-coral">•</span>
-                                {intel}
-                            </li>
-                        ))}
-                    </ul>
-                </div>
+                <SceneIntelTimeline
+                    eventNum={alert.metadata?.eventNum || ''}
+                    initialItems={alert.metadata?.intelSummary}
+                />
             </div>
         ),
     };

@@ -1,4 +1,5 @@
 import { z } from 'zod/v4';
+import { SceneIntelItemSchema } from './scene-intel';
 
 /**
  * Zod schema for Fire alert meta fields as emitted by FireAlertSelectProvider.
@@ -8,6 +9,8 @@ export const FireMetaSchema = z.object({
     event_num: z.string(),
     units_dispatched: z.nullable(z.string()),
     beat: z.nullable(z.string()),
+    intel_summary: z.array(SceneIntelItemSchema).optional().default([]),
+    intel_last_updated: z.string().datetime().nullable().optional(),
 });
 
 export type FireMeta = z.infer<typeof FireMetaSchema>;

@@ -334,37 +334,44 @@ describe('GTA Alerts App (typed domain enforcement boundary)', () => {
         vi.stubGlobal('fetch', fetchMock);
 
         try {
-            fetchMock.mockResolvedValueOnce(
-                mockJsonResponse({
-                    data: [
-                        {
-                            id: 41,
-                            alert_id: 'fire:E1',
-                            type: 'alert',
-                            delivery_method: 'in_app',
-                            status: 'delivered',
-                            sent_at: '2026-02-10T15:00:00+00:00',
-                            read_at: null,
-                            dismissed_at: null,
-                            metadata: {
-                                source: 'fire',
-                                summary: 'Structure fire reported on Main St',
+            fetchMock
+                .mockResolvedValueOnce(
+                    mockJsonResponse({
+                        data: [
+                            {
+                                id: 41,
+                                alert_id: 'fire:E1',
+                                type: 'alert',
+                                delivery_method: 'in_app',
+                                status: 'delivered',
+                                sent_at: '2026-02-10T15:00:00+00:00',
+                                read_at: null,
+                                dismissed_at: null,
+                                metadata: {
+                                    source: 'fire',
+                                    summary: 'Structure fire reported on Main St',
+                                },
                             },
+                        ],
+                        meta: {
+                            current_page: 1,
+                            last_page: 1,
+                            per_page: 50,
+                            total: 1,
+                            unread_count: 1,
                         },
-                    ],
-                    meta: {
-                        current_page: 1,
-                        last_page: 1,
-                        per_page: 50,
-                        total: 1,
-                        unread_count: 1,
-                    },
-                    links: {
-                        next: null,
-                        prev: null,
-                    },
-                }),
-            );
+                        links: {
+                            next: null,
+                            prev: null,
+                        },
+                    }),
+                )
+                .mockResolvedValue(
+                    mockJsonResponse({
+                        data: [],
+                        meta: { event_num: 'E1', count: 0 },
+                    }),
+                );
 
             render(
                 <AlertsApp

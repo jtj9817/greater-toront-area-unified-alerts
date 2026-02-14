@@ -66,6 +66,8 @@ export function buildFireDescriptionAndMetadata(
     const alarmLevel = alert.meta.alarm_level;
     const unitsDispatched = alert.meta.units_dispatched;
     const beat = alert.meta.beat;
+    const intelSummary = alert.meta.intel_summary;
+    const intelLastUpdated = alert.meta.intel_last_updated;
 
     return {
         description: `Event #${eventNum}. Units: ${unitsDispatched || 'None'}. Beat: ${beat || 'N/A'}.`,
@@ -75,6 +77,8 @@ export function buildFireDescriptionAndMetadata(
             unitsDispatched,
             beat,
             source: 'Toronto Fire Services',
+            intelSummary,
+            intelLastUpdated,
         },
     };
 }

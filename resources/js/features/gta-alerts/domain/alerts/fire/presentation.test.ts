@@ -21,6 +21,8 @@ function makeFireAlert(overrides: Partial<FireAlert> = {}): FireAlert {
             event_num: 'E1',
             units_dispatched: 'P1, P2',
             beat: 'B1',
+            intel_summary: [],
+            intel_last_updated: null,
         },
         ...overrides,
     };
@@ -49,6 +51,7 @@ describe('fire presentation', () => {
                     event_num: 'E1',
                     units_dispatched: null,
                     beat: null,
+                    intel_summary: [],
                 },
             });
 
@@ -64,6 +67,7 @@ describe('fire presentation', () => {
                 event_num: '',
                 units_dispatched: null,
                 beat: null,
+                intel_summary: [],
             },
         });
 
