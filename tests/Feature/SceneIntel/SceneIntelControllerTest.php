@@ -120,6 +120,21 @@ test('manual intel entry endpoint validates payload', function () {
         ]);
 });
 
+test('manual intel entry endpoint returns validation error for non-string content', function () {
+    $incident = FireIncident::factory()->create();
+    $user = User::factory()->create();
+
+    $this
+        ->actingAs($user)
+        ->postJson("/api/incidents/{$incident->event_num}/intel", [
+            'content' => [],
+        ])
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors([
+            'content',
+        ]);
+});
+
 test('manual intel entry endpoint returns not found when incident does not exist', function () {
     $user = User::factory()->create();
 

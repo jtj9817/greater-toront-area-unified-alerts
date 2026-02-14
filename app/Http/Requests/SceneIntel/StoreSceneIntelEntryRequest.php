@@ -18,9 +18,13 @@ class StoreSceneIntelEntryRequest extends FormRequest
             return;
         }
 
-        $this->merge([
-            'content' => trim((string) $this->input('content')),
-        ]);
+        $content = $this->input('content');
+
+        if (is_string($content)) {
+            $this->merge([
+                'content' => trim($content),
+            ]);
+        }
     }
 
     /**
