@@ -10,7 +10,11 @@ export const FireMetaSchema = z.object({
     units_dispatched: z.nullable(z.string()),
     beat: z.nullable(z.string()),
     intel_summary: z.array(SceneIntelItemSchema).optional().default([]),
-    intel_last_updated: z.string().datetime().nullable().optional(),
+    intel_last_updated: z
+        .string()
+        .datetime({ offset: true })
+        .nullable()
+        .optional(),
 });
 
 export type FireMeta = z.infer<typeof FireMetaSchema>;

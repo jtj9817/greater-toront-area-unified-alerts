@@ -57,4 +57,45 @@ describe('mapFireAlert', () => {
 
         warn.mockRestore();
     });
+
+    it('accepts offset timestamps in scene intel metadata', () => {
+        const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+
+        const resource: UnifiedAlertResourceParsed = {
+            id: 'fire:E3',
+            source: 'fire',
+            external_id: 'E3',
+            is_active: true,
+            timestamp,
+            title: 'STRUCTURE FIRE',
+            location: { name: 'MAIN ST / CROSS RD', lat: null, lng: null },
+            meta: {
+                alarm_level: 2,
+                event_num: 'E3',
+                units_dispatched: 'P1',
+                beat: 'B1',
+                intel_last_updated: '2026-02-14T09:28:21+00:00',
+                intel_summary: [
+                    {
+                        id: 1,
+                        type: 'milestone',
+                        type_label: 'Milestone',
+                        icon: 'flag',
+                        content: 'Command established',
+                        timestamp: '2026-02-14T09:28:21+00:00',
+                        metadata: null,
+                    },
+                ],
+            },
+        };
+
+        const alert = mapFireAlert(resource);
+        expect(alert).not.toBeNull();
+        expect(alert?.meta.intel_last_updated).toBe('2026-02-14T09:28:21+00:00');
+        expect(alert?.meta.intel_summary[0]?.timestamp).toBe(
+            '2026-02-14T09:28:21+00:00',
+        );
+
+        warn.mockRestore();
+    });
 });

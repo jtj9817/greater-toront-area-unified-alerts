@@ -23,7 +23,7 @@ export const SceneIntelItemSchema = z.object({
     type_label: z.string(),
     icon: z.string(),
     content: z.string(),
-    timestamp: z.string().datetime(),
+    timestamp: z.string().datetime({ offset: true }),
     metadata: z.record(z.string(), z.any()).nullable().optional(),
 });
 
