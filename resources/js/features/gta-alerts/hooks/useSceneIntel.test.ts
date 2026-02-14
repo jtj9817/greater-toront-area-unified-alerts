@@ -69,10 +69,10 @@ describe('useSceneIntel', () => {
     });
 
     it('handles fetch error', async () => {
-        (global.fetch as any).mockResolvedValue({
+        vi.mocked(global.fetch).mockResolvedValue({
             ok: false,
             statusText: 'Not Found',
-        });
+        } as Response);
 
         const { result } = renderHook(() => useSceneIntel('12345'));
 
@@ -85,10 +85,10 @@ describe('useSceneIntel', () => {
     });
 
     it('handles malformed data', async () => {
-        (global.fetch as any).mockResolvedValue({
+        vi.mocked(global.fetch).mockResolvedValue({
             ok: true,
             json: async () => ({ invalid: 'data' }),
-        });
+        } as Response);
 
         const { result } = renderHook(() => useSceneIntel('12345'));
 

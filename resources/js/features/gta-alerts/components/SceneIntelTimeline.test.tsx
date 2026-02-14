@@ -35,7 +35,7 @@ describe('SceneIntelTimeline', () => {
     });
 
     it('renders list of items', () => {
-        (useSceneIntelHook.useSceneIntel as any).mockReturnValue({
+        vi.mocked(useSceneIntelHook.useSceneIntel).mockReturnValue({
             items: mockItems,
             loading: false,
             error: null,
@@ -54,7 +54,7 @@ describe('SceneIntelTimeline', () => {
     });
 
     it('shows loading state', () => {
-        (useSceneIntelHook.useSceneIntel as any).mockReturnValue({
+        vi.mocked(useSceneIntelHook.useSceneIntel).mockReturnValue({
             items: [],
             loading: true,
             error: null,
@@ -67,7 +67,7 @@ describe('SceneIntelTimeline', () => {
     });
 
     it('shows error state', () => {
-        (useSceneIntelHook.useSceneIntel as any).mockReturnValue({
+        vi.mocked(useSceneIntelHook.useSceneIntel).mockReturnValue({
             items: [],
             loading: false,
             error: new Error('Failed to load'),
@@ -81,7 +81,7 @@ describe('SceneIntelTimeline', () => {
     });
 
     it('shows empty state', () => {
-        (useSceneIntelHook.useSceneIntel as any).mockReturnValue({
+        vi.mocked(useSceneIntelHook.useSceneIntel).mockReturnValue({
             items: [],
             loading: false,
             error: null,
@@ -95,7 +95,7 @@ describe('SceneIntelTimeline', () => {
 
     it('calls refresh when try again is clicked', () => {
         const refreshMock = vi.fn();
-        (useSceneIntelHook.useSceneIntel as any).mockReturnValue({
+        vi.mocked(useSceneIntelHook.useSceneIntel).mockReturnValue({
             items: [],
             loading: false,
             error: new Error('Failed to load'),
