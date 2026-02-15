@@ -65,8 +65,8 @@ This document describes the current structure and data flow for the Toronto Fire
 ### Scene Intel manual-entry authorization
 
 - Gate definition: `scene-intel.create-manual-entry` in `app/Providers/AppServiceProvider.php`
-- Default rule: any authenticated, verified user is allowed
-- Tightening rule: set `SCENE_INTEL_MANUAL_ENTRY_ALLOWED_EMAILS` (comma-separated). When configured, only those verified emails are allowed to post manual notes.
+- Default rule: no one is allowed (fail closed)
+- Allowlist rule: set `SCENE_INTEL_MANUAL_ENTRY_ALLOWED_EMAILS` (comma-separated). Only those verified emails are allowed to post manual notes.
 
 ## Database structure
 

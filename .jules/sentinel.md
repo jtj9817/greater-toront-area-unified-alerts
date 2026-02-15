@@ -1,4 +1,4 @@
-## 2026-02-14 - Stored XSS in Manual Intel Entry
-**Vulnerability:** User input for manual scene intel entries was validated but not sanitized, allowing Stored XSS payloads (e.g., `<script>`) to be persisted in the database.
-**Learning:** Laravel's `FormRequest` validation rules do not automatically sanitize input. Using `strip_tags` in `prepareForValidation` is an effective way to enforce plain text and prevent XSS at the input level.
-**Prevention:** Always sanitize user input intended for plain text fields using `strip_tags` or similar methods in `prepareForValidation` before it reaches the controller or database.
+## 2026-02-15 - [CRITICAL] Fail-Open Authorization on Manual Entries
+**Vulnerability:** The `scene-intel.create-manual-entry` Gate allowed all verified users by default if the `allowed_emails` config was empty.
+**Learning:** Default configurations for sensitive features should always "Fail Closed". An empty allowlist implies "no one allowed", not "everyone allowed".
+**Prevention:** Check for empty/missing configuration explicitly and deny access by default unless an allowlist is populated and the user is on it.
