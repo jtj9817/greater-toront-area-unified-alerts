@@ -17,7 +17,7 @@
 - [x] Task: Update `FireIncident` model
     - [x] Add `hasMany` relationship to `IncidentUpdate`
     - [x] Test: Verify relationship
-- [ ] Task: Conductor - User Manual Verification 'Phase 1: Database & Models' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 1: Database & Models' (Protocol in workflow.md; verified 2026-02-13, script: `tests/manual/verify_scene_intel_phase_1_database_models.php`, log: `storage/logs/manual_tests/scene_intel_phase_1_database_models_2026_02_13_213942.log`)
 
 ## Phase 2: Synthetic Intel Generation (TDD)
 - [x] Task: Create `SceneIntelProcessor` Service
@@ -77,10 +77,10 @@
 - [x] Task: Conductor - User Manual Verification 'Phase 5: Optimization & Hardening' (Protocol in workflow.md; verified 2026-02-14, script: `tests/manual/verify_scene_intel_phase_5_optimization_hardening.php`, log: `storage/logs/manual_tests/scene_intel_phase_5_optimization_hardening_2026_02_14_214049.log`)
 
 ## Phase 6: Maintenance
-- [ ] Task: Scene Intel Pruning
-    - [ ] Add `scene-intel:prune --days=90` command
-    - [ ] Schedule in `routes/console.php`
-    - [ ] Document in `docs/backend/maintenance.md` (if present), consistent with the basis plan
+- [x] Task: Scene Intel Pruning
+    - [x] Add `scene-intel:prune --days=90` command
+    - [x] Schedule in `routes/console.php`
+    - [x] Document in `docs/backend/maintenance.md` (if present), consistent with the basis plan
 
 ## Phase 7: Quality & Documentation
 Final verification and documentation maintenance for the shipped v1 scope.

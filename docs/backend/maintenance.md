@@ -40,20 +40,22 @@ Expected signal: `notifications:prune` appears in scheduled commands.
 - `incident_updates` entries older than 90 days are permanently deleted.
 - Boundary behavior: entries with `created_at` exactly 90 days old are retained.
 
-### Command
+### Implementation
 
-- Artisan command: `scene-intel:prune` (supports `--days` option, default 90)
-- Implementation: `app/Console/Commands/PruneSceneIntelCommand.php`
+- Model: `App\Models\IncidentUpdate`
+- Trait: `Illuminate\Database\Eloquent\MassPrunable`
+- Policy: `prunable()` method defined with a 90-day cutoff.
 
 ### Scheduler
 
 - Scheduled in `routes/console.php`
+- Command: `php artisan model:prune --model="App\Models\IncidentUpdate"`
 - Frequency: daily at `00:00` (cron expression: `0 0 * * *`)
 
 ### Verification
 
 Automated coverage:
-- `tests/Feature/Commands/PruneSceneIntelCommandTest.php`
+- `tests/Feature/SceneIntel/IncidentUpdatePruningTest.php`
 
 Manual check command:
 
@@ -61,4 +63,4 @@ Manual check command:
 APP_ENV=testing php artisan schedule:list
 ```
 
-Expected signal: `scene-intel:prune` appears in scheduled commands.
+Expected signal: `model:prune` for `IncidentUpdate` appears in scheduled commands.
