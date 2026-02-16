@@ -11,6 +11,8 @@ use Illuminate\Http\Request;
 
 class SavedPlaceController extends Controller
 {
+    public const MAX_SAVED_PLACES = 20;
+
     public function index(Request $request): JsonResponse
     {
         $places = SavedPlace::query()
@@ -28,6 +30,12 @@ class SavedPlaceController extends Controller
 
     public function store(SavedPlaceStoreRequest $request): JsonResponse
     {
+        if ($request->user()->savedPlaces()->count() >= self::MAX_SAVED_PLACES) {
+            return response()->json([
+                'message' => 'You have reached the maximum limit of '.self::MAX_SAVED_PLACES.' saved places.',
+            ], 403);
+        }
+
         $place = SavedPlace::query()->create([
             ...$request->validated(),
             'user_id' => $request->user()->id,
