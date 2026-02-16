@@ -85,7 +85,9 @@
                 "alarm_level": 2,
                 "units_dispatched": "P1, A1",
                 "beat": "B11",
-                "event_num": "FIRE-CONTRACT-001"
+                "event_num": "FIRE-CONTRACT-001",
+                "intel_summary": [],
+                "intel_last_updated": null
             }
         },
         {
@@ -100,7 +102,9 @@
                 "alarm_level": 0,
                 "units_dispatched": null,
                 "beat": null,
-                "event_num": "FIRE-CONTRACT-002"
+                "event_num": "FIRE-CONTRACT-002",
+                "intel_summary": [],
+                "intel_last_updated": null
             }
         },
         {

@@ -185,12 +185,15 @@ export const searchGeocoding = async (
     query: string,
 ): Promise<GeocodingSearchResult[]> => {
     const params = new URLSearchParams({ q: query, limit: '8' });
-    const payload = await requestJson(`/api/geocoding/search?${params.toString()}`, {
-        method: 'GET',
-        headers: {
-            Accept: 'application/json',
+    const payload = await requestJson(
+        `/api/geocoding/search?${params.toString()}`,
+        {
+            method: 'GET',
+            headers: {
+                Accept: 'application/json',
+            },
         },
-    });
+    );
 
     if (!isRecord(payload) || !Array.isArray(payload.data)) {
         return [];

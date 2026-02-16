@@ -1,7 +1,7 @@
 import { renderHook, waitFor } from '@testing-library/react';
 import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest';
-import { useSceneIntel } from './useSceneIntel';
 import type { SceneIntelItem } from '../domain/alerts/fire/scene-intel';
+import { useSceneIntel } from './useSceneIntel';
 
 describe('useSceneIntel', () => {
     const mockItems: SceneIntelItem[] = [
@@ -40,7 +40,7 @@ describe('useSceneIntel', () => {
         // We want to test that initial items are returned and loading is false because we already have data
         const { result } = renderHook(() => useSceneIntel('12345', mockItems));
         expect(result.current.items).toEqual(mockItems);
-        expect(result.current.loading).toBe(false); 
+        expect(result.current.loading).toBe(false);
 
         // Wait for the fetch to complete to avoid act warnings
         await waitFor(() => {
@@ -59,17 +59,20 @@ describe('useSceneIntel', () => {
 
         expect(result.current.items).toEqual(mockItems);
         expect(result.current.error).toBeNull();
-        expect(global.fetch).toHaveBeenCalledWith('/api/incidents/12345/intel', expect.objectContaining({
-            headers: { Accept: 'application/json' },
-            signal: expect.any(AbortSignal),
-        }));
+        expect(global.fetch).toHaveBeenCalledWith(
+            '/api/incidents/12345/intel',
+            expect.objectContaining({
+                headers: { Accept: 'application/json' },
+                signal: expect.any(AbortSignal),
+            }),
+        );
     });
 
     it('handles fetch error', async () => {
-        (global.fetch as any).mockResolvedValue({
+        vi.mocked(global.fetch).mockResolvedValue({
             ok: false,
             statusText: 'Not Found',
-        });
+        } as Response);
 
         const { result } = renderHook(() => useSceneIntel('12345'));
 
@@ -82,10 +85,10 @@ describe('useSceneIntel', () => {
     });
 
     it('handles malformed data', async () => {
-        (global.fetch as any).mockResolvedValue({
+        vi.mocked(global.fetch).mockResolvedValue({
             ok: true,
             json: async () => ({ invalid: 'data' }),
-        });
+        } as Response);
 
         const { result } = renderHook(() => useSceneIntel('12345'));
 
@@ -94,6 +97,8 @@ describe('useSceneIntel', () => {
         });
 
         expect(result.current.error).toBeTruthy();
-        expect(result.current.error?.message).toBe('Invalid data received from server');
+        expect(result.current.error?.message).toBe(
+            'Invalid data received from server',
+        );
     });
 });

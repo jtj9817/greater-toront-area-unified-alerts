@@ -22,7 +22,9 @@ export const SavedPlacesManager: React.FC<SavedPlacesManagerProps> = ({
     const [hasLoadedPlaces, setHasLoadedPlaces] = useState(false);
     const [isBusy, setIsBusy] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
-    const [searchResults, setSearchResults] = useState<GeocodingSearchResult[]>([]);
+    const [searchResults, setSearchResults] = useState<GeocodingSearchResult[]>(
+        [],
+    );
     const [selectedResult, setSelectedResult] =
         useState<GeocodingSearchResult | null>(null);
     const [selectedRadius, setSelectedRadius] = useState(500);
@@ -53,8 +55,13 @@ export const SavedPlacesManager: React.FC<SavedPlacesManagerProps> = ({
                     return;
                 }
 
-                if (error instanceof SavedPlaceServiceError && error.status === 401) {
-                    setErrorMessage('Please sign in again to manage saved places.');
+                if (
+                    error instanceof SavedPlaceServiceError &&
+                    error.status === 401
+                ) {
+                    setErrorMessage(
+                        'Please sign in again to manage saved places.',
+                    );
                 } else {
                     setErrorMessage('Unable to load saved places right now.');
                 }
@@ -95,7 +102,11 @@ export const SavedPlacesManager: React.FC<SavedPlacesManagerProps> = ({
                             return null;
                         }
 
-                        return results.find((result) => result.id === current.id) ?? null;
+                        return (
+                            results.find(
+                                (result) => result.id === current.id,
+                            ) ?? null
+                        );
                     });
                 } catch {
                     setSearchResults([]);
@@ -160,7 +171,10 @@ export const SavedPlacesManager: React.FC<SavedPlacesManagerProps> = ({
             setSearchQuery('');
             setSuccessMessage('Saved place added.');
         } catch (error) {
-            if (error instanceof SavedPlaceServiceError && error.status === 422) {
+            if (
+                error instanceof SavedPlaceServiceError &&
+                error.status === 422
+            ) {
                 setErrorMessage(
                     'Saved place is outside the supported GTA area or is invalid.',
                 );
@@ -202,7 +216,8 @@ export const SavedPlacesManager: React.FC<SavedPlacesManagerProps> = ({
                         Saved Places
                     </h3>
                     <p className="mt-1 text-xs text-text-secondary">
-                        Search Toronto addresses or POIs and save geofenced places.
+                        Search Toronto addresses or POIs and save geofenced
+                        places.
                     </p>
                 </div>
                 <button
@@ -232,20 +247,25 @@ export const SavedPlacesManager: React.FC<SavedPlacesManagerProps> = ({
                             <input
                                 type="text"
                                 value={searchQuery}
-                                onChange={(event) => setSearchQuery(event.target.value)}
+                                onChange={(event) =>
+                                    setSearchQuery(event.target.value)
+                                }
                                 placeholder="Search: 100 Queen St W, CN Tower..."
                                 className="w-full rounded-lg border border-white/15 bg-background-dark px-3 py-2 text-sm text-white focus:border-primary/60 focus:outline-none"
                             />
                             {searchResults.length > 0 && (
                                 <div className="mt-2 max-h-48 overflow-y-auto rounded-lg border border-white/15 bg-background-dark">
                                     {searchResults.map((result) => {
-                                        const isSelected = selectedResult?.id === result.id;
+                                        const isSelected =
+                                            selectedResult?.id === result.id;
 
                                         return (
                                             <button
                                                 key={result.id}
                                                 type="button"
-                                                onClick={() => handleSelectResult(result)}
+                                                onClick={() =>
+                                                    handleSelectResult(result)
+                                                }
                                                 className={`flex w-full flex-col items-start px-3 py-2 text-left text-sm transition ${
                                                     isSelected
                                                         ? 'bg-primary/20 text-white'
@@ -302,7 +322,9 @@ export const SavedPlacesManager: React.FC<SavedPlacesManagerProps> = ({
                     )}
 
                     {isBusy && !hasLoadedPlaces ? (
-                        <p className="text-sm text-text-secondary">Loading saved places...</p>
+                        <p className="text-sm text-text-secondary">
+                            Loading saved places...
+                        </p>
                     ) : savedPlaces.length === 0 ? (
                         <p className="text-sm text-text-secondary">
                             No saved places configured.
@@ -320,7 +342,8 @@ export const SavedPlacesManager: React.FC<SavedPlacesManagerProps> = ({
                                         </div>
                                         <div className="text-xs text-text-secondary">
                                             {place.type} • {place.radius}m •{' '}
-                                            {place.lat.toFixed(4)}, {place.long.toFixed(4)}
+                                            {place.lat.toFixed(4)},{' '}
+                                            {place.long.toFixed(4)}
                                         </div>
                                     </div>
                                     <button

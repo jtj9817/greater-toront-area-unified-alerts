@@ -349,7 +349,8 @@ describe('GTA Alerts App (typed domain enforcement boundary)', () => {
                                 dismissed_at: null,
                                 metadata: {
                                     source: 'fire',
-                                    summary: 'Structure fire reported on Main St',
+                                    summary:
+                                        'Structure fire reported on Main St',
                                 },
                             },
                         ],
@@ -374,9 +375,7 @@ describe('GTA Alerts App (typed domain enforcement boundary)', () => {
                 );
 
             render(
-                <AlertsApp
-                    {...buildBasePropsWithAuth([fireResource()], 42)}
-                />,
+                <AlertsApp {...buildBasePropsWithAuth([fireResource()], 42)} />,
             );
 
             fireEvent.click(

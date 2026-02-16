@@ -67,7 +67,7 @@ class AppServiceProvider extends ServiceProvider
             $allowedEmails = config('scene_intel.manual_entry.allowed_emails', []);
 
             if (! is_array($allowedEmails) || $allowedEmails === []) {
-                return true;
+                return false;
             }
 
             return in_array(
