@@ -46,7 +46,14 @@ export default [
             'import/order': [
                 'error',
                 {
-                    groups: ['builtin', 'external', 'internal', 'parent', 'sibling', 'index'],
+                    groups: [
+                        'builtin',
+                        'external',
+                        'internal',
+                        'parent',
+                        'sibling',
+                        'index',
+                    ],
                     alphabetize: {
                         order: 'asc',
                         caseInsensitive: true,
@@ -78,6 +85,9 @@ export default [
             'vite.config.ts',
             'coverage',
             'resources/js/actions/**',
+            // Wayfinder output is generated and intentionally excluded from TS (see tsconfig.json).
+            'resources/js/routes/**',
+            'resources/js/wayfinder/**',
         ],
     },
     prettier, // Turn off all rules that might conflict with Prettier
