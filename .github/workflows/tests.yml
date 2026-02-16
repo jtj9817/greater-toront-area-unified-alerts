@@ -38,6 +38,10 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v6
 
+      # Ensure a clean workspace (no restored/generated route artifacts) before any checks/build.
+      - name: Clean Wayfinder-generated output
+        run: rm -rf resources/js/routes resources/js/wayfinder
+
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:

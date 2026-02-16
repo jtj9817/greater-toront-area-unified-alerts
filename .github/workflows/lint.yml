@@ -50,8 +50,9 @@ jobs:
           composer install -q --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
           pnpm install --frozen-lockfile
 
-      - name: Generate Wayfinder Types
-        run: php artisan wayfinder:generate --with-form
+      # Ensure generated artifacts (and any restored caches) can't affect lint checks.
+      - name: Clean Wayfinder-generated output
+        run: rm -rf resources/js/routes resources/js/wayfinder
 
       - name: Run Pint (Check)
         run: composer test:lint
@@ -61,6 +62,9 @@ jobs:
 
       - name: Lint Frontend (Check)
         run: pnpm run lint:check
+
+      - name: Generate Wayfinder Types
+        run: php artisan wayfinder:generate --with-form
 
       - name: Frontend Types
         run: pnpm run types
