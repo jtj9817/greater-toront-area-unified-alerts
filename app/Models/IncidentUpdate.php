@@ -5,13 +5,14 @@ namespace App\Models;
 use App\Enums\IncidentUpdateType;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\MassPrunable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class IncidentUpdate extends Model
 {
     /** @use HasFactory<\Database\Factories\IncidentUpdateFactory> */
-    use HasFactory;
+    use HasFactory, MassPrunable;
 
     protected $fillable = [
         'event_num',
@@ -49,5 +50,10 @@ class IncidentUpdate extends Model
     public function scopeRecent(Builder $query, int $limit = 10): void
     {
         $query->orderByDesc('created_at')->limit($limit);
+    }
+
+    public function prunable(): Builder
+    {
+        return static::where('created_at', '<=', now()->subDays(90));
     }
 }
