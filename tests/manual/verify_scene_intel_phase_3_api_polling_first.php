@@ -240,8 +240,8 @@ try {
 
     config(['scene_intel.manual_entry.allowed_emails' => []]);
     assertTrue(
-        Gate::forUser($verifiedUser)->allows('scene-intel.create-manual-entry'),
-        'verified user allowed by default when allowlist is empty'
+        Gate::forUser($verifiedUser)->denies('scene-intel.create-manual-entry'),
+        'verified user denied by default when allowlist is empty'
     );
     assertTrue(
         Gate::forUser($unverifiedUser)->denies('scene-intel.create-manual-entry'),
@@ -283,7 +283,7 @@ try {
     assertTrue($invalidValidationTriggered, 'invalid request triggers validation exception');
 
     logInfo('Phase 4: Manual store flow verification');
-    config(['scene_intel.manual_entry.allowed_emails' => []]);
+    config(['scene_intel.manual_entry.allowed_emails' => ['dispatcher@example.test']]);
 
     $validRequest = StoreSceneIntelEntryRequest::create(
         "/api/incidents/{$incident->event_num}/intel",

@@ -71,7 +71,7 @@ test('manual intel entry endpoint requires verified users', function () {
         ->assertForbidden();
 });
 
-test('verified user can add manual intel entry when allowlist is empty', function () {
+test('verified user is denied when allowlist is empty', function () {
     $incident = FireIncident::factory()->create([
         'event_num' => 'F26050002',
     ]);
@@ -86,26 +86,18 @@ test('verified user can add manual intel entry when allowlist is empty', functio
             'metadata' => ['note_source' => 'command'],
         ]);
 
-    $response
-        ->assertCreated()
-        ->assertJsonPath('data.type', 'manual_note')
-        ->assertJsonPath('data.type_label', 'Manual Note')
-        ->assertJsonPath('data.icon', 'note')
-        ->assertJsonPath('data.content', 'Fire is under control')
-        ->assertJsonPath('data.metadata.note_source', 'command');
+    $response->assertForbidden();
 
-    $this->assertDatabaseHas('incident_updates', [
+    $this->assertDatabaseMissing('incident_updates', [
         'event_num' => $incident->event_num,
-        'update_type' => IncidentUpdateType::MANUAL_NOTE->value,
         'content' => 'Fire is under control',
-        'source' => 'manual',
-        'created_by' => $user->id,
     ]);
 });
 
 test('manual intel entry endpoint validates payload', function () {
     $incident = FireIncident::factory()->create();
     $user = User::factory()->create();
+    config(['scene_intel.manual_entry.allowed_emails' => [$user->email]]);
 
     $this
         ->actingAs($user)
@@ -123,6 +115,7 @@ test('manual intel entry endpoint validates payload', function () {
 test('manual intel entry endpoint returns validation error for non-string content', function () {
     $incident = FireIncident::factory()->create();
     $user = User::factory()->create();
+    config(['scene_intel.manual_entry.allowed_emails' => [$user->email]]);
 
     $this
         ->actingAs($user)
@@ -137,6 +130,7 @@ test('manual intel entry endpoint returns validation error for non-string conten
 
 test('manual intel entry endpoint returns not found when incident does not exist', function () {
     $user = User::factory()->create();
+    config(['scene_intel.manual_entry.allowed_emails' => [$user->email]]);
 
     $this
         ->actingAs($user)
@@ -182,6 +176,7 @@ test('manual intel entry gate allows configured allowlist users', function () {
 test('manual intel entry strips html tags from content', function () {
     $incident = FireIncident::factory()->create();
     $user = User::factory()->create();
+    config(['scene_intel.manual_entry.allowed_emails' => [$user->email]]);
 
     $this
         ->actingAs($user)
