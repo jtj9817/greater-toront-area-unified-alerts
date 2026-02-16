@@ -82,13 +82,13 @@
     - [x] Schedule in `routes/console.php`
     - [x] Document in `docs/backend/maintenance.md` (if present), consistent with the basis plan
 
-## Phase 7: Quality & Documentation
+## Phase 7: Quality & Documentation [`b595011`]
 Final verification and documentation maintenance for the shipped v1 scope.
 
 - [x] Task: Coverage and Linting Verification
     - [x] Execute `composer test` - All 155 tests passed (1254 assertions), Pint passed
     - [x] Execute `pnpm run quality:check` - All 115 tests passed, Prettier/ESLint/TypeScript passed
-- [x] Task: Documentation Update
+- [x] Task: Documentation Update [`b595011`]
     - [x] Update `docs/backend/maintenance.md` to include Scene Intel pruning policy and verification steps (already completed in Phase 6)
     - [x] Add `docs/backend/scene-intel.md` covering schema, synthetic generation, and API endpoints
     - [x] Update `docs/frontend/types.md` to describe the Scene Intel frontend contract
