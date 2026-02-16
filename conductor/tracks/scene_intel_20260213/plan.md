@@ -85,13 +85,13 @@
 ## Phase 7: Quality & Documentation
 Final verification and documentation maintenance for the shipped v1 scope.
 
-- [ ] Task: Coverage and Linting Verification
-    - [ ] Execute `composer test`
-    - [ ] Execute `pnpm run quality:check`
-- [ ] Task: Documentation Update
-    - [ ] Update `docs/backend/maintenance.md` to include Scene Intel pruning policy and verification steps
-    - [ ] Add `docs/backend/scene-intel.md` covering schema, synthetic generation, and API endpoints
-    - [ ] Update `docs/frontend/types.md` to describe the Scene Intel frontend contract
+- [x] Task: Coverage and Linting Verification
+    - [x] Execute `composer test` - All 155 tests passed (1254 assertions), Pint passed
+    - [x] Execute `pnpm run quality:check` - All 115 tests passed, Prettier/ESLint/TypeScript passed
+- [x] Task: Documentation Update
+    - [x] Update `docs/backend/maintenance.md` to include Scene Intel pruning policy and verification steps (already completed in Phase 6)
+    - [x] Add `docs/backend/scene-intel.md` covering schema, synthetic generation, and API endpoints
+    - [x] Update `docs/frontend/types.md` to describe the Scene Intel frontend contract
 - [ ] Task: Conductor - User Manual Verification 'Phase 7: Quality & Documentation' (Protocol in workflow.md)
 
 ## Future Enhancements (Not In v1)
