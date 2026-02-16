@@ -15,3 +15,4 @@ Schedule::command('transit:fetch-alerts')->everyFiveMinutes()->withoutOverlappin
 Schedule::command('go-transit:fetch-alerts')->everyFiveMinutes()->withoutOverlapping();
 Schedule::job(new GenerateDailyDigestJob)->dailyAt('00:10')->withoutOverlapping();
 Schedule::command('notifications:prune')->daily()->withoutOverlapping();
+Schedule::command('scene-intel:prune')->daily()->withoutOverlapping();
