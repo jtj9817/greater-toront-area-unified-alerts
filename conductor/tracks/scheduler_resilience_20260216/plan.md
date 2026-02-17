@@ -25,6 +25,10 @@ This plan addresses critical stability and resilience issues in the GTA Alerts s
 - [ ] Task: Monitoring - Implement Queue Depth Check
     - [ ] Create scheduled closure in `routes/console.php` to check `jobs` table count.
     - [ ] Log error if depth > 100.
+- [ ] Task: Testing - Phase 1 Verification
+    - [ ] Test mutex release on exception (unit test): simulated crash in fetch command allows next scheduled run.
+    - [ ] Test command behavior on database connection loss (integration test).
+    - [ ] Test queue depth monitoring logs error when threshold exceeded.
 - [ ] Task: Conductor - User Manual Verification 'Phase 1: Critical Fixes & Foundation' (Protocol in workflow.md)
 
 ## Phase 2: Resilience & Architecture Upgrade
@@ -32,15 +36,19 @@ This plan addresses critical stability and resilience issues in the GTA Alerts s
 
 - [ ] Task: Architecture - Migrate Fire Fetch to Job
     - [ ] Update `FetchFireIncidentsJob` with `$tries=3`, `$backoff=30`, `$timeout=120`.
+    - [ ] Ensure `FetchFireIncidentsJob` uses `WithoutOverlapping` middleware to prevent concurrent execution.
     - [ ] Update `routes/console.php` to schedule `FetchFireIncidentsJob` instead of command.
 - [ ] Task: Architecture - Migrate Police Fetch to Job
     - [ ] Update `FetchPoliceCallsJob` with `$tries=3`, `$backoff=30`, `$timeout=120`.
+    - [ ] Ensure `FetchPoliceCallsJob` uses `WithoutOverlapping` middleware to prevent concurrent execution.
     - [ ] Update `routes/console.php` to schedule `FetchPoliceCallsJob` instead of command.
 - [ ] Task: Architecture - Migrate GO Transit Fetch to Job
     - [ ] Update `FetchGoTransitAlertsJob` with `$tries=3`, `$backoff=30`, `$timeout=120`.
+    - [ ] Ensure `FetchGoTransitAlertsJob` uses `WithoutOverlapping` middleware to prevent concurrent execution.
     - [ ] Update `routes/console.php` to schedule `FetchGoTransitAlertsJob` instead of command.
 - [ ] Task: Architecture - Migrate TTC Transit Fetch to Job
     - [ ] Update `FetchTransitAlertsJob` with `$tries=3`, `$backoff=30`, `$timeout=120`.
+    - [ ] Ensure `FetchTransitAlertsJob` uses `WithoutOverlapping` middleware to prevent concurrent execution.
     - [ ] Update `routes/console.php` to schedule `FetchTransitAlertsJob` instead of command.
 - [ ] Task: Resilience - Implement Empty Feed Protection (Environment)
     - [ ] Add `ALLOW_EMPTY_FEEDS` to `.env.example`.
@@ -50,11 +58,22 @@ This plan addresses critical stability and resilience issues in the GTA Alerts s
     - [ ] Update `TorontoPoliceFeedService` to throw if empty & !allowed.
     - [ ] Update `GoTransitFeedService` to throw if empty & !allowed.
     - [ ] Update `TtcAlertsFeedService` to throw if empty & !allowed.
+- [ ] Task: Resilience - Police Pagination Mid-Stream Failure Recovery
+    - [ ] Modify `TorontoPoliceFeedService` to persist partial results when a mid-pagination HTTP failure occurs (Issue 3: High severity).
+    - [ ] Add empty features array validation on first page (`$resultOffset === 0`) to distinguish API errors from legitimate empty states.
 - [ ] Task: Resilience - Implement Graceful Record Parsing
-    - [ ] Wrap record parsing loops in `FetchFireIncidentsCommand` (and others) with try-catch.
-    - [ ] Log warning on individual record failure, continue batch.
+    - [ ] `FetchFireIncidentsCommand`: Change `return self::FAILURE` to `continue` on per-record timestamp parse failure (Issue 5).
+    - [ ] `FetchGoTransitAlertsCommand`: Change `return self::FAILURE` to `continue` on per-record parse failure (Issue 5).
+    - [ ] `FetchPoliceCallsCommand`: Add per-record try-catch if not already present.
+    - [ ] `FetchTransitAlertsCommand`: Add per-record try-catch if not already present.
+    - [ ] Log warning on individual record failure, continue batch processing.
 - [ ] Task: Resilience - Configure Notification Job Retry
     - [ ] Update `DeliverAlertNotificationJob` with `$tries=5`, `$backoff=10`.
+- [ ] Task: Testing - Phase 2 Verification
+    - [ ] Test batch processing resilience: feed with 10 items (1 malformed) results in 9 persisted and 1 warning log (unit test).
+    - [ ] Test job retry behavior on transient API failure (integration test).
+    - [ ] Test empty feed handling across all 4 sources: empty response throws exception and preserves existing data (integration test).
+    - [ ] Test police pagination mid-stream failure: partial results from successful pages are not lost (unit test).
 - [ ] Task: Conductor - User Manual Verification 'Phase 2: Resilience & Architecture Upgrade' (Protocol in workflow.md)
 
 ## Phase 3: Data Integrity & Maintenance
@@ -63,11 +82,24 @@ This plan addresses critical stability and resilience issues in the GTA Alerts s
 - [ ] Task: Data Integrity - Timestamp Sanity Checks
     - [ ] Add warning logic for future timestamps (>15 min) in all parsers.
     - [ ] Add warning logic for unreasonable coordinates (outside GTA) in Police/Fire parsers.
+- [ ] Task: Data Integrity - Memory Safety
+    - [ ] Implement safety limit (max records) in `TorontoPoliceFeedService` pagination loop.
+- [ ] Task: Data Integrity - Scene Intel Monitoring
+    - [ ] Add failure rate tracking to `FetchFireIncidentsCommand`/`Job` (and others using Scene Intel).
+    - [ ] Log warning if Scene Intel failure rate > 50%.
 - [ ] Task: Maintenance - Failed Job Pruning
     - [ ] Add scheduled command `queue:prune-failed --hours=168` to `routes/console.php`.
 - [ ] Task: Resilience - Implement Circuit Breaker
-    - [ ] Add basic circuit breaker logic (cache-based counter) to `TorontoFireFeedService` (and others).
+    - [ ] Add basic circuit breaker logic (cache-based counter) to all 4 feed services:
+        - [ ] `TorontoFireFeedService`
+        - [ ] `TorontoPoliceFeedService`
+        - [ ] `GoTransitFeedService`
+        - [ ] `TtcAlertsFeedService`
     - [ ] Threshold: 5 failures, TTL: 5 minutes.
+- [ ] Task: Testing - Phase 3 Verification
+    - [ ] Test circuit breaker opens after threshold and auto-recovers after TTL (integration test).
+    - [ ] Test memory safety limit triggers error on oversized police pagination response (unit test).
+    - [ ] Test Scene Intel failure rate logging triggers warning at >50% threshold (unit test).
 - [ ] Task: Conductor - User Manual Verification 'Phase 3: Data Integrity & Maintenance' (Protocol in workflow.md)
 
 ## Phase 4: Quality & Documentation
@@ -83,4 +115,7 @@ This plan addresses critical stability and resilience issues in the GTA Alerts s
     - [ ] Create `docs/runbooks/queue-troubleshooting.md` covering queue backlog management and failed job analysis.
     - [ ] Update `docs/backend/maintenance.md` to include Failed Job pruning policy.
     - [ ] Update `docs/backend/scene-intel.md` to document the retry policy and acceptable failure modes for Scene Intel.
+    - [ ] Document persistent vs transient failure characteristics (24-hour mutex lockout cycles vs auto-recovery).
+    - [ ] Document monitoring thresholds and alerting setup (queue depth, command failure rate, Scene Intel failure rate, etc.).
+    - [ ] Document empty feed handling strategy and the `ALLOW_EMPTY_FEEDS` flag with usage guidance.
 - [ ] Task: Conductor - User Manual Verification 'Phase 4: Quality & Documentation' (Protocol in workflow.md)
