@@ -9,6 +9,8 @@ use App\Services\SceneIntel\SceneIntelProcessor;
 use App\Services\TorontoFireFeedService;
 use Illuminate\Console\Command;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Log;
+use Throwable;
 
 class FetchFireIncidentsCommand extends Command
 {
@@ -24,101 +26,130 @@ class FetchFireIncidentsCommand extends Command
         $this->info('Fetching Toronto Fire active incidents...');
 
         try {
-            $data = $service->fetch();
-            $feedUpdatedAt = Carbon::parse($data['updated_at'], 'America/Toronto')->utc();
-        } catch (\Throwable $e) {
-            $this->error("Feed fetch failed: {$e->getMessage()}");
-
-            return self::FAILURE;
-        }
-
-        $activeEventNums = [];
-        $existingIncidentsByEventNum = collect();
-
-        if ($data['events'] !== []) {
-            $incomingEventNums = array_values(array_unique(array_map(
-                static fn (array $event): string => $event['event_num'],
-                $data['events'],
-            )));
-
-            $existingIncidentsByEventNum = FireIncident::query()
-                ->select(['id', 'event_num', 'alarm_level', 'units_dispatched', 'is_active'])
-                ->whereIn('event_num', $incomingEventNums)
-                ->get()
-                ->keyBy('event_num');
-        }
-
-        foreach ($data['events'] as $event) {
-            $activeEventNums[] = $event['event_num'];
-            $previousData = $existingIncidentsByEventNum
-                ->get($event['event_num'])
-                ?->only(['alarm_level', 'units_dispatched', 'is_active']);
-
             try {
-                $dispatchTime = Carbon::parse($event['dispatch_time'], 'America/Toronto')->utc();
-            } catch (\Throwable $e) {
-                $this->error("Failed to parse dispatch_time for event {$event['event_num']}: {$e->getMessage()}");
+                $data = $service->fetch();
+                $feedUpdatedAt = Carbon::parse($data['updated_at'], 'America/Toronto')->utc();
+            } catch (Throwable $e) {
+                Log::error('Toronto Fire feed fetch failed', [
+                    'exception' => $e,
+                    'command' => $this->getName(),
+                ]);
+
+                $this->error("Feed fetch failed: {$e->getMessage()}");
 
                 return self::FAILURE;
             }
 
-            $incident = FireIncident::updateOrCreate(
-                ['event_num' => $event['event_num']],
-                [
-                    'event_type' => $event['event_type'],
-                    'prime_street' => $event['prime_street'],
-                    'cross_streets' => $event['cross_streets'],
-                    'dispatch_time' => $dispatchTime,
-                    'alarm_level' => $event['alarm_level'],
-                    'beat' => $event['beat'],
-                    'units_dispatched' => $event['units_dispatched'],
-                    'is_active' => true,
-                    'feed_updated_at' => $feedUpdatedAt,
-                ]
-            );
+            $activeEventNums = [];
+            $existingIncidentsByEventNum = collect();
 
-            if ($incident->wasRecentlyCreated || ($incident->wasChanged('is_active') && $incident->is_active)) {
-                event(new AlertCreated(
-                    $notificationAlertFactory->fromFireIncident($incident),
-                ));
+            if ($data['events'] !== []) {
+                $incomingEventNums = array_values(array_unique(array_map(
+                    static fn (array $event): string => $event['event_num'],
+                    $data['events'],
+                )));
+
+                $existingIncidentsByEventNum = FireIncident::query()
+                    ->select(['id', 'event_num', 'alarm_level', 'units_dispatched', 'is_active'])
+                    ->whereIn('event_num', $incomingEventNums)
+                    ->get()
+                    ->keyBy('event_num');
             }
 
-            try {
-                $sceneIntelProcessor->processIncidentUpdate($incident, $previousData);
-            } catch (\Throwable $e) {
-                $this->error("Failed to generate scene intel for event {$incident->event_num}: {$e->getMessage()}");
+            foreach ($data['events'] as $event) {
+                $activeEventNums[] = $event['event_num'];
+                $previousData = $existingIncidentsByEventNum
+                    ->get($event['event_num'])
+                    ?->only(['alarm_level', 'units_dispatched', 'is_active']);
+
+                try {
+                    $dispatchTime = Carbon::parse($event['dispatch_time'], 'America/Toronto')->utc();
+                } catch (Throwable $e) {
+                    Log::error('Failed to parse fire incident dispatch_time', [
+                        'exception' => $e,
+                        'command' => $this->getName(),
+                        'event_num' => $event['event_num'] ?? null,
+                        'dispatch_time' => $event['dispatch_time'] ?? null,
+                    ]);
+
+                    $this->error("Failed to parse dispatch_time for event {$event['event_num']}: {$e->getMessage()}");
+
+                    return self::FAILURE;
+                }
+
+                $incident = FireIncident::updateOrCreate(
+                    ['event_num' => $event['event_num']],
+                    [
+                        'event_type' => $event['event_type'],
+                        'prime_street' => $event['prime_street'],
+                        'cross_streets' => $event['cross_streets'],
+                        'dispatch_time' => $dispatchTime,
+                        'alarm_level' => $event['alarm_level'],
+                        'beat' => $event['beat'],
+                        'units_dispatched' => $event['units_dispatched'],
+                        'is_active' => true,
+                        'feed_updated_at' => $feedUpdatedAt,
+                    ]
+                );
+
+                if ($incident->wasRecentlyCreated || ($incident->wasChanged('is_active') && $incident->is_active)) {
+                    event(new AlertCreated(
+                        $notificationAlertFactory->fromFireIncident($incident),
+                    ));
+                }
+
+                try {
+                    $sceneIntelProcessor->processIncidentUpdate($incident, $previousData);
+                } catch (Throwable $e) {
+                    Log::warning('Scene intel generation failed for fire incident', [
+                        'exception' => $e,
+                        'command' => $this->getName(),
+                        'event_num' => $incident->event_num,
+                    ]);
+
+                    $this->error("Failed to generate scene intel for event {$incident->event_num}: {$e->getMessage()}");
+                }
             }
-        }
 
-        $deactivationQuery = FireIncident::query()->where('is_active', true);
+            $deactivationQuery = FireIncident::query()->where('is_active', true);
 
-        if ($activeEventNums !== []) {
-            $deactivationQuery->whereNotIn('event_num', $activeEventNums);
-        }
-
-        $deactivatedIncidents = $deactivationQuery->get();
-        $deactivated = $deactivatedIncidents->count();
-
-        if ($deactivatedIncidents->isNotEmpty()) {
-            FireIncident::query()
-                ->whereIn('id', $deactivatedIncidents->pluck('id'))
-                ->update(['is_active' => false]);
-
-            foreach ($deactivatedIncidents as $deactivatedIncident) {
-                $previousData = $deactivatedIncident->only(['alarm_level', 'units_dispatched', 'is_active']);
-                $deactivatedIncident->is_active = false;
-
-                $sceneIntelProcessor->processIncidentUpdate($deactivatedIncident, $previousData);
+            if ($activeEventNums !== []) {
+                $deactivationQuery->whereNotIn('event_num', $activeEventNums);
             }
+
+            $deactivatedIncidents = $deactivationQuery->get();
+            $deactivated = $deactivatedIncidents->count();
+
+            if ($deactivatedIncidents->isNotEmpty()) {
+                FireIncident::query()
+                    ->whereIn('id', $deactivatedIncidents->pluck('id'))
+                    ->update(['is_active' => false]);
+
+                foreach ($deactivatedIncidents as $deactivatedIncident) {
+                    $previousData = $deactivatedIncident->only(['alarm_level', 'units_dispatched', 'is_active']);
+                    $deactivatedIncident->is_active = false;
+
+                    $sceneIntelProcessor->processIncidentUpdate($deactivatedIncident, $previousData);
+                }
+            }
+
+            $this->info(sprintf(
+                'Done. %d active incidents synced, %d marked inactive. Feed time: %s',
+                count($activeEventNums),
+                $deactivated,
+                $feedUpdatedAt->toDateTimeString(),
+            ));
+
+            return self::SUCCESS;
+        } catch (Throwable $e) {
+            Log::error('FetchFireIncidentsCommand failed', [
+                'exception' => $e,
+                'command' => $this->getName(),
+            ]);
+
+            $this->error("Command failed: {$e->getMessage()}");
+
+            return self::FAILURE;
         }
-
-        $this->info(sprintf(
-            'Done. %d active incidents synced, %d marked inactive. Feed time: %s',
-            count($activeEventNums),
-            $deactivated,
-            $feedUpdatedAt->toDateTimeString(),
-        ));
-
-        return self::SUCCESS;
     }
 }
