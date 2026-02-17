@@ -13,7 +13,7 @@ This plan addresses critical stability and resilience issues in the GTA Alerts s
     - [ ] Wrap `FetchPoliceCallsCommand::handle` in try-catch.
     - [ ] Log full exception details.
     - [ ] Ensure `Command::FAILURE` is returned.
-    - [ ] Add `withoutOverlapping(600)` to `police:fetch-calls` schedule in `routes/console.php`.
+    - [ ] Add `withoutOverlapping(10)` (10 minutes) to `police:fetch-calls` schedule in `routes/console.php`.
 - [ ] Task: Scheduler - Add Top-Level Exception Handling (GO Transit)
     - [ ] Wrap `FetchGoTransitAlertsCommand::handle` in try-catch.
     - [ ] Log full exception details.

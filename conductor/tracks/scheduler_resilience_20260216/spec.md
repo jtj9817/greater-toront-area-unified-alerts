@@ -17,7 +17,7 @@ This track addresses critical stability and resilience issues identified in the 
     - Ensure any exception is logged with full context (stack trace, input parameters).
     - **CRITICAL:** Ensure the `withoutOverlapping` mutex is released upon failure (via command exit code or explicit release if necessary/possible).
 - **Mutex Protection:**
-    - Add `withoutOverlapping(600)` (10 minutes) to the `police:fetch-calls` command to prevent infinite execution overlaps.
+    - Add `withoutOverlapping(10)` (10 minutes) to the `police:fetch-calls` command to prevent infinite execution overlaps.
 
 ### 2. Job-Based Ingestion Architecture
 - **Migration to Jobs:**
