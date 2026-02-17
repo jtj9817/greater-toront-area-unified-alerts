@@ -154,4 +154,3 @@ try {
 } finally {
     echo "\nFull logs at: {$logFileRelative}\n";
 }
-
