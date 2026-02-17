@@ -6,6 +6,10 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ## Active Tracks
 
+- [ ] **Track: Scheduler Resilience & Stability Overhaul**
+*Link: [./tracks/scheduler_resilience_20260216/](./tracks/scheduler_resilience_20260216/)*
+
+
 ## Archived Tracks
 
 - [x] **Track: Scene Intel Feature**
