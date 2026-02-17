@@ -43,7 +43,7 @@ class FetchPoliceCallsJob implements ShouldQueue
     {
         return [
             (new WithoutOverlapping('fetch-police-calls'))
-                ->dontRelease()
+                ->releaseAfter(30)
                 ->expireAfter(10 * 60),
         ];
     }

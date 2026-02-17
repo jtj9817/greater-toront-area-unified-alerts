@@ -25,7 +25,7 @@ class FetchFireIncidentsJob implements ShouldQueue
     {
         return [
             (new WithoutOverlapping('fetch-fire-incidents'))
-                ->dontRelease()
+                ->releaseAfter(30)
                 ->expireAfter(10 * 60),
         ];
     }

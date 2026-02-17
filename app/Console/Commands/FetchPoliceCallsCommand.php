@@ -8,6 +8,7 @@ use App\Services\Notifications\NotificationAlertFactory;
 use App\Services\TorontoPoliceFeedService;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
+use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\Log;
 use Throwable;
 
@@ -83,6 +84,10 @@ class FetchPoliceCallsCommand extends Command
                         ));
                     }
                 } catch (Throwable $exception) {
+                    if ($exception instanceof QueryException) {
+                        throw $exception;
+                    }
+
                     Log::warning('Skipping police call record due to persistence failure', [
                         'exception' => $exception,
                         'command' => $this->getName(),

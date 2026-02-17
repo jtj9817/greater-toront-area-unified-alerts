@@ -25,7 +25,7 @@ class FetchGoTransitAlertsJob implements ShouldQueue
     {
         return [
             (new WithoutOverlapping('fetch-go-transit-alerts'))
-                ->dontRelease()
+                ->releaseAfter(30)
                 ->expireAfter(10 * 60),
         ];
     }

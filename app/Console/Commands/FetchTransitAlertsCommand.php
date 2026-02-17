@@ -8,6 +8,7 @@ use App\Services\Notifications\NotificationAlertFactory;
 use App\Services\TtcAlertsFeedService;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
+use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\Log;
 use Throwable;
 
@@ -72,6 +73,10 @@ class FetchTransitAlertsCommand extends Command
                         ));
                     }
                 } catch (Throwable $exception) {
+                    if ($exception instanceof QueryException) {
+                        throw $exception;
+                    }
+
                     Log::warning('Skipping transit alert record due to persistence failure', [
                         'exception' => $exception,
                         'command' => $this->getName(),

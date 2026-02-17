@@ -39,6 +39,6 @@ test('it uses without overlapping job middleware', function () {
     expect($middleware)->toHaveCount(1);
     expect($middleware[0])->toBeInstanceOf(WithoutOverlapping::class);
     expect($middleware[0]->key)->toBe('fetch-transit-alerts');
-    expect($middleware[0]->releaseAfter)->toBeNull();
+    expect($middleware[0]->releaseAfter)->toBe(30);
     expect($middleware[0]->expiresAfter)->toBe(600);
 });
