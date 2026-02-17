@@ -69,7 +69,6 @@ use Carbon\Carbon;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Queue\Middleware\WithoutOverlapping;
 use Illuminate\Support\Facades\Artisan;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -152,16 +151,20 @@ function assertContains(string $needle, string $haystack, string $label, array $
 
 /**
  * @param  callable(): void  $fn
+ * @param  callable(): void  $cleanup
  */
-function withTransaction(callable $fn): void
+function runWithCleanup(callable $fn, callable $cleanup): void
 {
-    DB::beginTransaction();
-
     try {
         $fn();
     } finally {
-        while (DB::transactionLevel() > 0) {
-            DB::rollBack();
+        try {
+            $cleanup();
+        } catch (Throwable $cleanupException) {
+            logError('Cleanup failed', [
+                'message' => $cleanupException->getMessage(),
+                'trace' => $cleanupException->getTraceAsString(),
+            ]);
         }
     }
 }
@@ -243,10 +246,13 @@ try {
     assertSame(10, (int) $notificationJob->backoff, 'DeliverAlertNotificationJob backoff = 10');
 
     logInfo('Phase 4: Empty feed protection (preserve existing actives when empty feeds not allowed)');
-    withTransaction(function (): void {
+    runWithCleanup(function () use ($testRunId): void {
         config(['feeds.allow_empty_feeds' => false]);
 
-        $incident = FireIncident::factory()->create(['is_active' => true]);
+        $incident = FireIncident::factory()->create([
+            'event_num' => "MANUAL_FIRE_EMPTY_{$testRunId}",
+            'is_active' => true,
+        ]);
         $xml = <<<'XML'
 <tfs_active_incidents>
   <update_from_db_time>2026-02-17 00:00:00</update_from_db_time>
@@ -259,12 +265,18 @@ XML;
         $code = Artisan::call('fire:fetch-incidents');
         assertSame(1, $code, 'fire:fetch-incidents exits with FAILURE on empty feed', ['output' => Artisan::output()]);
         assertTrue((bool) $incident->refresh()->is_active, 'fire:fetch-incidents preserves existing active incidents');
+    }, function () use ($testRunId): void {
+        FireIncident::query()->where('event_num', "MANUAL_FIRE_EMPTY_{$testRunId}")->delete();
     });
 
-    withTransaction(function (): void {
+    runWithCleanup(function () use ($testRunId): void {
         config(['feeds.allow_empty_feeds' => false]);
 
-        $call = PoliceCall::factory()->create(['is_active' => true]);
+        $objectId = 900000000 + (abs(crc32("{$testRunId}:police-empty")) % 1000000);
+        $call = PoliceCall::factory()->create([
+            'object_id' => $objectId,
+            'is_active' => true,
+        ]);
         Http::fake([
             '*' => Http::response([
                 'features' => [],
@@ -275,12 +287,18 @@ XML;
         $code = Artisan::call('police:fetch-calls');
         assertSame(1, $code, 'police:fetch-calls exits with FAILURE on empty feed', ['output' => Artisan::output()]);
         assertTrue((bool) $call->refresh()->is_active, 'police:fetch-calls preserves existing active calls');
+    }, function () use ($testRunId): void {
+        $objectId = 900000000 + (abs(crc32("{$testRunId}:police-empty")) % 1000000);
+        PoliceCall::query()->where('object_id', $objectId)->delete();
     });
 
-    withTransaction(function (): void {
+    runWithCleanup(function () use ($testRunId): void {
         config(['feeds.allow_empty_feeds' => false]);
 
-        $alert = GoTransitAlert::factory()->create(['is_active' => true]);
+        $alert = GoTransitAlert::factory()->create([
+            'external_id' => "MANUAL_GO_EMPTY_{$testRunId}",
+            'is_active' => true,
+        ]);
         Http::fake([
             'https://api.metrolinx.com/external/go/serviceupdate/en/all*' => Http::response([
                 'LastUpdated' => '2026-02-17T00:00:00Z',
@@ -293,12 +311,17 @@ XML;
         $code = Artisan::call('go-transit:fetch-alerts');
         assertSame(1, $code, 'go-transit:fetch-alerts exits with FAILURE on empty feed', ['output' => Artisan::output()]);
         assertTrue((bool) $alert->refresh()->is_active, 'go-transit:fetch-alerts preserves existing active alerts');
+    }, function () use ($testRunId): void {
+        GoTransitAlert::query()->where('external_id', "MANUAL_GO_EMPTY_{$testRunId}")->delete();
     });
 
-    withTransaction(function (): void {
+    runWithCleanup(function () use ($testRunId): void {
         config(['feeds.allow_empty_feeds' => false]);
 
-        $alert = TransitAlert::factory()->create(['is_active' => true]);
+        $alert = TransitAlert::factory()->create([
+            'external_id' => "MANUAL_TTC_EMPTY_{$testRunId}",
+            'is_active' => true,
+        ]);
         Http::fake(function (\Illuminate\Http\Client\Request $request) {
             $url = $request->url();
 
@@ -328,24 +351,29 @@ XML;
         $code = Artisan::call('transit:fetch-alerts');
         assertSame(1, $code, 'transit:fetch-alerts exits with FAILURE on empty feed', ['output' => Artisan::output()]);
         assertTrue((bool) $alert->refresh()->is_active, 'transit:fetch-alerts preserves existing active alerts');
+    }, function () use ($testRunId): void {
+        TransitAlert::query()->where('external_id', "MANUAL_TTC_EMPTY_{$testRunId}")->delete();
     });
 
     logInfo('Phase 5: Graceful record parsing (single bad record does not halt the batch)');
-    withTransaction(function (): void {
+    runWithCleanup(function () use ($testRunId): void {
         config(['feeds.allow_empty_feeds' => true]);
+
+        $badEventNum = "MANUAL_FIRE_BAD_{$testRunId}";
+        $goodEventNum = "MANUAL_FIRE_GOOD_{$testRunId}";
 
         $xml = <<<'XML'
 <tfs_active_incidents>
   <update_from_db_time>2026-02-17 00:00:00</update_from_db_time>
   <event>
-    <event_num>E_BAD</event_num>
+    <event_num>%s</event_num>
     <event_type>Fire</event_type>
     <prime_street>Street 1</prime_street>
     <dispatch_time>not-a-timestamp</dispatch_time>
     <alarm_lev>1</alarm_lev>
   </event>
   <event>
-    <event_num>E_GOOD</event_num>
+    <event_num>%s</event_num>
     <event_type>Medical</event_type>
     <prime_street>Street 2</prime_street>
     <dispatch_time>2026-02-17T00:05:00</dispatch_time>
@@ -353,6 +381,7 @@ XML;
   </event>
 </tfs_active_incidents>
 XML;
+        $xml = sprintf($xml, $badEventNum, $goodEventNum);
 
         Http::fake([
             'https://www.toronto.ca/data/fire/livecad.xml*' => Http::response($xml, 200, ['Content-Type' => 'text/xml']),
@@ -362,15 +391,28 @@ XML;
         $output = Artisan::output();
 
         assertSame(0, $code, 'fire:fetch-incidents exits SUCCESS when some records are malformed', ['output' => $output]);
-        assertTrue(FireIncident::query()->where('event_num', 'E_GOOD')->exists(), 'fire:fetch-incidents persists the good record');
-        assertTrue(! FireIncident::query()->where('event_num', 'E_BAD')->exists(), 'fire:fetch-incidents skips the bad record');
-        assertContains('Skipping event E_BAD due to dispatch_time parse failure', $output, 'fire:fetch-incidents outputs a skip warning');
+        assertTrue(FireIncident::query()->where('event_num', $goodEventNum)->exists(), 'fire:fetch-incidents persists the good record', [
+            'good_event_num' => $goodEventNum,
+            'output' => $output,
+        ]);
+        assertTrue(! FireIncident::query()->where('event_num', $badEventNum)->exists(), 'fire:fetch-incidents skips the bad record', [
+            'bad_event_num' => $badEventNum,
+            'output' => $output,
+        ]);
+        assertContains("Skipping event {$badEventNum} due to dispatch_time parse failure", $output, 'fire:fetch-incidents outputs a skip warning');
+    }, function () use ($testRunId): void {
+        FireIncident::query()
+            ->whereIn('event_num', [
+                "MANUAL_FIRE_BAD_{$testRunId}",
+                "MANUAL_FIRE_GOOD_{$testRunId}",
+            ])
+            ->delete();
     });
 
-    withTransaction(function (): void {
+    runWithCleanup(function () use ($testRunId): void {
         config(['feeds.allow_empty_feeds' => true]);
 
-        $codeValue = 'L1';
+        $codeValue = "MANUAL_{$testRunId}";
         $badSubject = 'Bad timestamp';
         $goodSubject = 'Good timestamp';
         $subCategory = null;
@@ -417,14 +459,19 @@ XML;
         assertTrue(GoTransitAlert::query()->where('external_id', $goodExternalId)->exists(), 'go-transit:fetch-alerts persists the good record');
         assertTrue(! GoTransitAlert::query()->where('external_id', $badExternalId)->exists(), 'go-transit:fetch-alerts skips the bad record');
         assertContains("Skipping alert {$badExternalId} due to posted_at parse failure", $output, 'go-transit:fetch-alerts outputs a skip warning');
+    }, function () use ($testRunId): void {
+        GoTransitAlert::query()
+            ->where('external_id', 'like', 'notif:MANUAL_'.$testRunId.':%')
+            ->delete();
     });
 
     logInfo('Phase 6: Police partial pagination skips deactivation');
-    withTransaction(function (): void {
+    runWithCleanup(function () use ($testRunId): void {
         config(['feeds.allow_empty_feeds' => false]);
 
-        $inFeedId = 123;
-        $staleId = 999;
+        $base = 910000000 + (abs(crc32("{$testRunId}:police-partial")) % 1000000);
+        $inFeedId = $base;
+        $staleId = $base + 1;
 
         $stale = PoliceCall::factory()->create([
             'object_id' => $staleId,
@@ -468,6 +515,9 @@ XML;
         assertSame(0, $code, 'police:fetch-calls exits SUCCESS on partial pagination', ['output' => $output]);
         assertContains('Police feed pagination was partial; stale call deactivation will be skipped for this run.', $output, 'police:fetch-calls warns about partial pagination');
         assertTrue((bool) $stale->refresh()->is_active, 'police:fetch-calls does not deactivate stale calls when partial');
+    }, function () use ($testRunId): void {
+        $base = 910000000 + (abs(crc32("{$testRunId}:police-partial")) % 1000000);
+        PoliceCall::query()->whereIn('object_id', [$base, $base + 1])->delete();
     });
 
     logInfo('Manual verification reminders (non-destructive)', [
