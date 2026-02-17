@@ -67,11 +67,13 @@ use App\Models\PoliceCall;
 use App\Models\TransitAlert;
 use Carbon\Carbon;
 use Illuminate\Console\Scheduling\Schedule;
+use Illuminate\Http\Client\Request;
 use Illuminate\Queue\Middleware\WithoutOverlapping;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 
 $testRunId = 'scheduler_resilience_phase_2_resilience_architecture_upgrade_'.Carbon::now()->format('Y_m_d_His');
 $logFileRelative = "storage/logs/manual_tests/{$testRunId}.log";
@@ -176,8 +178,84 @@ try {
         'app_env' => app()->environment(),
     ]);
 
-    Http::preventStrayRequests();
     Event::fake();
+
+    Http::preventStrayRequests();
+
+    $httpState = [
+        'fire_xml' => null,
+        'go_payload' => null,
+        'ttc_live_payload' => null,
+        'ttc_sxa_payload' => null,
+        'ttc_static_html' => null,
+        'police_handler' => null,
+    ];
+
+    Http::fake(function (Request $request) use (&$httpState) {
+        $url = $request->url();
+
+        if (Str::is('https://www.toronto.ca/data/fire/livecad.xml*', $url)) {
+            $xml = $httpState['fire_xml'];
+
+            if (! is_string($xml)) {
+                return Http::response('unhandled fire fake', 500);
+            }
+
+            return Http::response($xml, 200, ['Content-Type' => 'text/xml']);
+        }
+
+        if (Str::is('https://api.metrolinx.com/external/go/serviceupdate/en/all*', $url)) {
+            $payload = $httpState['go_payload'];
+
+            if (! is_array($payload)) {
+                return Http::response('unhandled go fake', 500);
+            }
+
+            return Http::response($payload, 200);
+        }
+
+        if (Str::startsWith($url, 'https://alerts.ttc.ca/api/alerts/live-alerts')) {
+            $payload = $httpState['ttc_live_payload'];
+
+            if (! is_array($payload)) {
+                return Http::response('unhandled ttc live fake', 500);
+            }
+
+            return Http::response($payload, 200);
+        }
+
+        if (Str::contains($url, '/sxa/search/results/')) {
+            $payload = $httpState['ttc_sxa_payload'];
+
+            if (! is_array($payload)) {
+                return Http::response('unhandled ttc sxa fake', 500);
+            }
+
+            return Http::response($payload, 200);
+        }
+
+        if (Str::startsWith($url, 'https://www.ttc.ca/service-advisories/Streetcar-Service-Changes')) {
+            $html = $httpState['ttc_static_html'];
+
+            if (! is_string($html)) {
+                return Http::response('unhandled ttc static fake', 500);
+            }
+
+            return Http::response($html, 200);
+        }
+
+        if (Str::startsWith($url, 'https://services.arcgis.com/S9th0jAJ7bqgIRjw/arcgis/rest/services/C4S_Public_NoGO/FeatureServer/0/query')) {
+            $handler = $httpState['police_handler'];
+
+            if (! is_callable($handler)) {
+                return Http::response('unhandled police fake', 500);
+            }
+
+            return $handler($request);
+        }
+
+        return Http::response('unhandled url', 500);
+    });
 
     logInfo('Phase 1: Scheduler events are job-based and short-locked');
     $schedule = app(Schedule::class);
@@ -246,7 +324,7 @@ try {
     assertSame(10, (int) $notificationJob->backoff, 'DeliverAlertNotificationJob backoff = 10');
 
     logInfo('Phase 4: Empty feed protection (preserve existing actives when empty feeds not allowed)');
-    runWithCleanup(function () use ($testRunId): void {
+    runWithCleanup(function () use ($testRunId, &$httpState): void {
         config(['feeds.allow_empty_feeds' => false]);
 
         $incident = FireIncident::factory()->create([
@@ -258,9 +336,7 @@ try {
   <update_from_db_time>2026-02-17 00:00:00</update_from_db_time>
 </tfs_active_incidents>
 XML;
-        Http::fake([
-            'https://www.toronto.ca/data/fire/livecad.xml*' => Http::response($xml, 200, ['Content-Type' => 'text/xml']),
-        ]);
+        $httpState['fire_xml'] = $xml;
 
         $code = Artisan::call('fire:fetch-incidents');
         assertSame(1, $code, 'fire:fetch-incidents exits with FAILURE on empty feed', ['output' => Artisan::output()]);
@@ -269,7 +345,7 @@ XML;
         FireIncident::query()->where('event_num', "MANUAL_FIRE_EMPTY_{$testRunId}")->delete();
     });
 
-    runWithCleanup(function () use ($testRunId): void {
+    runWithCleanup(function () use ($testRunId, &$httpState): void {
         config(['feeds.allow_empty_feeds' => false]);
 
         $objectId = 900000000 + (abs(crc32("{$testRunId}:police-empty")) % 1000000);
@@ -277,12 +353,12 @@ XML;
             'object_id' => $objectId,
             'is_active' => true,
         ]);
-        Http::fake([
-            '*' => Http::response([
+        $httpState['police_handler'] = function (Request $request) {
+            return Http::response([
                 'features' => [],
                 'exceededTransferLimit' => false,
-            ], 200),
-        ]);
+            ], 200);
+        };
 
         $code = Artisan::call('police:fetch-calls');
         assertSame(1, $code, 'police:fetch-calls exits with FAILURE on empty feed', ['output' => Artisan::output()]);
@@ -292,21 +368,19 @@ XML;
         PoliceCall::query()->where('object_id', $objectId)->delete();
     });
 
-    runWithCleanup(function () use ($testRunId): void {
+    runWithCleanup(function () use ($testRunId, &$httpState): void {
         config(['feeds.allow_empty_feeds' => false]);
 
         $alert = GoTransitAlert::factory()->create([
             'external_id' => "MANUAL_GO_EMPTY_{$testRunId}",
             'is_active' => true,
         ]);
-        Http::fake([
-            'https://api.metrolinx.com/external/go/serviceupdate/en/all*' => Http::response([
-                'LastUpdated' => '2026-02-17T00:00:00Z',
-                'Trains' => ['Train' => []],
-                'Buses' => ['Bus' => []],
-                'Stations' => ['Station' => []],
-            ], 200),
-        ]);
+        $httpState['go_payload'] = [
+            'LastUpdated' => '2026-02-17T00:00:00Z',
+            'Trains' => ['Train' => []],
+            'Buses' => ['Bus' => []],
+            'Stations' => ['Station' => []],
+        ];
 
         $code = Artisan::call('go-transit:fetch-alerts');
         assertSame(1, $code, 'go-transit:fetch-alerts exits with FAILURE on empty feed', ['output' => Artisan::output()]);
@@ -315,38 +389,24 @@ XML;
         GoTransitAlert::query()->where('external_id', "MANUAL_GO_EMPTY_{$testRunId}")->delete();
     });
 
-    runWithCleanup(function () use ($testRunId): void {
+    runWithCleanup(function () use ($testRunId, &$httpState): void {
         config(['feeds.allow_empty_feeds' => false]);
 
         $alert = TransitAlert::factory()->create([
             'external_id' => "MANUAL_TTC_EMPTY_{$testRunId}",
             'is_active' => true,
         ]);
-        Http::fake(function (\Illuminate\Http\Client\Request $request) {
-            $url = $request->url();
-
-            if (str_starts_with($url, 'https://alerts.ttc.ca/api/alerts/live-alerts')) {
-                return Http::response([
-                    'lastUpdated' => '2026-02-17T00:00:00Z',
-                    'routes' => [],
-                    'accessibility' => [],
-                    'siteWideCustom' => [],
-                    'generalCustom' => [],
-                    'stops' => [],
-                    'status' => 'success',
-                ], 200);
-            }
-
-            if (str_contains($url, '/sxa/search/results/')) {
-                return Http::response(['Results' => []], 200);
-            }
-
-            if (str_starts_with($url, 'https://www.ttc.ca/service-advisories/Streetcar-Service-Changes')) {
-                return Http::response('<html></html>', 200);
-            }
-
-            return Http::response('unexpected url', 500);
-        });
+        $httpState['ttc_live_payload'] = [
+            'lastUpdated' => '2026-02-17T00:00:00Z',
+            'routes' => [],
+            'accessibility' => [],
+            'siteWideCustom' => [],
+            'generalCustom' => [],
+            'stops' => [],
+            'status' => 'success',
+        ];
+        $httpState['ttc_sxa_payload'] = ['Results' => []];
+        $httpState['ttc_static_html'] = '<html></html>';
 
         $code = Artisan::call('transit:fetch-alerts');
         assertSame(1, $code, 'transit:fetch-alerts exits with FAILURE on empty feed', ['output' => Artisan::output()]);
@@ -356,7 +416,7 @@ XML;
     });
 
     logInfo('Phase 5: Graceful record parsing (single bad record does not halt the batch)');
-    runWithCleanup(function () use ($testRunId): void {
+    runWithCleanup(function () use ($testRunId, &$httpState): void {
         config(['feeds.allow_empty_feeds' => true]);
 
         $badEventNum = "MANUAL_FIRE_BAD_{$testRunId}";
@@ -383,9 +443,7 @@ XML;
 XML;
         $xml = sprintf($xml, $badEventNum, $goodEventNum);
 
-        Http::fake([
-            'https://www.toronto.ca/data/fire/livecad.xml*' => Http::response($xml, 200, ['Content-Type' => 'text/xml']),
-        ]);
+        $httpState['fire_xml'] = $xml;
 
         $code = Artisan::call('fire:fetch-incidents');
         $output = Artisan::output();
@@ -409,7 +467,7 @@ XML;
             ->delete();
     });
 
-    runWithCleanup(function () use ($testRunId): void {
+    runWithCleanup(function () use ($testRunId, &$httpState): void {
         config(['feeds.allow_empty_feeds' => true]);
 
         $codeValue = "MANUAL_{$testRunId}";
@@ -420,37 +478,35 @@ XML;
         $badExternalId = 'notif:'.$codeValue.':'.$subCategory.':'.md5($badSubject);
         $goodExternalId = 'notif:'.$codeValue.':'.$subCategory.':'.md5($goodSubject);
 
-        Http::fake([
-            'https://api.metrolinx.com/external/go/serviceupdate/en/all*' => Http::response([
-                'LastUpdated' => '2026-02-17T00:00:00Z',
-                'Trains' => [
-                    'Train' => [
-                        [
-                            'Code' => $codeValue,
-                            'Name' => 'Test Line',
-                            'Notifications' => [
-                                [
-                                    'MessageSubject' => $badSubject,
-                                    'MessageBody' => null,
-                                    'SubCategory' => '',
-                                    'Status' => 'Active',
-                                    'PostedDateTime' => 'not-a-timestamp',
-                                ],
-                                [
-                                    'MessageSubject' => $goodSubject,
-                                    'MessageBody' => null,
-                                    'SubCategory' => '',
-                                    'Status' => 'Active',
-                                    'PostedDateTime' => '2026-02-17T00:01:00Z',
-                                ],
+        $httpState['go_payload'] = [
+            'LastUpdated' => '2026-02-17T00:00:00Z',
+            'Trains' => [
+                'Train' => [
+                    [
+                        'Code' => $codeValue,
+                        'Name' => 'Test Line',
+                        'Notifications' => [
+                            [
+                                'MessageSubject' => $badSubject,
+                                'MessageBody' => null,
+                                'SubCategory' => '',
+                                'Status' => 'Active',
+                                'PostedDateTime' => 'not-a-timestamp',
+                            ],
+                            [
+                                'MessageSubject' => $goodSubject,
+                                'MessageBody' => null,
+                                'SubCategory' => '',
+                                'Status' => 'Active',
+                                'PostedDateTime' => '2026-02-17T00:01:00Z',
                             ],
                         ],
                     ],
                 ],
-                'Buses' => ['Bus' => []],
-                'Stations' => ['Station' => []],
-            ], 200),
-        ]);
+            ],
+            'Buses' => ['Bus' => []],
+            'Stations' => ['Station' => []],
+        ];
 
         $code = Artisan::call('go-transit:fetch-alerts');
         $output = Artisan::output();
@@ -466,7 +522,7 @@ XML;
     });
 
     logInfo('Phase 6: Police partial pagination skips deactivation');
-    runWithCleanup(function () use ($testRunId): void {
+    runWithCleanup(function () use ($testRunId, &$httpState): void {
         config(['feeds.allow_empty_feeds' => false]);
 
         $base = 910000000 + (abs(crc32("{$testRunId}:police-partial")) % 1000000);
@@ -478,7 +534,7 @@ XML;
             'is_active' => true,
         ]);
 
-        Http::fake(function (\Illuminate\Http\Client\Request $request) use ($inFeedId) {
+        $httpState['police_handler'] = function (Request $request) use ($inFeedId) {
             $data = $request->data();
             $resultOffset = (int) ($data['resultOffset'] ?? 0);
 
@@ -507,7 +563,7 @@ XML;
             }
 
             return Http::response('unexpected pagination offset', 500);
-        });
+        };
 
         $code = Artisan::call('police:fetch-calls');
         $output = Artisan::output();
