@@ -161,6 +161,22 @@ test('it throws when the TTC live API source fails', function () {
     (new TtcAlertsFeedService)->fetch();
 })->throws(RuntimeException::class, 'TTC live alerts request failed: 500');
 
+test('it throws when the TTC live API returns a sentinel lastUpdated timestamp', function () {
+    Http::fake([
+        'https://alerts.ttc.ca/api/alerts/live-alerts*' => Http::response([
+            'lastUpdated' => '0001-01-01T00:00:00Z',
+            'routes' => [],
+            'accessibility' => [],
+            'siteWideCustom' => [],
+            'generalCustom' => [],
+            'stops' => [],
+            'status' => 'success',
+        ], 200),
+    ]);
+
+    (new TtcAlertsFeedService)->fetch();
+})->throws(RuntimeException::class, "invalid ISO8601 timestamp '0001-01-01T00:00:00Z'");
+
 test('it logs warnings and continues when SXA or static sources fail', function () {
     Log::spy();
 

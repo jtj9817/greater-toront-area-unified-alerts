@@ -429,6 +429,10 @@ class TtcAlertsFeedService
         }
 
         if (str_starts_with($raw, '0001-01-01T00:00:00')) {
+            if ($strict) {
+                throw new RuntimeException("invalid ISO8601 timestamp '{$raw}'");
+            }
+
             return null;
         }
 
