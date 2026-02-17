@@ -74,7 +74,7 @@ This plan addresses critical stability and resilience issues in the GTA Alerts s
     - [x] Test job retry behavior on transient API failure (integration test).
     - [x] Test empty feed handling across all 4 sources: empty response throws exception and preserves existing data (integration test).
     - [x] Test police pagination mid-stream failure: partial results from successful pages are not lost (unit test).
-- [ ] Task: Conductor - User Manual Verification 'Phase 2: Resilience & Architecture Upgrade' (Protocol in workflow.md)
+- [x] (dc21c57) Task: Conductor - User Manual Verification 'Phase 2: Resilience & Architecture Upgrade' (Protocol in workflow.md; script: `tests/manual/verify_scheduler_resilience_phase_2_resilience_architecture_upgrade.php`)
 
 ## Phase 3: Data Integrity & Maintenance
 **Goal:** Ensure data quality and long-term system health.
