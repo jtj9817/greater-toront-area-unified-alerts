@@ -50,6 +50,9 @@ test('scheduled callback mutex is released even when the callback throws', funct
 test('queue depth monitor logs error when threshold exceeded', function () {
     Log::spy();
 
+    // Ensure we use the database driver for queues so we can manipulate the jobs table
+    config(['queue.default' => 'database']);
+
     Schema::dropIfExists('jobs');
     Schema::create('jobs', function (Blueprint $table): void {
         $table->bigIncrements('id');
@@ -105,14 +108,15 @@ test('fire fetch command returns failure and logs when database is unavailable',
     ]);
     app()->instance(TorontoFireFeedService::class, $service);
 
-    $originalSqliteDatabase = config('database.connections.sqlite.database');
-    config(['database.connections.sqlite.database' => '/__invalid__/db.sqlite']);
-    DB::purge('sqlite');
+    $default = config('database.default');
+    $originalDatabase = config("database.connections.{$default}.database");
+    config(["database.connections.{$default}.database" => '/__invalid__/db']);
+    DB::purge($default);
 
     $exitCode = Artisan::call('fire:fetch-incidents');
 
-    config(['database.connections.sqlite.database' => $originalSqliteDatabase]);
-    DB::purge('sqlite');
+    config(["database.connections.{$default}.database" => $originalDatabase]);
+    DB::purge($default);
 
     expect($exitCode)->toBe(Command::FAILURE);
 

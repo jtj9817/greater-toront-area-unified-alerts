@@ -129,7 +129,17 @@ class FetchFireIncidentsCommand extends Command
                     $previousData = $deactivatedIncident->only(['alarm_level', 'units_dispatched', 'is_active']);
                     $deactivatedIncident->is_active = false;
 
-                    $sceneIntelProcessor->processIncidentUpdate($deactivatedIncident, $previousData);
+                    try {
+                        $sceneIntelProcessor->processIncidentUpdate($deactivatedIncident, $previousData);
+                    } catch (Throwable $e) {
+                        Log::warning('Scene intel generation failed for deactivated fire incident', [
+                            'exception' => $e,
+                            'command' => $this->getName(),
+                            'event_num' => $deactivatedIncident->event_num,
+                        ]);
+
+                        $this->error("Failed to generate scene intel for deactivated event {$deactivatedIncident->event_num}: {$e->getMessage()}");
+                    }
                 }
             }
 
