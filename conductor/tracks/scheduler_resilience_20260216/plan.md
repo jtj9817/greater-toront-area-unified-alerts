@@ -68,7 +68,19 @@ This plan addresses critical stability and resilience issues in the GTA Alerts s
 - [ ] Task: Resilience - Implement Circuit Breaker
     - [ ] Add basic circuit breaker logic (cache-based counter) to `TorontoFireFeedService` (and others).
     - [ ] Threshold: 5 failures, TTL: 5 minutes.
-- [ ] Task: Documentation - Update System Docs
-    - [ ] Update `docs/backend/production-scheduler.md` with new failure modes & `ALLOW_EMPTY_FEEDS`.
-    - [ ] Create/Update runbooks for Queue/Scheduler troubleshooting.
 - [ ] Task: Conductor - User Manual Verification 'Phase 3: Data Integrity & Maintenance' (Protocol in workflow.md)
+
+## Phase 4: Quality & Documentation
+**Goal:** Final verification and documentation maintenance for the shipped scope.
+
+- [ ] Task: Coverage and Linting Verification
+    - [ ] Execute `composer test` - Ensure all tests pass.
+    - [ ] Execute `pnpm run quality:check` - Ensure frontend quality (if applicable).
+    - [ ] Verify test coverage meets >90% threshold for modified files.
+- [ ] Task: Documentation Update
+    - [ ] Update `docs/backend/production-scheduler.md` with new failure modes & `ALLOW_EMPTY_FEEDS` configuration.
+    - [ ] Create `docs/runbooks/scheduler-troubleshooting.md` covering common failure scenarios and recovery steps.
+    - [ ] Create `docs/runbooks/queue-troubleshooting.md` covering queue backlog management and failed job analysis.
+    - [ ] Update `docs/backend/maintenance.md` to include Failed Job pruning policy.
+    - [ ] Update `docs/backend/scene-intel.md` to document the retry policy and acceptable failure modes for Scene Intel.
+- [ ] Task: Conductor - User Manual Verification 'Phase 4: Quality & Documentation' (Protocol in workflow.md)
