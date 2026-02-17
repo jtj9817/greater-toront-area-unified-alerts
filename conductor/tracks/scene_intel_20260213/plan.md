@@ -82,7 +82,7 @@
     - [x] Schedule in `routes/console.php`
     - [x] Document in `docs/backend/maintenance.md` (if present), consistent with the basis plan
 
-## Phase 7: Quality & Documentation [`b595011`]
+## Phase 7: Quality & Documentation [checkpoint: `f973a72`]
 Final verification and documentation maintenance for the shipped v1 scope.
 
 - [x] Task: Coverage and Linting Verification
