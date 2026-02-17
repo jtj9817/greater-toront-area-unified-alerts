@@ -5,31 +5,31 @@ This plan addresses critical stability and resilience issues in the GTA Alerts s
 ## Phase 1: Critical Fixes & Foundation
 **Goal:** Eliminate silent failures, prevent 24-hour mutex lockouts, and establish basic monitoring.
 
-- [ ] Task: Scheduler - Add Top-Level Exception Handling (Fire)
-    - [ ] Wrap `FetchFireIncidentsCommand::handle` in try-catch.
-    - [ ] Log full exception details.
-    - [ ] Ensure `Command::FAILURE` is returned.
-- [ ] Task: Scheduler - Add Top-Level Exception Handling (Police)
-    - [ ] Wrap `FetchPoliceCallsCommand::handle` in try-catch.
-    - [ ] Log full exception details.
-    - [ ] Ensure `Command::FAILURE` is returned.
-    - [ ] Add `withoutOverlapping(10)` (10 minutes) to `police:fetch-calls` schedule in `routes/console.php`.
-- [ ] Task: Scheduler - Add Top-Level Exception Handling (GO Transit)
-    - [ ] Wrap `FetchGoTransitAlertsCommand::handle` in try-catch.
-    - [ ] Log full exception details.
-    - [ ] Ensure `Command::FAILURE` is returned.
-- [ ] Task: Scheduler - Add Top-Level Exception Handling (TTC Transit)
-    - [ ] Wrap `FetchTransitAlertsCommand::handle` in try-catch.
-    - [ ] Log full exception details.
-    - [ ] Ensure `Command::FAILURE` is returned.
-- [ ] Task: Monitoring - Implement Queue Depth Check
-    - [ ] Create scheduled closure in `routes/console.php` to check `jobs` table count.
-    - [ ] Log error if depth > 100.
-- [ ] Task: Testing - Phase 1 Verification
-    - [ ] Test mutex release on exception (unit test): simulated crash in fetch command allows next scheduled run.
-    - [ ] Test command behavior on database connection loss (integration test).
-    - [ ] Test queue depth monitoring logs error when threshold exceeded.
-- [ ] Task: Conductor - User Manual Verification 'Phase 1: Critical Fixes & Foundation' (Protocol in workflow.md)
+- [x] (0d35cf2) Task: Scheduler - Add Top-Level Exception Handling (Fire)
+    - [x] Wrap `FetchFireIncidentsCommand::handle` in try-catch.
+    - [x] Log full exception details.
+    - [x] Ensure `Command::FAILURE` is returned.
+- [x] (0d35cf2) Task: Scheduler - Add Top-Level Exception Handling (Police)
+    - [x] Wrap `FetchPoliceCallsCommand::handle` in try-catch.
+    - [x] Log full exception details.
+    - [x] Ensure `Command::FAILURE` is returned.
+    - [x] Add `withoutOverlapping(10)` (10 minutes) to `police:fetch-calls` schedule in `routes/console.php`.
+- [x] (0d35cf2) Task: Scheduler - Add Top-Level Exception Handling (GO Transit)
+    - [x] Wrap `FetchGoTransitAlertsCommand::handle` in try-catch.
+    - [x] Log full exception details.
+    - [x] Ensure `Command::FAILURE` is returned.
+- [x] (0d35cf2) Task: Scheduler - Add Top-Level Exception Handling (TTC Transit)
+    - [x] Wrap `FetchTransitAlertsCommand::handle` in try-catch.
+    - [x] Log full exception details.
+    - [x] Ensure `Command::FAILURE` is returned.
+- [x] (89f4471) Task: Monitoring - Implement Queue Depth Check
+    - [x] Create scheduled closure in `routes/console.php` to check queue depth via `Queue::size()`.
+    - [x] Log error if depth > 100.
+- [x] (89f4471) Task: Testing - Phase 1 Verification
+    - [x] Test mutex release on exception (unit test): simulated crash in fetch command allows next scheduled run.
+    - [x] Test command behavior on database connection loss (integration test).
+    - [x] Test queue depth monitoring logs error when threshold exceeded.
+- [x] Task: Conductor - User Manual Verification 'Phase 1: Critical Fixes & Foundation' (Protocol in workflow.md; verified 2026-02-17, log: `storage/logs/manual_tests/scheduler_resilience_phase_1_critical_fixes_foundation_2026_02_17_045150.log`)
 
 ## Phase 2: Resilience & Architecture Upgrade
 **Goal:** Migrate to Job-based scheduling for retries and implement graceful degradation.
