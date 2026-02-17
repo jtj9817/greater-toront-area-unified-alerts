@@ -133,6 +133,7 @@ class TorontoPoliceFeedService
 
             if ($shouldReturnEmpty) {
                 $circuitBreaker->recordSuccess('toronto_police');
+
                 return [];
             }
 

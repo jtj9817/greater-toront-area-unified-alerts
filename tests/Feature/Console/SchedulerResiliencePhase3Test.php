@@ -14,4 +14,3 @@ test('failed job pruning is scheduled daily', function () {
     expect($pruneEvent)->not->toBeNull();
     expect($pruneEvent->expression)->toBe('0 0 * * *');
 });
-

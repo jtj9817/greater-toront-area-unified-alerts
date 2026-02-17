@@ -4,8 +4,8 @@ namespace App\Console\Commands;
 
 use App\Events\AlertCreated;
 use App\Models\FireIncident;
-use App\Services\Notifications\NotificationAlertFactory;
 use App\Services\FeedDataSanity;
+use App\Services\Notifications\NotificationAlertFactory;
 use App\Services\SceneIntel\SceneIntelProcessor;
 use App\Services\TorontoFireFeedService;
 use Illuminate\Console\Command;
