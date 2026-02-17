@@ -83,6 +83,7 @@ class TorontoPoliceFeedService
                     Log::warning('Skipping police feed feature with missing attributes', [
                         'result_offset' => $resultOffset,
                     ]);
+
                     continue;
                 }
 

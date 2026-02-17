@@ -13,4 +13,3 @@ return [
     */
     'allow_empty_feeds' => env('ALLOW_EMPTY_FEEDS', false),
 ];
-
