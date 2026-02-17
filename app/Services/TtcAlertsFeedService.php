@@ -8,6 +8,7 @@ use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use RuntimeException;
+use Throwable;
 
 class TtcAlertsFeedService
 {
@@ -30,22 +31,34 @@ class TtcAlertsFeedService
     public function fetch(): array
     {
         $allowEmptyFeeds = (bool) config('feeds.allow_empty_feeds');
-        [$updatedAt, $primaryAlerts] = $this->fetchLiveApiAlerts();
+        $circuitBreaker = app(FeedCircuitBreaker::class);
+        $circuitBreaker->throwIfOpen('ttc_alerts');
 
-        $alerts = $primaryAlerts;
-        $alerts = array_merge($alerts, $this->fetchSxaAlerts());
-        $alerts = array_merge($alerts, $this->fetchStaticAlerts());
+        try {
+            [$updatedAt, $primaryAlerts] = $this->fetchLiveApiAlerts();
 
-        $dedupedAlerts = array_values($this->dedupeByExternalId($alerts));
+            $alerts = $primaryAlerts;
+            $alerts = array_merge($alerts, $this->fetchSxaAlerts());
+            $alerts = array_merge($alerts, $this->fetchStaticAlerts());
 
-        if ($dedupedAlerts === [] && ! $allowEmptyFeeds) {
-            throw new RuntimeException('TTC alerts feed returned zero alerts');
+            $dedupedAlerts = array_values($this->dedupeByExternalId($alerts));
+
+            if ($dedupedAlerts === [] && ! $allowEmptyFeeds) {
+                throw new RuntimeException('TTC alerts feed returned zero alerts');
+            }
+
+            $result = [
+                'updated_at' => $updatedAt,
+                'alerts' => $dedupedAlerts,
+            ];
+
+            $circuitBreaker->recordSuccess('ttc_alerts');
+
+            return $result;
+        } catch (Throwable $exception) {
+            $circuitBreaker->recordFailure('ttc_alerts', $exception);
+            throw $exception;
         }
-
-        return [
-            'updated_at' => $updatedAt,
-            'alerts' => $dedupedAlerts,
-        ];
     }
 
     /**
@@ -68,6 +81,11 @@ class TtcAlertsFeedService
         }
 
         $updatedAt = $this->parseIsoTimestamp($data['lastUpdated'], true);
+        app(FeedDataSanity::class)->warnIfFutureTimestamp(
+            timestamp: $updatedAt,
+            source: 'ttc_alerts',
+            field: 'lastUpdated',
+        );
 
         $alerts = [];
         $buckets = ['routes', 'accessibility', 'siteWideCustom', 'generalCustom', 'stops'];

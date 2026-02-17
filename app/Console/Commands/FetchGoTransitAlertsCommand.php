@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use App\Events\AlertCreated;
 use App\Models\GoTransitAlert;
+use App\Services\FeedDataSanity;
 use App\Services\GoTransitFeedService;
 use App\Services\Notifications\NotificationAlertFactory;
 use Illuminate\Console\Command;
@@ -20,6 +21,7 @@ class FetchGoTransitAlertsCommand extends Command
     public function handle(
         GoTransitFeedService $service,
         NotificationAlertFactory $notificationAlertFactory,
+        FeedDataSanity $feedDataSanity,
     ): int {
         $this->info('Fetching GO Transit service alerts...');
 
@@ -27,6 +29,9 @@ class FetchGoTransitAlertsCommand extends Command
             try {
                 $data = $service->fetch();
                 $feedUpdatedAt = Carbon::parse($data['updated_at'])->utc();
+                $feedDataSanity->warnIfFutureTimestamp($feedUpdatedAt, 'go_transit', 'updated_at', [
+                    'command' => $this->getName(),
+                ]);
             } catch (Throwable $e) {
                 Log::error('GO Transit feed fetch failed', [
                     'exception' => $e,
@@ -45,6 +50,10 @@ class FetchGoTransitAlertsCommand extends Command
 
                 try {
                     $postedAt = Carbon::parse($alert['posted_at'], 'America/Toronto')->utc();
+                    $feedDataSanity->warnIfFutureTimestamp($postedAt, 'go_transit', 'posted_at', [
+                        'command' => $this->getName(),
+                        'external_id' => $alert['external_id'] ?? null,
+                    ]);
                 } catch (Throwable $e) {
                     Log::warning('Skipping GO Transit alert due to posted_at parse failure', [
                         'exception' => $e,

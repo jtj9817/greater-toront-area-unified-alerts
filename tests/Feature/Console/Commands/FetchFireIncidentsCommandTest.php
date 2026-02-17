@@ -10,6 +10,7 @@ use App\Services\TorontoFireFeedService;
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Mockery\MockInterface;
 
 uses(RefreshDatabase::class);
@@ -139,4 +140,74 @@ it('optimizes the query to select only necessary columns', function () {
     }
 
     expect($foundOptimizedQuery)->toBeTrue('Optimized query with specific columns not found.');
+});
+
+it('logs a warning when scene intel failure rate exceeds 50%', function () {
+    Log::spy();
+
+    FireIncident::factory()->create(['event_num' => 'E001', 'is_active' => true]);
+    FireIncident::factory()->create(['event_num' => 'E002', 'is_active' => true]);
+    FireIncident::factory()->create(['event_num' => 'E003', 'is_active' => true]);
+
+    $this->mock(TorontoFireFeedService::class, function (MockInterface $mock) {
+        $mock->shouldReceive('fetch')->once()->andReturn([
+            'updated_at' => '2026-02-17 00:00:00',
+            'events' => [
+                [
+                    'event_num' => 'E001',
+                    'event_type' => 'Fire',
+                    'prime_street' => 'Street 1',
+                    'cross_streets' => 'Cross 1',
+                    'dispatch_time' => '2026-02-17T00:00:00',
+                    'alarm_level' => 1,
+                    'beat' => 'B1',
+                    'units_dispatched' => 'U1',
+                ],
+                [
+                    'event_num' => 'E002',
+                    'event_type' => 'Fire',
+                    'prime_street' => 'Street 2',
+                    'cross_streets' => 'Cross 2',
+                    'dispatch_time' => '2026-02-17T00:01:00',
+                    'alarm_level' => 1,
+                    'beat' => 'B1',
+                    'units_dispatched' => 'U1',
+                ],
+                [
+                    'event_num' => 'E003',
+                    'event_type' => 'Fire',
+                    'prime_street' => 'Street 3',
+                    'cross_streets' => 'Cross 3',
+                    'dispatch_time' => '2026-02-17T00:02:00',
+                    'alarm_level' => 1,
+                    'beat' => 'B1',
+                    'units_dispatched' => 'U1',
+                ],
+            ],
+        ]);
+    });
+
+    $this->mock(SceneIntelProcessor::class, function (MockInterface $mock) {
+        $mock->shouldReceive('processIncidentUpdate')
+            ->withArgs(fn ($incident, $previousData) => $incident->event_num === 'E001' && is_array($previousData))
+            ->once()
+            ->andThrow(new Exception('intel failed'));
+
+        $mock->shouldReceive('processIncidentUpdate')
+            ->withArgs(fn ($incident, $previousData) => $incident->event_num === 'E002' && is_array($previousData))
+            ->once()
+            ->andThrow(new Exception('intel failed'));
+
+        $mock->shouldReceive('processIncidentUpdate')
+            ->withArgs(fn ($incident, $previousData) => $incident->event_num === 'E003' && is_array($previousData))
+            ->once();
+    });
+
+    $this->artisan(FetchFireIncidentsCommand::class)->assertExitCode(0);
+
+    Log::shouldHaveReceived('warning')
+        ->withArgs(fn (string $message, array $context): bool => $message === 'Scene intel failure rate exceeded threshold'
+            && ($context['attempts'] ?? null) === 3
+            && ($context['failures'] ?? null) === 2)
+        ->once();
 });

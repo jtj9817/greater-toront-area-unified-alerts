@@ -5,6 +5,7 @@ namespace App\Services;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use RuntimeException;
+use Throwable;
 
 class TorontoFireFeedService
 {
@@ -29,86 +30,97 @@ class TorontoFireFeedService
     public function fetch(): array
     {
         $allowEmptyFeeds = (bool) config('feeds.allow_empty_feeds');
+        $circuitBreaker = app(FeedCircuitBreaker::class);
+        $circuitBreaker->throwIfOpen('toronto_fire');
         $cacheBuster = substr(str_shuffle('abcdefghijklmnopqrstuvwxyz'), 0, 6);
 
-        $response = Http::timeout(self::TIMEOUT_SECONDS)
-            ->retry(2, 200, throw: false)
-            ->withHeaders(['Accept' => 'application/xml, text/xml'])
-            ->get(self::FEED_URL, [$cacheBuster => '']);
+        try {
+            $response = Http::timeout(self::TIMEOUT_SECONDS)
+                ->retry(2, 200, throw: false)
+                ->withHeaders(['Accept' => 'application/xml, text/xml'])
+                ->get(self::FEED_URL, [$cacheBuster => '']);
 
-        if ($response->failed()) {
-            $body = trim($response->body());
-            $details = $body === '' ? '' : ' - '.substr($body, 0, 200);
+            if ($response->failed()) {
+                $body = trim($response->body());
+                $details = $body === '' ? '' : ' - '.substr($body, 0, 200);
 
-            throw new RuntimeException('Toronto Fire feed request failed: '.$response->status().$details);
-        }
-
-        $body = $response->body();
-
-        if (trim($body) === '') {
-            throw new RuntimeException('Toronto Fire feed returned an empty response body');
-        }
-
-        $previousUseInternalErrors = libxml_use_internal_errors(true);
-        libxml_clear_errors();
-        $xml = simplexml_load_string($body);
-        $errors = libxml_get_errors();
-        libxml_clear_errors();
-        libxml_use_internal_errors($previousUseInternalErrors);
-
-        if ($xml === false) {
-            $messages = array_values(array_filter(array_map(
-                fn ($error) => isset($error->message) ? trim((string) $error->message) : null,
-                $errors
-            )));
-
-            $suffix = $messages === [] ? '' : ' - '.implode(' | ', array_slice($messages, 0, 3));
-
-            throw new RuntimeException('Failed to parse Toronto Fire XML feed'.$suffix);
-        }
-
-        $updatedAt = trim((string) $xml->update_from_db_time);
-
-        if ($updatedAt === '') {
-            throw new RuntimeException('Toronto Fire XML feed missing update_from_db_time');
-        }
-
-        $events = [];
-
-        foreach ($xml->event as $event) {
-            $eventNum = trim((string) $event->event_num);
-            $eventType = trim((string) $event->event_type);
-            $dispatchTime = trim((string) $event->dispatch_time);
-
-            if ($eventNum === '' || $eventType === '' || $dispatchTime === '') {
-                Log::warning('Toronto Fire XML feed contains an event missing required fields', [
-                    'event_num' => $eventNum ?: null,
-                    'event_type' => $eventType ?: null,
-                    'dispatch_time' => $dispatchTime ?: null,
-                ]);
-
-                continue;
+                throw new RuntimeException('Toronto Fire feed request failed: '.$response->status().$details);
             }
 
-            $events[] = [
-                'event_num' => $eventNum,
-                'event_type' => $eventType,
-                'prime_street' => trim((string) $event->prime_street) ?: null,
-                'cross_streets' => trim((string) $event->cross_streets) ?: null,
-                'dispatch_time' => $dispatchTime,
-                'alarm_level' => (int) $event->alarm_lev,
-                'beat' => trim((string) $event->beat) ?: null,
-                'units_dispatched' => trim((string) $event->units_disp) ?: null,
+            $body = $response->body();
+
+            if (trim($body) === '') {
+                throw new RuntimeException('Toronto Fire feed returned an empty response body');
+            }
+
+            $previousUseInternalErrors = libxml_use_internal_errors(true);
+            libxml_clear_errors();
+            $xml = simplexml_load_string($body);
+            $errors = libxml_get_errors();
+            libxml_clear_errors();
+            libxml_use_internal_errors($previousUseInternalErrors);
+
+            if ($xml === false) {
+                $messages = array_values(array_filter(array_map(
+                    fn ($error) => isset($error->message) ? trim((string) $error->message) : null,
+                    $errors
+                )));
+
+                $suffix = $messages === [] ? '' : ' - '.implode(' | ', array_slice($messages, 0, 3));
+
+                throw new RuntimeException('Failed to parse Toronto Fire XML feed'.$suffix);
+            }
+
+            $updatedAt = trim((string) $xml->update_from_db_time);
+
+            if ($updatedAt === '') {
+                throw new RuntimeException('Toronto Fire XML feed missing update_from_db_time');
+            }
+
+            $events = [];
+
+            foreach ($xml->event as $event) {
+                $eventNum = trim((string) $event->event_num);
+                $eventType = trim((string) $event->event_type);
+                $dispatchTime = trim((string) $event->dispatch_time);
+
+                if ($eventNum === '' || $eventType === '' || $dispatchTime === '') {
+                    Log::warning('Toronto Fire XML feed contains an event missing required fields', [
+                        'event_num' => $eventNum ?: null,
+                        'event_type' => $eventType ?: null,
+                        'dispatch_time' => $dispatchTime ?: null,
+                    ]);
+
+                    continue;
+                }
+
+                $events[] = [
+                    'event_num' => $eventNum,
+                    'event_type' => $eventType,
+                    'prime_street' => trim((string) $event->prime_street) ?: null,
+                    'cross_streets' => trim((string) $event->cross_streets) ?: null,
+                    'dispatch_time' => $dispatchTime,
+                    'alarm_level' => (int) $event->alarm_lev,
+                    'beat' => trim((string) $event->beat) ?: null,
+                    'units_dispatched' => trim((string) $event->units_disp) ?: null,
+                ];
+            }
+
+            if ($events === [] && ! $allowEmptyFeeds) {
+                throw new RuntimeException('Toronto Fire feed returned zero events');
+            }
+
+            $result = [
+                'updated_at' => $updatedAt,
+                'events' => $events,
             ];
-        }
 
-        if ($events === [] && ! $allowEmptyFeeds) {
-            throw new RuntimeException('Toronto Fire feed returned zero events');
-        }
+            $circuitBreaker->recordSuccess('toronto_fire');
 
-        return [
-            'updated_at' => $updatedAt,
-            'events' => $events,
-        ];
+            return $result;
+        } catch (Throwable $exception) {
+            $circuitBreaker->recordFailure('toronto_fire', $exception);
+            throw $exception;
+        }
     }
 }

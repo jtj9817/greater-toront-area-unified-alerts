@@ -22,6 +22,7 @@ Schedule::job(new FetchTransitAlertsJob)->name('transit:fetch-alerts')->everyFiv
 Schedule::job(new FetchGoTransitAlertsJob)->name('go-transit:fetch-alerts')->everyFiveMinutes()->withoutOverlapping(10);
 Schedule::job(new GenerateDailyDigestJob)->dailyAt('00:10')->withoutOverlapping();
 Schedule::command('notifications:prune')->daily()->withoutOverlapping();
+Schedule::command('queue:prune-failed', ['--hours' => 168])->daily()->withoutOverlapping();
 Schedule::command('model:prune', [
     '--model' => [\App\Models\IncidentUpdate::class],
 ])->daily()->withoutOverlapping();

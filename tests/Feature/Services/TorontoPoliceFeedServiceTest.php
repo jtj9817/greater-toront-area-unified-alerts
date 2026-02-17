@@ -160,3 +160,24 @@ test('it returns partial results when pagination fails mid-stream', function () 
     expect($results[0]['object_id'])->toBe(1);
     expect($service->lastFetchWasPartial())->toBeTrue();
 });
+
+test('it enforces a safety max record limit to avoid unbounded pagination memory growth', function () {
+    config([
+        'cache.default' => 'array',
+        'feeds.police.max_records' => 1,
+        'feeds.circuit_breaker.enabled' => false,
+    ]);
+
+    Http::fake([
+        '*' => Http::response([
+            'features' => [
+                ['attributes' => ['OBJECTID' => 1, 'CALL_TYPE_CODE' => 'A', 'CALL_TYPE' => 'Type A', 'DIVISION' => 'D11', 'CROSS_STREETS' => 'A ST - B ST', 'LATITUDE' => 43.65, 'LONGITUDE' => -79.38, 'OCCURRENCE_TIME' => 1706733600000]],
+                ['attributes' => ['OBJECTID' => 2, 'CALL_TYPE_CODE' => 'B', 'CALL_TYPE' => 'Type B', 'DIVISION' => 'D22', 'CROSS_STREETS' => 'C ST - D ST', 'LATITUDE' => 43.70, 'LONGITUDE' => -79.40, 'OCCURRENCE_TIME' => 1706733600000]],
+            ],
+            'exceededTransferLimit' => false,
+        ], 200),
+    ]);
+
+    $service = new TorontoPoliceFeedService;
+    $service->fetch();
+})->throws(RuntimeException::class, 'Toronto Police feed exceeded safety limit of 1 records');

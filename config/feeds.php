@@ -12,4 +12,27 @@ return [
     |
     */
     'allow_empty_feeds' => env('ALLOW_EMPTY_FEEDS', false),
+
+    'circuit_breaker' => [
+        'enabled' => true,
+        'threshold' => 5,
+        'ttl_seconds' => 300,
+    ],
+
+    'police' => [
+        'max_records' => 100000,
+    ],
+
+    'sanity' => [
+        // Warn when timestamps that should be "near now" drift too far into the future.
+        'future_timestamp_grace_seconds' => 15 * 60,
+
+        // GTA bounding box (approximate) for sanity-checking police feed coordinates.
+        'gta_bounds' => [
+            'min_lat' => 43.0,
+            'max_lat' => 44.5,
+            'min_lng' => -80.5,
+            'max_lng' => -78.0,
+        ],
+    ],
 ];

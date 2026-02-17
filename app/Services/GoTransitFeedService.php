@@ -4,6 +4,7 @@ namespace App\Services;
 
 use Illuminate\Support\Facades\Http;
 use RuntimeException;
+use Throwable;
 
 class GoTransitFeedService
 {
@@ -34,44 +35,56 @@ class GoTransitFeedService
     public function fetch(): array
     {
         $allowEmptyFeeds = (bool) config('feeds.allow_empty_feeds');
-        $response = Http::timeout(self::TIMEOUT_SECONDS)
-            ->retry(2, 200, throw: false)
-            ->acceptJson()
-            ->get(self::FEED_URL);
+        $circuitBreaker = app(FeedCircuitBreaker::class);
+        $circuitBreaker->throwIfOpen('go_transit');
 
-        if ($response->failed()) {
-            $body = trim($response->body());
-            $details = $body === '' ? '' : ' - '.substr($body, 0, 200);
+        try {
+            $response = Http::timeout(self::TIMEOUT_SECONDS)
+                ->retry(2, 200, throw: false)
+                ->acceptJson()
+                ->get(self::FEED_URL);
 
-            throw new RuntimeException('GO Transit feed request failed: '.$response->status().$details);
+            if ($response->failed()) {
+                $body = trim($response->body());
+                $details = $body === '' ? '' : ' - '.substr($body, 0, 200);
+
+                throw new RuntimeException('GO Transit feed request failed: '.$response->status().$details);
+            }
+
+            $json = $response->json();
+
+            if (! is_array($json)) {
+                throw new RuntimeException('GO Transit feed returned invalid JSON');
+            }
+
+            $updatedAt = trim((string) ($json['LastUpdated'] ?? ''));
+
+            if ($updatedAt === '') {
+                throw new RuntimeException('GO Transit feed missing LastUpdated');
+            }
+
+            $alerts = [];
+
+            $this->parseTrains($json, $alerts);
+            $this->parseBuses($json, $alerts);
+            $this->parseStations($json, $alerts);
+
+            if ($alerts === [] && ! $allowEmptyFeeds) {
+                throw new RuntimeException('GO Transit feed returned zero alerts');
+            }
+
+            $result = [
+                'updated_at' => $updatedAt,
+                'alerts' => $alerts,
+            ];
+
+            $circuitBreaker->recordSuccess('go_transit');
+
+            return $result;
+        } catch (Throwable $exception) {
+            $circuitBreaker->recordFailure('go_transit', $exception);
+            throw $exception;
         }
-
-        $json = $response->json();
-
-        if (! is_array($json)) {
-            throw new RuntimeException('GO Transit feed returned invalid JSON');
-        }
-
-        $updatedAt = trim((string) ($json['LastUpdated'] ?? ''));
-
-        if ($updatedAt === '') {
-            throw new RuntimeException('GO Transit feed missing LastUpdated');
-        }
-
-        $alerts = [];
-
-        $this->parseTrains($json, $alerts);
-        $this->parseBuses($json, $alerts);
-        $this->parseStations($json, $alerts);
-
-        if ($alerts === [] && ! $allowEmptyFeeds) {
-            throw new RuntimeException('GO Transit feed returned zero alerts');
-        }
-
-        return [
-            'updated_at' => $updatedAt,
-            'alerts' => $alerts,
-        ];
     }
 
     /**
