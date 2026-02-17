@@ -34,46 +34,46 @@ This plan addresses critical stability and resilience issues in the GTA Alerts s
 ## Phase 2: Resilience & Architecture Upgrade
 **Goal:** Migrate to Job-based scheduling for retries and implement graceful degradation.
 
-- [ ] Task: Architecture - Migrate Fire Fetch to Job
-    - [ ] Update `FetchFireIncidentsJob` with `$tries=3`, `$backoff=30`, `$timeout=120`.
-    - [ ] Ensure `FetchFireIncidentsJob` uses `WithoutOverlapping` middleware to prevent concurrent execution.
-    - [ ] Update `routes/console.php` to schedule `FetchFireIncidentsJob` instead of command.
-- [ ] Task: Architecture - Migrate Police Fetch to Job
-    - [ ] Update `FetchPoliceCallsJob` with `$tries=3`, `$backoff=30`, `$timeout=120`.
-    - [ ] Ensure `FetchPoliceCallsJob` uses `WithoutOverlapping` middleware to prevent concurrent execution.
-    - [ ] Update `routes/console.php` to schedule `FetchPoliceCallsJob` instead of command.
-- [ ] Task: Architecture - Migrate GO Transit Fetch to Job
-    - [ ] Update `FetchGoTransitAlertsJob` with `$tries=3`, `$backoff=30`, `$timeout=120`.
-    - [ ] Ensure `FetchGoTransitAlertsJob` uses `WithoutOverlapping` middleware to prevent concurrent execution.
-    - [ ] Update `routes/console.php` to schedule `FetchGoTransitAlertsJob` instead of command.
-- [ ] Task: Architecture - Migrate TTC Transit Fetch to Job
-    - [ ] Update `FetchTransitAlertsJob` with `$tries=3`, `$backoff=30`, `$timeout=120`.
-    - [ ] Ensure `FetchTransitAlertsJob` uses `WithoutOverlapping` middleware to prevent concurrent execution.
-    - [ ] Update `routes/console.php` to schedule `FetchTransitAlertsJob` instead of command.
-- [ ] Task: Resilience - Implement Empty Feed Protection (Environment)
-    - [ ] Add `ALLOW_EMPTY_FEEDS` to `.env.example`.
-    - [ ] Update `config/app.php` (or relevant config) to read `ALLOW_EMPTY_FEEDS`.
-- [ ] Task: Resilience - Implement Empty Feed Validation (Services)
-    - [ ] Update `TorontoFireFeedService` to throw if empty & !allowed.
-    - [ ] Update `TorontoPoliceFeedService` to throw if empty & !allowed.
-    - [ ] Update `GoTransitFeedService` to throw if empty & !allowed.
-    - [ ] Update `TtcAlertsFeedService` to throw if empty & !allowed.
-- [ ] Task: Resilience - Police Pagination Mid-Stream Failure Recovery
-    - [ ] Modify `TorontoPoliceFeedService` to persist partial results when a mid-pagination HTTP failure occurs (Issue 3: High severity).
-    - [ ] Add empty features array validation on first page (`$resultOffset === 0`) to distinguish API errors from legitimate empty states.
-- [ ] Task: Resilience - Implement Graceful Record Parsing
-    - [ ] `FetchFireIncidentsCommand`: Change `return self::FAILURE` to `continue` on per-record timestamp parse failure (Issue 5).
-    - [ ] `FetchGoTransitAlertsCommand`: Change `return self::FAILURE` to `continue` on per-record parse failure (Issue 5).
-    - [ ] `FetchPoliceCallsCommand`: Add per-record try-catch if not already present.
-    - [ ] `FetchTransitAlertsCommand`: Add per-record try-catch if not already present.
-    - [ ] Log warning on individual record failure, continue batch processing.
-- [ ] Task: Resilience - Configure Notification Job Retry
-    - [ ] Update `DeliverAlertNotificationJob` with `$tries=5`, `$backoff=10`.
-- [ ] Task: Testing - Phase 2 Verification
-    - [ ] Test batch processing resilience: feed with 10 items (1 malformed) results in 9 persisted and 1 warning log (unit test).
-    - [ ] Test job retry behavior on transient API failure (integration test).
-    - [ ] Test empty feed handling across all 4 sources: empty response throws exception and preserves existing data (integration test).
-    - [ ] Test police pagination mid-stream failure: partial results from successful pages are not lost (unit test).
+- [x] (a83e653) Task: Architecture - Migrate Fire Fetch to Job
+    - [x] Update `FetchFireIncidentsJob` with `$tries=3`, `$backoff=30`, `$timeout=120`.
+    - [x] Ensure `FetchFireIncidentsJob` uses `WithoutOverlapping` middleware to prevent concurrent execution.
+    - [x] Update `routes/console.php` to schedule `FetchFireIncidentsJob` instead of command.
+- [x] (a83e653) Task: Architecture - Migrate Police Fetch to Job
+    - [x] Update `FetchPoliceCallsJob` with `$tries=3`, `$backoff=30`, `$timeout=120`.
+    - [x] Ensure `FetchPoliceCallsJob` uses `WithoutOverlapping` middleware to prevent concurrent execution.
+    - [x] Update `routes/console.php` to schedule `FetchPoliceCallsJob` instead of command.
+- [x] (a83e653) Task: Architecture - Migrate GO Transit Fetch to Job
+    - [x] Update `FetchGoTransitAlertsJob` with `$tries=3`, `$backoff=30`, `$timeout=120`.
+    - [x] Ensure `FetchGoTransitAlertsJob` uses `WithoutOverlapping` middleware to prevent concurrent execution.
+    - [x] Update `routes/console.php` to schedule `FetchGoTransitAlertsJob` instead of command.
+- [x] (a83e653) Task: Architecture - Migrate TTC Transit Fetch to Job
+    - [x] Update `FetchTransitAlertsJob` with `$tries=3`, `$backoff=30`, `$timeout=120`.
+    - [x] Ensure `FetchTransitAlertsJob` uses `WithoutOverlapping` middleware to prevent concurrent execution.
+    - [x] Update `routes/console.php` to schedule `FetchTransitAlertsJob` instead of command.
+- [x] (a83e653) Task: Resilience - Implement Empty Feed Protection (Environment)
+    - [x] Add `ALLOW_EMPTY_FEEDS` to `.env.example`.
+    - [x] Update `config/app.php` (or relevant config) to read `ALLOW_EMPTY_FEEDS`.
+- [x] (a83e653) Task: Resilience - Implement Empty Feed Validation (Services)
+    - [x] Update `TorontoFireFeedService` to throw if empty & !allowed.
+    - [x] Update `TorontoPoliceFeedService` to throw if empty & !allowed.
+    - [x] Update `GoTransitFeedService` to throw if empty & !allowed.
+    - [x] Update `TtcAlertsFeedService` to throw if empty & !allowed.
+- [x] (a83e653) Task: Resilience - Police Pagination Mid-Stream Failure Recovery
+    - [x] Modify `TorontoPoliceFeedService` to persist partial results when a mid-pagination HTTP failure occurs (Issue 3: High severity).
+    - [x] Add empty features array validation on first page (`$resultOffset === 0`) to distinguish API errors from legitimate empty states.
+- [x] (a83e653) Task: Resilience - Implement Graceful Record Parsing
+    - [x] `FetchFireIncidentsCommand`: Change `return self::FAILURE` to `continue` on per-record timestamp parse failure (Issue 5).
+    - [x] `FetchGoTransitAlertsCommand`: Change `return self::FAILURE` to `continue` on per-record parse failure (Issue 5).
+    - [x] `FetchPoliceCallsCommand`: Add per-record try-catch if not already present.
+    - [x] `FetchTransitAlertsCommand`: Add per-record try-catch if not already present.
+    - [x] Log warning on individual record failure, continue batch processing.
+- [x] (a83e653) Task: Resilience - Configure Notification Job Retry
+    - [x] Update `DeliverAlertNotificationJob` with `$tries=5`, `$backoff=10`.
+- [x] (a83e653) Task: Testing - Phase 2 Verification
+    - [x] Test batch processing resilience: feed with 10 items (1 malformed) results in 9 persisted and 1 warning log (unit test).
+    - [x] Test job retry behavior on transient API failure (integration test).
+    - [x] Test empty feed handling across all 4 sources: empty response throws exception and preserves existing data (integration test).
+    - [x] Test police pagination mid-stream failure: partial results from successful pages are not lost (unit test).
 - [ ] Task: Conductor - User Manual Verification 'Phase 2: Resilience & Architecture Upgrade' (Protocol in workflow.md)
 
 ## Phase 3: Data Integrity & Maintenance
