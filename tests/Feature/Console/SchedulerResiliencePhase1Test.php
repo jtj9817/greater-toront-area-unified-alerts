@@ -20,9 +20,9 @@ test('scheduled fetch commands use short overlap mutex expiry', function () {
         'go-transit:fetch-alerts' => 10,
     ];
 
-    foreach ($expected as $commandSubstring => $expiresAtMinutes) {
-        $event = collect($schedule->events())->first(function ($event) use ($commandSubstring) {
-            return is_string($event->command) && str_contains($event->command, $commandSubstring);
+    foreach ($expected as $eventName => $expiresAtMinutes) {
+        $event = collect($schedule->events())->first(function ($event) use ($eventName) {
+            return is_string($event->description) && $event->description === $eventName;
         });
 
         expect($event)->not->toBeNull();
@@ -104,7 +104,18 @@ test('fire fetch command returns failure and logs when database is unavailable',
     $service = Mockery::mock(TorontoFireFeedService::class);
     $service->shouldReceive('fetch')->once()->andReturn([
         'updated_at' => '2026-02-03 12:00:00',
-        'events' => [],
+        'events' => [
+            [
+                'event_num' => 'E001',
+                'event_type' => 'Fire',
+                'prime_street' => 'Test St',
+                'cross_streets' => null,
+                'dispatch_time' => '2026-02-03 12:00:00',
+                'alarm_level' => 1,
+                'beat' => null,
+                'units_dispatched' => null,
+            ],
+        ],
     ]);
     app()->instance(TorontoFireFeedService::class, $service);
 

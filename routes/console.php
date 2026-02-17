@@ -1,5 +1,9 @@
 <?php
 
+use App\Jobs\FetchFireIncidentsJob;
+use App\Jobs\FetchGoTransitAlertsJob;
+use App\Jobs\FetchPoliceCallsJob;
+use App\Jobs\FetchTransitAlertsJob;
 use App\Jobs\GenerateDailyDigestJob;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
@@ -12,10 +16,10 @@ Artisan::command('inspire', function () {
 })->purpose('Display an inspiring quote');
 
 // withoutOverlapping() expiry is in minutes; we use 10 to avoid 24-hour lockouts if the scheduler crashes.
-Schedule::command('fire:fetch-incidents')->everyFiveMinutes()->withoutOverlapping(10);
-Schedule::command('police:fetch-calls')->everyTenMinutes()->withoutOverlapping(10);
-Schedule::command('transit:fetch-alerts')->everyFiveMinutes()->withoutOverlapping(10);
-Schedule::command('go-transit:fetch-alerts')->everyFiveMinutes()->withoutOverlapping(10);
+Schedule::job(new FetchFireIncidentsJob)->name('fire:fetch-incidents')->everyFiveMinutes()->withoutOverlapping(10);
+Schedule::job(new FetchPoliceCallsJob)->name('police:fetch-calls')->everyTenMinutes()->withoutOverlapping(10);
+Schedule::job(new FetchTransitAlertsJob)->name('transit:fetch-alerts')->everyFiveMinutes()->withoutOverlapping(10);
+Schedule::job(new FetchGoTransitAlertsJob)->name('go-transit:fetch-alerts')->everyFiveMinutes()->withoutOverlapping(10);
 Schedule::job(new GenerateDailyDigestJob)->dailyAt('00:10')->withoutOverlapping();
 Schedule::command('notifications:prune')->daily()->withoutOverlapping();
 Schedule::command('model:prune', [

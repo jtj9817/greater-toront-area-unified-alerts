@@ -120,14 +120,14 @@ try {
         'go-transit:fetch-alerts' => 10,
     ];
 
-    foreach ($expectedFetchCommands as $commandSubstring => $expiresAtMinutes) {
-        $event = $events->first(function ($event) use ($commandSubstring) {
-            return is_string($event->command) && str_contains($event->command, $commandSubstring);
+    foreach ($expectedFetchCommands as $eventName => $expiresAtMinutes) {
+        $event = $events->first(function ($event) use ($eventName) {
+            return is_string($event->description) && $event->description === $eventName;
         });
 
-        assertTrue($event !== null, "scheduled event exists for {$commandSubstring}");
-        assertTrue((bool) $event->withoutOverlapping, "{$commandSubstring} has withoutOverlapping enabled");
-        assertTrue((int) $event->expiresAt === $expiresAtMinutes, "{$commandSubstring} expiresAt is {$expiresAtMinutes} minutes", [
+        assertTrue($event !== null, "scheduled event exists for {$eventName}");
+        assertTrue((bool) $event->withoutOverlapping, "{$eventName} has withoutOverlapping enabled");
+        assertTrue((int) $event->expiresAt === $expiresAtMinutes, "{$eventName} expiresAt is {$expiresAtMinutes} minutes", [
             'actual_expiresAt' => $event->expiresAt,
         ]);
     }

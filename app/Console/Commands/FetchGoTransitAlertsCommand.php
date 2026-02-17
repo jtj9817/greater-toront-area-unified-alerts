@@ -46,16 +46,16 @@ class FetchGoTransitAlertsCommand extends Command
                 try {
                     $postedAt = Carbon::parse($alert['posted_at'], 'America/Toronto')->utc();
                 } catch (Throwable $e) {
-                    Log::error('Failed to parse GO Transit alert posted_at', [
+                    Log::warning('Skipping GO Transit alert due to posted_at parse failure', [
                         'exception' => $e,
                         'command' => $this->getName(),
                         'external_id' => $alert['external_id'] ?? null,
                         'posted_at' => $alert['posted_at'] ?? null,
                     ]);
 
-                    $this->error("Failed to parse posted_at for alert {$alert['external_id']}: {$e->getMessage()}");
+                    $this->warn("Skipping alert {$alert['external_id']} due to posted_at parse failure: {$e->getMessage()}");
 
-                    return self::FAILURE;
+                    continue;
                 }
 
                 $goTransitAlert = GoTransitAlert::updateOrCreate(

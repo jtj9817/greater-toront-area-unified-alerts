@@ -6,8 +6,10 @@ use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
+use Illuminate\Queue\Middleware\WithoutOverlapping;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Artisan;
+use RuntimeException;
 
 class FetchPoliceCallsJob implements ShouldQueue
 {
@@ -28,6 +30,25 @@ class FetchPoliceCallsJob implements ShouldQueue
     public $backoff = 30;
 
     /**
+     * The number of seconds the job can run before timing out.
+     *
+     * @var int
+     */
+    public $timeout = 120;
+
+    /**
+     * @return array<int, object>
+     */
+    public function middleware(): array
+    {
+        return [
+            (new WithoutOverlapping('fetch-police-calls'))
+                ->dontRelease()
+                ->expireAfter(10 * 60),
+        ];
+    }
+
+    /**
      * Create a new job instance.
      */
     public function __construct()
@@ -40,6 +61,10 @@ class FetchPoliceCallsJob implements ShouldQueue
      */
     public function handle(): void
     {
-        Artisan::call('police:fetch-calls');
+        $exitCode = Artisan::call('police:fetch-calls');
+
+        if ($exitCode !== 0) {
+            throw new RuntimeException("police:fetch-calls failed with exit code {$exitCode}");
+        }
     }
 }

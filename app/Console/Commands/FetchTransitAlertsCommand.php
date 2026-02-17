@@ -41,34 +41,45 @@ class FetchTransitAlertsCommand extends Command
             $activeExternalIds = [];
 
             foreach ($data['alerts'] as $alert) {
-                $externalId = $alert['external_id'] ?? null;
-                if (! is_string($externalId) || $externalId === '') {
-                    continue;
-                }
+                try {
+                    $externalId = $alert['external_id'] ?? null;
+                    if (! is_string($externalId) || $externalId === '') {
+                        continue;
+                    }
 
-                $activeExternalIds[$externalId] = true;
+                    $activeExternalIds[$externalId] = true;
 
-                /** @var TransitAlert|null $existing */
-                $existing = TransitAlert::query()->where('external_id', $externalId)->first();
-                $previousEffect = $existing?->effect;
-                $previousActive = $existing?->is_active ?? false;
+                    /** @var TransitAlert|null $existing */
+                    $existing = TransitAlert::query()->where('external_id', $externalId)->first();
+                    $previousEffect = $existing?->effect;
+                    $previousActive = $existing?->is_active ?? false;
 
-                $transitAlert = TransitAlert::updateOrCreate(
-                    ['external_id' => $externalId],
-                    array_merge($alert, [
-                        'is_active' => true,
-                        'feed_updated_at' => $feedUpdatedAt,
-                    ])
-                );
+                    $transitAlert = TransitAlert::updateOrCreate(
+                        ['external_id' => $externalId],
+                        array_merge($alert, [
+                            'is_active' => true,
+                            'feed_updated_at' => $feedUpdatedAt,
+                        ])
+                    );
 
-                if ($this->shouldDispatchNotification(
-                    transitAlert: $transitAlert,
-                    previousEffect: $previousEffect,
-                    wasPreviouslyActive: $previousActive,
-                )) {
-                    event(new AlertCreated(
-                        $notificationAlertFactory->fromTransitAlert($transitAlert),
-                    ));
+                    if ($this->shouldDispatchNotification(
+                        transitAlert: $transitAlert,
+                        previousEffect: $previousEffect,
+                        wasPreviouslyActive: $previousActive,
+                    )) {
+                        event(new AlertCreated(
+                            $notificationAlertFactory->fromTransitAlert($transitAlert),
+                        ));
+                    }
+                } catch (Throwable $exception) {
+                    Log::warning('Skipping transit alert record due to persistence failure', [
+                        'exception' => $exception,
+                        'command' => $this->getName(),
+                        'external_id' => $alert['external_id'] ?? null,
+                    ]);
+
+                    $externalId = is_string($alert['external_id'] ?? null) ? $alert['external_id'] : '(unknown)';
+                    $this->warn("Skipping transit alert {$externalId} due to persistence failure: {$exception->getMessage()}");
                 }
             }
 

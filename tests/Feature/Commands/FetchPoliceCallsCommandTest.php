@@ -23,6 +23,7 @@ test('it creates new records from feed data', function () {
                 'occurrence_time' => Carbon::now(),
             ],
         ]);
+        $mock->shouldReceive('lastFetchWasPartial')->once()->andReturnFalse();
     });
 
     $this->artisan('police:fetch-calls')
@@ -56,6 +57,7 @@ test('it updates existing records on re-fetch', function () {
                 'occurrence_time' => Carbon::now(),
             ],
         ]);
+        $mock->shouldReceive('lastFetchWasPartial')->once()->andReturnFalse();
     });
 
     $this->artisan('police:fetch-calls')->assertExitCode(0);
@@ -87,6 +89,7 @@ test('it deactivates calls no longer in the feed', function () {
                 'occurrence_time' => Carbon::now(),
             ],
         ]);
+        $mock->shouldReceive('lastFetchWasPartial')->once()->andReturnFalse();
     });
 
     $this->artisan('police:fetch-calls')
@@ -103,16 +106,18 @@ test('it deactivates calls no longer in the feed', function () {
     ]);
 });
 
-test('it handles empty feed gracefully', function () {
+test('it preserves existing data when feed is empty and empty feeds are not allowed', function () {
     PoliceCall::factory()->create(['is_active' => true]);
 
     $this->mock(TorontoPoliceFeedService::class, function (MockInterface $mock) {
-        $mock->shouldReceive('fetch')->once()->andReturn([]);
+        $mock->shouldReceive('fetch')->once()->andThrow(new RuntimeException('Toronto Police feed returned zero records'));
     });
 
-    $this->artisan('police:fetch-calls')->assertExitCode(0);
+    $this->artisan('police:fetch-calls')
+        ->expectsOutputToContain('Failed to fetch police calls: Toronto Police feed returned zero records')
+        ->assertExitCode(1);
 
-    expect(PoliceCall::where('is_active', true)->count())->toBe(0);
+    expect(PoliceCall::where('is_active', true)->count())->toBe(1);
 });
 
 test('active scope returns only active records', function () {
@@ -149,6 +154,7 @@ test('it dispatches alert created events for new calls', function () {
                 'occurrence_time' => Carbon::parse('2026-02-10T09:30:00Z'),
             ],
         ]);
+        $mock->shouldReceive('lastFetchWasPartial')->once()->andReturnFalse();
     });
 
     $this->artisan('police:fetch-calls')->assertExitCode(0);
@@ -158,4 +164,39 @@ test('it dispatches alert created events for new calls', function () {
             && $event->alert->source === 'police'
             && $event->alert->severity === 'major';
     });
+});
+
+test('it skips deactivation when the police feed fetch is partial', function () {
+    PoliceCall::factory()->create([
+        'object_id' => 111,
+        'is_active' => true,
+    ]);
+
+    $this->mock(TorontoPoliceFeedService::class, function (MockInterface $mock) {
+        $mock->shouldReceive('fetch')->once()->andReturn([
+            [
+                'object_id' => 222,
+                'call_type_code' => 'BREPR',
+                'call_type' => 'BREAK & ENTER IN PROGRESS',
+                'division' => 'D42',
+                'cross_streets' => 'BAY ST - YORK ST',
+                'latitude' => 43.65,
+                'longitude' => -79.38,
+                'occurrence_time' => Carbon::now(),
+            ],
+        ]);
+        $mock->shouldReceive('lastFetchWasPartial')->once()->andReturnTrue();
+    });
+
+    $this->artisan('police:fetch-calls')->assertExitCode(0);
+
+    $this->assertDatabaseHas('police_calls', [
+        'object_id' => 111,
+        'is_active' => true,
+    ]);
+
+    $this->assertDatabaseHas('police_calls', [
+        'object_id' => 222,
+        'is_active' => true,
+    ]);
 });

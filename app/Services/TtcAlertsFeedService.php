@@ -29,15 +29,22 @@ class TtcAlertsFeedService
      */
     public function fetch(): array
     {
+        $allowEmptyFeeds = (bool) config('feeds.allow_empty_feeds');
         [$updatedAt, $primaryAlerts] = $this->fetchLiveApiAlerts();
 
         $alerts = $primaryAlerts;
         $alerts = array_merge($alerts, $this->fetchSxaAlerts());
         $alerts = array_merge($alerts, $this->fetchStaticAlerts());
 
+        $dedupedAlerts = array_values($this->dedupeByExternalId($alerts));
+
+        if ($dedupedAlerts === [] && ! $allowEmptyFeeds) {
+            throw new RuntimeException('TTC alerts feed returned zero alerts');
+        }
+
         return [
             'updated_at' => $updatedAt,
-            'alerts' => array_values($this->dedupeByExternalId($alerts)),
+            'alerts' => $dedupedAlerts,
         ];
     }
 

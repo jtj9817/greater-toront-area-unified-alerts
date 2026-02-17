@@ -111,6 +111,8 @@ test('it handles missing optional fields', function () {
 });
 
 test('it returns empty array for empty features', function () {
+    config(['feeds.allow_empty_feeds' => true]);
+
     Http::fake([
         '*' => Http::response([
             'features' => [],
@@ -121,4 +123,40 @@ test('it returns empty array for empty features', function () {
     $results = $service->fetch();
 
     expect($results)->toBeEmpty();
+});
+
+test('it throws exception on empty features when empty feeds are not allowed', function () {
+    config(['feeds.allow_empty_feeds' => false]);
+
+    Http::fake([
+        '*' => Http::response([
+            'features' => [],
+            'exceededTransferLimit' => false,
+        ]),
+    ]);
+
+    $service = new TorontoPoliceFeedService;
+    $service->fetch();
+})->throws(RuntimeException::class, 'Toronto Police feed returned an empty features array on the first page');
+
+test('it returns partial results when pagination fails mid-stream', function () {
+    Http::fake([
+        '*' => Http::sequence()
+            ->push([
+                'features' => [
+                    ['attributes' => ['OBJECTID' => 1, 'CALL_TYPE_CODE' => 'A', 'CALL_TYPE' => 'Type A', 'DIVISION' => 'D11', 'CROSS_STREETS' => 'A ST - B ST', 'LATITUDE' => 43.65, 'LONGITUDE' => -79.38, 'OCCURRENCE_TIME' => 1706733600000]],
+                ],
+                'exceededTransferLimit' => true,
+            ])
+            ->push([], 500)
+            ->push([], 500)
+            ->push([], 500),
+    ]);
+
+    $service = new TorontoPoliceFeedService;
+    $results = $service->fetch();
+
+    expect($results)->toHaveCount(1);
+    expect($results[0]['object_id'])->toBe(1);
+    expect($service->lastFetchWasPartial())->toBeTrue();
 });

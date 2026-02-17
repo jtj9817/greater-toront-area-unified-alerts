@@ -33,6 +33,7 @@ class GoTransitFeedService
      */
     public function fetch(): array
     {
+        $allowEmptyFeeds = (bool) config('feeds.allow_empty_feeds');
         $response = Http::timeout(self::TIMEOUT_SECONDS)
             ->retry(2, 200, throw: false)
             ->acceptJson()
@@ -62,6 +63,10 @@ class GoTransitFeedService
         $this->parseTrains($json, $alerts);
         $this->parseBuses($json, $alerts);
         $this->parseStations($json, $alerts);
+
+        if ($alerts === [] && ! $allowEmptyFeeds) {
+            throw new RuntimeException('GO Transit feed returned zero alerts');
+        }
 
         return [
             'updated_at' => $updatedAt,

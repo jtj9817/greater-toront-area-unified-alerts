@@ -4,7 +4,9 @@ namespace App\Jobs;
 
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
+use Illuminate\Queue\Middleware\WithoutOverlapping;
 use Illuminate\Support\Facades\Artisan;
+use RuntimeException;
 
 class FetchFireIncidentsJob implements ShouldQueue
 {
@@ -14,8 +16,26 @@ class FetchFireIncidentsJob implements ShouldQueue
 
     public int $backoff = 30;
 
+    public int $timeout = 120;
+
+    /**
+     * @return array<int, object>
+     */
+    public function middleware(): array
+    {
+        return [
+            (new WithoutOverlapping('fetch-fire-incidents'))
+                ->dontRelease()
+                ->expireAfter(10 * 60),
+        ];
+    }
+
     public function handle(): void
     {
-        Artisan::call('fire:fetch-incidents');
+        $exitCode = Artisan::call('fire:fetch-incidents');
+
+        if ($exitCode !== 0) {
+            throw new RuntimeException("fire:fetch-incidents failed with exit code {$exitCode}");
+        }
     }
 }

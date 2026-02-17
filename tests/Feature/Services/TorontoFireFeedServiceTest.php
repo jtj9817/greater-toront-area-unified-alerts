@@ -126,6 +126,8 @@ test('it handles missing optional fields', function () {
 });
 
 test('it returns empty array for empty events', function () {
+    config(['feeds.allow_empty_feeds' => true]);
+
     $xml = <<<'XML'
     <tfs_active_incidents>
       <update_from_db_time>2026-01-31 13:45:01</update_from_db_time>
@@ -141,3 +143,20 @@ test('it returns empty array for empty events', function () {
 
     expect($results['events'])->toBeEmpty();
 });
+
+test('it throws exception on empty events when empty feeds are not allowed', function () {
+    config(['feeds.allow_empty_feeds' => false]);
+
+    $xml = <<<'XML'
+    <tfs_active_incidents>
+      <update_from_db_time>2026-01-31 13:45:01</update_from_db_time>
+    </tfs_active_incidents>
+    XML;
+
+    Http::fake([
+        '*' => Http::response($xml, 200),
+    ]);
+
+    $service = new TorontoFireFeedService;
+    $service->fetch();
+})->throws(RuntimeException::class, 'Toronto Fire feed returned zero events');

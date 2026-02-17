@@ -154,6 +154,8 @@ test('it strips html from message body', function () {
 });
 
 test('it skips notifications without message subject', function () {
+    config(['feeds.allow_empty_feeds' => true]);
+
     $json = [
         'LastUpdated' => '2026-02-05T14:30:00-05:00',
         'Trains' => [
@@ -186,6 +188,8 @@ test('it skips notifications without message subject', function () {
 });
 
 test('it skips saag notifications without trip numbers', function () {
+    config(['feeds.allow_empty_feeds' => true]);
+
     $json = [
         'LastUpdated' => '2026-02-05T14:30:00-05:00',
         'Trains' => [
@@ -220,6 +224,8 @@ test('it skips saag notifications without trip numbers', function () {
 });
 
 test('it returns empty alerts for empty feed sections', function () {
+    config(['feeds.allow_empty_feeds' => true]);
+
     $json = [
         'LastUpdated' => '2026-02-05T14:30:00-05:00',
         'Trains' => ['Train' => []],
@@ -261,6 +267,8 @@ test('it throws exception when LastUpdated is missing', function () {
 })->throws(RuntimeException::class, 'GO Transit feed missing LastUpdated');
 
 test('it handles missing feed sections gracefully', function () {
+    config(['feeds.allow_empty_feeds' => true]);
+
     $json = [
         'LastUpdated' => '2026-02-05T14:30:00-05:00',
     ];
@@ -273,3 +281,20 @@ test('it handles missing feed sections gracefully', function () {
 
     expect($results['alerts'])->toBeEmpty();
 });
+
+test('it throws exception on empty alerts when empty feeds are not allowed', function () {
+    config(['feeds.allow_empty_feeds' => false]);
+
+    $json = [
+        'LastUpdated' => '2026-02-05T14:30:00-05:00',
+        'Trains' => ['Train' => []],
+        'Buses' => ['Bus' => []],
+        'Stations' => ['Station' => []],
+    ];
+
+    Http::fake([
+        '*' => Http::response($json, 200),
+    ]);
+
+    (new GoTransitFeedService)->fetch();
+})->throws(RuntimeException::class, 'GO Transit feed returned zero alerts');

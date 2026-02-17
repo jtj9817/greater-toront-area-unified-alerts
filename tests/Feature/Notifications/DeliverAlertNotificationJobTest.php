@@ -98,3 +98,21 @@ test('it skips rebroadcast when notification log is already delivered', function
 
     Event::assertNotDispatched(AlertNotificationSent::class);
 });
+
+test('it has correct retry configuration', function () {
+    $job = new DeliverAlertNotificationJob(
+        userId: 1,
+        payload: [
+            'alert_id' => 'police:123',
+            'source' => 'police',
+            'severity' => 'major',
+            'summary' => 'Police response in progress',
+            'occurred_at' => '2026-02-10T09:58:00+00:00',
+            'routes' => [],
+            'metadata' => [],
+        ],
+    );
+
+    expect($job->tries)->toBe(5);
+    expect($job->backoff)->toBe(10);
+});

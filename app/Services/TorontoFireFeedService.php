@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use RuntimeException;
 
 class TorontoFireFeedService
@@ -27,6 +28,7 @@ class TorontoFireFeedService
      */
     public function fetch(): array
     {
+        $allowEmptyFeeds = (bool) config('feeds.allow_empty_feeds');
         $cacheBuster = substr(str_shuffle('abcdefghijklmnopqrstuvwxyz'), 0, 6);
 
         $response = Http::timeout(self::TIMEOUT_SECONDS)
@@ -79,7 +81,13 @@ class TorontoFireFeedService
             $dispatchTime = trim((string) $event->dispatch_time);
 
             if ($eventNum === '' || $eventType === '' || $dispatchTime === '') {
-                throw new RuntimeException('Toronto Fire XML feed contains an event missing required fields');
+                Log::warning('Toronto Fire XML feed contains an event missing required fields', [
+                    'event_num' => $eventNum ?: null,
+                    'event_type' => $eventType ?: null,
+                    'dispatch_time' => $dispatchTime ?: null,
+                ]);
+
+                continue;
             }
 
             $events[] = [
@@ -92,6 +100,10 @@ class TorontoFireFeedService
                 'beat' => trim((string) $event->beat) ?: null,
                 'units_dispatched' => trim((string) $event->units_disp) ?: null,
             ];
+        }
+
+        if ($events === [] && ! $allowEmptyFeeds) {
+            throw new RuntimeException('Toronto Fire feed returned zero events');
         }
 
         return [

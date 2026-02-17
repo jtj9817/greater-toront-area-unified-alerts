@@ -65,16 +65,16 @@ class FetchFireIncidentsCommand extends Command
                 try {
                     $dispatchTime = Carbon::parse($event['dispatch_time'], 'America/Toronto')->utc();
                 } catch (Throwable $e) {
-                    Log::error('Failed to parse fire incident dispatch_time', [
+                    Log::warning('Skipping fire incident due to dispatch_time parse failure', [
                         'exception' => $e,
                         'command' => $this->getName(),
                         'event_num' => $event['event_num'] ?? null,
                         'dispatch_time' => $event['dispatch_time'] ?? null,
                     ]);
 
-                    $this->error("Failed to parse dispatch_time for event {$event['event_num']}: {$e->getMessage()}");
+                    $this->warn("Skipping event {$event['event_num']} due to dispatch_time parse failure: {$e->getMessage()}");
 
-                    return self::FAILURE;
+                    continue;
                 }
 
                 $incident = FireIncident::updateOrCreate(
