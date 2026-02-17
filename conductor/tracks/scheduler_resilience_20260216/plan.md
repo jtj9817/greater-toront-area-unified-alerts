@@ -79,27 +79,28 @@ This plan addresses critical stability and resilience issues in the GTA Alerts s
 ## Phase 3: Data Integrity & Maintenance
 **Goal:** Ensure data quality and long-term system health.
 
-- [ ] Task: Data Integrity - Timestamp Sanity Checks
-    - [ ] Add warning logic for future timestamps (>15 min) in all parsers.
-    - [ ] Add warning logic for unreasonable coordinates (outside GTA) in Police/Fire parsers.
-- [ ] Task: Data Integrity - Memory Safety
-    - [ ] Implement safety limit (max records) in `TorontoPoliceFeedService` pagination loop.
-- [ ] Task: Data Integrity - Scene Intel Monitoring
-    - [ ] Add failure rate tracking to `FetchFireIncidentsCommand`/`Job` (and others using Scene Intel).
-    - [ ] Log warning if Scene Intel failure rate > 50%.
-- [ ] Task: Maintenance - Failed Job Pruning
-    - [ ] Add scheduled command `queue:prune-failed --hours=168` to `routes/console.php`.
-- [ ] Task: Resilience - Implement Circuit Breaker
-    - [ ] Add basic circuit breaker logic (cache-based counter) to all 4 feed services:
-        - [ ] `TorontoFireFeedService`
-        - [ ] `TorontoPoliceFeedService`
-        - [ ] `GoTransitFeedService`
-        - [ ] `TtcAlertsFeedService`
-    - [ ] Threshold: 5 failures, TTL: 5 minutes.
-- [ ] Task: Testing - Phase 3 Verification
-    - [ ] Test circuit breaker opens after threshold and auto-recovers after TTL (integration test).
-    - [ ] Test memory safety limit triggers error on oversized police pagination response (unit test).
-    - [ ] Test Scene Intel failure rate logging triggers warning at >50% threshold (unit test).
+- [x] (ddc0c3d) Task: Data Integrity - Timestamp Sanity Checks
+    - [x] Add warning logic for future timestamps (>15 min) in all parsers.
+    - [x] Add warning logic for unreasonable coordinates (outside GTA) in Police/Fire parsers.
+        - [x] Note: Toronto Fire feed does not provide coordinates; coordinate sanity is applied to police records only.
+- [x] (ddc0c3d) Task: Data Integrity - Memory Safety
+    - [x] Implement safety limit (max records) in `TorontoPoliceFeedService` pagination loop.
+- [x] (ddc0c3d) Task: Data Integrity - Scene Intel Monitoring
+    - [x] Add failure rate tracking to `FetchFireIncidentsCommand`/`Job` (and others using Scene Intel).
+    - [x] Log warning if Scene Intel failure rate > 50%.
+- [x] (ddc0c3d) Task: Maintenance - Failed Job Pruning
+    - [x] Add scheduled command `queue:prune-failed --hours=168` to `routes/console.php`.
+- [x] (ddc0c3d) Task: Resilience - Implement Circuit Breaker
+    - [x] Add basic circuit breaker logic (cache-based counter) to all 4 feed services:
+        - [x] `TorontoFireFeedService`
+        - [x] `TorontoPoliceFeedService`
+        - [x] `GoTransitFeedService`
+        - [x] `TtcAlertsFeedService`
+    - [x] Threshold: 5 failures, TTL: 5 minutes.
+- [x] (ddc0c3d) Task: Testing - Phase 3 Verification
+    - [x] Test circuit breaker opens after threshold and auto-recovers after TTL (integration test).
+    - [x] Test memory safety limit triggers error on oversized police pagination response (unit test).
+    - [x] Test Scene Intel failure rate logging triggers warning at >50% threshold (unit test).
 - [ ] Task: Conductor - User Manual Verification 'Phase 3: Data Integrity & Maintenance' (Protocol in workflow.md)
 
 ## Phase 4: Quality & Documentation
