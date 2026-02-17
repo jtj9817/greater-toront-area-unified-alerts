@@ -12,9 +12,15 @@
 
 ## Summary
 
-This ticket documents a comprehensive analysis of failure modes, edge cases, and recovery mechanisms for the GTA Alerts scheduled task system. The analysis reveals critical gaps in exception handling that can cause scheduled commands to stop executing for up to 24 hours when database or external API failures occur, despite the scheduler process continuing to run normally.
+This ticket documents a comprehensive analysis of failure modes, edge cases, and recovery mechanisms for the GTA Alerts scheduled task system. The analysis reveals critical gaps in exception handling and data validation that can cause scheduled commands to stop executing for up to 24 hours when database or external API failures occur, despite the scheduler process continuing to run normally.
 
-**Key Finding:** Commands using `withoutOverlapping()` have unprotected database operations that can leave mutex locks permanently acquired, causing complete stoppage of that data source until mutex expiration (24-hour default).
+**Key Findings:**
+
+1. **Mutex Lock Deadlock (Issue 1):** Commands using `withoutOverlapping()` have unprotected database operations that can leave mutex locks permanently acquired, causing complete stoppage of that data source until mutex expiration (24-hour default).
+
+2. **Mass Deactivation on Empty Feeds (Issue 4):** All 4 data sources (Fire, Police, GO Transit, TTC Transit) will deactivate ALL active alerts if external APIs return valid but empty responses, with no ability to distinguish API errors from legitimate empty states.
+
+3. **Persistent Crash Loops:** String truncation and other data validation failures create crash loops that persist indefinitely (24-hour cycles) until external API data is fixed, unlike transient failures that auto-recover.
 
 ---
 
@@ -225,6 +231,21 @@ php artisan scheduler:status --max-age="$SCHEDULER_MAX_AGE_MINUTES"
 
 **Root Cause:** Database operations outside try-catch blocks can throw `QueryException`, causing command crash before mutex release.
 
+**Exception Types:**
+
+1. **Transient (Auto-Recoverable):**
+   - Database connection loss (`SQLSTATE[HY000] [2002] Connection refused`)
+   - Lock timeout (`SQLSTATE[HY000]: Lock wait timeout exceeded`)
+   - Deadlock (`SQLSTATE[40001]: Deadlock found when trying to get lock`)
+
+2. **Persistent (Requires Data/Schema Fix):**
+   - **String truncation:** `SQLSTATE[22001]: Data too long for column 'event_type'`
+     - Example: API returns 500-character event type, column is VARCHAR(255)
+     - **Characteristic:** Will fail on **every subsequent run** until source data changes
+     - **No auto-recovery:** Requires manual intervention (API fix or schema migration)
+   - Constraint violation: `SQLSTATE[23000]: Duplicate entry`
+   - Invalid data type: `SQLSTATE[22007]: Invalid datetime format`
+
 **Vulnerable Code Zones in FetchFireIncidentsCommand.php:**
 
 **Zone 1 - Line 44-48:** Existing incidents query
@@ -235,17 +256,19 @@ $existingIncidentsByEventNum = FireIncident::query()
     ->get()  // ← QueryException can throw here
     ->keyBy('event_num');
 ```
+**Possible Exceptions:** Connection loss, lock timeout
 
 **Zone 2 - Line 65-78:** Insert/Update operation
 ```php
 $incident = FireIncident::updateOrCreate(  // ← QueryException can throw here
     ['event_num' => $event['event_num']],
     [
-        'event_type' => $event['event_type'],
+        'event_type' => $event['event_type'],  // ← String truncation risk
         // ... 8 more fields
     ]
 );
 ```
+**Possible Exceptions:** Connection loss, string truncation (persistent), constraint violation
 
 **Zone 3 - Line 81-83:** Event broadcasting
 ```php
@@ -253,6 +276,7 @@ event(new AlertCreated(  // ← Broadcasting exception can throw here
     $notificationAlertFactory->fromFireIncident($incident),
 ));
 ```
+**Possible Exceptions:** Redis connection failure, serialization error
 
 **Zone 4 - Line 103-105:** Deactivation update
 ```php
@@ -260,14 +284,16 @@ FireIncident::query()
     ->whereIn('id', $deactivatedIncidents->pluck('id'))
     ->update(['is_active' => false]);  // ← QueryException can throw here
 ```
+**Possible Exceptions:** Connection loss, lock timeout
 
 **Zone 5 - Line 111:** Scene Intel processing in deactivation loop
 ```php
 $sceneIntelProcessor->processIncidentUpdate($deactivatedIncident, $previousData);
 // ← No try-catch wrapper
 ```
+**Possible Exceptions:** LLM API timeout, HTTP error
 
-**Failure Timeline:**
+**Failure Timeline (Transient Exception):**
 
 | **Time** | **Event** | **System State** |
 |----------|-----------|------------------|
@@ -275,11 +301,27 @@ $sceneIntelProcessor->processIncidentUpdate($deactivatedIncident, $previousData)
 | T+0:15 | Processing event 5 of 10 | Database connection lost |
 | T+0:15.001 | `updateOrCreate()` throws `QueryException` | Command crashes, exits with uncaught exception |
 | T+0:15.002 | | **Mutex remains locked** (not released) |
-| T+5:00 | Scheduler attempts fire command | **SKIPPED** - mutex check fails (`withoutOverlapping()` |
+| T+5:00 | Scheduler attempts fire command | **SKIPPED** - mutex check fails (`withoutOverlapping()`) |
 | T+10:00 | Scheduler attempts fire command | **SKIPPED** - mutex still locked |
-| T+15:00 | Scheduler attempts fire command | **SKIPPED** - mutex still locked |
+| T+15:00 | Database recovers | (Irrelevant - command still blocked) |
 | ... | | **Pattern continues** |
 | T+24:00:00 | Mutex TTL expires | Fire command resumes normal execution |
+
+**Failure Timeline (Persistent Exception - String Truncation):**
+
+| **Time** | **Event** | **System State** |
+|----------|-----------|------------------|
+| T+0:00 | API returns event with 500-char event_type | Column limit: VARCHAR(255) |
+| T+0:00.100 | Fire command processes event #3 | `updateOrCreate()` throws: "Data too long" |
+| T+0:00.101 | Command crashes | **Mutex locked for 24 hours** |
+| T+24:00:00 | Mutex expires, command runs again | **SAME API DATA** still has 500-char field |
+| T+24:00:01 | Command crashes again | **Mutex locked for another 24 hours** |
+| T+48:00:00 | Mutex expires, command runs again | Crash loop continues indefinitely |
+| ... | | **System stopped until API fixes data** |
+
+**Key Difference:**
+- **Transient failures:** Auto-recover after 24h when mutex expires
+- **Persistent failures:** Never recover without manual intervention (API data fix or schema migration)
 
 **Impact:**
 - Fire incident alerts **completely stopped** for up to 24 hours
@@ -376,23 +418,29 @@ return $allFeatures;
 
 **Gap:** No partial result persistence. All-or-nothing approach loses work on transient failures.
 
-### Issue 4: Empty Police Features Array Deactivates All Calls
+### Issue 4: Empty Feed Response Deactivates All Alerts (All Sources)
 
-**Severity:** 🟡 High
+**Severity:** 🔴 Critical
 
-**Code:** TorontoPoliceFeedService.php:44-46
+**Affected Sources:** Fire, Police, GO Transit, TTC Transit (all 4 data sources)
 
+**Root Cause:** Commands cannot distinguish between "API returned no results due to error" vs "legitimately zero active alerts". Empty feed responses trigger mass deactivation logic.
+
+---
+
+#### 4A. Police Calls - Direct `whereNotIn()` with Empty Array
+
+**Code:** FetchPoliceCallsCommand.php:48-77 + TorontoPoliceFeedService.php:44-46
+
+**Validation Gap:**
 ```php
 if (! isset($data['features'])) {
     throw new RuntimeException("Unexpected API response format: 'features' key missing.");
 }
+// ❌ Missing: Empty array check
 ```
 
-**Gap:** No validation for empty array case.
-
-**Scenario:**
-
-API returns valid JSON but zero features:
+**Scenario:** API returns valid JSON but zero features:
 ```json
 {
   "features": [],
@@ -400,30 +448,127 @@ API returns valid JSON but zero features:
 }
 ```
 
-**Flow in FetchPoliceCallsCommand.php:48-77:**
-
+**Flow:**
 ```php
 $calls = $service->fetch();  // Returns []
-$this->info('Found '.count($calls).' calls in the feed. Updating database...');  // "Found 0 calls"
-
 $objectIdsInFeed = [];  // Empty array
 
 foreach ($calls as $callData) {  // Never executes
     $objectIdsInFeed[] = $callData['object_id'];
 }
 
-// Deactivate calls no longer in the feed
-$deactivatedCount = PoliceCall::where('is_active', true)
-    ->whereNotIn('object_id', $objectIdsInFeed)  // WHERE object_id NOT IN () → deactivates ALL
+// WHERE object_id NOT IN () → TRUE for all rows
+PoliceCall::where('is_active', true)
+    ->whereNotIn('object_id', $objectIdsInFeed)
+    ->update(['is_active' => false']);
+```
+
+**SQL Behavior:** `NOT IN ()` with empty array evaluates to TRUE for all rows → **ALL CALLS DEACTIVATED**
+
+---
+
+#### 4B. Fire Incidents - Conditional `whereNotIn()` Omission
+
+**Code:** FetchFireIncidentsCommand.php:93-99
+
+**Scenario:** API returns valid XML with zero events:
+```xml
+<incidents>
+    <update_from_db_time>2026-02-16 10:00:00</update_from_db_time>
+    <!-- No <event> elements -->
+</incidents>
+```
+
+**Flow:**
+```php
+$data['events'] = [];  // Empty array from parser
+$activeEventNums = [];  // Remains empty (foreach never executes)
+
+$deactivationQuery = FireIncident::query()->where('is_active', true);
+
+if ($activeEventNums !== []) {  // FALSE - condition not met
+    $deactivationQuery->whereNotIn('event_num', $activeEventNums);
+}
+// Query becomes: UPDATE fire_incidents SET is_active = 0 WHERE is_active = 1
+```
+
+**Result:** **ALL FIRE INCIDENTS DEACTIVATED**
+
+---
+
+#### 4C. GO Transit Alerts - Direct `whereNotIn()` with Empty Array
+
+**Code:** FetchGoTransitAlertsCommand.php:74-76
+
+**Scenario:** API returns valid JSON with empty alert collections:
+```json
+{
+  "LastUpdated": "2026-02-16T10:00:00",
+  "Trains": {"Train": []},
+  "Buses": {"Bus": []},
+  "Stations": {"Station": []}
+}
+```
+
+**Flow:**
+```php
+$activeExternalIds = [];  // No alerts parsed
+
+GoTransitAlert::where('is_active', true)
+    ->whereNotIn('external_id', $activeExternalIds)  // NOT IN () → all rows
     ->update(['is_active' => false]);
 ```
 
-**Impact:**
-- All active police calls marked inactive
-- Frontend shows zero police alerts
-- On next successful fetch: Calls re-activated (marked as new alerts, triggering notifications)
+**Result:** **ALL GO TRANSIT ALERTS DEACTIVATED**
 
-**Root Cause:** Cannot distinguish between "API returned no results" vs "API is down" vs "legitimately no active calls".
+---
+
+#### 4D. TTC Transit Alerts - Conditional `whereNotIn()` Omission
+
+**Code:** FetchTransitAlertsCommand.php:67-73
+
+**Scenario:** TTC API returns valid response with zero alerts.
+
+**Flow:**
+```php
+$activeExternalIds = [];  // Empty array
+
+$staleQuery = TransitAlert::query()->where('is_active', true);
+
+if ($activeExternalIds !== []) {  // FALSE
+    $staleQuery->whereNotIn('external_id', array_keys($activeExternalIds));
+}
+// Query becomes: UPDATE transit_alerts SET is_active = 0 WHERE is_active = 1
+```
+
+**Result:** **ALL TTC TRANSIT ALERTS DEACTIVATED**
+
+---
+
+#### Cross-Source Impact
+
+**Trigger Scenarios:**
+1. API maintenance returns valid empty response instead of error code
+2. API bug returns empty data structure
+3. Network middleware (proxy, CDN) returns cached empty response
+4. API rate limiting returns valid JSON/XML with zero items
+
+**Cascade Effect:**
+
+| **Time** | **Event** | **Frontend State** |
+|----------|-----------|-------------------|
+| 10:00:00 | Fire API glitch returns empty XML | All fire alerts disappear |
+| 10:05:00 | GO API returns empty JSON | All GO alerts disappear |
+| 10:06:00 | User opens dashboard | **ZERO ALERTS DISPLAYED** |
+| 10:07:00 | User calls support: "Is the system down?" | Support has no visibility |
+| 10:10:00 | APIs recover, return normal data | All alerts reappear as "new" |
+| 10:10:01 | | **Mass notification spam** to all users |
+
+**Total Exposure:**
+- 4 independent data sources
+- Each running every 5-10 minutes
+- Any empty response → complete data loss for that source
+- No automated detection (appears as successful run with "0 active, N deactivated")
 
 ### Issue 5: Hard Fail on Single Malformed Record Stops Batch Processing
 
@@ -761,7 +906,7 @@ try {
     $sceneIntelProcessor->processIncidentUpdate($incident, $previousData);
 } catch (\Throwable $e) {
     $this->error("Failed to generate scene intel for event {$incident->event_num}: {$e->getMessage()}");
-    // Continues processing
+    // Continues processing - no retry mechanism
 }
 ```
 
@@ -784,10 +929,23 @@ try {
 - Error logs flooded (20 errors in single run)
 - No alerting on Scene Intel failure rate
 - No circuit breaker to temporarily disable Scene Intel
+- **No retry mechanism:** Failed incidents never get Scene Intel unless:
+  - Incident is updated again (alarm level change, unit count change, etc.)
+  - Manual backfill process is run
 
-**Current Behavior:** Acceptable (soft failure, continues)
+**Data Inconsistency:**
+- Some alerts have rich contextual intelligence
+- Others have no intelligence (appears as missing/null fields in frontend)
+- Users cannot distinguish between "intel pending" vs "intel failed permanently"
 
-**Gap:** No monitoring/alerting when Scene Intel success rate drops below threshold.
+**Current Behavior:** Soft failure (continues processing) - may be **acceptable by design** if Scene Intel is "nice to have" rather than critical.
+
+**Gap:** No documentation clarifying:
+- Is Scene Intel critical or optional?
+- Should failed intel be retried?
+- Is data inconsistency (some alerts with intel, some without) acceptable?
+
+**Recommendation:** Document design decision in `docs/backend/scene-intel.md` regarding retry policy and acceptable failure modes.
 
 ### Edge Case 9: Broadcasting Failure in AlertCreated Event
 
@@ -936,10 +1094,12 @@ class DeliverAlertNotificationJob implements ShouldQueue
 - Handles transient broadcasting failures
 - Ensures users receive notifications
 
-#### R2.3: Add Empty Features Array Validation to Police Service
+#### R2.3: Add Empty Response Validation to All Feed Services
 
+**Apply to all 4 sources to prevent mass deactivation on empty feed responses.**
+
+**Police Service (TorontoPoliceFeedService.php:44):**
 ```php
-// TorontoPoliceFeedService.php:44
 if (! isset($data['features'])) {
     throw new RuntimeException("Unexpected API response format: 'features' key missing.");
 }
@@ -951,9 +1111,67 @@ if (empty($data['features']) && $resultOffset === 0) {
 }
 ```
 
+**Fire Service (TorontoFireFeedService.php:74):**
+```php
+$events = [];
+
+foreach ($xml->event as $event) {
+    // ... parse events
+}
+
+// Add before return:
+if (empty($events)) {
+    throw new RuntimeException("Fire API returned zero events - possible API issue or maintenance mode.");
+}
+
+return ['updated_at' => $updatedAt, 'events' => $events];
+```
+
+**GO Transit Service (GoTransitFeedService.php:60):**
+```php
+$alerts = [];
+
+$this->parseTrains($json, $alerts);
+$this->parseBuses($json, $alerts);
+$this->parseStations($json, $alerts);
+
+// Add before return:
+if (empty($alerts)) {
+    throw new RuntimeException("GO Transit API returned zero alerts - possible API issue.");
+}
+
+return ['updated_at' => $updatedAt, 'alerts' => $alerts];
+```
+
+**TTC Transit Service (TtcAlertsFeedService.php):**
+```php
+// Add similar validation after parsing all alert sources
+
+if (empty($alerts)) {
+    throw new RuntimeException("TTC API returned zero alerts from all sources - possible API issue.");
+}
+```
+
+**Configuration Option (Recommended):**
+
+Add environment flag to allow legitimate empty responses in specific scenarios:
+
+```php
+// .env
+ALLOW_EMPTY_FEEDS=false  # Strict mode (production default)
+# ALLOW_EMPTY_FEEDS=true  # Permissive mode (testing/development)
+
+// Service implementation:
+if (empty($events) && ! config('app.allow_empty_feeds', false)) {
+    throw new RuntimeException("Fire API returned zero events - possible API issue.");
+}
+```
+
 **Benefit:**
-- Prevents mass deactivation on API failures
+- Prevents mass deactivation across all sources
 - Distinguishes "no results" from "API problem"
+- Configuration flag allows testing empty feed handling
+- Fails fast on API issues (better than silent data loss)
 
 #### R2.4: Switch to Job-Based Scheduling
 
@@ -1410,11 +1628,16 @@ tail -f storage/logs/laravel.log | grep "Queue backlog detected"
 - [ ] Implement graceful degradation in fire command (skip malformed events)
 - [ ] Implement graceful degradation in GO command (skip malformed events)
 - [ ] Add retry configuration to `DeliverAlertNotificationJob`
-- [ ] Add empty features array validation to police service
+- [ ] Add empty response validation to fire service (prevent mass deactivation)
+- [ ] Add empty response validation to police service (prevent mass deactivation)
+- [ ] Add empty response validation to GO transit service (prevent mass deactivation)
+- [ ] Add empty response validation to TTC transit service (prevent mass deactivation)
+- [ ] Add `ALLOW_EMPTY_FEEDS` configuration flag
 - [ ] Switch to job-based scheduling (all 4 fetch commands)
 - [ ] Add failed jobs pruning policy
 - [ ] Test batch processing resilience (unit test)
 - [ ] Test job retry behavior (integration test)
+- [ ] Test empty feed handling across all sources (integration test)
 
 ### Phase 3: Data Integrity & Monitoring
 
@@ -1433,6 +1656,9 @@ tail -f storage/logs/laravel.log | grep "Queue backlog detected"
 - [ ] Create `docs/runbooks/scheduler-troubleshooting.md`
 - [ ] Create `docs/runbooks/queue-troubleshooting.md`
 - [ ] Update `docs/backend/maintenance.md` with failed jobs pruning
+- [ ] Document Scene Intel retry policy design decision in `docs/backend/scene-intel.md`
+- [ ] Document empty feed handling strategy and `ALLOW_EMPTY_FEEDS` flag
+- [ ] Document persistent vs transient failure characteristics
 - [ ] Document monitoring thresholds and alerting setup
 
 ---
