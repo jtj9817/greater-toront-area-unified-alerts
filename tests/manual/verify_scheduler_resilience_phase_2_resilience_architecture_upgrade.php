@@ -486,19 +486,21 @@ XML;
                         'Code' => $codeValue,
                         'Name' => 'Test Line',
                         'Notifications' => [
-                            [
-                                'MessageSubject' => $badSubject,
-                                'MessageBody' => null,
-                                'SubCategory' => '',
-                                'Status' => 'Active',
-                                'PostedDateTime' => 'not-a-timestamp',
-                            ],
-                            [
-                                'MessageSubject' => $goodSubject,
-                                'MessageBody' => null,
-                                'SubCategory' => '',
-                                'Status' => 'Active',
-                                'PostedDateTime' => '2026-02-17T00:01:00Z',
+                            'Notification' => [
+                                [
+                                    'MessageSubject' => $badSubject,
+                                    'MessageBody' => null,
+                                    'SubCategory' => '',
+                                    'Status' => 'Active',
+                                    'PostedDateTime' => 'not-a-timestamp',
+                                ],
+                                [
+                                    'MessageSubject' => $goodSubject,
+                                    'MessageBody' => null,
+                                    'SubCategory' => '',
+                                    'Status' => 'Active',
+                                    'PostedDateTime' => '2026-02-17T00:01:00Z',
+                                ],
                             ],
                         ],
                     ],

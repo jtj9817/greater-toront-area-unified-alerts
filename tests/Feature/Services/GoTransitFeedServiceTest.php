@@ -13,24 +13,28 @@ test('it parses a valid json response with trains buses and stations', function 
                     'Name' => 'Lakeshore West',
                     'LineColour' => '#8B4513',
                     'Notifications' => [
-                        [
-                            'SubCategory' => 'TDELAY',
-                            'MessageSubject' => 'Lakeshore West delays',
-                            'MessageBody' => '<p>Expect 15 min delays</p>',
-                            'PostedDateTime' => '02/05/2026 14:00:00',
-                            'Status' => 'INIT',
+                        'Notification' => [
+                            [
+                                'SubCategory' => 'TDELAY',
+                                'MessageSubject' => 'Lakeshore West delays',
+                                'MessageBody' => '<p>Expect 15 min delays</p>',
+                                'PostedDateTime' => '02/05/2026 14:00:00',
+                                'Status' => 'INIT',
+                            ],
                         ],
                     ],
                     'SaagNotifications' => [
-                        [
-                            'Direction' => 'EASTBOUND',
-                            'HeadSign' => 'Union Station',
-                            'DelayDuration' => '00:12:00',
-                            'DepartureTimeDisplay' => '2:30 PM',
-                            'ArrivalTimeTimeDisplay' => '3:15 PM',
-                            'Status' => 'Moving',
-                            'TripNumbers' => ['4521'],
-                            'PostedDateTime' => '2026-02-05 14:25:00',
+                        'SaagNotification' => [
+                            [
+                                'Direction' => 'EASTBOUND',
+                                'HeadSign' => 'Union Station',
+                                'DelayDuration' => '00:12:00',
+                                'DepartureTimeDisplay' => '2:30 PM',
+                                'ArrivalTimeTimeDisplay' => '3:15 PM',
+                                'Status' => 'Moving',
+                                'TripNumbers' => ['4521'],
+                                'PostedDateTime' => '2026-02-05 14:25:00',
+                            ],
                         ],
                     ],
                 ],
@@ -43,12 +47,14 @@ test('it parses a valid json response with trains buses and stations', function 
                     'Name' => 'Route 12',
                     'LineColour' => '',
                     'Notifications' => [
-                        [
-                            'SubCategory' => 'BCANCEL',
-                            'MessageSubject' => 'Route 12 cancelled',
-                            'MessageBody' => '<b>All trips cancelled</b>',
-                            'PostedDateTime' => '02/05/2026 13:00:00',
-                            'Status' => 'UPD',
+                        'Notification' => [
+                            [
+                                'SubCategory' => 'BCANCEL',
+                                'MessageSubject' => 'Route 12 cancelled',
+                                'MessageBody' => '<b>All trips cancelled</b>',
+                                'PostedDateTime' => '02/05/2026 13:00:00',
+                                'Status' => 'UPD',
+                            ],
                         ],
                     ],
                 ],
@@ -61,12 +67,14 @@ test('it parses a valid json response with trains buses and stations', function 
                     'Name' => 'Union Station',
                     'LineColour' => '',
                     'Notifications' => [
-                        [
-                            'SubCategory' => 'SADIS',
-                            'MessageSubject' => 'Elevator out of service',
-                            'MessageBody' => '',
-                            'PostedDateTime' => '02/05/2026 10:00:00',
-                            'Status' => 'INIT',
+                        'Notification' => [
+                            [
+                                'SubCategory' => 'SADIS',
+                                'MessageSubject' => 'Elevator out of service',
+                                'MessageBody' => '',
+                                'PostedDateTime' => '02/05/2026 10:00:00',
+                                'Status' => 'INIT',
+                            ],
                         ],
                     ],
                 ],
@@ -130,11 +138,13 @@ test('it strips html from message body', function () {
                     'Code' => 'LW',
                     'Name' => 'Lakeshore West',
                     'Notifications' => [
-                        [
-                            'SubCategory' => 'TDELAY',
-                            'MessageSubject' => 'Test',
-                            'MessageBody' => '<p>Delay on <b>Lakeshore West</b> line.</p><br><a href="http://example.com">Details</a>',
-                            'PostedDateTime' => '02/05/2026 14:00:00',
+                        'Notification' => [
+                            [
+                                'SubCategory' => 'TDELAY',
+                                'MessageSubject' => 'Test',
+                                'MessageBody' => '<p>Delay on <b>Lakeshore West</b> line.</p><br><a href="http://example.com">Details</a>',
+                                'PostedDateTime' => '02/05/2026 14:00:00',
+                            ],
                         ],
                     ],
                 ],
@@ -164,11 +174,13 @@ test('it skips notifications without message subject', function () {
                     'Code' => 'LW',
                     'Name' => 'Lakeshore West',
                     'Notifications' => [
-                        [
-                            'SubCategory' => 'TDELAY',
-                            'MessageSubject' => '',
-                            'MessageBody' => 'Body without subject',
-                            'PostedDateTime' => '02/05/2026 14:00:00',
+                        'Notification' => [
+                            [
+                                'SubCategory' => 'TDELAY',
+                                'MessageSubject' => '',
+                                'MessageBody' => 'Body without subject',
+                                'PostedDateTime' => '02/05/2026 14:00:00',
+                            ],
                         ],
                     ],
                 ],
@@ -197,14 +209,16 @@ test('it skips saag notifications without trip numbers', function () {
                 [
                     'Code' => 'LW',
                     'Name' => 'Lakeshore West',
-                    'Notifications' => [],
+                    'Notifications' => ['Notification' => []],
                     'SaagNotifications' => [
-                        [
-                            'Direction' => 'EASTBOUND',
-                            'HeadSign' => 'Union',
-                            'DelayDuration' => '00:05:00',
-                            'TripNumbers' => [],
-                            'PostedDateTime' => '2026-02-05 14:25:00',
+                        'SaagNotification' => [
+                            [
+                                'Direction' => 'EASTBOUND',
+                                'HeadSign' => 'Union',
+                                'DelayDuration' => '00:05:00',
+                                'TripNumbers' => [],
+                                'PostedDateTime' => '2026-02-05 14:25:00',
+                            ],
                         ],
                     ],
                 ],

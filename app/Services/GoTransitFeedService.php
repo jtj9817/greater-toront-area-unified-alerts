@@ -172,7 +172,7 @@ class GoTransitFeedService
      */
     private function parseNotifications(array $entity, string $serviceMode, string $code, string $name, ?string $lineColour, array &$alerts): void
     {
-        $notifications = $entity['Notifications'] ?? [];
+        $notifications = $entity['Notifications']['Notification'] ?? [];
 
         if (! is_array($notifications)) {
             return;
@@ -226,7 +226,7 @@ class GoTransitFeedService
      */
     private function parseSaagNotifications(array $train, string $code, string $name, ?string $lineColour, array &$alerts): void
     {
-        $saagNotifications = $train['SaagNotifications'] ?? [];
+        $saagNotifications = $train['SaagNotifications']['SaagNotification'] ?? [];
 
         if (! is_array($saagNotifications)) {
             return;

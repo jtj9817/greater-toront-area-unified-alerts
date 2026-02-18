@@ -470,14 +470,14 @@ try {
                     'Code' => 'LW',
                     'Name' => 'Lakeshore West',
                     'LineColour' => '#8B4513',
-                    'Notifications' => [[
+                    'Notifications' => ['Notification' => [[
                         'SubCategory' => 'TDELAY',
                         'MessageSubject' => 'Lakeshore West delays',
                         'MessageBody' => '<p>Expect <b>15 min</b> delays</p>',
                         'PostedDateTime' => '02/06/2026 17:00:00',
                         'Status' => 'INIT',
-                    ]],
-                    'SaagNotifications' => [[
+                    ]]],
+                    'SaagNotifications' => ['SaagNotification' => [[
                         'Direction' => 'EASTBOUND',
                         'HeadSign' => 'Union Station',
                         'DelayDuration' => '00:10:00',
@@ -486,7 +486,7 @@ try {
                         'Status' => 'Moving',
                         'TripNumbers' => ['4521'],
                         'PostedDateTime' => '2026-02-06 17:05:00',
-                    ]],
+                    ]]],
                 ]],
             ],
             'Buses' => ['Bus' => []],
