@@ -101,7 +101,7 @@ This plan addresses critical stability and resilience issues in the GTA Alerts s
     - [x] Test circuit breaker opens after threshold and auto-recovers after TTL (integration test).
     - [x] Test memory safety limit triggers error on oversized police pagination response (unit test).
     - [x] Test Scene Intel failure rate logging triggers warning at >50% threshold (unit test).
-- [ ] Task: Conductor - User Manual Verification 'Phase 3: Data Integrity & Maintenance' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 3: Data Integrity & Maintenance' (Protocol in workflow.md; script: `tests/manual/verify_scheduler_resilience_phase_3_data_integrity_maintenance.php`)
 
 ## Phase 4: Quality & Documentation
 **Goal:** Final verification and documentation maintenance for the shipped scope.
