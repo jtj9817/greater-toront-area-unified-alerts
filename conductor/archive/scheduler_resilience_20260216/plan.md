@@ -109,7 +109,16 @@ This plan addresses critical stability and resilience issues in the GTA Alerts s
 - [ ] Task: Coverage and Linting Verification
     - [x] Execute `composer test` - Ensure all tests pass.
     - [x] Execute `pnpm run quality:check` - Ensure frontend quality (if applicable).
-    - [ ] Verify test coverage meets >90% threshold for modified files. (blocked: no coverage driver available)
+    - [ ] Verify test coverage meets >90% threshold for modified files. (blocked: no coverage driver available; helper script `scripts/setup-coverage.sh` added in commit 90db9f9)
+        - [ ] Add `FeedDataSanity` tests for future timestamp warnings, in-grace no-op, and GTA bounds warnings/null coords no-op.
+        - [ ] Add `FeedDataSanity` edge-case tests for grace window at 0/negative, missing/invalid bounds, and timestamp exactly at grace boundary.
+        - [ ] Add `FeedCircuitBreaker` tests for disabled breaker, cache failure handling (get/put/forget), and open-breaker logging path.
+        - [ ] Add `FeedCircuitBreaker` edge-case tests for non-int cache values, threshold/ttl <= 0 clamping, and trimmed feed name keys.
+        - [ ] Add `FetchPoliceCallsCommand` tests for QueryException rethrow and per-record non-DB exception skip + warning log.
+        - [ ] Add `FetchPoliceCallsCommand` edge-case tests for partial fetch with empty calls, no alert dispatch on unchanged active, and duplicate object_id handling.
+        - [ ] Add `FetchTransitAlertsCommand` tests for invalid `external_id` skip, QueryException rethrow, and accessibility notification dispatch rules.
+        - [ ] Add `FetchTransitAlertsCommand` edge-case tests for whitespace external_id, accessibility null effect no-op, and IN/OUT service transitions.
+        - [ ] Add `TorontoPoliceFeedService` edge-case tests for missing attributes, empty first-page features throw, later empty pages allowed, and max_records boundary behavior.
 - [x] (eb53051) Task: Documentation Update
     - [x] Update `docs/backend/production-scheduler.md` with new failure modes & `ALLOW_EMPTY_FEEDS` configuration.
     - [x] Create `docs/runbooks/scheduler-troubleshooting.md` covering common failure scenarios and recovery steps.
