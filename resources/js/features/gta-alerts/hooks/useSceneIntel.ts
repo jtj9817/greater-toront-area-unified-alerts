@@ -3,6 +3,8 @@ import { z } from 'zod/v4';
 import { SceneIntelItemSchema } from '../domain/alerts/fire/scene-intel';
 import type { SceneIntelItem } from '../domain/alerts/fire/scene-intel';
 
+const POLL_INTERVAL_MS = 30000;
+
 const ResponseSchema = z.object({
     data: z.array(SceneIntelItemSchema),
     meta: z.object({
@@ -83,20 +85,41 @@ export function useSceneIntel(
     );
 
     useEffect(() => {
+        if (!eventNum) {
+            return;
+        }
+
         const controller = new AbortController();
+        let timeoutId: ReturnType<typeof setTimeout> | null = null;
+        let isCancelled = false;
 
-        // Initial fetch to ensure we have the full timeline
-        void fetchData(controller.signal);
+        const scheduleNextPoll = () => {
+            if (isCancelled) {
+                return;
+            }
 
-        const intervalId = setInterval(() => {
-            void fetchData(controller.signal);
-        }, 30000); // 30 seconds
+            timeoutId = setTimeout(() => {
+                void runPollCycle();
+            }, POLL_INTERVAL_MS);
+        };
+
+        const runPollCycle = async () => {
+            await fetchData(controller.signal);
+            scheduleNextPoll();
+        };
+
+        // Initial fetch to ensure we have the full timeline.
+        void runPollCycle();
 
         return () => {
+            isCancelled = true;
             controller.abort();
-            clearInterval(intervalId);
+
+            if (timeoutId !== null) {
+                clearTimeout(timeoutId);
+            }
         };
-    }, [fetchData]);
+    }, [eventNum, fetchData]);
 
     return {
         items,

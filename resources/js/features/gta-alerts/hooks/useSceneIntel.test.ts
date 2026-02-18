@@ -1,4 +1,4 @@
-import { renderHook, waitFor } from '@testing-library/react';
+import { act, renderHook, waitFor } from '@testing-library/react';
 import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest';
 import type { SceneIntelItem } from '../domain/alerts/fire/scene-intel';
 import { useSceneIntel } from './useSceneIntel';
@@ -33,6 +33,7 @@ describe('useSceneIntel', () => {
     });
 
     afterEach(() => {
+        vi.useRealTimers();
         vi.restoreAllMocks();
     });
 
@@ -100,5 +101,48 @@ describe('useSceneIntel', () => {
         expect(result.current.error?.message).toBe(
             'Invalid data received from server',
         );
+    });
+
+    it('does not overlap polling requests when the current request is still in flight', async () => {
+        vi.useFakeTimers();
+
+        let resolveFirstRequest: ((response: Response) => void) | undefined;
+
+        vi.mocked(global.fetch)
+            .mockReset()
+            .mockImplementationOnce(
+                () =>
+                    new Promise<Response>((resolve) => {
+                        resolveFirstRequest = resolve;
+                    }),
+            )
+            .mockResolvedValue({
+                ok: true,
+                json: async () => mockResponse.data,
+            } as Response);
+
+        renderHook(() => useSceneIntel('12345'));
+
+        expect(global.fetch).toHaveBeenCalledTimes(1);
+
+        await act(async () => {
+            vi.advanceTimersByTime(3 * 30000);
+        });
+
+        expect(global.fetch).toHaveBeenCalledTimes(1);
+
+        await act(async () => {
+            resolveFirstRequest?.({
+                ok: true,
+                json: async () => mockResponse.data,
+            } as Response);
+            await Promise.resolve();
+        });
+
+        await act(async () => {
+            vi.advanceTimersByTime(30000);
+        });
+
+        expect(global.fetch).toHaveBeenCalledTimes(2);
     });
 });

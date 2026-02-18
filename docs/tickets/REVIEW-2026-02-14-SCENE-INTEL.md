@@ -2,9 +2,9 @@
 
 **Ticket ID:** REVIEW-2026-02-14-SCENE-INTEL
 **Reviewer:** Code Review Architect
-**Status:** Partially Complete
+**Status:** Closed
 **Related Commit:** `2057d00` (Main), `35030a3` (Fix)
-**Verified on codebase (2026-02-18):** Empty `eventNum` guard, abort handling, and initial-load-only spinner behavior are implemented; interval-based polling overlap risk remains.
+**Verified on codebase (2026-02-18):** Non-overlapping polling is now implemented in `useSceneIntel` via recursive `setTimeout` scheduling after fetch completion, with hook tests covering no-overlap behavior for slow requests.
 
 ## Current Fix Status (2026-02-18)
 
@@ -14,14 +14,18 @@
    `fetchData` now returns early when `eventNum` is empty.
 3. **UI flicker on polling:** Fixed  
    Loading state is gated to initial/no-data fetch behavior.
-4. **Polling race conditions (overlapping requests):** Open  
-   Hook still uses `setInterval` polling; overlapping requests can still occur when request time exceeds the interval.
+4. **Polling race conditions (overlapping requests):** Fixed  
+   Hook now schedules the next poll only after the current fetch cycle completes (`setTimeout` recursion), preventing stacked requests when network latency exceeds the poll interval.
 5. **Hardcoded styles in timeline component:** Fixed  
    Type-to-style mapping now uses centralized style configuration.
 
-### Remaining Work To Close Ticket
+### Closure Evidence
 
-- Replace `setInterval` polling with non-overlapping polling control (recursive `setTimeout`, in-flight request guard, or cancellation-before-next-run pattern) and add tests that explicitly verify no overlapping fetch cycles.
+- `resources/js/features/gta-alerts/hooks/useSceneIntel.ts` replaced `setInterval` polling with sequential recursive `setTimeout` polling and cleanup-safe cancellation.
+- `resources/js/features/gta-alerts/hooks/useSceneIntel.test.ts` now includes explicit coverage proving no overlapping polling requests occur while a prior fetch is still in flight.
+- Verified with:
+  - `pnpm exec vitest run resources/js/features/gta-alerts/hooks/useSceneIntel.test.ts`
+  - `pnpm exec vitest run resources/js/features/gta-alerts/components/SceneIntelTimeline.test.tsx resources/js/features/gta-alerts/components/AlertDetailsView.test.tsx`
 
 ## Summary
 The commit implements the frontend components for the Scene Intel feature, including the `SceneIntelTimeline` component, `useSceneIntel` hook, and domain schema extensions. While the functional implementation is complete, there are several stability and architectural issues in the data fetching hook that need to be addressed before production use.
