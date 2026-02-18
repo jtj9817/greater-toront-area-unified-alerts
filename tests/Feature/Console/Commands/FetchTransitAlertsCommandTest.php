@@ -53,6 +53,37 @@ test('it skips alerts with invalid external ids (including whitespace)', functio
     expect(TransitAlert::query()->value('external_id'))->toBe('api:valid');
 });
 
+test('it persists a trimmed external id when the feed includes whitespace padding', function () {
+    Event::fake([AlertCreated::class]);
+
+    TransitAlert::factory()->create([
+        'external_id' => 'api:trim-me',
+        'source_feed' => 'ttc_live',
+        'title' => 'Existing',
+        'effect' => 'DELAY',
+        'is_active' => true,
+    ]);
+
+    $this->mock(TtcAlertsFeedService::class, function (MockInterface $mock) {
+        $mock->shouldReceive('fetch')->once()->andReturn([
+            'updated_at' => Carbon::parse('2026-02-17 00:00:00', 'UTC'),
+            'alerts' => [
+                [
+                    'external_id' => ' api:trim-me ',
+                    'source_feed' => 'ttc_live',
+                    'title' => 'Updated',
+                    'effect' => 'DELAY',
+                ],
+            ],
+        ]);
+    });
+
+    $this->artisan('transit:fetch-alerts')->assertExitCode(0);
+
+    expect(TransitAlert::query()->count())->toBe(1);
+    expect(TransitAlert::query()->value('external_id'))->toBe('api:trim-me');
+});
+
 test('it rethrows QueryException so the command fails and can be retried', function () {
     Log::spy();
     Event::fake([AlertCreated::class]);

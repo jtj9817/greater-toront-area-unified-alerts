@@ -60,6 +60,7 @@ class FetchTransitAlertsCommand extends Command
                     $transitAlert = TransitAlert::updateOrCreate(
                         ['external_id' => $externalId],
                         array_merge($alert, [
+                            'external_id' => $externalId,
                             'is_active' => true,
                             'feed_updated_at' => $feedUpdatedAt,
                         ])
