@@ -3,6 +3,7 @@
 use App\Services\TorontoPoliceFeedService;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 
 test('it parses a valid arcgis response into normalized records', function () {
     Http::fake([
@@ -181,3 +182,106 @@ test('it enforces a safety max record limit to avoid unbounded pagination memory
     $service = app(TorontoPoliceFeedService::class);
     $service->fetch();
 })->throws(RuntimeException::class, 'Toronto Police feed exceeded safety limit of 1 records');
+
+test('it throws when the features key is not an array', function () {
+    Http::fake([
+        '*' => Http::response([
+            'features' => 'not-an-array',
+        ], 200),
+    ]);
+
+    $service = app(TorontoPoliceFeedService::class);
+    $service->fetch();
+})->throws(RuntimeException::class, "Unexpected API response format: 'features' is not an array.");
+
+test('it skips features with missing attributes and logs a warning', function () {
+    Log::spy();
+
+    Http::fake([
+        '*' => Http::response([
+            'features' => [
+                ['attributes' => ['OBJECTID' => 1, 'CALL_TYPE_CODE' => 'A', 'CALL_TYPE' => 'Type A', 'DIVISION' => 'D11', 'CROSS_STREETS' => 'A ST - B ST', 'LATITUDE' => 43.65, 'LONGITUDE' => -79.38, 'OCCURRENCE_TIME' => 1706733600000]],
+                ['nope' => true],
+            ],
+            'exceededTransferLimit' => false,
+        ], 200),
+    ]);
+
+    $service = app(TorontoPoliceFeedService::class);
+    $results = $service->fetch();
+
+    expect($results)->toHaveCount(1);
+    expect($results[0]['object_id'])->toBe(1);
+
+    Log::shouldHaveReceived('warning')
+        ->withArgs(fn (string $message, array $context): bool => $message === 'Skipping police feed feature with missing attributes'
+            && ($context['result_offset'] ?? null) === 0)
+        ->once();
+});
+
+test('it treats later empty pages as the end of pagination', function () {
+    Http::fake([
+        '*' => Http::sequence()
+            ->push([
+                'features' => [
+                    ['attributes' => ['OBJECTID' => 1, 'CALL_TYPE_CODE' => 'A', 'CALL_TYPE' => 'Type A', 'DIVISION' => 'D11', 'CROSS_STREETS' => 'A ST - B ST', 'LATITUDE' => 43.65, 'LONGITUDE' => -79.38, 'OCCURRENCE_TIME' => 1706733600000]],
+                ],
+                'exceededTransferLimit' => true,
+            ])
+            ->push([
+                'features' => [],
+                'exceededTransferLimit' => false,
+            ]),
+    ]);
+
+    $service = app(TorontoPoliceFeedService::class);
+    $results = $service->fetch();
+
+    expect($results)->toHaveCount(1);
+    expect($results[0]['object_id'])->toBe(1);
+    expect($service->lastFetchWasPartial())->toBeFalse();
+});
+
+test('it returns partial results when pagination returns an empty page while exceededTransferLimit is true', function () {
+    Http::fake([
+        '*' => Http::sequence()
+            ->push([
+                'features' => [
+                    ['attributes' => ['OBJECTID' => 1, 'CALL_TYPE_CODE' => 'A', 'CALL_TYPE' => 'Type A', 'DIVISION' => 'D11', 'CROSS_STREETS' => 'A ST - B ST', 'LATITUDE' => 43.65, 'LONGITUDE' => -79.38, 'OCCURRENCE_TIME' => 1706733600000]],
+                ],
+                'exceededTransferLimit' => true,
+            ])
+            ->push([
+                'features' => [],
+                'exceededTransferLimit' => true,
+            ]),
+    ]);
+
+    $service = app(TorontoPoliceFeedService::class);
+    $results = $service->fetch();
+
+    expect($results)->toHaveCount(1);
+    expect($results[0]['object_id'])->toBe(1);
+    expect($service->lastFetchWasPartial())->toBeTrue();
+});
+
+test('it allows max_records boundary without throwing', function () {
+    config([
+        'feeds.police.max_records' => 1,
+        'feeds.circuit_breaker.enabled' => false,
+    ]);
+
+    Http::fake([
+        '*' => Http::response([
+            'features' => [
+                ['attributes' => ['OBJECTID' => 1, 'CALL_TYPE_CODE' => 'A', 'CALL_TYPE' => 'Type A', 'DIVISION' => 'D11', 'CROSS_STREETS' => 'A ST - B ST', 'LATITUDE' => 43.65, 'LONGITUDE' => -79.38, 'OCCURRENCE_TIME' => 1706733600000]],
+            ],
+            'exceededTransferLimit' => false,
+        ], 200),
+    ]);
+
+    $service = app(TorontoPoliceFeedService::class);
+    $results = $service->fetch();
+
+    expect($results)->toHaveCount(1);
+});

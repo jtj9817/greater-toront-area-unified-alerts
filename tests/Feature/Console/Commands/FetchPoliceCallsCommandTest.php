@@ -1,0 +1,199 @@
+<?php
+
+use App\Events\AlertCreated;
+use App\Models\PoliceCall;
+use App\Services\Notifications\NotificationAlert;
+use App\Services\Notifications\NotificationAlertFactory;
+use App\Services\Notifications\NotificationSeverity;
+use App\Services\TorontoPoliceFeedService;
+use Carbon\Carbon;
+use Carbon\CarbonImmutable;
+use Illuminate\Database\QueryException;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Log;
+use Mockery\MockInterface;
+
+uses(RefreshDatabase::class);
+
+test('it rethrows QueryException so the command fails and can be retried', function () {
+    Log::spy();
+
+    $this->mock(TorontoPoliceFeedService::class, function (MockInterface $mock) {
+        $mock->shouldReceive('fetch')->once()->andReturn([
+            [
+                'object_id' => null,
+                'call_type_code' => 'TEST',
+                'call_type' => 'TEST CALL',
+                'division' => 'D11',
+                'cross_streets' => 'A ST - B ST',
+                'latitude' => 43.65,
+                'longitude' => -79.38,
+                'occurrence_time' => Carbon::parse('2026-02-17 00:00:00', 'UTC'),
+            ],
+        ]);
+
+        $mock->shouldReceive('lastFetchWasPartial')->once()->andReturn(true);
+    });
+
+    Event::fake([AlertCreated::class]);
+
+    $this->artisan('police:fetch-calls')->assertExitCode(1);
+
+    Log::shouldHaveReceived('error')
+        ->withArgs(function (string $message, array $context): bool {
+            return $message === 'FetchPoliceCallsCommand failed'
+                && ($context['exception'] ?? null) instanceof QueryException;
+        })
+        ->once();
+});
+
+test('it skips a single record when a non-db exception occurs and continues processing', function () {
+    Log::spy();
+    Event::fake([AlertCreated::class]);
+
+    $this->mock(TorontoPoliceFeedService::class, function (MockInterface $mock) {
+        $mock->shouldReceive('fetch')->once()->andReturn([
+            [
+                'object_id' => 1,
+                'call_type_code' => 'TEST',
+                'call_type' => 'TEST CALL',
+                'division' => 'D11',
+                'cross_streets' => 'A ST - B ST',
+                'latitude' => 43.65,
+                'longitude' => -79.38,
+                'occurrence_time' => Carbon::parse('2026-02-17 00:00:00', 'UTC'),
+            ],
+            [
+                'object_id' => 2,
+                'call_type_code' => 'TEST',
+                'call_type' => 'TEST CALL',
+                'division' => 'D11',
+                'cross_streets' => 'A ST - B ST',
+                'latitude' => 43.65,
+                'longitude' => -79.38,
+                'occurrence_time' => Carbon::parse('2026-02-17 00:01:00', 'UTC'),
+            ],
+        ]);
+
+        $mock->shouldReceive('lastFetchWasPartial')->once()->andReturn(false);
+    });
+
+    $this->mock(NotificationAlertFactory::class, function (MockInterface $mock) {
+        $mock->shouldReceive('fromPoliceCall')
+            ->once()
+            ->andThrow(new RuntimeException('factory failed'));
+
+        $mock->shouldReceive('fromPoliceCall')
+            ->once()
+            ->andReturn(new NotificationAlert(
+                alertId: 'police:2',
+                source: 'police',
+                severity: NotificationSeverity::MINOR,
+                summary: 'Test',
+                occurredAt: CarbonImmutable::now(),
+            ));
+    });
+
+    $this->artisan('police:fetch-calls')->assertExitCode(0);
+
+    expect(PoliceCall::query()->count())->toBe(2);
+
+    Log::shouldHaveReceived('warning')
+        ->withArgs(fn (string $message, array $context): bool => $message === 'Skipping police call record due to persistence failure' && isset($context['exception']))
+        ->once();
+
+    Event::assertDispatchedTimes(AlertCreated::class, 1);
+});
+
+test('it preserves existing calls when pagination is partial and the feed returns empty', function () {
+    Event::fake([AlertCreated::class]);
+
+    PoliceCall::factory()->create([
+        'object_id' => 123,
+        'is_active' => true,
+    ]);
+
+    $this->mock(TorontoPoliceFeedService::class, function (MockInterface $mock) {
+        $mock->shouldReceive('fetch')->once()->andReturn([]);
+        $mock->shouldReceive('lastFetchWasPartial')->once()->andReturn(true);
+    });
+
+    $this->artisan('police:fetch-calls')->assertExitCode(0);
+
+    expect(PoliceCall::where('object_id', 123)->value('is_active'))->toBeTrue();
+    Event::assertNotDispatched(AlertCreated::class);
+});
+
+test('it does not dispatch an alert when an existing active call remains active', function () {
+    Event::fake([AlertCreated::class]);
+
+    PoliceCall::factory()->create([
+        'object_id' => 123,
+        'is_active' => true,
+        'call_type_code' => 'TEST',
+        'call_type' => 'TEST CALL',
+        'division' => 'D11',
+        'cross_streets' => 'A ST - B ST',
+        'latitude' => 43.65,
+        'longitude' => -79.38,
+        'occurrence_time' => Carbon::parse('2026-02-17 00:00:00', 'UTC'),
+    ]);
+
+    $this->mock(TorontoPoliceFeedService::class, function (MockInterface $mock) {
+        $mock->shouldReceive('fetch')->once()->andReturn([
+            [
+                'object_id' => 123,
+                'call_type_code' => 'TEST',
+                'call_type' => 'TEST CALL',
+                'division' => 'D11',
+                'cross_streets' => 'A ST - B ST',
+                'latitude' => 43.65,
+                'longitude' => -79.38,
+                'occurrence_time' => Carbon::parse('2026-02-17 00:00:00', 'UTC'),
+            ],
+        ]);
+
+        $mock->shouldReceive('lastFetchWasPartial')->once()->andReturn(false);
+    });
+
+    $this->artisan('police:fetch-calls')->assertExitCode(0);
+
+    Event::assertNotDispatched(AlertCreated::class);
+});
+
+test('it handles duplicate object ids without creating duplicate records or notifications', function () {
+    Event::fake([AlertCreated::class]);
+
+    $this->mock(TorontoPoliceFeedService::class, function (MockInterface $mock) {
+        $mock->shouldReceive('fetch')->once()->andReturn([
+            [
+                'object_id' => 123,
+                'call_type_code' => 'TEST',
+                'call_type' => 'TEST CALL',
+                'division' => 'D11',
+                'cross_streets' => 'A ST - B ST',
+                'latitude' => 43.65,
+                'longitude' => -79.38,
+                'occurrence_time' => Carbon::parse('2026-02-17 00:00:00', 'UTC'),
+            ],
+            [
+                'object_id' => 123,
+                'call_type_code' => 'TEST',
+                'call_type' => 'TEST CALL',
+                'division' => 'D11',
+                'cross_streets' => 'A ST - B ST',
+                'latitude' => 43.65,
+                'longitude' => -79.38,
+                'occurrence_time' => Carbon::parse('2026-02-17 00:00:00', 'UTC'),
+            ],
+        ]);
+
+        $mock->shouldReceive('lastFetchWasPartial')->once()->andReturn(false);
+    });
+
+    $this->artisan('police:fetch-calls')->assertExitCode(0);
+
+    expect(PoliceCall::query()->count())->toBe(1);
+    Event::assertDispatchedTimes(AlertCreated::class, 1);
+});

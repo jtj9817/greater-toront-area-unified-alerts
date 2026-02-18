@@ -4,7 +4,6 @@ namespace App\Services;
 
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
-use RuntimeException;
 use Throwable;
 
 class FeedCircuitBreaker
@@ -27,9 +26,9 @@ class FeedCircuitBreaker
                     'ttl_seconds' => $this->ttlSeconds(),
                 ]);
 
-                throw new RuntimeException("Circuit breaker open for feed '{$feedName}'");
+                throw new FeedCircuitBreakerOpenException("Circuit breaker open for feed '{$feedName}'");
             }
-        } catch (RuntimeException $exception) {
+        } catch (FeedCircuitBreakerOpenException $exception) {
             throw $exception;
         } catch (Throwable $exception) {
             Log::warning('Failed to evaluate feed circuit breaker state; proceeding without breaker', [

@@ -43,8 +43,10 @@ class FetchTransitAlertsCommand extends Command
 
             foreach ($data['alerts'] as $alert) {
                 try {
-                    $externalId = $alert['external_id'] ?? null;
-                    if (! is_string($externalId) || $externalId === '') {
+                    $externalIdRaw = $alert['external_id'] ?? null;
+                    $externalId = is_string($externalIdRaw) ? trim($externalIdRaw) : null;
+
+                    if ($externalId === null || $externalId === '') {
                         continue;
                     }
 
@@ -83,8 +85,9 @@ class FetchTransitAlertsCommand extends Command
                         'external_id' => $alert['external_id'] ?? null,
                     ]);
 
-                    $externalId = is_string($alert['external_id'] ?? null) ? $alert['external_id'] : '(unknown)';
-                    $this->warn("Skipping transit alert {$externalId} due to persistence failure: {$exception->getMessage()}");
+                    $externalIdForOutput = is_string($alert['external_id'] ?? null) ? trim((string) $alert['external_id']) : '';
+                    $externalIdForOutput = $externalIdForOutput !== '' ? $externalIdForOutput : '(unknown)';
+                    $this->warn("Skipping transit alert {$externalIdForOutput} due to persistence failure: {$exception->getMessage()}");
                 }
             }
 
@@ -119,6 +122,10 @@ class FetchTransitAlertsCommand extends Command
     private function shouldDispatchNotification(TransitAlert $transitAlert, ?string $previousEffect, bool $wasPreviouslyActive): bool
     {
         if ($transitAlert->source_feed === 'ttc_accessibility') {
+            if ($transitAlert->effect === null || trim($transitAlert->effect) === '') {
+                return false;
+            }
+
             // Dispatch if status changed, even if new status is IN_SERVICE
             if ($previousEffect !== null && $previousEffect !== $transitAlert->effect) {
                 return true;

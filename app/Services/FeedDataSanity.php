@@ -17,7 +17,7 @@ class FeedDataSanity
      */
     public function warnIfFutureTimestamp(CarbonInterface $timestamp, string $source, string $field, array $context = []): void
     {
-        $graceSeconds = (int) config('feeds.sanity.future_timestamp_grace_seconds', 900);
+        $graceSeconds = max(0, (int) config('feeds.sanity.future_timestamp_grace_seconds', 900));
         $now = Carbon::now('UTC');
         $futureThreshold = $now->copy()->addSeconds($graceSeconds);
 
@@ -44,6 +44,9 @@ class FeedDataSanity
         }
 
         $bounds = config('feeds.sanity.gta_bounds', []);
+        if (! is_array($bounds)) {
+            $bounds = [];
+        }
         $minLat = is_numeric($bounds['min_lat'] ?? null) ? (float) $bounds['min_lat'] : 43.0;
         $maxLat = is_numeric($bounds['max_lat'] ?? null) ? (float) $bounds['max_lat'] : 44.5;
         $minLng = is_numeric($bounds['min_lng'] ?? null) ? (float) $bounds['min_lng'] : -80.5;
