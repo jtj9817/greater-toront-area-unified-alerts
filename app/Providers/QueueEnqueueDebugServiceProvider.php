@@ -164,4 +164,3 @@ class QueueEnqueueDebugServiceProvider extends ServiceProvider
         return $out;
     }
 }
-
