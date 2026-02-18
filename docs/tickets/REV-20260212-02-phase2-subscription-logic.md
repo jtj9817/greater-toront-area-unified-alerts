@@ -1,11 +1,12 @@
 # Ticket: REV-20260212-02 - Phase 2 Notification Logic & Regex Fixes
 
-**Status:** Open  
+**Status:** Closed  
 **Priority:** High  
 **Assignee:** Unassigned  
 **Created:** 2026-02-12  
 **Components:** Backend, Notification Engine, TTC Feed Service  
 **Related Commit:** `e06234e`
+**Verified on codebase (2026-02-18):** Status parsing, standard bus route extraction, accessibility transition dispatching, and related tests are implemented.
 
 ## Summary
 

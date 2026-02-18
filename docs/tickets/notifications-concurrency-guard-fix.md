@@ -1,9 +1,10 @@
 # Ticket: Fix concurrency guard inconsistency in NotificationInboxView
 
-**Status:** Open
+**Status:** Closed
 **Priority:** Low
 **Assignee:** Unassigned
 **Created:** 2026-02-12
+**Verified on codebase (2026-02-18):** `loadMore` now guards on `activeItemId !== null`, matching the disabled button state.
 
 ## Description
 During code review of commit 219102c, an inconsistency was identified in `resources/js/features/gta-alerts/components/NotificationInboxView.tsx`.

@@ -1,9 +1,10 @@
 # Review: Scheduler Resilience Phase 1 (Commit 0d35cf2)
 
-**Status:** Open
+**Status:** Closed
 **Priority:** Medium
 **Assignee:** Joshua Jadulco
 **Labels:** code-review, scheduler, resilience, technical-debt
+**Verified on codebase (2026-02-18):** `monitor:queue-depth` uses `Queue::size()`, fire deactivation intel processing is try/catch protected, and the test uses the default DB connection dynamically.
 
 ## Overview
 A comprehensive review of the Phase 1 scheduler resilience changes was performed. The changes largely align with the implementation plan and successfully introduce top-level exception handling and basic monitoring. However, a few robustness issues and inconsistencies were identified that should be addressed to fully meet the "resilience" goal.

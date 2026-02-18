@@ -1,9 +1,10 @@
 # Review: Scene Intel Pruning (a75d007)
 
-**Status:** Open
+**Status:** Closed
 **Priority:** High
 **Reviewer:** Gemini (Code Review Architect)
 **Context:** Phase 6 - Maintenance & Data Lifecycle
+**Verified on codebase (2026-02-18):** Pruning is handled via `MassPrunable` on `IncidentUpdate` and scheduled through `model:prune`.
 
 ## Summary
 The implementation of the pruning command is functional but lacks safeguards against mass deletion performance issues and misses an opportunity to use idiomatic Laravel features (`Prunable` trait).

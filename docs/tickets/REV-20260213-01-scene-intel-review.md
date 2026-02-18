@@ -2,8 +2,9 @@
 
 **Type:** Bug / Refactor
 **Priority:** High
-**Status:** Open
+**Status:** Closed
 **Component:** Backend (Console Command)
+**Verified on codebase (2026-02-18):** Scene intel processing is wrapped in per-incident try/catch and existing incident prefetch uses a targeted column select.
 
 ## Description
 A code review of the synthetic intel generation integration (commit `af772bd`) identified a resilience flaw in the command loop and a performance optimization opportunity for state pre-fetching.

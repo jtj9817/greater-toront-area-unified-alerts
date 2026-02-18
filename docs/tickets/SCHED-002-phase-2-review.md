@@ -1,9 +1,10 @@
 # Ticket: SCHED-002 - Scheduler Resilience Phase 2 Review Findings
 
-**Status:** Open
+**Status:** Closed
 **Priority:** High
 **Assignee:** Unassigned
 **Labels:** scheduler, resilience, bug, technical-debt
+**Verified on codebase (2026-02-18):** Fetch jobs use `releaseAfter(30)`, DB exceptions are re-thrown in command persistence paths, and job middleware tests assert `releaseAfter` behavior.
 
 ## Summary
 Critical configuration issues in Job middleware preventing retries and broad exception handling masking infrastructure failures were identified during the Phase 2 code review (commit `a83e653`).

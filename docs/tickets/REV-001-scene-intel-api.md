@@ -3,9 +3,10 @@
 **Date:** 2026-02-13
 **Reviewer:** Gemini CLI
 **Target Commit:** `ec54286`
-**Status:** Open
+**Status:** Closed
 **Priority:** Medium
 **Components:** Backend, API
+**Verified on codebase (2026-02-18):** `IncidentUpdateResource` is in use and incident existence checks use `exists()`.
 
 ## Overview
 A review of the Scene Intel API implementation (commit `ec54286`) identified opportunities to align with project patterns (Resources) and improve query performance (Existence Checks).
