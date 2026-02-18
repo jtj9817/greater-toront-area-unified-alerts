@@ -110,7 +110,7 @@ This plan addresses critical stability and resilience issues in the GTA Alerts s
     - [x] Execute `composer test` - Ensure all tests pass.
     - [x] Execute `pnpm run quality:check` - Ensure frontend quality (if applicable).
     - [ ] Verify test coverage meets >90% threshold for modified files. (blocked: no coverage driver available)
-- [x] Task: Documentation Update
+- [x] (eb53051) Task: Documentation Update
     - [x] Update `docs/backend/production-scheduler.md` with new failure modes & `ALLOW_EMPTY_FEEDS` configuration.
     - [x] Create `docs/runbooks/scheduler-troubleshooting.md` covering common failure scenarios and recovery steps.
     - [x] Create `docs/runbooks/queue-troubleshooting.md` covering queue backlog management and failed job analysis.
