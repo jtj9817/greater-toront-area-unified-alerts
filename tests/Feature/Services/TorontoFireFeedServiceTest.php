@@ -24,7 +24,7 @@ test('it parses a valid xml response into normalized records', function () {
         '*' => Http::response($xml, 200, ['Content-Type' => 'text/xml']),
     ]);
 
-    $service = new TorontoFireFeedService;
+    $service = app(TorontoFireFeedService::class);
     $results = $service->fetch();
 
     expect($results['updated_at'])->toBe('2026-01-31 13:45:01');
@@ -44,7 +44,7 @@ test('it throws exception on http error', function () {
         '*' => Http::response('server error', 500),
     ]);
 
-    $service = new TorontoFireFeedService;
+    $service = app(TorontoFireFeedService::class);
     $service->fetch();
 })->throws(RuntimeException::class, 'Toronto Fire feed request failed: 500');
 
@@ -53,7 +53,7 @@ test('it throws exception on empty response body', function () {
         '*' => Http::response('', 200),
     ]);
 
-    $service = new TorontoFireFeedService;
+    $service = app(TorontoFireFeedService::class);
     $service->fetch();
 })->throws(RuntimeException::class, 'Toronto Fire feed returned an empty response body');
 
@@ -62,7 +62,7 @@ test('it throws exception on invalid xml', function () {
         '*' => Http::response('<tfs_active_incidents><event></tfs_active_incidents>', 200),
     ]);
 
-    $service = new TorontoFireFeedService;
+    $service = app(TorontoFireFeedService::class);
     $service->fetch();
 })->throws(RuntimeException::class, 'Failed to parse Toronto Fire XML feed');
 
@@ -71,7 +71,7 @@ test('it throws exception on connection timeout', function () {
         '*' => Http::response('Timeout', 408),
     ]);
 
-    $service = new TorontoFireFeedService;
+    $service = app(TorontoFireFeedService::class);
     $service->fetch();
 })->throws(RuntimeException::class, 'Toronto Fire feed request failed: 408');
 
@@ -91,7 +91,7 @@ test('it throws exception when update_from_db_time is missing', function () {
         '*' => Http::response($xml, 200),
     ]);
 
-    $service = new TorontoFireFeedService;
+    $service = app(TorontoFireFeedService::class);
     $service->fetch();
 })->throws(RuntimeException::class, 'Toronto Fire XML feed missing update_from_db_time');
 
@@ -116,7 +116,7 @@ test('it handles missing optional fields', function () {
         '*' => Http::response($xml, 200),
     ]);
 
-    $service = new TorontoFireFeedService;
+    $service = app(TorontoFireFeedService::class);
     $results = $service->fetch();
 
     expect($results['events'][0]['prime_street'])->toBeNull();
@@ -138,7 +138,7 @@ test('it returns empty array for empty events', function () {
         '*' => Http::response($xml, 200),
     ]);
 
-    $service = new TorontoFireFeedService;
+    $service = app(TorontoFireFeedService::class);
     $results = $service->fetch();
 
     expect($results['events'])->toBeEmpty();
@@ -157,6 +157,6 @@ test('it throws exception on empty events when empty feeds are not allowed', fun
         '*' => Http::response($xml, 200),
     ]);
 
-    $service = new TorontoFireFeedService;
+    $service = app(TorontoFireFeedService::class);
     $service->fetch();
 })->throws(RuntimeException::class, 'Toronto Fire feed returned zero events');

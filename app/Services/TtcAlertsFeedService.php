@@ -25,14 +25,18 @@ class TtcAlertsFeedService
         ['scope' => '{2EF860AF-9B7D-4460-8281-D428D8E09DC4}', 'itemid' => '{AE874E1E-461E-4EF2-BB4F-8C5A50B6C825}'],
     ];
 
+    public function __construct(
+        protected FeedCircuitBreaker $circuitBreaker,
+        protected FeedDataSanity $sanity,
+    ) {}
+
     /**
      * @return array{updated_at: CarbonInterface, alerts: list<array<string, mixed>>}
      */
     public function fetch(): array
     {
         $allowEmptyFeeds = (bool) config('feeds.allow_empty_feeds');
-        $circuitBreaker = app(FeedCircuitBreaker::class);
-        $circuitBreaker->throwIfOpen('ttc_alerts');
+        $this->circuitBreaker->throwIfOpen('ttc_alerts');
 
         try {
             [$updatedAt, $primaryAlerts] = $this->fetchLiveApiAlerts();
@@ -52,11 +56,11 @@ class TtcAlertsFeedService
                 'alerts' => $dedupedAlerts,
             ];
 
-            $circuitBreaker->recordSuccess('ttc_alerts');
+            $this->circuitBreaker->recordSuccess('ttc_alerts');
 
             return $result;
         } catch (Throwable $exception) {
-            $circuitBreaker->recordFailure('ttc_alerts', $exception);
+            $this->circuitBreaker->recordFailure('ttc_alerts', $exception);
             throw $exception;
         }
     }
@@ -81,7 +85,7 @@ class TtcAlertsFeedService
         }
 
         $updatedAt = $this->parseIsoTimestamp($data['lastUpdated'], true);
-        app(FeedDataSanity::class)->warnIfFutureTimestamp(
+        $this->sanity->warnIfFutureTimestamp(
             timestamp: $updatedAt,
             source: 'ttc_alerts',
             field: 'lastUpdated',

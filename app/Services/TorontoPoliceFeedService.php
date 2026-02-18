@@ -14,6 +14,11 @@ class TorontoPoliceFeedService
 
     private bool $lastFetchWasPartial = false;
 
+    public function __construct(
+        protected FeedCircuitBreaker $circuitBreaker,
+        protected FeedDataSanity $sanity,
+    ) {}
+
     /**
      * Fetch active police calls from the Toronto Police ArcGIS REST API.
      *
@@ -22,8 +27,7 @@ class TorontoPoliceFeedService
     public function fetch(): array
     {
         $allowEmptyFeeds = (bool) config('feeds.allow_empty_feeds');
-        $circuitBreaker = app(FeedCircuitBreaker::class);
-        $circuitBreaker->throwIfOpen('toronto_police');
+        $this->circuitBreaker->throwIfOpen('toronto_police');
 
         try {
             $this->lastFetchWasPartial = false;
@@ -132,7 +136,7 @@ class TorontoPoliceFeedService
             } while ($exceededTransferLimit);
 
             if ($shouldReturnEmpty) {
-                $circuitBreaker->recordSuccess('toronto_police');
+                $this->circuitBreaker->recordSuccess('toronto_police');
 
                 return [];
             }
@@ -141,11 +145,11 @@ class TorontoPoliceFeedService
                 throw new RuntimeException('Toronto Police feed returned zero records');
             }
 
-            $circuitBreaker->recordSuccess('toronto_police');
+            $this->circuitBreaker->recordSuccess('toronto_police');
 
             return $allFeatures;
         } catch (Throwable $exception) {
-            $circuitBreaker->recordFailure('toronto_police', $exception);
+            $this->circuitBreaker->recordFailure('toronto_police', $exception);
             throw $exception;
         }
     }
@@ -164,7 +168,7 @@ class TorontoPoliceFeedService
     protected function parseFeature(array $attributes): array
     {
         $occurrenceTime = Carbon::createFromTimestampMs($attributes['OCCURRENCE_TIME']);
-        app(FeedDataSanity::class)->warnIfFutureTimestamp(
+        $this->sanity->warnIfFutureTimestamp(
             timestamp: $occurrenceTime,
             source: 'toronto_police',
             field: 'occurrence_time',
@@ -174,7 +178,7 @@ class TorontoPoliceFeedService
         $latitude = is_numeric($attributes['LATITUDE'] ?? null) ? (float) $attributes['LATITUDE'] : null;
         $longitude = is_numeric($attributes['LONGITUDE'] ?? null) ? (float) $attributes['LONGITUDE'] : null;
 
-        app(FeedDataSanity::class)->warnIfCoordinatesOutsideGta(
+        $this->sanity->warnIfCoordinatesOutsideGta(
             lat: $latitude,
             lng: $longitude,
             source: 'toronto_police',

@@ -78,7 +78,7 @@ test('it parses a valid json response with trains buses and stations', function 
         '*' => Http::response($json, 200, ['Content-Type' => 'application/json']),
     ]);
 
-    $service = new GoTransitFeedService;
+    $service = app(GoTransitFeedService::class);
     $results = $service->fetch();
 
     expect($results['updated_at'])->toBe('2026-02-05T14:30:00-05:00');
@@ -148,7 +148,7 @@ test('it strips html from message body', function () {
         '*' => Http::response($json, 200),
     ]);
 
-    $results = (new GoTransitFeedService)->fetch();
+    $results = app(GoTransitFeedService::class)->fetch();
 
     expect($results['alerts'][0]['message_body'])->toBe('Delay on Lakeshore West line.Details');
 });
@@ -182,7 +182,7 @@ test('it skips notifications without message subject', function () {
         '*' => Http::response($json, 200),
     ]);
 
-    $results = (new GoTransitFeedService)->fetch();
+    $results = app(GoTransitFeedService::class)->fetch();
 
     expect($results['alerts'])->toBeEmpty();
 });
@@ -218,7 +218,7 @@ test('it skips saag notifications without trip numbers', function () {
         '*' => Http::response($json, 200),
     ]);
 
-    $results = (new GoTransitFeedService)->fetch();
+    $results = app(GoTransitFeedService::class)->fetch();
 
     expect($results['alerts'])->toBeEmpty();
 });
@@ -237,7 +237,7 @@ test('it returns empty alerts for empty feed sections', function () {
         '*' => Http::response($json, 200),
     ]);
 
-    $results = (new GoTransitFeedService)->fetch();
+    $results = app(GoTransitFeedService::class)->fetch();
 
     expect($results['alerts'])->toBeEmpty();
 });
@@ -247,7 +247,7 @@ test('it throws exception on http error', function () {
         '*' => Http::response('server error', 500),
     ]);
 
-    (new GoTransitFeedService)->fetch();
+    app(GoTransitFeedService::class)->fetch();
 })->throws(RuntimeException::class, 'GO Transit feed request failed: 500');
 
 test('it throws exception on invalid json', function () {
@@ -255,7 +255,7 @@ test('it throws exception on invalid json', function () {
         '*' => Http::response('not json', 200),
     ]);
 
-    (new GoTransitFeedService)->fetch();
+    app(GoTransitFeedService::class)->fetch();
 })->throws(RuntimeException::class, 'GO Transit feed returned invalid JSON');
 
 test('it throws exception when LastUpdated is missing', function () {
@@ -263,7 +263,7 @@ test('it throws exception when LastUpdated is missing', function () {
         '*' => Http::response(['Trains' => []], 200),
     ]);
 
-    (new GoTransitFeedService)->fetch();
+    app(GoTransitFeedService::class)->fetch();
 })->throws(RuntimeException::class, 'GO Transit feed missing LastUpdated');
 
 test('it handles missing feed sections gracefully', function () {
@@ -277,7 +277,7 @@ test('it handles missing feed sections gracefully', function () {
         '*' => Http::response($json, 200),
     ]);
 
-    $results = (new GoTransitFeedService)->fetch();
+    $results = app(GoTransitFeedService::class)->fetch();
 
     expect($results['alerts'])->toBeEmpty();
 });
@@ -296,5 +296,5 @@ test('it throws exception on empty alerts when empty feeds are not allowed', fun
         '*' => Http::response($json, 200),
     ]);
 
-    (new GoTransitFeedService)->fetch();
+    app(GoTransitFeedService::class)->fetch();
 })->throws(RuntimeException::class, 'GO Transit feed returned zero alerts');

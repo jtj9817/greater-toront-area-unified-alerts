@@ -25,7 +25,7 @@ test('it parses a valid arcgis response into normalized records', function () {
         ]),
     ]);
 
-    $service = new TorontoPoliceFeedService;
+    $service = app(TorontoPoliceFeedService::class);
     $results = $service->fetch();
 
     expect($results)->toHaveCount(1);
@@ -55,7 +55,7 @@ test('it handles pagination when exceededTransferLimit is true', function () {
             ]),
     ]);
 
-    $service = new TorontoPoliceFeedService;
+    $service = app(TorontoPoliceFeedService::class);
     $results = $service->fetch();
 
     expect($results)->toHaveCount(2);
@@ -68,7 +68,7 @@ test('it throws exception on http error', function () {
         '*' => Http::response([], 500),
     ]);
 
-    $service = new TorontoPoliceFeedService;
+    $service = app(TorontoPoliceFeedService::class);
     $service->fetch();
 })->throws(RuntimeException::class, 'Failed to fetch police calls: 500');
 
@@ -77,7 +77,7 @@ test('it throws exception on missing features key', function () {
         '*' => Http::response(['error' => 'something went wrong']),
     ]);
 
-    $service = new TorontoPoliceFeedService;
+    $service = app(TorontoPoliceFeedService::class);
     $service->fetch();
 })->throws(RuntimeException::class, "Unexpected API response format: 'features' key missing.");
 
@@ -101,7 +101,7 @@ test('it handles missing optional fields', function () {
         ]),
     ]);
 
-    $service = new TorontoPoliceFeedService;
+    $service = app(TorontoPoliceFeedService::class);
     $results = $service->fetch();
 
     expect($results[0]['division'])->toBeNull();
@@ -119,7 +119,7 @@ test('it returns empty array for empty features', function () {
         ]),
     ]);
 
-    $service = new TorontoPoliceFeedService;
+    $service = app(TorontoPoliceFeedService::class);
     $results = $service->fetch();
 
     expect($results)->toBeEmpty();
@@ -135,7 +135,7 @@ test('it throws exception on empty features when empty feeds are not allowed', f
         ]),
     ]);
 
-    $service = new TorontoPoliceFeedService;
+    $service = app(TorontoPoliceFeedService::class);
     $service->fetch();
 })->throws(RuntimeException::class, 'Toronto Police feed returned an empty features array on the first page');
 
@@ -153,7 +153,7 @@ test('it returns partial results when pagination fails mid-stream', function () 
             ->push([], 500),
     ]);
 
-    $service = new TorontoPoliceFeedService;
+    $service = app(TorontoPoliceFeedService::class);
     $results = $service->fetch();
 
     expect($results)->toHaveCount(1);
@@ -178,6 +178,6 @@ test('it enforces a safety max record limit to avoid unbounded pagination memory
         ], 200),
     ]);
 
-    $service = new TorontoPoliceFeedService;
+    $service = app(TorontoPoliceFeedService::class);
     $service->fetch();
 })->throws(RuntimeException::class, 'Toronto Police feed exceeded safety limit of 1 records');

@@ -13,6 +13,10 @@ class TorontoFireFeedService
 
     protected const TIMEOUT_SECONDS = 15;
 
+    public function __construct(
+        protected FeedCircuitBreaker $circuitBreaker,
+    ) {}
+
     /**
      * Fetch and parse the live CAD XML feed.
      *
@@ -30,8 +34,7 @@ class TorontoFireFeedService
     public function fetch(): array
     {
         $allowEmptyFeeds = (bool) config('feeds.allow_empty_feeds');
-        $circuitBreaker = app(FeedCircuitBreaker::class);
-        $circuitBreaker->throwIfOpen('toronto_fire');
+        $this->circuitBreaker->throwIfOpen('toronto_fire');
         $cacheBuster = substr(str_shuffle('abcdefghijklmnopqrstuvwxyz'), 0, 6);
 
         try {
@@ -115,11 +118,11 @@ class TorontoFireFeedService
                 'events' => $events,
             ];
 
-            $circuitBreaker->recordSuccess('toronto_fire');
+            $this->circuitBreaker->recordSuccess('toronto_fire');
 
             return $result;
         } catch (Throwable $exception) {
-            $circuitBreaker->recordFailure('toronto_fire', $exception);
+            $this->circuitBreaker->recordFailure('toronto_fire', $exception);
             throw $exception;
         }
     }

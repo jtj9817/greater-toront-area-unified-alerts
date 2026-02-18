@@ -75,7 +75,7 @@ test('it fetches and normalizes TTC alerts from live API, SXA, and static source
         ),
     ]);
 
-    $result = (new TtcAlertsFeedService)->fetch();
+    $result = app(TtcAlertsFeedService::class)->fetch();
 
     expect($result['updated_at'])->toBeInstanceOf(CarbonInterface::class);
 
@@ -143,7 +143,7 @@ test('it ignores non advisory static sections when parsing streetcar page', func
         ),
     ]);
 
-    $result = (new TtcAlertsFeedService)->fetch();
+    $result = app(TtcAlertsFeedService::class)->fetch();
 
     $staticAlerts = collect($result['alerts'])
         ->where('source_feed', 'static')
@@ -158,7 +158,7 @@ test('it throws when the TTC live API source fails', function () {
         'https://alerts.ttc.ca/api/alerts/live-alerts*' => Http::response('error', 500),
     ]);
 
-    (new TtcAlertsFeedService)->fetch();
+    app(TtcAlertsFeedService::class)->fetch();
 })->throws(RuntimeException::class, 'TTC live alerts request failed: 500');
 
 test('it throws when the TTC live API returns a sentinel lastUpdated timestamp', function () {
@@ -174,7 +174,7 @@ test('it throws when the TTC live API returns a sentinel lastUpdated timestamp',
         ], 200),
     ]);
 
-    (new TtcAlertsFeedService)->fetch();
+    app(TtcAlertsFeedService::class)->fetch();
 })->throws(RuntimeException::class, "invalid ISO8601 timestamp '0001-01-01T00:00:00Z'");
 
 test('it logs warnings and continues when SXA or static sources fail', function () {
@@ -202,7 +202,7 @@ test('it logs warnings and continues when SXA or static sources fail', function 
         'https://www.ttc.ca/service-advisories/Streetcar-Service-Changes*' => Http::response('down', 500),
     ]);
 
-    $result = (new TtcAlertsFeedService)->fetch();
+    $result = app(TtcAlertsFeedService::class)->fetch();
 
     expect($result['alerts'])->toHaveCount(1);
     expect($result['alerts'][0]['external_id'])->toBe('api:61748');
@@ -244,7 +244,7 @@ test('it correctly parses "Not in Service" as OUT_OF_SERVICE', function () {
         'https://www.ttc.ca/service-advisories/Streetcar-Service-Changes*' => Http::response('', 200),
     ]);
 
-    $result = (new TtcAlertsFeedService)->fetch();
+    $result = app(TtcAlertsFeedService::class)->fetch();
 
     $alert = collect($result['alerts'])->firstWhere('external_id', 'api:accessibility:acc-elevator-not-in-service');
 

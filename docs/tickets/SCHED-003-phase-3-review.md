@@ -46,7 +46,7 @@ The `parseFeature` method calls `app(FeedDataSanity::class)` to resolve the sani
 Inject `FeedDataSanity` via the constructor (as per Finding #1) and access it via `$this->sanity`.
 
 ## Action Items
-- [ ] Refactor `TorontoFireFeedService` to use constructor injection for `FeedCircuitBreaker`.
-- [ ] Refactor `GoTransitFeedService` to use constructor injection for `FeedCircuitBreaker` and `FeedDataSanity`.
-- [ ] Refactor `TtcAlertsFeedService` to use constructor injection for `FeedCircuitBreaker` and `FeedDataSanity`.
-- [ ] Refactor `TorontoPoliceFeedService` to use constructor injection for `FeedCircuitBreaker` and `FeedDataSanity`, removing the `app()` call inside the `parseFeature` loop.
+- [x] Refactor `TorontoFireFeedService` to use constructor injection for `FeedCircuitBreaker`.
+- [x] Refactor `GoTransitFeedService` to use constructor injection for `FeedCircuitBreaker` and `FeedDataSanity`.
+- [x] Refactor `TtcAlertsFeedService` to use constructor injection for `FeedCircuitBreaker` and `FeedDataSanity`.
+- [x] Refactor `TorontoPoliceFeedService` to use constructor injection for `FeedCircuitBreaker` and `FeedDataSanity`, removing the `app()` call inside the `parseFeature` loop.

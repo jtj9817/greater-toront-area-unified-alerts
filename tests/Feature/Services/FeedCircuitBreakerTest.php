@@ -50,7 +50,7 @@ test('circuit breaker opens after threshold and recovers after ttl (fire feed)',
         return Http::response('unexpected url', 500);
     });
 
-    $service = new TorontoFireFeedService;
+    $service = app(TorontoFireFeedService::class);
 
     expect(fn () => $service->fetch())->toThrow(RuntimeException::class);
     expect(fn () => $service->fetch())->toThrow(RuntimeException::class);
@@ -76,7 +76,7 @@ test('circuit breaker blocks repeated failures (police feed)', function () {
         '*' => Http::response([], 500),
     ]);
 
-    $service = new TorontoPoliceFeedService;
+    $service = app(TorontoPoliceFeedService::class);
 
     expect(fn () => $service->fetch())->toThrow(RuntimeException::class);
     expect(fn () => $service->fetch())->toThrow(RuntimeException::class);
@@ -92,7 +92,7 @@ test('circuit breaker blocks repeated failures (go transit feed)', function () {
         'https://api.metrolinx.com/external/go/serviceupdate/en/all*' => Http::response([], 500),
     ]);
 
-    $service = new GoTransitFeedService;
+    $service = app(GoTransitFeedService::class);
 
     expect(fn () => $service->fetch())->toThrow(RuntimeException::class);
     expect(fn () => $service->fetch())->toThrow(RuntimeException::class);
@@ -108,7 +108,7 @@ test('circuit breaker blocks repeated failures (ttc alerts feed)', function () {
         'https://alerts.ttc.ca/api/alerts/live-alerts*' => Http::response([], 500),
     ]);
 
-    $service = new TtcAlertsFeedService;
+    $service = app(TtcAlertsFeedService::class);
 
     expect(fn () => $service->fetch())->toThrow(RuntimeException::class);
     expect(fn () => $service->fetch())->toThrow(RuntimeException::class);

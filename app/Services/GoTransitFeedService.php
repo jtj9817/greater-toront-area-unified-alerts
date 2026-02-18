@@ -12,6 +12,10 @@ class GoTransitFeedService
 
     protected const TIMEOUT_SECONDS = 15;
 
+    public function __construct(
+        protected FeedCircuitBreaker $circuitBreaker,
+    ) {}
+
     /**
      * Fetch and parse GO Transit service alerts from the Metrolinx API.
      *
@@ -35,8 +39,7 @@ class GoTransitFeedService
     public function fetch(): array
     {
         $allowEmptyFeeds = (bool) config('feeds.allow_empty_feeds');
-        $circuitBreaker = app(FeedCircuitBreaker::class);
-        $circuitBreaker->throwIfOpen('go_transit');
+        $this->circuitBreaker->throwIfOpen('go_transit');
 
         try {
             $response = Http::timeout(self::TIMEOUT_SECONDS)
@@ -78,11 +81,11 @@ class GoTransitFeedService
                 'alerts' => $alerts,
             ];
 
-            $circuitBreaker->recordSuccess('go_transit');
+            $this->circuitBreaker->recordSuccess('go_transit');
 
             return $result;
         } catch (Throwable $exception) {
-            $circuitBreaker->recordFailure('go_transit', $exception);
+            $this->circuitBreaker->recordFailure('go_transit', $exception);
             throw $exception;
         }
     }
