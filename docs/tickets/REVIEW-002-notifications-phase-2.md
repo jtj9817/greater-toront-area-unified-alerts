@@ -7,6 +7,23 @@
 **Priority:** High
 **Verified on codebase (2026-02-18):** Matcher and digest query scalability fixes are implemented; listener-level fan-out architecture work remains.
 
+## Current Fix Status (2026-02-18)
+
+1. **[HIGH] Memory exhaustion in `NotificationMatcher`:** Fixed  
+   Matching now prefilters by `alert_type` and `severity_threshold` at query level and streams with `cursor()`.
+2. **[HIGH] N+1 query pattern in daily digest generation:** Fixed  
+   Digest generation now batches digest existence and notification counts per chunk using grouped queries.
+3. **[MEDIUM] Sequential processing in listener:** Partially Fixed / Open  
+   Listener now chunks matching preferences before dispatching delivery jobs, but dispatch still occurs in-process inside one listener execution path (no dedicated fan-out job architecture yet).
+4. **[LOW] Race condition in delivery job:** Fixed  
+   Delivery uses `wasRecentlyCreated` checks and an atomic `sent -> processing` claim before broadcast.
+5. **[LOW] Hardcoded severity strings:** Fixed  
+   Severity mapping now uses shared `NotificationSeverity` constants.
+
+### Remaining Work To Close Ticket
+
+- Implement a dedicated fan-out architecture for large alert broadcasts (for example, queue a chunk/fan-out job from the listener and distribute recipient dispatch work across worker-executed jobs) and add tests that exercise high-volume dispatch behavior.
+
 ## Summary
 Review of the Phase 2 Notification Engine implementation. The core logic is sound, but there are significant scalability concerns regarding memory usage and database query performance that need to be addressed before high-load production use.
 
