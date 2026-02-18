@@ -138,6 +138,40 @@ test('unified alerts query returns empty results when there are no source rows',
     expect($results->items())->toBeEmpty();
 });
 
+test('unified alerts query returns empty results when providers list is empty', function () {
+    $query = new UnifiedAlertsQuery(
+        providers: [],
+        mapper: new UnifiedAlertMapper,
+    );
+
+    $results = $query->paginate(
+        new UnifiedAlertsCriteria(status: 'all', perPage: 50)
+    );
+
+    expect($results->total())->toBe(0);
+    expect($results->items())->toBeEmpty();
+});
+
+test('unified alerts query throws when provider is invalid type', function () {
+    $query = new UnifiedAlertsQuery(
+        providers: ['not-a-provider'],
+        mapper: new UnifiedAlertMapper,
+    );
+
+    expect(fn () => $query->paginate(new UnifiedAlertsCriteria(status: 'all', perPage: 50)))
+        ->toThrow(\InvalidArgumentException::class, "Invalid provider type 'string'. Expected AlertSelectProvider.");
+});
+
+test('unified alerts query throws when provider is invalid object', function () {
+    $query = new UnifiedAlertsQuery(
+        providers: [new stdClass],
+        mapper: new UnifiedAlertMapper,
+    );
+
+    expect(fn () => $query->paginate(new UnifiedAlertsCriteria(status: 'all', perPage: 50)))
+        ->toThrow(\InvalidArgumentException::class, "Invalid provider type 'stdClass'. Expected AlertSelectProvider.");
+});
+
 test('unified alerts query returns a mixed feed ordered by timestamp desc', function () {
     Carbon::setTestNow(Carbon::parse('2026-02-02 12:00:00'));
     $this->seed(UnifiedAlertsTestSeeder::class);
