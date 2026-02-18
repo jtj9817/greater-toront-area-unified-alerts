@@ -19,6 +19,7 @@ test('the home page renders the gta-alerts component', function () {
     $response->assertOk();
     $response->assertInertia(fn (Assert $page) => $page
         ->component('gta-alerts')
+        ->has('subscription_route_options')
     );
 });
 

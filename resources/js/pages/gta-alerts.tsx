@@ -13,6 +13,7 @@ interface GTAAlertsProps {
         status: 'all' | 'active' | 'cleared';
     };
     latest_feed_updated_at: string | null;
+    subscription_route_options: string[];
 }
 
 type GTAAlertsSharedProps = {
@@ -27,6 +28,7 @@ export default function GTAAlerts({
     alerts,
     filters,
     latest_feed_updated_at,
+    subscription_route_options,
 }: GTAAlertsProps) {
     const page = usePage<GTAAlertsSharedProps>();
     const rawAuthUserId = page.props.auth?.user?.id;
@@ -40,6 +42,7 @@ export default function GTAAlerts({
                 filters={filters}
                 latestFeedUpdatedAt={latest_feed_updated_at}
                 authUserId={authUserId}
+                subscriptionRouteOptions={subscription_route_options}
             />
         </div>
     );

@@ -23,40 +23,17 @@ interface AppProps {
     };
     latestFeedUpdatedAt: string | null;
     authUserId: number | null;
+    subscriptionRouteOptions?: string[];
 }
 
-const isRecord = (value: unknown): value is Record<string, unknown> =>
-    typeof value === 'object' && value !== null;
-
-const extractRouteOptions = (resources: UnifiedAlertResource[]): string[] => {
-    const options = new Set<string>();
-
-    for (const resource of resources) {
-        if (!isRecord(resource.meta)) {
-            continue;
-        }
-
-        if (resource.source === 'transit') {
-            const route = resource.meta.route;
-
-            if (typeof route === 'string' && route.trim().length > 0) {
-                options.add(route.trim());
-            }
-        }
-
-        if (resource.source === 'go_transit') {
-            const corridorCode = resource.meta.corridor_code;
-
-            if (
-                typeof corridorCode === 'string' &&
-                corridorCode.trim().length > 0
-            ) {
-                options.add(`GO-${corridorCode.trim()}`);
-            }
-        }
-    }
-
-    return Array.from(options).sort((left, right) =>
+const normalizeRouteOptions = (options: string[] | undefined): string[] => {
+    return Array.from(
+        new Set(
+            (options ?? [])
+                .map((option) => option.trim())
+                .filter((option) => option.length > 0),
+        ),
+    ).sort((left, right) =>
         left.localeCompare(right, undefined, {
             numeric: true,
         }),
@@ -68,6 +45,7 @@ const App: React.FC<AppProps> = ({
     filters,
     latestFeedUpdatedAt,
     authUserId,
+    subscriptionRouteOptions,
 }) => {
     const [currentView, setCurrentView] = useState('feed');
     const [activeAlertId, setActiveAlertId] = useState<string | null>(null);
@@ -98,8 +76,8 @@ const App: React.FC<AppProps> = ({
     }, [alerts.links, alerts.meta]);
 
     const routeOptions = useMemo(
-        () => extractRouteOptions(alerts.data),
-        [alerts.data],
+        () => normalizeRouteOptions(subscriptionRouteOptions),
+        [subscriptionRouteOptions],
     );
 
     // Use the local alerts to find the active alert

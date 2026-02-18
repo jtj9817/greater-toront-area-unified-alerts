@@ -43,7 +43,29 @@ class GtaAlertsController extends Controller
                 'status' => $status,
             ],
             'latest_feed_updated_at' => $latestFeedUpdatedAt?->toIso8601String(),
+            'subscription_route_options' => $this->subscriptionRouteOptions(),
         ]);
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    private function subscriptionRouteOptions(): array
+    {
+        $routes = config('transit_data.routes');
+
+        if (! is_array($routes)) {
+            return [];
+        }
+
+        return collect($routes)
+            ->filter(static fn (mixed $route): bool => is_array($route))
+            ->map(static fn (array $route): string => trim((string) ($route['id'] ?? '')))
+            ->filter(static fn (string $routeId): bool => $routeId !== '')
+            ->unique()
+            ->sort(SORT_NATURAL)
+            ->values()
+            ->all();
     }
 
     private function latestFeedUpdatedAt(): ?\Carbon\CarbonInterface
