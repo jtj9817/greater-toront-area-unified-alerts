@@ -59,12 +59,12 @@ if (! app()->environment('testing')) {
 
 umask(002);
 
+use App\Models\FireIncident;
 use App\Services\GoTransitFeedService;
 use App\Services\SceneIntel\SceneIntelProcessor;
-use App\Services\TtcAlertsFeedService;
 use App\Services\TorontoFireFeedService;
 use App\Services\TorontoPoliceFeedService;
-use App\Models\FireIncident;
+use App\Services\TtcAlertsFeedService;
 use Carbon\Carbon;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Http\Client\Request;
@@ -503,7 +503,7 @@ XML;
         assertLogContains($logFile, 'source":"toronto_police"', 'future timestamp sanity warning includes police source');
         assertLogContains($logFile, 'Feed record coordinates fall outside GTA bounds', 'coordinate sanity warning logged');
         assertLogContains($logFile, 'source":"toronto_police"', 'coordinate sanity warning includes police source');
-    }, function () use ($policeService): void {
+    }, function (): void {
         config([
             'feeds.circuit_breaker.enabled' => true,
             'feeds.sanity.future_timestamp_grace_seconds' => 900,
@@ -578,16 +578,24 @@ XML;
             "MANUAL_SCENE_INTEL_3_{$testRunId}",
         ];
 
+        // Keep timestamps within MySQL TIMESTAMP range (<= 2038), but still far enough
+        // in the future to trip sanity warnings.
+        $futureToronto = Carbon::now('America/Toronto')->addHours(2);
+        $updatedAt = $futureToronto->copy();
+        $dispatch1 = $futureToronto->copy();
+        $dispatch2 = $futureToronto->copy()->addMinute();
+        $dispatch3 = $futureToronto->copy()->addMinutes(2);
+
         $httpState['fire_status'] = 200;
         $httpState['fire_xml'] = <<<XML
 <tfs_active_incidents>
-  <update_from_db_time>2099-01-01 00:00:00</update_from_db_time>
+  <update_from_db_time>{$updatedAt->format('Y-m-d H:i:s')}</update_from_db_time>
   <event>
     <event_num>{$eventNums[0]}</event_num>
     <event_type>FIRE</event_type>
     <prime_street>Test</prime_street>
     <cross_streets>Test</cross_streets>
-    <dispatch_time>2099-01-01 00:00:00</dispatch_time>
+    <dispatch_time>{$dispatch1->format('Y-m-d H:i:s')}</dispatch_time>
     <alarm_lev>1</alarm_lev>
     <beat>A</beat>
     <units_disp>X</units_disp>
@@ -597,7 +605,7 @@ XML;
     <event_type>FIRE</event_type>
     <prime_street>Test</prime_street>
     <cross_streets>Test</cross_streets>
-    <dispatch_time>2099-01-01 00:01:00</dispatch_time>
+    <dispatch_time>{$dispatch2->format('Y-m-d H:i:s')}</dispatch_time>
     <alarm_lev>1</alarm_lev>
     <beat>A</beat>
     <units_disp>X</units_disp>
@@ -607,7 +615,7 @@ XML;
     <event_type>FIRE</event_type>
     <prime_street>Test</prime_street>
     <cross_streets>Test</cross_streets>
-    <dispatch_time>2099-01-01 00:02:00</dispatch_time>
+    <dispatch_time>{$dispatch3->format('Y-m-d H:i:s')}</dispatch_time>
     <alarm_lev>1</alarm_lev>
     <beat>A</beat>
     <units_disp>X</units_disp>
@@ -615,7 +623,8 @@ XML;
 </tfs_active_incidents>
 XML;
 
-        app()->instance(SceneIntelProcessor::class, new class extends SceneIntelProcessor {
+        app()->instance(SceneIntelProcessor::class, new class extends SceneIntelProcessor
+        {
             private int $attempt = 0;
 
             public function processIncidentUpdate(FireIncident $incident, ?array $previousData): void
