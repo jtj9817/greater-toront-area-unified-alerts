@@ -3,12 +3,15 @@
 use App\Events\AlertCreated;
 use App\Events\AlertNotificationSent;
 use App\Jobs\DeliverAlertNotificationJob;
+use App\Jobs\DispatchAlertNotificationChunkJob;
+use App\Jobs\FanOutAlertNotificationsJob;
 use App\Jobs\GenerateDailyDigestJob;
 use App\Models\NotificationLog;
 use App\Models\NotificationPreference;
 use App\Models\SavedPlace;
 use App\Models\User;
 use App\Services\Notifications\NotificationAlert;
+use App\Services\Notifications\NotificationMatcher;
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
@@ -18,7 +21,7 @@ use Illuminate\Support\Facades\Queue;
 uses(RefreshDatabase::class);
 
 test('matching alert flows through dispatch, delivery, broadcast, inbox, and mark-as-read', function () {
-    // Phase 1: Fire event with matching preference, assert job dispatched
+    // Phase 1: Event dispatches fan-out job and fan-out dispatches delivery jobs
     Queue::fake();
 
     $user = User::factory()->create();
@@ -52,6 +55,29 @@ test('matching alert flows through dispatch, delivery, broadcast, inbox, and mar
     );
 
     event(new AlertCreated($alert));
+
+    Queue::assertPushed(FanOutAlertNotificationsJob::class, 1);
+    Queue::assertPushed(FanOutAlertNotificationsJob::class, function (FanOutAlertNotificationsJob $job): bool {
+        return $job->payload['alert_id'] === 'police:integration-001'
+            && $job->payload['source'] === 'police'
+            && $job->payload['severity'] === 'major';
+    });
+
+    /** @var FanOutAlertNotificationsJob $fanOutJob */
+    $fanOutJob = Queue::pushed(FanOutAlertNotificationsJob::class)->sole();
+
+    Queue::fake();
+
+    $fanOutJob->handle(app(NotificationMatcher::class));
+
+    $chunkJobs = Queue::pushed(DispatchAlertNotificationChunkJob::class);
+    expect($chunkJobs)->toHaveCount(1);
+
+    Queue::fake();
+
+    foreach ($chunkJobs as $chunkJob) {
+        $chunkJob->handle();
+    }
 
     Queue::assertPushed(DeliverAlertNotificationJob::class, 1);
     Queue::assertPushed(DeliverAlertNotificationJob::class, function (DeliverAlertNotificationJob $job) use ($user): bool {
@@ -145,7 +171,16 @@ test('non-matching geofence alert does not dispatch notification job', function 
         lng: -79.3832,
     )));
 
-    Queue::assertNotPushed(DeliverAlertNotificationJob::class);
+    Queue::assertPushed(FanOutAlertNotificationsJob::class, 1);
+
+    /** @var FanOutAlertNotificationsJob $fanOutJob */
+    $fanOutJob = Queue::pushed(FanOutAlertNotificationsJob::class)->sole();
+
+    Queue::fake();
+
+    $fanOutJob->handle(app(NotificationMatcher::class));
+
+    Queue::assertNotPushed(DispatchAlertNotificationChunkJob::class);
 });
 
 test('digest user receives daily digest entry in inbox', function () {
