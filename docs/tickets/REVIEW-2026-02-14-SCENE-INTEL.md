@@ -6,6 +6,23 @@
 **Related Commit:** `2057d00` (Main), `35030a3` (Fix)
 **Verified on codebase (2026-02-18):** Empty `eventNum` guard, abort handling, and initial-load-only spinner behavior are implemented; interval-based polling overlap risk remains.
 
+## Current Fix Status (2026-02-18)
+
+1. **Unsafe state updates in polling hook:** Fixed  
+   `useSceneIntel` now uses `AbortController` cleanup and abort-aware error handling.
+2. **Missing guard for empty event ID:** Fixed  
+   `fetchData` now returns early when `eventNum` is empty.
+3. **UI flicker on polling:** Fixed  
+   Loading state is gated to initial/no-data fetch behavior.
+4. **Polling race conditions (overlapping requests):** Open  
+   Hook still uses `setInterval` polling; overlapping requests can still occur when request time exceeds the interval.
+5. **Hardcoded styles in timeline component:** Fixed  
+   Type-to-style mapping now uses centralized style configuration.
+
+### Remaining Work To Close Ticket
+
+- Replace `setInterval` polling with non-overlapping polling control (recursive `setTimeout`, in-flight request guard, or cancellation-before-next-run pattern) and add tests that explicitly verify no overlapping fetch cycles.
+
 ## Summary
 The commit implements the frontend components for the Scene Intel feature, including the `SceneIntelTimeline` component, `useSceneIntel` hook, and domain schema extensions. While the functional implementation is complete, there are several stability and architectural issues in the data fetching hook that need to be addressed before production use.
 
