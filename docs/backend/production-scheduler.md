@@ -177,6 +177,42 @@ All scheduler diagnostics are written using Laravel’s `Log` facade. Where they
 
 For production containers, prefer stdout/stderr logging so orchestration platforms can collect logs centrally.
 
+## Scheduler Resilience Guardrails
+
+The scheduler now ships with multiple guardrails to prevent silent failures and minimize long-lived outages:
+
+- **Job-based ingestion with retries:** Fetchers run as queued jobs with `$tries=3`, `$backoff=30`, `$timeout=120`.
+- **Overlap protection without 24-hour lockouts:** Scheduled events use `withoutOverlapping(10)`; job middleware releases locks after 30 seconds on failure and expires at 10 minutes.
+- **Empty feed protection:** `ALLOW_EMPTY_FEEDS=false` (default) causes empty feed responses to throw and **skip deactivation**, preventing mass data loss.
+- **Circuit breaker:** After 5 consecutive failures per feed, fetch attempts are skipped for 5 minutes to reduce upstream load.
+- **Queue depth monitoring:** A scheduled check logs an error when queue depth exceeds 100.
+- **Failed job pruning:** `queue:prune-failed --hours=168` runs daily to prevent unbounded growth.
+
+### Monitoring Thresholds
+
+| Signal | Threshold | Behavior |
+| --- | --- | --- |
+| Queue depth | > 100 | Logs error (every 5 minutes) |
+| Circuit breaker | 5 failures | Opens for 5 minutes |
+| Scene intel failures | > 50% | Logs warning + console warning |
+| Overlap lock expiry | 10 minutes | Prevents 24-hour lockouts |
+| Retry backoff | 30 seconds | Aligns with lock release |
+
+### Empty Feed Strategy (`ALLOW_EMPTY_FEEDS`)
+
+- **Default:** `ALLOW_EMPTY_FEEDS=false` (strict mode)
+- **Behavior:** Empty feeds trigger a `RuntimeException` and **skip deactivation** to prevent mass data loss.
+- **When to enable:** Only during controlled testing or known upstream maintenance windows where empty feeds are expected.
+
+### Alerting Signals
+
+Use log-based alerts for these events:
+
+- `Fetch*Command failed` errors (command failure rate)
+- Queue depth threshold errors (`depth > 100`)
+- `Scene intel failure rate exceeded threshold`
+- `Circuit breaker open` events (repeated upstream failures)
+
 ## Failure Modes / Debugging Checklist
 
 1) Scheduler container is “healthy” but jobs don’t run:
@@ -192,6 +228,20 @@ For production containers, prefer stdout/stderr logging so orchestration platfor
 - The wrapper logs `Artisan::output()` line-by-line; search logs for `Scheduler tick output`.
 - If a scheduled command fails, ensure those commands log their own exceptions (some already do, e.g. `FetchPoliceCallsCommand` logs to `Log::error` on fetch failures).
 
+4) Fetch jobs keep failing or are skipped:
+- Look for `Circuit breaker open` logs — repeated upstream failures will pause fetch attempts for 5 minutes.
+- If errors mention “zero alerts” or “zero events”, review `ALLOW_EMPTY_FEEDS` behavior and upstream status.
+- Check failed jobs via `php artisan queue:failed` and retry if appropriate.
+
+5) Queue backlog grows:
+- The queue depth monitor logs an error when depth exceeds 100.
+- Verify the queue worker is running and that jobs are not blocked by overlap locks.
+
+## Runbooks
+
+- `docs/runbooks/scheduler-troubleshooting.md`
+- `docs/runbooks/queue-troubleshooting.md`
+
 ## Remaining Work (Not Implemented Yet)
 
 - Add a production `compose` / deployment manifest for a `scheduler` service that builds `docker/scheduler/Dockerfile` and sets required env vars.
@@ -199,4 +249,3 @@ For production containers, prefer stdout/stderr logging so orchestration platfor
 - Optionally add Pest tests for:
   - heartbeat keys after `scheduler:run-and-log`
   - `scheduler:status` behavior for missing/stale heartbeat
-

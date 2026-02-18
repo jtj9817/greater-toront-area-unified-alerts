@@ -107,16 +107,16 @@ This plan addresses critical stability and resilience issues in the GTA Alerts s
 **Goal:** Final verification and documentation maintenance for the shipped scope.
 
 - [ ] Task: Coverage and Linting Verification
-    - [ ] Execute `composer test` - Ensure all tests pass.
-    - [ ] Execute `pnpm run quality:check` - Ensure frontend quality (if applicable).
-    - [ ] Verify test coverage meets >90% threshold for modified files.
-- [ ] Task: Documentation Update
-    - [ ] Update `docs/backend/production-scheduler.md` with new failure modes & `ALLOW_EMPTY_FEEDS` configuration.
-    - [ ] Create `docs/runbooks/scheduler-troubleshooting.md` covering common failure scenarios and recovery steps.
-    - [ ] Create `docs/runbooks/queue-troubleshooting.md` covering queue backlog management and failed job analysis.
-    - [ ] Update `docs/backend/maintenance.md` to include Failed Job pruning policy.
-    - [ ] Update `docs/backend/scene-intel.md` to document the retry policy and acceptable failure modes for Scene Intel.
-    - [ ] Document persistent vs transient failure characteristics (24-hour mutex lockout cycles vs auto-recovery).
-    - [ ] Document monitoring thresholds and alerting setup (queue depth, command failure rate, Scene Intel failure rate, etc.).
-    - [ ] Document empty feed handling strategy and the `ALLOW_EMPTY_FEEDS` flag with usage guidance.
+    - [x] Execute `composer test` - Ensure all tests pass.
+    - [x] Execute `pnpm run quality:check` - Ensure frontend quality (if applicable).
+    - [ ] Verify test coverage meets >90% threshold for modified files. (blocked: no coverage driver available)
+- [x] Task: Documentation Update
+    - [x] Update `docs/backend/production-scheduler.md` with new failure modes & `ALLOW_EMPTY_FEEDS` configuration.
+    - [x] Create `docs/runbooks/scheduler-troubleshooting.md` covering common failure scenarios and recovery steps.
+    - [x] Create `docs/runbooks/queue-troubleshooting.md` covering queue backlog management and failed job analysis.
+    - [x] Update `docs/backend/maintenance.md` to include Failed Job pruning policy.
+    - [x] Update `docs/backend/scene-intel.md` to document the retry policy and acceptable failure modes for Scene Intel.
+    - [x] Document persistent vs transient failure characteristics (24-hour mutex lockout cycles vs auto-recovery).
+    - [x] Document monitoring thresholds and alerting setup (queue depth, command failure rate, Scene Intel failure rate, etc.).
+    - [x] Document empty feed handling strategy and the `ALLOW_EMPTY_FEEDS` flag with usage guidance.
 - [ ] Task: Conductor - User Manual Verification 'Phase 4: Quality & Documentation' (Protocol in workflow.md)

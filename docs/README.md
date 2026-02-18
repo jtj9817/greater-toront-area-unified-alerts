@@ -30,6 +30,9 @@ docs/
 ├── frontend/
 │   ├── alert-service.md
 │   └── types.md
+├── runbooks/
+│   ├── scheduler-troubleshooting.md
+│   └── queue-troubleshooting.md
 ├── sources/
 │   ├── toronto-fire.md
 │   ├── toronto-police.md
@@ -101,3 +104,8 @@ The unified feed currently aggregates four source types:
 | Production Scheduler | Implemented | [backend/production-scheduler.md](backend/production-scheduler.md) |
 | In-App Notifications | Implemented | [backend/notification-system.md](backend/notification-system.md) |
 | Dynamic Zones | Planned | [architecture/dynamic-zones.md](architecture/dynamic-zones.md) |
+
+## Runbooks
+
+- **[runbooks/scheduler-troubleshooting.md](runbooks/scheduler-troubleshooting.md)** - Scheduler failures, overlap locks, empty feed protection
+- **[runbooks/queue-troubleshooting.md](runbooks/queue-troubleshooting.md)** - Queue backlog and failed job recovery

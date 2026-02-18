@@ -131,6 +131,13 @@ The processor is invoked:
 
 Scheduled in `routes/console.php` to run every 5 minutes.
 
+### Resilience & Failure Modes
+
+- **Non-blocking per-incident failures:** Exceptions thrown by `SceneIntelProcessor::processIncidentUpdate()` are caught per incident and logged as warnings. Ingestion continues for the rest of the batch.
+- **Failure rate monitoring:** If more than 50% of Scene Intel attempts fail in a run, a warning is logged and emitted to the console to surface systemic issues.
+- **Job retry policy:** `FetchFireIncidentsJob` retries the command up to 3 times with a 30-second backoff. Note that Scene Intel exceptions are intentionally swallowed and **do not** trigger a job retry.
+- **Acceptable partial failure:** Occasional Scene Intel failures are tolerated; repeated warnings or sustained >50% failure rate indicate data or database issues that should be investigated.
+
 ## API Endpoints
 
 ### GET `/api/incidents/{eventNum}/intel`

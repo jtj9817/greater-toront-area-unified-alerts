@@ -9,7 +9,7 @@ GTA Alerts is a real-time dashboard for emergency services and transit alerts ac
 ### Current Integrations
 - **Toronto Fire Services** - Live CAD XML feed (real-time, every 5 minutes)
 - **Toronto Police Services** - ArcGIS FeatureServer scraping (every 10 minutes)
-- **TTC Transit Alerts** - Architecture spec complete, implementation pending
+- **TTC Transit Alerts** - Composite feed (live API + SXA + static pages, every 5 minutes)
 - **GO Transit** - Metrolinx JSON API (`api.metrolinx.com/external/go/serviceupdate/en/all`, every 5 minutes)
 
 ## Commands
@@ -36,6 +36,9 @@ APP_ENV=testing ./vendor/bin/sail php tests/manual/verify_phase_3_unified_queryi
 APP_ENV=testing ./vendor/bin/sail php tests/manual/verify_phase_4_frontend_integration.php
 APP_ENV=testing ./vendor/bin/sail php tests/manual/verify_phase_5_quality_gate.php
 APP_ENV=testing ./vendor/bin/sail php tests/manual/verify_production_data_migration_phase_3_automation_documentation.php
+APP_ENV=testing ./vendor/bin/sail php tests/manual/verify_scheduler_resilience_phase_1_critical_fixes_foundation.php
+APP_ENV=testing ./vendor/bin/sail php tests/manual/verify_scheduler_resilience_phase_2_resilience_architecture_upgrade.php
+APP_ENV=testing ./vendor/bin/sail php tests/manual/verify_scheduler_resilience_phase_3_data_integrity_maintenance.php
 ```
 
 ### Linting & Formatting

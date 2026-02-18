@@ -64,3 +64,32 @@ APP_ENV=testing php artisan schedule:list
 ```
 
 Expected signal: `model:prune` for `IncidentUpdate` appears in scheduled commands.
+
+## Failed Job Pruning
+
+### Policy
+
+- `failed_jobs` entries older than 7 days are permanently deleted.
+- Boundary behavior: entries with `failed_at` exactly 7 days old are retained.
+
+### Command
+
+- Artisan command: `queue:prune-failed --hours=168`
+
+### Scheduler
+
+- Scheduled in `routes/console.php`
+- Frequency: daily at `00:00` (cron expression: `0 0 * * *`)
+
+### Verification
+
+Automated coverage:
+- `tests/Feature/Console/SchedulerResiliencePhase3Test.php`
+
+Manual check command:
+
+```bash
+APP_ENV=testing php artisan schedule:list
+```
+
+Expected signal: `queue:prune-failed --hours=168` appears in scheduled commands.

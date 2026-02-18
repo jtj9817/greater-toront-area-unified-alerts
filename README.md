@@ -106,6 +106,8 @@ The application uses the Laravel Scheduler to keep data fresh.
 
 In production, the project uses a dedicated scheduler container (`docker/scheduler/Dockerfile`) that runs `php artisan scheduler:run-and-log` every minute, providing detailed logs and a health check heartbeat.
 
+Empty feed protection is enforced by default (`ALLOW_EMPTY_FEEDS=false`) to prevent mass deactivation when upstream feeds return zero results unexpectedly.
+
 ---
 
 ## Production Data Seeding
@@ -164,6 +166,7 @@ For detailed documentation on architecture, implementation, and development:
 - **[Frontend Types](docs/frontend/types.md)** - TypeScript domain types and presentation mapping
 - **[AlertService](docs/frontend/alert-service.md)** - Frontend filtering and search orchestration
 - **[Production Scheduler](docs/backend/production-scheduler.md)** - Background job observability
+- **[Scheduler Runbooks](docs/runbooks/scheduler-troubleshooting.md)** - Operations and recovery guide
 
 ### Data Source Documentation
 
