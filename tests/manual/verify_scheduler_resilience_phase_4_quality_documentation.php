@@ -22,6 +22,9 @@
  * Optional:
  * - RUN_TRACK_TESTS=0 to skip running Pest tests (docs-only verification)
  * - RUN_COVERAGE=1 to attempt coverage (requires Xdebug/PCOV available)
+ * - AUTO_CLEAR_CONFIG_CACHE=1 to automatically run `php artisan config:clear`
+ *   before executing subprocess test/coverage commands (recommended if you
+ *   commonly run `php artisan config:cache` locally).
  */
 
 require __DIR__.'/../../vendor/autoload.php';
@@ -214,6 +217,15 @@ function hasCoverageDriver(): bool
     return extension_loaded('xdebug') || extension_loaded('pcov');
 }
 
+function configIsCached(): bool
+{
+    $path = base_path('bootstrap/cache/config.php');
+
+    return file_exists($path);
+}
+
+$autoClearConfigCache = getenv('AUTO_CLEAR_CONFIG_CACHE') === '1';
+
 $exitCode = 0;
 
 try {
@@ -331,6 +343,19 @@ try {
     if ($runTrackTests === '0') {
         logWarning('Skipping track tests (RUN_TRACK_TESTS=0).');
     } else {
+        if (configIsCached()) {
+            if ($autoClearConfigCache) {
+                runCommand('APP_ENV=testing php artisan config:clear', 'Clear config cache');
+            } else {
+                throw new RuntimeException(
+                    'Refusing to run subprocess tests while config is cached.'
+                    .' Env overrides like DB_CONNECTION=sqlite DB_DATABASE=:memory: may be ignored when'
+                    .' bootstrap/cache/config.php exists. Run `php artisan config:clear` or re-run with'
+                    .' AUTO_CLEAR_CONFIG_CACHE=1.'
+                );
+            }
+        }
+
         $envPrefix = 'APP_ENV=testing DB_CONNECTION=sqlite DB_DATABASE=:memory: CACHE_STORE=array QUEUE_CONNECTION=sync SESSION_DRIVER=array';
 
         $tests = runCommand(
@@ -360,6 +385,19 @@ try {
                 'hint' => 'See scripts/setup-coverage.sh for Sail-based setup.',
             ]);
         } else {
+            if (configIsCached()) {
+                if ($autoClearConfigCache) {
+                    runCommand('APP_ENV=testing php artisan config:clear', 'Clear config cache');
+                } else {
+                    throw new RuntimeException(
+                        'Refusing to run subprocess coverage while config is cached.'
+                        .' Env overrides like DB_CONNECTION=sqlite DB_DATABASE=:memory: may be ignored when'
+                        .' bootstrap/cache/config.php exists. Run `php artisan config:clear` or re-run with'
+                        .' AUTO_CLEAR_CONFIG_CACHE=1.'
+                    );
+                }
+            }
+
             $envPrefix = 'APP_ENV=testing DB_CONNECTION=sqlite DB_DATABASE=:memory: CACHE_STORE=array QUEUE_CONNECTION=sync SESSION_DRIVER=array';
 
             $coverage = runCommand(
