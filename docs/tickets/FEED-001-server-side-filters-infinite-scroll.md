@@ -1,0 +1,86 @@
+# [FEED-001] Server-Side Filters + Infinite Scroll for Alert Feed
+
+**Date:** 2026-02-18
+**Status:** Open
+**Priority:** High
+**Components:** Backend, Frontend, UX
+
+## Problem
+
+The alert feed currently uses a hybrid filtering architecture that produces misleading results. Server-side pagination delivers 50 items per page, but category, search, date, and time filters are applied **client-side only** — meaning they filter the current page's 50 items, not the full dataset (6,400+ alerts).
+
+### Observed Issues
+
+1. **Search is page-scoped:** Searching for "ASSAULT" only finds matches within the current 50 items, not across all alerts.
+2. **Category filter is page-scoped:** Filtering to "Fire" shows only fire alerts that happen to be on the current page, not all fire alerts system-wide.
+3. **Time/date filters are page-scoped:** "Last 30m" filters the current page rather than querying the backend for recent alerts.
+4. **Pagination style mismatch:** Numbered page navigation doesn't match the mental model of a live incident feed/timeline. Users scan for relevant incidents — they don't navigate to "page 47."
+
+### Current Architecture
+
+```
+Backend (server-side)                    Frontend (client-side)
+─────────────────────                    ───────────────────────
+- Status filter (all/active/cleared)     - Category (fire/police/transit/hazard)
+- Pagination (page number, 50/page)      - Search (title, description, location)
+- Sort by timestamp DESC                 - Date scope (today/yesterday/all)
+                                         - Time limit (30m, 1h, 3h, 6h, 12h)
+```
+
+### Affected Files
+
+**Backend:**
+- `app/Http/Controllers/GtaAlertsController.php` — currently only validates `status` param
+- `app/Services/Alerts/DTOs/UnifiedAlertsCriteria.php` — criteria DTO, only has status/perPage/page
+- `app/Services/Alerts/UnifiedAlertsQuery.php` — UNION ALL query builder
+
+**Frontend:**
+- `resources/js/features/gta-alerts/components/FeedView.tsx` — filter UI + client-side filter state
+- `resources/js/features/gta-alerts/services/AlertService.ts` — `searchDomainAlerts()` client-side filtering
+- `resources/js/features/gta-alerts/App.tsx` — passes pagination props, manages search query state
+- `resources/js/pages/gta-alerts.tsx` — Inertia page component
+
+## Proposed Solution
+
+### 1. Move All Filters Server-Side
+
+Add query parameters to the backend endpoint so the UNION ALL query handles filtering at the database level:
+
+| Filter | Parameter | Example |
+|--------|-----------|---------|
+| Status | `status` | `?status=active` (already exists) |
+| Category/Source | `source` | `?source=fire` or `?source=transit` |
+| Search | `q` | `?q=assault` |
+| Time range | `since` | `?since=30m` or `?since=3h` |
+
+This means `UnifiedAlertsCriteria` gains new fields, `UnifiedAlertsQuery` applies them in the SQL, and the frontend filter controls become links/params instead of local state.
+
+### 2. Replace Page-Based Pagination with Cursor-Based Infinite Scroll
+
+- Use **cursor-based pagination** keyed on `(timestamp, id)` to avoid stale-page issues when new alerts arrive mid-browsing.
+- Frontend loads ~50 items initially, then fetches the next batch on scroll (intersection observer or scroll threshold).
+- Drop `AlertService.searchDomainAlerts()` client-side filtering entirely — all filtering is server-authoritative.
+
+### 3. Retain Client-Side View Mode Toggle
+
+The Cards/Table toggle is purely presentational and should remain client-side.
+
+## Design Considerations
+
+- **Search debounce:** Frontend should debounce search input (~300ms) before issuing server requests to avoid excessive queries.
+- **URL state:** All active filters should be reflected in the URL (query params) so filtered views are shareable/bookmarkable.
+- **Filter reset:** The "Reset" button should clear all query params and reload.
+- **Loading states:** Infinite scroll needs a loading indicator at the bottom and graceful handling of "no more results."
+- **SQLite compatibility:** Any new WHERE clauses need dual-driver support (sqlite vs mysql) per project convention.
+- **Existing tests:** `UnifiedAlertsQuery` has test coverage that will need updating for new filter parameters.
+
+## Future Enhancements
+
+### Real-Time Push
+Once server-side filters and infinite scroll are in place, the feed should support live updates via WebSocket or SSE. New alerts matching the user's active filters would be prepended to the top of the feed without requiring a manual refresh. The existing `AlertNotificationSent` broadcast event on `private-users.{userId}.notifications` could be extended or a new public channel introduced for the general feed.
+
+### Saved Filter Presets
+Allow users to save named filter combinations (e.g., "My Commute" = source:transit + source:go_transit, "Nearby Fire" = source:fire + geofence). These could be stored in the database for authenticated users or localStorage for anonymous visitors, and presented as quick-access chips above the filter bar.
+
+### Sort Direction Toggle
+Currently hardcoded to newest-first, which is the correct default for a live feed. However, users investigating historical patterns may want oldest-first ordering. This would be a simple `sort=asc|desc` query parameter passed through to the `ORDER BY` clause. Low priority since newest-first covers the primary use case.
