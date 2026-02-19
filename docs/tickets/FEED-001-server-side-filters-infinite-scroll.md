@@ -74,13 +74,12 @@ The Cards/Table toggle is purely presentational and should remain client-side.
 - **SQLite compatibility:** Any new WHERE clauses need dual-driver support (sqlite vs mysql) per project convention.
 - **Existing tests:** `UnifiedAlertsQuery` has test coverage that will need updating for new filter parameters.
 
-## Future Enhancements
+## Related Tickets
 
-### Real-Time Push
-Once server-side filters and infinite scroll are in place, the feed should support live updates via WebSocket or SSE. New alerts matching the user's active filters would be prepended to the top of the feed without requiring a manual refresh. The existing `AlertNotificationSent` broadcast event on `private-users.{userId}.notifications` could be extended or a new public channel introduced for the general feed.
+| Ticket | Description | Priority |
+|--------|-------------|----------|
+| [FEED-002](./FEED-002-real-time-push.md) | Real-time push updates for the alert feed via WebSocket/SSE | Medium |
+| [FEED-003](./FEED-003-saved-filter-presets.md) | Saved filter presets for quick-access filter combinations | Low |
+| [FEED-004](./FEED-004-sort-direction-toggle.md) | Sort direction toggle (newest/oldest first) | Low |
 
-### Saved Filter Presets
-Allow users to save named filter combinations (e.g., "My Commute" = source:transit + source:go_transit, "Nearby Fire" = source:fire + geofence). These could be stored in the database for authenticated users or localStorage for anonymous visitors, and presented as quick-access chips above the filter bar.
-
-### Sort Direction Toggle
-Currently hardcoded to newest-first, which is the correct default for a live feed. However, users investigating historical patterns may want oldest-first ordering. This would be a simple `sort=asc|desc` query parameter passed through to the `ORDER BY` clause. Low priority since newest-first covers the primary use case.
+All three depend on this ticket being completed first.
