@@ -165,10 +165,41 @@ try {
     try {
         DB::connection()->getPdo();
     } catch (\Throwable $e) {
-        throw new RuntimeException(
-            "Database connection failed. If you're using Sail, ensure Docker is running and execute: ./vendor/bin/sail php tests/manual/verify_feed_001_phase_1_backend_filters_cursor_pagination.php",
-            previous: $e
-        );
+        $connectionName = config('database.default');
+        $connectionConfig = is_string($connectionName) ? (config("database.connections.{$connectionName}") ?? []) : [];
+
+        $dbDriver = is_array($connectionConfig) ? (string) ($connectionConfig['driver'] ?? '') : '';
+        $dbHost = is_array($connectionConfig) ? (string) ($connectionConfig['host'] ?? '') : '';
+        $dbPort = is_array($connectionConfig) ? (string) ($connectionConfig['port'] ?? '') : '';
+        $dbDatabase = is_array($connectionConfig) ? (string) ($connectionConfig['database'] ?? '') : '';
+
+        $resolved = $dbHost !== '' ? gethostbyname($dbHost) : '';
+        $hostResolves = $dbHost !== '' && $resolved !== '' && $resolved !== $dbHost;
+
+        $hint = "Database connection failed.\n\n"
+            ."Connection: {$connectionName}\n"
+            ."Driver: {$dbDriver}\n"
+            ."Host: {$dbHost}\n"
+            ."Port: {$dbPort}\n"
+            ."Database: {$dbDatabase}\n";
+
+        if ($dbHost === 'mysql-testing') {
+            $hint .= "\nThe `mysql-testing` service is defined under the Docker Compose `testing` profile.\n"
+                ."Start it with one of:\n"
+                ."- ./vendor/bin/sail up -d --profile testing\n"
+                ."- docker compose --profile testing up -d mysql-testing\n";
+        }
+
+        if (! $hostResolves && $dbHost !== '' && $dbHost !== '127.0.0.1' && $dbHost !== 'localhost') {
+            $hint .= "\nHost resolution failed for '{$dbHost}'. This usually means you're running the script on the host OS\n"
+                ."instead of inside the Sail container network. Run:\n"
+                ."- ./vendor/bin/sail php tests/manual/verify_feed_001_phase_1_backend_filters_cursor_pagination.php\n";
+        } else {
+            $hint .= "\nRun inside Sail:\n"
+                ."- ./vendor/bin/sail php tests/manual/verify_feed_001_phase_1_backend_filters_cursor_pagination.php\n";
+        }
+
+        throw new RuntimeException(rtrim($hint), previous: $e);
     }
 
     DB::beginTransaction();
