@@ -20,6 +20,11 @@ if [[ ! -x "./scripts/init-testing-environment.sh" ]]; then
     exit 1
 fi
 
+# Avoid docker compose interpolation warnings from laravel.test service config and
+# let Sail drop privileges correctly (don't override container user).
+export WWWUSER="${WWWUSER:-$(id -u)}"
+export WWWGROUP="${WWWGROUP:-$(id -g)}"
+
 if [[ $# -lt 1 ]]; then
     echo "Usage: ./scripts/run-manual-test.sh tests/manual/<script>.php [args...]"
     exit 1
@@ -49,6 +54,5 @@ echo "[INFO] Initializing isolated testing environment..."
 
 echo "[INFO] Running manual test in no-deps testing mode: ${TARGET_SCRIPT}"
 "${DOCKER_COMPOSE[@]}" --profile testing run --rm --no-deps \
-    --user "${APP_USER:-sail}" \
     -e APP_ENV=testing \
     laravel.test php "${TARGET_SCRIPT}" "$@"
