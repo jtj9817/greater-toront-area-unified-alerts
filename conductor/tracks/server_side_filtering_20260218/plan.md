@@ -77,7 +77,7 @@ This plan is aligned to `docs/tickets/FEED-001-server-side-filters-infinite-scro
     - [x] Ensure sqlite test suite passes for filter + cursor behavior.
     - [x] Ensure MySQL driver test suite exercises FULLTEXT-backed search.
 
-- [ ] Task: Conductor - User Manual Verification 'Phase 1: Backend Filters + Cursor Pagination' (Protocol in workflow.md)
+- [ ] Task: Conductor - User Manual Verification 'Phase 1: Backend Filters + Cursor Pagination' (Protocol in workflow.md; script: `tests/manual/verify_feed_001_phase_1_backend_filters_cursor_pagination.php`)
 
 ## Phase 2: Frontend URL Filters + UX (No Client Feed Filtering)
 **Goal:** Make the live feed render the server-provided list and drive filters via URL params (shareable/bookmarkable), with good loading UX.
