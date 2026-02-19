@@ -1,51 +1,109 @@
-# Specification: Server-Side Filtering & Search Refactor
+# Specification: [FEED-001] Server-Side Filters + Infinite Scroll (Cursor Pagination)
+
+This spec is aligned to `docs/tickets/FEED-001-server-side-filters-infinite-scroll.md` (primary source of truth).
 
 ## 1. Overview
-The current alert feed implementation suffers from a critical architectural flaw: pagination is handled server-side (50 items/page), but filtering (category, search, date/time) is applied client-side *after* fetching. This results in misleading data, where filters only apply to the current page's subset rather than the full 6,400+ record dataset.
 
-This track will refactor the `AlertController` and frontend components to implement **full server-side filtering**. All filter criteria (category, search text, date/time ranges) will be passed as query parameters to the backend, ensuring accurate results across the entire dataset.
+The alert feed currently paginates server-side (50 items/page), but applies category/source, search, and time/date-style filters client-side. This produces misleading results because the filters only apply to the currently loaded page rather than the full dataset.
 
-## 2. Functional Requirements
-### 2.1 Server-Side Filtering Logic
-- **Scope:** Update `AlertController@index` (or equivalent) to accept and process the following query parameters:
-    - `category`: Filter by `type` or `source` (e.g., 'Fire', 'Police', 'Transit').
-    - `search`: Full-text search string.
-    - `start_date` / `end_date`: Date range filter.
-    - `start_time` / `end_time`: Specific time-of-day filtering.
-    - `relative_time`: Quick filters like "Last 24 Hours", "Today".
-- **Database Logic:**
-    - Implement MySQL `FULLTEXT` indexes on relevant text columns (`description`, `location`, `title`) for performant search.
-    - Ensure all date/time queries explicitly handle the **America/Toronto** timezone to prevent off-by-one errors.
-    - Combined logic: Queries must support ANY combination of these filters (e.g., "Fire alerts containing 'Downtown' from yesterday").
+This track moves all filtering into the backend unified feed query and replaces numbered pagination with cursor-based infinite scroll.
 
-### 2.2 Frontend State Management (Inertia.js)
-- **URL Synchronization:**
-    - Use Inertia's `router.get` (or `useForm` with `get`) to update the URL with current filter state (e.g., `?category=fire&search=collision&range=today`).
-    - Ensure browser back/forward buttons correctly restore the filter state.
-- **Loading UX:**
-    - Leverage Inertia's built-in progress indicators or manual loading states during data fetches.
-    - Disable/dim the feed area while new data is loading to indicate activity.
-- **Partial Reloads:**
-    - Utilize Inertia "partial reloads" where appropriate to refresh only the `alerts` prop, keeping the sidebar/header static for better performance.
+## 2. Goals
 
-### 2.3 Date & Time UX
-- **Date Picker:** Add clear start/end date inputs.
-- **Time Picker:** Add granular start/end time inputs (e.g., "14:00" to "16:00").
-- **Quick Filters:** Add one-click chips for "Last 24h", "Today", "Last Week".
+- **Server-authoritative filtering:** backend returns already-filtered results for the full dataset (not page-scoped filtering).
+- **Cursor-based infinite scroll:** replace numbered pages with “load next batch” driven by a cursor keyed on a deterministic tuple.
+- **URL as state:** active filters are reflected in query params for shareable/bookmarkable views.
+- **Keep view-mode client-side:** Cards/Table is presentational only and remains local UI state.
+- **Remove client-side feed filtering:** drop `AlertService.searchDomainAlerts()` usage for the live feed; frontend should render the server-provided list.
 
-## 3. Non-Functional Requirements
-- **Performance:** Search queries must remain performant (<200ms) even with full-text search on the `alerts` table.
-- **Scalability:** The solution must work efficiently as the dataset grows beyond 10,000 records.
-- **Usability:** Filter state must persist across page reloads (via URL params).
+## 3. API / Query Parameters
 
-## 4. Acceptance Criteria
-- [ ] **Category Filter:** Selecting "Fire" updates the URL and returns ONLY fire alerts from the database, regardless of page number.
-- [ ] **Text Search:** Searching for a term (e.g., "Yonge") returns matching records from the full DB, not just the current page.
-- [ ] **Date/Time:** Filtering for "Yesterday 2pm-4pm" returns only alerts within that specific window, respecting Toronto time.
-- [ ] **Combination:** A complex query (e.g., "Fire" + "Yonge" + "Today") returns the correct intersection of results.
-- [ ] **Pagination:** Pagination links (Next/Prev) preserve the current filters (e.g., clicking "Next" keeps `?category=fire`).
-- [ ] **Performance:** Full-text search executes efficiently without locking the database.
+The GTA Alerts endpoint (Inertia page) accepts the following query parameters:
 
-## 5. Out of Scope
-- Real-time websocket updates for *filtered* views (standard polling or refresh is acceptable for this track).
-- Advanced geospatial filtering (radius search) - this is handled in a separate track.
+| Filter | Param | Example | Notes |
+|---|---|---|---|
+| Status | `status` | `?status=active` | Existing behavior; `all` / `active` / `cleared`. |
+| Source | `source` | `?source=fire` | Filters by unified alert `source` (e.g. `fire`, `police`, `transit`, `go_transit`). |
+| Search | `q` | `?q=assault` | Case-insensitive text search across canonical fields (see §4.3). |
+| Time range | `since` | `?since=30m` / `?since=3h` | Relative time window; see §4.4. |
+| Cursor | `cursor` | `?cursor=…` | Used only for infinite scroll; cursor keyed to deterministic ordering. |
+
+Notes:
+- `perPage` stays at ~50 items per batch (consistent with current UX); no numbered `page` parameter in the infinite scroll flow.
+- The infinite scroll “next batch” request must preserve all active filter params and only append results.
+
+## 4. Backend Requirements
+
+### 4.1 Affected Files (Backend)
+
+- `app/Http/Controllers/GtaAlertsController.php` — validate and pass new filter params
+- `app/Services/Alerts/DTOs/UnifiedAlertsCriteria.php` — expand criteria to include `source`, `q`, `since`, and cursor inputs
+- `app/Services/Alerts/UnifiedAlertsQuery.php` — apply filtering in the unified UNION query and switch to cursor pagination
+
+### 4.2 Deterministic Ordering Tuple
+
+Cursor pagination requires a deterministic ordering so cursors are stable and do not skip/duplicate items.
+
+Required order:
+1. `timestamp` DESC
+2. `id` DESC (where `id` is the unified alert identifier, e.g. `fire:FIRE-0001`)
+
+This matches the ticket’s intent (“keyed on `(timestamp, id)`”) and avoids stale-page issues when new alerts arrive while the user is scrolling.
+
+### 4.3 Search (`q`) + FULLTEXT Requirement
+
+Backend search should match the “feed mental model” fields:
+- `title`
+- `location_name`
+- any provider-specific text already included in the unified result row (where feasible without breaking sqlite/mysql compatibility)
+
+Requirements:
+- **MySQL:** search must use FULLTEXT indexes (and FULLTEXT queries) for acceptable performance at scale.
+- **SQLite (dev/tests):** provide a compatible fallback (e.g., `LIKE`-based search) that is correctness-first, even if slower.
+
+### 4.4 Relative Time Window (`since`)
+
+`since` is a relative duration string (examples: `30m`, `1h`, `3h`, `6h`, `12h`).
+
+Requirements:
+- The backend computes a cutoff time (`now - duration`) and filters `timestamp >= cutoff`.
+- Invalid `since` values should be rejected at validation time (or normalized to “no filter”).
+
+### 4.5 Cross-Driver Compatibility
+
+All added WHERE clauses and ordering must work on both sqlite and mysql (consistent with existing unified-select providers).
+
+## 5. Frontend Requirements
+
+### 5.1 Affected Files (Frontend)
+
+- `resources/js/features/gta-alerts/components/FeedView.tsx` — remove client-side filtering and implement URL-driven filters + infinite scroll
+- `resources/js/features/gta-alerts/services/AlertService.ts` — stop using `searchDomainAlerts()` for live feed filtering
+- `resources/js/features/gta-alerts/App.tsx` — pass through server-provided feed list; remove local “search filters current page” behavior
+- `resources/js/pages/gta-alerts.tsx` — Inertia page contract (props remain the source of truth)
+
+### 5.2 URL State + Reset
+
+- Changing filters updates query params (shareable link behavior).
+- “Reset” clears query params and reloads the default feed view.
+
+### 5.3 Search Debounce + Loading UX
+
+- Search input is debounced (~300ms) before issuing a request.
+- Infinite scroll shows:
+  - bottom loading indicator while fetching next batch
+  - empty state when no results
+  - “no more results” handling when there is no next cursor
+
+## 6. Acceptance Criteria (Aligned to Ticket)
+
+- [ ] Search and source filters query the backend across the full dataset (not just the currently loaded batch).
+- [ ] `since` correctly constrains results (e.g., `since=30m` returns only alerts in the last 30 minutes).
+- [ ] Infinite scroll appends additional results using a cursor, without skipping/duplicating items as new alerts arrive.
+- [ ] All active filters are reflected in the URL.
+- [ ] Cards/Table view toggle remains client-side (presentational only).
+
+## 7. Out of Scope (Per Ticket)
+
+- Real-time push updates for filtered views (see `docs/tickets/FEED-002-real-time-push.md`).
+- Advanced geospatial filtering (separate track).
