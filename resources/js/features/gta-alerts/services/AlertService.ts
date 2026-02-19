@@ -9,8 +9,6 @@ import {
 export interface AlertFilterOptions {
     query: string;
     category: string;
-    timeLimit?: number | null; // minutes, null means no limit
-    dateScope?: 'today' | 'yesterday' | 'all';
 }
 
 /**
@@ -43,7 +41,7 @@ export class AlertService {
         options: AlertFilterOptions,
     ): AlertPresentation[] {
         let filtered = [...items];
-        const { query, category, timeLimit, dateScope } = options;
+        const { query, category } = options;
 
         // 1. Sort by recency (newest first)
         filtered = filtered.sort(
@@ -60,26 +58,7 @@ export class AlertService {
             );
         }
 
-        // 3. Time Limit Filter (Last X minutes)
-        if (timeLimit) {
-            filtered = filtered.filter(
-                (item) => this.parseTimeAgo(item.timeAgo) <= timeLimit,
-            );
-        }
-
-        // 4. Date Scope Filter
-        if (dateScope === 'today') {
-            filtered = filtered.filter(
-                (item) => this.parseTimeAgo(item.timeAgo) < 1440,
-            );
-        } else if (dateScope === 'yesterday') {
-            filtered = filtered.filter((item) => {
-                const mins = this.parseTimeAgo(item.timeAgo);
-                return mins >= 1440 && mins < 2880;
-            });
-        }
-
-        // 5. Multi-field Search Query
+        // 3. Multi-field Search Query
         const normalizedQuery = query.trim().toLowerCase();
         if (normalizedQuery) {
             filtered = filtered.filter((item) => {

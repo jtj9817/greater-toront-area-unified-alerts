@@ -221,7 +221,6 @@ describe('AlertService', () => {
         const results = AlertService.searchDomainAlerts(items, {
             query: '',
             category: 'transit',
-            dateScope: 'all',
         });
 
         expect(results).toHaveLength(2);
@@ -254,7 +253,6 @@ describe('AlertService', () => {
         const results = AlertService.searchDomainAlerts(items, {
             query: 'GAS',
             category: 'all',
-            dateScope: 'all',
         });
 
         expect(results).toHaveLength(1);
@@ -284,7 +282,6 @@ describe('AlertService', () => {
         const results = AlertService.searchDomainAlerts(items, {
             query: '',
             category: 'hazard',
-            dateScope: 'all',
         });
 
         expect(results).toHaveLength(1);
@@ -318,7 +315,6 @@ describe('AlertService', () => {
         const results = AlertService.searchDomainAlerts(items, {
             query: '',
             category: 'all',
-            dateScope: 'all',
         });
 
         expect(results).toHaveLength(2);
@@ -326,86 +322,6 @@ describe('AlertService', () => {
         expect(results[1].id).toBe('fire:old');
         expect(warn).not.toHaveBeenCalled();
         warn.mockRestore();
-    });
-
-    it('applies timeLimit filter using parsed relative minutes', () => {
-        const nowIso = new Date().toISOString();
-        const twoHoursIso = new Date(
-            Date.now() - 2 * 60 * 60 * 1000,
-        ).toISOString();
-
-        const items = AlertService.mapUnifiedAlertsToDomainAlerts([
-            {
-                ...mockFireAlert,
-                id: 'fire:recent',
-                external_id: 'recent',
-                timestamp: nowIso,
-            },
-            {
-                ...mockPoliceAlert,
-                id: 'police:old',
-                external_id: 'old',
-                timestamp: twoHoursIso,
-            },
-        ]);
-
-        const results = AlertService.searchDomainAlerts(items, {
-            query: '',
-            category: 'all',
-            timeLimit: 60,
-            dateScope: 'all',
-        });
-
-        expect(results).toHaveLength(1);
-        expect(results[0].id).toBe('fire:recent');
-    });
-
-    it('applies dateScope filters for today and yesterday', () => {
-        const nowIso = new Date().toISOString();
-        const oneDayIso = new Date(
-            Date.now() - 25 * 60 * 60 * 1000,
-        ).toISOString();
-        const twoDayIso = new Date(
-            Date.now() - 49 * 60 * 60 * 1000,
-        ).toISOString();
-
-        const items = AlertService.mapUnifiedAlertsToDomainAlerts([
-            {
-                ...mockFireAlert,
-                id: 'fire:today',
-                external_id: 'today',
-                timestamp: nowIso,
-            },
-            {
-                ...mockPoliceAlert,
-                id: 'police:yesterday',
-                external_id: 'yesterday',
-                timestamp: oneDayIso,
-            },
-            {
-                ...mockGoTransitAlert,
-                id: 'go_transit:twodays',
-                external_id: 'twodays',
-                timestamp: twoDayIso,
-            },
-        ]);
-
-        const todayResults = AlertService.searchDomainAlerts(items, {
-            query: '',
-            category: 'all',
-            dateScope: 'today',
-        });
-
-        const yesterdayResults = AlertService.searchDomainAlerts(items, {
-            query: '',
-            category: 'all',
-            dateScope: 'yesterday',
-        });
-
-        expect(todayResults.map((item) => item.id)).toEqual(['fire:today']);
-        expect(yesterdayResults.map((item) => item.id)).toEqual([
-            'police:yesterday',
-        ]);
     });
 
     it('matches search query across description, location, id, and type', () => {
@@ -444,22 +360,18 @@ describe('AlertService', () => {
         const descResults = AlertService.searchDomainAlerts(items, {
             query: 'event #desc-match',
             category: 'all',
-            dateScope: 'all',
         });
         const locResults = AlertService.searchDomainAlerts(items, {
             query: 'queen street west',
             category: 'all',
-            dateScope: 'all',
         });
         const idResults = AlertService.searchDomainAlerts(items, {
             query: 'id-match',
             category: 'all',
-            dateScope: 'all',
         });
         const typeResults = AlertService.searchDomainAlerts(items, {
             query: 'go_transit',
             category: 'all',
-            dateScope: 'all',
         });
 
         expect(descResults.map((item) => item.id)).toEqual(['fire:desc-match']);

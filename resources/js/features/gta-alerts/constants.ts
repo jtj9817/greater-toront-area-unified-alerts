@@ -37,10 +37,10 @@ export const ALERT_DATA: AlertSectionData[] = [
                 timestamp: new Date(Date.now() - 12 * 60 * 1000).toISOString(),
                 description:
                     'Hazmat requested at King St W for reported gas line rupture. Building evacuation in progress.',
-                type: 'hazard',
+                type: 'fire',
                 severity: 'high',
-                iconName: 'warning',
-                accentColor: 'bg-yellow-500',
+                iconName: 'local_fire_department',
+                accentColor: 'bg-red-500',
                 iconColor: 'text-[#e05560]',
             },
             {

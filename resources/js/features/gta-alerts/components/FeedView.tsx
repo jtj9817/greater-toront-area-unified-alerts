@@ -1,4 +1,4 @@
-import { Link } from '@inertiajs/react';
+import { Link, router } from '@inertiajs/react';
 import React, { useState, useMemo } from 'react';
 import { formatTimeAgo } from '@/lib/utils';
 import { home } from '@/routes';
@@ -23,6 +23,9 @@ interface FeedViewProps {
     allAlerts: DomainAlert[];
     latestFeedUpdatedAt: string | null;
     status?: 'all' | 'active' | 'cleared';
+    source?: string | null;
+    query?: string | null;
+    since?: string | null;
     pagination?: FeedPagination;
 }
 
@@ -32,14 +35,13 @@ export const FeedView: React.FC<FeedViewProps> = ({
     allAlerts,
     latestFeedUpdatedAt,
     status = 'all',
+    source = null,
+    query = null,
+    since = null,
     pagination,
 }) => {
     // State for Filters
     const [activeCategory, setActiveCategory] = useState<string>('all');
-    const [timeFilter, setTimeFilter] = useState<number | null>(null);
-    const [dateFilter, setDateFilter] = useState<'today' | 'yesterday' | 'all'>(
-        'all',
-    ); // Default to 'all' for live data initially
     const [viewMode, setViewMode] = useState<'cards' | 'table'>('cards');
 
     // Compute filtered items using the Service
@@ -47,11 +49,9 @@ export const FeedView: React.FC<FeedViewProps> = ({
         const options: AlertFilterOptions = {
             query: searchQuery,
             category: activeCategory,
-            timeLimit: timeFilter,
-            dateScope: dateFilter,
         };
         return AlertService.searchDomainAlerts(allAlerts, options);
-    }, [searchQuery, activeCategory, timeFilter, dateFilter, allAlerts]);
+    }, [searchQuery, activeCategory, allAlerts]);
 
     // Get Set of Saved IDs for efficient lookup
     const savedIds = useMemo(() => new Set<string>([]), []); // Temporary empty until saved logic implemented
@@ -59,25 +59,34 @@ export const FeedView: React.FC<FeedViewProps> = ({
     // Handler for Reset
     const handleReset = () => {
         setActiveCategory('all');
-        setTimeFilter(null);
-        setDateFilter('today');
+        router.get(
+            home({
+                query: {
+                    status: status === 'all' ? null : status,
+                    source: source ?? null,
+                    q: query ?? null,
+                    since: null,
+                },
+            }).url,
+            {},
+            { preserveScroll: true, preserveState: true, replace: true },
+        );
     };
 
     const categories = [
         { id: 'all', label: 'All Alerts', icon: 'grid_view' },
         { id: 'fire', label: 'Fire', icon: 'local_fire_department' },
         { id: 'police', label: 'Police', icon: 'local_police' },
-        { id: 'hazard', label: 'Hazard', icon: 'warning' },
         { id: 'transit', label: 'Transit', icon: 'train' },
     ];
 
-    const timeOptions = [
-        { label: 'Any time', value: null },
-        { label: 'Last 30m', value: 30 },
-        { label: 'Last 1h', value: 60 },
-        { label: 'Last 3h', value: 180 },
-        { label: 'Last 6h', value: 360 },
-        { label: 'Last 12h', value: 720 },
+    const sinceOptions = [
+        { label: 'All time', value: 'all' },
+        { label: 'Last 30m', value: '30m' },
+        { label: 'Last 1h', value: '1h' },
+        { label: 'Last 3h', value: '3h' },
+        { label: 'Last 6h', value: '6h' },
+        { label: 'Last 12h', value: '12h' },
     ];
 
     const statusOptions: Array<{
@@ -113,6 +122,9 @@ export const FeedView: React.FC<FeedViewProps> = ({
                                                     opt.id === 'all'
                                                         ? null
                                                         : opt.id,
+                                                source: source ?? null,
+                                                q: query ?? null,
+                                                since: since ?? null,
                                             },
                                         }).url
                                     }
@@ -164,57 +176,43 @@ export const FeedView: React.FC<FeedViewProps> = ({
                     </div>
                 </div>
 
-                {/* Row 2: Date & Time Selectors + View Toggle */}
+                {/* Row 2: Time Window + View Toggle */}
                 <div className="flex flex-wrap items-center gap-3 bg-surface-dark/30 px-4 py-2 md:px-6">
                     <div className="flex items-center gap-3">
-                        {/* Date Selector */}
-                        <div className="group relative">
-                            <div className="pointer-events-none absolute inset-y-0 left-2 flex items-center text-text-secondary">
-                                <Icon
-                                    name="calendar_today"
-                                    className="text-sm"
-                                />
-                            </div>
-                            <select
-                                value={dateFilter}
-                                onChange={(e) =>
-                                    setDateFilter(
-                                        e.target.value as
-                                            | 'today'
-                                            | 'yesterday'
-                                            | 'all',
-                                    )
-                                }
-                                className="w-32 cursor-pointer appearance-none rounded-lg border border-white/10 bg-surface-dark py-1.5 pr-8 pl-8 text-xs text-white transition-colors outline-none hover:border-white/20 focus:border-primary focus:ring-1 focus:ring-primary"
-                            >
-                                <option value="today">Today</option>
-                                <option value="yesterday">Yesterday</option>
-                                <option value="all">All Dates</option>
-                            </select>
-                            <div className="pointer-events-none absolute inset-y-0 right-2 flex items-center text-text-secondary">
-                                <Icon name="expand_more" className="text-sm" />
-                            </div>
-                        </div>
-
-                        {/* Time Selector */}
+                        {/* Time Window Selector */}
                         <div className="group relative">
                             <div className="pointer-events-none absolute inset-y-0 left-2 flex items-center text-text-secondary">
                                 <Icon name="schedule" className="text-sm" />
                             </div>
                             <select
-                                value={
-                                    timeFilter === null ? 'null' : timeFilter
-                                }
+                                value={since ?? 'all'}
                                 onChange={(e) =>
-                                    setTimeFilter(
-                                        e.target.value === 'null'
-                                            ? null
-                                            : Number(e.target.value),
+                                    router.get(
+                                        home({
+                                            query: {
+                                                status:
+                                                    status === 'all'
+                                                        ? null
+                                                        : status,
+                                                source: source ?? null,
+                                                q: query ?? null,
+                                                since:
+                                                    e.target.value === 'all'
+                                                        ? null
+                                                        : e.target.value,
+                                            },
+                                        }).url,
+                                        {},
+                                        {
+                                            preserveScroll: true,
+                                            preserveState: true,
+                                            replace: true,
+                                        },
                                     )
                                 }
                                 className="w-36 cursor-pointer appearance-none rounded-lg border border-white/10 bg-surface-dark py-1.5 pr-8 pl-8 text-xs text-white transition-colors outline-none hover:border-white/20 focus:border-primary focus:ring-1 focus:ring-primary"
                             >
-                                {timeOptions.map((opt) => (
+                                {sinceOptions.map((opt) => (
                                     <option
                                         key={String(opt.value)}
                                         value={String(opt.value)}
@@ -231,9 +229,7 @@ export const FeedView: React.FC<FeedViewProps> = ({
 
                     <div className="ml-auto flex items-center gap-3">
                         {/* Reset Button (Only shows if filters are active) */}
-                        {(timeFilter !== null ||
-                            activeCategory !== 'all' ||
-                            dateFilter !== 'today') && (
+                        {(since !== null || activeCategory !== 'all') && (
                             <button
                                 onClick={handleReset}
                                 className="flex items-center gap-1 rounded px-2 py-1 text-xs font-medium text-coral transition-colors hover:bg-coral/10 hover:text-amber"

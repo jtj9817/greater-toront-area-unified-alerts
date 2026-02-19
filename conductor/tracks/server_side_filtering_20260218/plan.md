@@ -5,10 +5,17 @@ This plan is aligned to `docs/tickets/FEED-001-server-side-filters-infinite-scro
 ## Phase 1: Backend Filters + Cursor Pagination
 **Goal:** Make filtering server-authoritative and enable cursor pagination keyed on `(timestamp, id)` for stable infinite scroll.
 
-- [ ] Task: Contract - Confirm URL Params + UI Mapping
+- [x] Task: Contract - Confirm URL Params + UI Mapping
     - [x] Confirm canonical filter params: `status`, `source`, `q`, `since`, plus `cursor` for infinite scroll.
-    - [ ] Decide what to do with the existing “Today / Yesterday / All Dates” UI:
-        - [ ] If it cannot be expressed via `since`, remove it for FEED-001 (do not reintroduce client-side feed filtering).
+    - [ ] Clarify param contracts (backed by current backend validation + normalization):
+        - [x] `status`: `all|active|cleared` (UI toggle maps 1:1).
+        - [x] `source`: unified sources only (`fire|police|transit|go_transit`); do not include `hazard`.
+            - [x] Note: `ttc_accessibility` is notification-only and not a feed `source` filter.
+        - [x] `q`: trimmed string; whitespace-only behaves as unset; sqlite fallback targets `title` + `location_name`, MySQL FULLTEXT uses provider-specific fields.
+        - [x] `since`: time window presets only (`30m|1h|3h|6h|12h`), interpreted relative to "now".
+        - [x] `cursor`: opaque base64url `(timestamp,id)`; trim before decode; whitespace-only behaves as unset.
+    - [x] Decide what to do with the existing “Today / Yesterday / All Dates” UI:
+        - [x] Replace with `since` presets (no client-side date filtering).
 
 - [x] Task: TDD - Define Criteria + Query Contract (tests first)
     - [x] Request validation + criteria normalization tests:

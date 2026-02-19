@@ -114,6 +114,7 @@ This prevents a single large listener from blocking the queue and bounds per-job
 - Empty subscriptions match all alerts.
 - Non-transit alerts bypass subscription filtering.
 - Transit-family alerts (`transit`, `go_transit`, `ttc_accessibility`) require an intersection between user subscriptions and extractor-derived URNs.
+- Note: `ttc_accessibility` is notification-only and not a feed `source` filter.
 
 ## Delivery Pipeline
 

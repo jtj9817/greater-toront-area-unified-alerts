@@ -20,6 +20,9 @@ interface AppProps {
     };
     filters: {
         status: 'all' | 'active' | 'cleared';
+        source?: string | null;
+        q?: string | null;
+        since?: string | null;
     };
     latestFeedUpdatedAt: string | null;
     authUserId: number | null;
@@ -136,6 +139,9 @@ const App: React.FC<AppProps> = ({
                         allAlerts={allAlerts}
                         latestFeedUpdatedAt={latestFeedUpdatedAt}
                         status={filters.status}
+                        source={filters.source ?? null}
+                        query={filters.q ?? null}
+                        since={filters.since ?? null}
                         pagination={pagination}
                     />
                 );
