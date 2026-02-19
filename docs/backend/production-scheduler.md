@@ -2,7 +2,7 @@
 
 ## Context / Why This Exists
 
-This project relies on Laravel’s scheduler to run scraping and sync tasks on intervals (for example `fire:fetch-incidents` every 5 minutes and `police:fetch-calls` every 10 minutes in `routes/console.php`).
+This project relies on Laravel's scheduler to dispatch queued jobs and run maintenance commands on intervals. Fetch tasks run as jobs (not commands directly) so the queue handles retries and overlap locking — for example `FetchFireIncidentsJob` every 5 minutes and `FetchPoliceCallsJob` every 10 minutes in `routes/console.php`.
 
 In development (Laravel Sail), it’s common to run the scheduler as a long-lived process:
 

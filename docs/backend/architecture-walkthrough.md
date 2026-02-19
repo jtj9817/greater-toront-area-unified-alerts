@@ -63,10 +63,10 @@ The backend follows a **layered architecture** with clear separation of concerns
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │                         LAYER 4: QUEUE JOBS (Background)                     │
 ├─────────────────────────────────────────────────────────────────────────────┤
-│  FetchFireIncidentsJob          implements ShouldQueue                       │
-│  FetchPoliceCallsJob            Thin wrapper around Artisan::call()          │
-│  FetchTransitAlertsJob          Allows async processing                      │
-│  FetchGoTransitAlertsJob                                                     │
+│  FetchFireIncidentsJob          $tries=3, $backoff=30, $timeout=120          │
+│  FetchPoliceCallsJob            WithoutOverlapping middleware (30s release)  │
+│  FetchTransitAlertsJob          Dispatched by scheduler via Schedule::job()  │
+│  FetchGoTransitAlertsJob        Calls Artisan::call() on underlying command  │
 └─────────────────────────────────────────────────────────────────────────────┘
                                        │
                                        ▼
@@ -370,13 +370,26 @@ enum AlertStatus: string
 
 ## Scheduling
 
-Data fetchers run on Laravel's scheduler (`routes/console.php`):
+Data fetchers run as **queued jobs** on Laravel's scheduler (`routes/console.php`). Using `Schedule::job()` instead of `Schedule::command()` enables job-level retries, backoff, and timeout configuration:
 
 ```php
-Schedule::command('fire:fetch-incidents')->everyFiveMinutes()->withoutOverlapping();
-Schedule::command('police:fetch-calls')->everyTenMinutes();
-Schedule::command('transit:fetch-alerts')->everyFiveMinutes()->withoutOverlapping();
-Schedule::command('go-transit:fetch-alerts')->everyFiveMinutes()->withoutOverlapping();
+// withoutOverlapping(10) sets a 10-minute lock expiry to avoid 24-hour lockouts on crash
+Schedule::job(new FetchFireIncidentsJob)->name('fire:fetch-incidents')->everyFiveMinutes()->withoutOverlapping(10);
+Schedule::job(new FetchPoliceCallsJob)->name('police:fetch-calls')->everyTenMinutes()->withoutOverlapping(10);
+Schedule::job(new FetchTransitAlertsJob)->name('transit:fetch-alerts')->everyFiveMinutes()->withoutOverlapping(10);
+Schedule::job(new FetchGoTransitAlertsJob)->name('go-transit:fetch-alerts')->everyFiveMinutes()->withoutOverlapping(10);
+```
+
+Each job is configured with `$tries = 3`, `$backoff = 30`, `$timeout = 120` and uses `WithoutOverlapping` middleware for per-job lock management.
+
+Additional scheduled tasks:
+```php
+Schedule::job(new GenerateDailyDigestJob)->dailyAt('00:10')->withoutOverlapping();
+Schedule::command('notifications:prune')->daily()->withoutOverlapping();
+Schedule::command('queue:prune-failed', ['--hours' => 168])->daily()->withoutOverlapping();
+Schedule::command('model:prune', ['--model' => [IncidentUpdate::class]])->daily()->withoutOverlapping();
+// Queue depth monitor runs every 5 minutes; logs error if depth > 100
+Schedule::call(...)->name('monitor:queue-depth')->everyFiveMinutes()->withoutOverlapping(5);
 ```
 
 ---

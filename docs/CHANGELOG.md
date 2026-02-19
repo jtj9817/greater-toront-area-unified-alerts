@@ -42,6 +42,26 @@ All notable documentation-relevant changes are tracked here.
 - `FetchTransitAlertsCommand` now trims whitespace from `external_id` before persisting, preventing duplicate-key issues from padding differences.
 - `QueueEnqueueDebugServiceProvider` added for queue enqueue debug logging (controlled by `QUEUE_ENQUEUE_DEBUG_ENABLED` env var).
 
+## [February 16, 2026] - Scheduler Resilience & Stability Overhaul
+
+### Added
+- **Job-based ingestion architecture:** All four fetch tasks migrated from `Schedule::command()` to `Schedule::job()`. Each job now has `$tries=3`, `$backoff=30`, `$timeout=120`, and `WithoutOverlapping` middleware. The `withoutOverlapping(10)` lock expiry prevents 24-hour mutex lockouts.
+- **Empty feed protection:** `ALLOW_EMPTY_FEEDS` environment variable (default: `false`). Feed services throw a `RuntimeException` when the feed is empty and the flag is `false`, preventing mass deactivation of existing records.
+- **Circuit breaker:** `FeedCircuitBreaker` service opens after 5 consecutive failures per feed and blocks further attempts for 5 minutes. Implemented in all four feed services (`TorontoFireFeedService`, `TorontoPoliceFeedService`, `GoTransitFeedService`, `TtcAlertsFeedService`).
+- **Graceful record parsing:** Individual malformed records no longer abort the entire batch. `FetchFireIncidentsCommand` and `FetchGoTransitAlertsCommand` changed from `return self::FAILURE` to `continue` on per-record parse failure. All four commands now log a warning and continue.
+- **Police pagination partial-results recovery:** `TorontoPoliceFeedService` persists results from successfully fetched pages when a mid-pagination HTTP failure occurs.
+- **Data sanity checks:** `FeedDataSanity` service warns on future timestamps (>15 min drift) and coordinates outside GTA bounds (police/fire only; fire feed does not provide coordinates).
+- **Memory safety limit:** `TorontoPoliceFeedService` pagination loop has an upper bound to prevent OOM on unexpectedly large responses.
+- **Scene Intel failure rate monitoring:** `FetchFireIncidentsCommand` tracks Scene Intel success/failure per run and logs a warning when >50% of attempts fail.
+- **Queue depth monitoring:** Scheduled closure checks `Queue::size()` every 5 minutes and logs an error if depth exceeds 100.
+- **Failed job pruning:** `queue:prune-failed --hours=168` runs daily to prevent unbounded growth of `failed_jobs`.
+- **Notification delivery retry:** `DeliverAlertNotificationJob` updated to `$tries=5`, `$backoff=10`.
+- **Documentation:** Created `docs/runbooks/scheduler-troubleshooting.md` and `docs/runbooks/queue-troubleshooting.md`. Updated `docs/backend/production-scheduler.md` with resilience guardrails, monitoring thresholds, and `ALLOW_EMPTY_FEEDS` strategy. Updated `docs/backend/maintenance.md` with failed job pruning policy. Updated `docs/backend/scene-intel.md` with retry policy and acceptable failure modes.
+
+### Changed
+- Scheduled fetch tasks use `Schedule::job()` (not `Schedule::command()`) so the queue handles retries and overlap locking.
+- `withoutOverlapping(10)` expiry added to all four fetch jobs (previously police lacked explicit overlapping protection).
+
 ## [February 13, 2026] - Notifications Phase 4 QA & Documentation Alignment
 
 ### Added
@@ -130,6 +150,27 @@ All notable documentation-relevant changes are tracked here.
 ### Changed
 - Updated documentation index to include deployment runbooks.
 - Updated root/agent docs to reference production seeding commands and automation script.
+
+## [February 07, 2026] - Frontend Typed Alert Domain Refactor
+
+### Added
+- Introduced `DomainAlert` discriminated union (`kind: 'fire' | 'police' | 'transit' | 'go_transit'`) as the canonical frontend alert type.
+- Zod runtime validation schemas for all four alert sources under `resources/js/features/gta-alerts/domain/alerts/`.
+- Canonical boundary entrypoint `fromResource(resource): DomainAlert | null` — invalid items are caught, logged, and discarded without crashing the UI.
+- Source-specific domain mapper modules (`fire/mapper.ts`, `police/mapper.ts`, `transit/ttc/mapper.ts`, `transit/go/mapper.ts`).
+- `AlertPresentation` view model in `domain/alerts/view/types.ts` for card/table/details renderers.
+- `mapDomainAlertToPresentation(...)` mapper for deriving presentation fields (severity, icon, color, description) from `DomainAlert`.
+- Dedicated `AlertDetailsView.test.tsx` test suite covering functional `switch (alert.kind)` branch rendering.
+
+### Changed
+- `AlertService` refactored to a thin facade: orchestrates `fromResource()` and decentralized mappers; no longer holds source-specific business logic directly.
+- `AlertDetailsView` migrated from class inheritance / template-method pattern to a functional component with explicit `switch (alert.kind)` branching.
+- `AlertCard`, `FeedView`, `App.tsx`, `AlertTableView`, and `SavedView` updated to consume `DomainAlert` directly.
+- Presentation-only categories (`hazard`, `medical`) are now derived at the view layer — not added as `DomainAlert.kind` variants.
+
+### Removed
+- Legacy `AlertItem` interface (`resources/js/features/gta-alerts/types.ts`) deleted.
+- Deprecated `AlertService` APIs (`mapUnifiedAlertToAlertItem`, `mapUnifiedAlertsToAlertItems`, `search` over legacy view-model values) removed.
 
 ## [February 06, 2026] - TTC + GO Transit Unified Feed Completion
 
