@@ -13,21 +13,25 @@ class UnifiedAlertsCursorRule implements ValidationRule
      */
     public function validate(string $attribute, mixed $value, Closure $fail): void
     {
-        if ($value === null || $value === '') {
-            return;
-        }
-
         if (! is_string($value)) {
+            if ($value === null) {
+                return;
+            }
+
             $fail("The {$attribute} must be a string.");
 
             return;
         }
 
+        $normalized = trim($value);
+        if ($normalized === '') {
+            return;
+        }
+
         try {
-            UnifiedAlertsCursor::decode($value);
+            UnifiedAlertsCursor::decode($normalized);
         } catch (\Throwable) {
             $fail("The {$attribute} is invalid.");
         }
     }
 }
-

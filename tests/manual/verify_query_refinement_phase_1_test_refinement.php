@@ -341,14 +341,14 @@ try {
             providers: [
                 new class implements AlertSelectProvider
                 {
-                    public function select(): Builder
+                    public function select(UnifiedAlertsCriteria $criteria): Builder
                     {
                         return emptyUnifiedSelect('fire');
                     }
                 },
                 new class implements AlertSelectProvider
                 {
-                    public function select(): Builder
+                    public function select(UnifiedAlertsCriteria $criteria): Builder
                     {
                         return emptyUnifiedSelect('police');
                     }
@@ -357,7 +357,7 @@ try {
                 {
                     public function __construct(private readonly mixed $meta) {}
 
-                    public function select(): Builder
+                    public function select(UnifiedAlertsCriteria $criteria): Builder
                     {
                         return singleRowUnifiedSelect([
                             'id' => 'meta:1',
@@ -385,21 +385,21 @@ try {
         providers: [
             new class implements AlertSelectProvider
             {
-                public function select(): Builder
+                public function select(UnifiedAlertsCriteria $criteria): Builder
                 {
                     return emptyUnifiedSelect('fire');
                 }
             },
             new class implements AlertSelectProvider
             {
-                public function select(): Builder
+                public function select(UnifiedAlertsCriteria $criteria): Builder
                 {
                     return emptyUnifiedSelect('police');
                 }
             },
             new class implements AlertSelectProvider
             {
-                public function select(): Builder
+                public function select(UnifiedAlertsCriteria $criteria): Builder
                 {
                     return singleRowUnifiedSelect([
                         'id' => 'ts:missing',
@@ -419,21 +419,21 @@ try {
         providers: [
             new class implements AlertSelectProvider
             {
-                public function select(): Builder
+                public function select(UnifiedAlertsCriteria $criteria): Builder
                 {
                     return emptyUnifiedSelect('fire');
                 }
             },
             new class implements AlertSelectProvider
             {
-                public function select(): Builder
+                public function select(UnifiedAlertsCriteria $criteria): Builder
                 {
                     return emptyUnifiedSelect('police');
                 }
             },
             new class implements AlertSelectProvider
             {
-                public function select(): Builder
+                public function select(UnifiedAlertsCriteria $criteria): Builder
                 {
                     return singleRowUnifiedSelect([
                         'id' => 'ts:bad',

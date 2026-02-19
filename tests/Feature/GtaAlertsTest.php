@@ -4,6 +4,7 @@ use App\Models\FireIncident;
 use App\Models\GoTransitAlert;
 use App\Models\PoliceCall;
 use App\Models\TransitAlert;
+use App\Services\Alerts\DTOs\UnifiedAlertsCursor;
 use Illuminate\Support\Carbon;
 use Inertia\Testing\AssertableInertia as Assert;
 
@@ -126,6 +127,19 @@ test('the home page rejects invalid cursor values', function () {
     $this->get(route('home', ['cursor' => 'not-a-cursor']))
         ->assertRedirect()
         ->assertSessionHasErrors(['cursor']);
+});
+
+test('the home page trims cursor values before validating', function () {
+    $cursor = UnifiedAlertsCursor::fromTuple(
+        Carbon::parse('2026-02-03 12:00:00')->toImmutable(),
+        'fire:E1',
+    )->encode();
+
+    $this->get(route('home', ['cursor' => "  {$cursor}  "]))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('gta-alerts')
+        );
 });
 
 test('the home page trims q and treats whitespace-only q as unset', function () {

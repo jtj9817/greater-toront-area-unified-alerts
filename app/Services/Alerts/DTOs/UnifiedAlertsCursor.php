@@ -88,4 +88,3 @@ readonly class UnifiedAlertsCursor
         return $decoded;
     }
 }
-

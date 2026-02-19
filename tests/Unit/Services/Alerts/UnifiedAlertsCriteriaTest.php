@@ -1,7 +1,7 @@
 <?php
 
-use App\Services\Alerts\DTOs\UnifiedAlertsCursor;
 use App\Services\Alerts\DTOs\UnifiedAlertsCriteria;
+use App\Services\Alerts\DTOs\UnifiedAlertsCursor;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Carbon;
 

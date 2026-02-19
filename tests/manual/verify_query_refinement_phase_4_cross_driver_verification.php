@@ -131,6 +131,8 @@ try {
 
     logInfo('=== Starting Manual Test: Query Refinement Phase 4 (Cross-Driver/MySQL) ===');
 
+    $criteria = new UnifiedAlertsCriteria(status: 'all', perPage: 50);
+
     logInfo('Step 1: Verify FireAlertSelectProvider MySQL output');
     $fire = FireIncident::factory()->create([
         'event_num' => 'FIRE-MYSQL-1',
@@ -145,7 +147,7 @@ try {
     ]);
 
     $fireRow = (new FireAlertSelectProvider)
-        ->select()
+        ->select($criteria)
         ->where('event_num', $fire->event_num)
         ->first();
 
@@ -171,7 +173,7 @@ try {
     ]);
 
     $policeRow = (new PoliceAlertSelectProvider)
-        ->select()
+        ->select($criteria)
         ->where('object_id', $police->object_id)
         ->first();
 
@@ -190,7 +192,7 @@ try {
     Carbon::setTestNow(Carbon::parse('2026-02-02 12:00:00'));
     Artisan::call('db:seed', ['--class' => UnifiedAlertsTestSeeder::class]);
 
-    $results = app(UnifiedAlertsQuery::class)->paginate(new UnifiedAlertsCriteria(status: 'all', perPage: 50));
+    $results = app(UnifiedAlertsQuery::class)->paginate($criteria);
     assertEqual($results->total(), 8, 'unified alerts total');
 
     $ids = collect($results->items())->map(fn ($a) => $a->id)->values()->all();

@@ -4,9 +4,9 @@ namespace App\Services\Alerts;
 
 use App\Enums\AlertStatus;
 use App\Services\Alerts\Contracts\AlertSelectProvider;
-use App\Services\Alerts\DTOs\UnifiedAlertsCursor;
-use App\Services\Alerts\DTOs\UnifiedAlertsCriteria;
 use App\Services\Alerts\DTOs\UnifiedAlert;
+use App\Services\Alerts\DTOs\UnifiedAlertsCriteria;
+use App\Services\Alerts\DTOs\UnifiedAlertsCursor;
 use App\Services\Alerts\Mappers\UnifiedAlertMapper;
 use Illuminate\Container\Attributes\Tag;
 use Illuminate\Database\Query\Builder;

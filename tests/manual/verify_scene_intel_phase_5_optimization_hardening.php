@@ -214,6 +214,8 @@ try {
 
     logInfo('=== Starting Manual Test: Scene Intel Phase 5 Optimization & Hardening ===');
 
+    $criteria = new UnifiedAlertsCriteria(status: 'all', perPage: 50);
+
     logInfo('Phase 1: Verify fire select embeds bounded intel summary and last-updated timestamp');
 
     $incident = FireIncident::factory()->create([
@@ -236,7 +238,7 @@ try {
         ]);
     }
 
-    $fireRow = (new FireAlertSelectProvider)->select()
+    $fireRow = (new FireAlertSelectProvider)->select($criteria)
         ->where('event_num', $incident->event_num)
         ->first();
 
@@ -269,7 +271,7 @@ try {
         'is_active' => true,
     ]);
 
-    $emptyRow = (new FireAlertSelectProvider)->select()
+    $emptyRow = (new FireAlertSelectProvider)->select($criteria)
         ->where('event_num', $incidentWithoutUpdates->event_num)
         ->first();
     assertTrue($emptyRow !== null, 'fire provider returns a row when no incident updates exist');

@@ -40,6 +40,7 @@ umask(002);
 
 use App\Models\FireIncident;
 use App\Models\PoliceCall;
+use App\Services\Alerts\DTOs\UnifiedAlertsCriteria;
 use App\Services\Alerts\Mappers\UnifiedAlertMapper;
 use App\Services\Alerts\Providers\FireAlertSelectProvider;
 use App\Services\Alerts\Providers\PoliceAlertSelectProvider;
@@ -136,9 +137,11 @@ try {
         'police_call_id' => $policeCall->id,
     ]);
 
+    $criteria = new UnifiedAlertsCriteria(status: 'all');
+
     logInfo('Step 2: Verifying FireAlertSelectProvider');
 
-    $fireRow = (new FireAlertSelectProvider)->select()->first();
+    $fireRow = (new FireAlertSelectProvider)->select($criteria)->first();
     if ($fireRow === null) {
         throw new \RuntimeException('Fire provider returned no rows.');
     }
@@ -161,7 +164,7 @@ try {
 
     logInfo('Step 3: Verifying PoliceAlertSelectProvider');
 
-    $policeRow = (new PoliceAlertSelectProvider)->select()->first();
+    $policeRow = (new PoliceAlertSelectProvider)->select($criteria)->first();
     if ($policeRow === null) {
         throw new \RuntimeException('Police provider returned no rows.');
     }
@@ -183,7 +186,7 @@ try {
 
     logInfo('Step 4: Verifying TransitAlertSelectProvider placeholder');
 
-    $transitRows = (new TransitAlertSelectProvider)->select()->get();
+    $transitRows = (new TransitAlertSelectProvider)->select($criteria)->get();
     if ($transitRows->isNotEmpty()) {
         throw new \RuntimeException('Transit provider returned rows when it should be empty.');
     }

@@ -27,4 +27,3 @@ test('unified alerts cursor rejects invalid payloads', function (string $value) 
     'missing keys' => [rtrim(strtr(base64_encode(json_encode(['ts' => '2026-02-02T12:00:00Z'])), '+/', '-_'), '=')],
     'invalid timestamp' => [rtrim(strtr(base64_encode(json_encode(['ts' => 'bad', 'id' => 'fire:1'])), '+/', '-_'), '=')],
 ]);
-

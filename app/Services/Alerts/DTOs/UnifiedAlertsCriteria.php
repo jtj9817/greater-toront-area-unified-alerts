@@ -2,8 +2,8 @@
 
 namespace App\Services\Alerts\DTOs;
 
-use App\Enums\AlertStatus;
 use App\Enums\AlertSource;
+use App\Enums\AlertStatus;
 use Carbon\CarbonImmutable;
 
 readonly class UnifiedAlertsCriteria

@@ -679,7 +679,7 @@ try {
     assertContains(implode(',', $providerClassList), GoTransitAlertSelectProvider::class, 'go provider tagged in alerts.select-providers');
     assertContains(implode(',', $providerClassList), TransitAlertSelectProvider::class, 'transit provider tagged in alerts.select-providers');
 
-    $goProviderRow = (new GoTransitAlertSelectProvider)->select()
+    $goProviderRow = (new GoTransitAlertSelectProvider)->select(new UnifiedAlertsCriteria(status: 'all'))
         ->where('external_id', 'notif:LW:TDELAY:phase4')
         ->first();
 

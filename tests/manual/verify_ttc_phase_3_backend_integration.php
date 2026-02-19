@@ -62,6 +62,7 @@ use App\Http\Middleware\HandleInertiaRequests;
 use App\Models\FireIncident;
 use App\Models\PoliceCall;
 use App\Models\TransitAlert;
+use App\Services\Alerts\DTOs\UnifiedAlertsCriteria;
 use App\Services\Alerts\Mappers\UnifiedAlertMapper;
 use App\Services\Alerts\Providers\TransitAlertSelectProvider;
 use Carbon\Carbon;
@@ -226,7 +227,9 @@ try {
         'is_active' => true,
     ]);
 
-    $providerRow = (new TransitAlertSelectProvider)->select()
+    $criteria = new UnifiedAlertsCriteria(status: 'all');
+
+    $providerRow = (new TransitAlertSelectProvider)->select($criteria)
         ->where('external_id', 'api:phase3-transit-1')
         ->first();
 
