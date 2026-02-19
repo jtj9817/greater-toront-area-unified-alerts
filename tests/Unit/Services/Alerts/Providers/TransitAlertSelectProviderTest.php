@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\TransitAlert;
+use App\Services\Alerts\DTOs\UnifiedAlertsCriteria;
 use App\Services\Alerts\Mappers\UnifiedAlertMapper;
 use App\Services\Alerts\Providers\TransitAlertSelectProvider;
 use Carbon\CarbonImmutable;
@@ -29,7 +30,7 @@ test('transit alert select provider maps unified columns', function () {
         'is_active' => true,
     ]);
 
-    $row = (new TransitAlertSelectProvider)->select()->first();
+    $row = (new TransitAlertSelectProvider)->select(new UnifiedAlertsCriteria)->first();
 
     expect($row)->not->toBeNull();
     expect($row->id)->toBe('transit:api:61748');
@@ -61,7 +62,7 @@ test('transit alert select provider uses non-sqlite expressions when driver is n
         ->shouldReceive('getDriverName')
         ->andReturn('mysql');
 
-    $sql = (new TransitAlertSelectProvider)->select()->toSql();
+    $sql = (new TransitAlertSelectProvider)->select(new UnifiedAlertsCriteria)->toSql();
 
     expect($sql)->toContain("CONCAT('transit:', external_id)");
     expect($sql)->toContain('COALESCE(active_period_start, created_at) as timestamp');

@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\GoTransitAlert;
+use App\Services\Alerts\DTOs\UnifiedAlertsCriteria;
 use App\Services\Alerts\Mappers\UnifiedAlertMapper;
 use App\Services\Alerts\Providers\GoTransitAlertSelectProvider;
 use Carbon\CarbonImmutable;
@@ -27,7 +28,7 @@ test('go transit alert select provider maps unified columns', function () {
         'is_active' => true,
     ]);
 
-    $row = (new GoTransitAlertSelectProvider)->select()->first();
+    $row = (new GoTransitAlertSelectProvider)->select(new UnifiedAlertsCriteria)->first();
 
     expect($row)->not->toBeNull();
     expect($row->id)->toBe('go_transit:notif:LW:TDELAY:abc123');
@@ -66,7 +67,7 @@ test('go transit alert select provider maps saag columns', function () {
         'is_active' => true,
     ]);
 
-    $row = (new GoTransitAlertSelectProvider)->select()->first();
+    $row = (new GoTransitAlertSelectProvider)->select(new UnifiedAlertsCriteria)->first();
 
     expect($row->id)->toBe('go_transit:saag:LW:4521');
 
@@ -83,7 +84,7 @@ test('go transit alert select provider uses non-sqlite expressions when driver i
         ->shouldReceive('getDriverName')
         ->andReturn('mysql');
 
-    $sql = (new GoTransitAlertSelectProvider)->select()->toSql();
+    $sql = (new GoTransitAlertSelectProvider)->select(new UnifiedAlertsCriteria)->toSql();
 
     expect($sql)->toContain("CONCAT('go_transit:', external_id)");
     expect($sql)->toContain("JSON_OBJECT('alert_type'");

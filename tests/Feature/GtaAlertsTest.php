@@ -110,6 +110,69 @@ test('the home page rejects invalid status values', function () {
         ->assertSessionHasErrors(['status']);
 });
 
+test('the home page rejects invalid source values', function () {
+    $this->get(route('home', ['source' => 'hazard']))
+        ->assertRedirect()
+        ->assertSessionHasErrors(['source']);
+});
+
+test('the home page rejects invalid since values', function () {
+    $this->get(route('home', ['since' => '2h']))
+        ->assertRedirect()
+        ->assertSessionHasErrors(['since']);
+});
+
+test('the home page rejects invalid cursor values', function () {
+    $this->get(route('home', ['cursor' => 'not-a-cursor']))
+        ->assertRedirect()
+        ->assertSessionHasErrors(['cursor']);
+});
+
+test('the home page trims q and treats whitespace-only q as unset', function () {
+    $this->get(route('home', ['q' => " \n\t "]))
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('filters.q', null)
+        );
+});
+
+test('the home page supports server-side filtering by source, since, and q', function () {
+    Carbon::setTestNow(Carbon::parse('2026-02-03 12:00:00'));
+
+    FireIncident::factory()->create([
+        'event_num' => 'E1',
+        'event_type' => 'ALARM',
+        'prime_street' => 'Yonge St',
+        'cross_streets' => 'Dundas St',
+        'is_active' => true,
+        'dispatch_time' => Carbon::now()->subMinutes(10),
+    ]);
+
+    FireIncident::factory()->create([
+        'event_num' => 'E2',
+        'event_type' => 'ALARM',
+        'prime_street' => 'Bloor St',
+        'cross_streets' => 'Bathurst St',
+        'is_active' => true,
+        'dispatch_time' => Carbon::now()->subMinutes(45),
+    ]);
+
+    PoliceCall::factory()->create([
+        'object_id' => 555,
+        'is_active' => true,
+        'call_type' => 'ASSAULT',
+        'occurrence_time' => Carbon::now()->subMinutes(5),
+    ]);
+
+    $this->get(route('home', ['source' => 'fire', 'since' => '30m', 'q' => 'yonge']))
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('filters.source', 'fire')
+            ->where('filters.since', '30m')
+            ->where('filters.q', 'yonge')
+            ->has('alerts.data', 1)
+            ->where('alerts.data.0.id', 'fire:E1')
+        );
+});
+
 test('the home page sets latest_feed_updated_at from fire when police is missing', function () {
     Carbon::setTestNow(Carbon::parse('2026-02-03 12:00:00'));
 

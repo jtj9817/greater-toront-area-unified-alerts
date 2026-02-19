@@ -3,6 +3,7 @@
 use App\Enums\IncidentUpdateType;
 use App\Models\FireIncident;
 use App\Models\IncidentUpdate;
+use App\Services\Alerts\DTOs\UnifiedAlertsCriteria;
 use App\Services\Alerts\Mappers\UnifiedAlertMapper;
 use App\Services\Alerts\Providers\FireAlertSelectProvider;
 use Carbon\CarbonImmutable;
@@ -24,7 +25,7 @@ test('fire alert select provider maps unified columns', function () {
         'is_active' => true,
     ]);
 
-    $row = (new FireAlertSelectProvider)->select()->first();
+    $row = (new FireAlertSelectProvider)->select(new UnifiedAlertsCriteria)->first();
 
     expect($row)->not->toBeNull();
     expect($row->id)->toBe('fire:F12345');
@@ -66,7 +67,7 @@ test('fire alert select provider includes intel summary and last updated', funct
         'created_at' => CarbonImmutable::now()->subMinutes(5),
     ]);
 
-    $row = (new FireAlertSelectProvider)->select()->first();
+    $row = (new FireAlertSelectProvider)->select(new UnifiedAlertsCriteria)->first();
     $meta = UnifiedAlertMapper::decodeMeta($row->meta);
 
     expect($meta['intel_last_updated'])->not->toBeNull();
@@ -105,7 +106,7 @@ test('fire alert select provider limits embedded intel summary to latest 3 updat
         ]);
     }
 
-    $row = (new FireAlertSelectProvider)->select()->first();
+    $row = (new FireAlertSelectProvider)->select(new UnifiedAlertsCriteria)->first();
     $meta = UnifiedAlertMapper::decodeMeta($row->meta);
 
     expect($meta['intel_summary'])->toBeArray();
@@ -122,7 +123,7 @@ test('fire alert select provider uses non-sqlite expressions when driver is not 
         ->shouldReceive('getDriverName')
         ->andReturn('mysql');
 
-    $sql = (new FireAlertSelectProvider)->select()->toSql();
+    $sql = (new FireAlertSelectProvider)->select(new UnifiedAlertsCriteria)->toSql();
 
     expect($sql)->toContain("CONCAT('fire:', event_num)");
     expect($sql)->toContain('CAST(event_num AS CHAR)');

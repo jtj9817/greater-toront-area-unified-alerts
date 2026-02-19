@@ -3,11 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Enums\AlertStatus;
+use App\Enums\AlertSource;
 use App\Http\Resources\UnifiedAlertResource;
 use App\Models\FireIncident;
 use App\Models\GoTransitAlert;
 use App\Models\PoliceCall;
 use App\Models\TransitAlert;
+use App\Rules\UnifiedAlertsCursorRule;
 use App\Services\Alerts\DTOs\UnifiedAlertsCriteria;
 use App\Services\Alerts\UnifiedAlertsQuery;
 use Illuminate\Http\Request;
@@ -21,6 +23,10 @@ class GtaAlertsController extends Controller
     {
         $validated = $request->validate([
             'status' => ['nullable', Rule::enum(AlertStatus::class)],
+            'source' => ['nullable', Rule::enum(AlertSource::class)],
+            'q' => ['nullable', 'string', 'max:200'],
+            'since' => ['nullable', Rule::in(UnifiedAlertsCriteria::SINCE_OPTIONS)],
+            'cursor' => ['nullable', 'string', 'max:512', new UnifiedAlertsCursorRule],
         ]);
 
         $status = AlertStatus::normalize($validated['status'] ?? null);
@@ -28,6 +34,10 @@ class GtaAlertsController extends Controller
 
         $criteria = new UnifiedAlertsCriteria(
             status: $status,
+            source: $validated['source'] ?? null,
+            query: $validated['q'] ?? null,
+            since: $validated['since'] ?? null,
+            cursor: $validated['cursor'] ?? null,
             perPage: UnifiedAlertsCriteria::DEFAULT_PER_PAGE,
             page: $page > 0 ? $page : null,
         );
@@ -41,6 +51,9 @@ class GtaAlertsController extends Controller
             'alerts' => UnifiedAlertResource::collection($paginator),
             'filters' => [
                 'status' => $status,
+                'source' => $criteria->source,
+                'q' => $criteria->query,
+                'since' => $criteria->since,
             ],
             'latest_feed_updated_at' => $latestFeedUpdatedAt?->toIso8601String(),
             'subscription_route_options' => $this->subscriptionRouteOptions(),

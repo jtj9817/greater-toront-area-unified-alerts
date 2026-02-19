@@ -5,12 +5,13 @@ namespace App\Services\Alerts\Providers;
 use App\Enums\AlertSource;
 use App\Models\GoTransitAlert;
 use App\Services\Alerts\Contracts\AlertSelectProvider;
+use App\Services\Alerts\DTOs\UnifiedAlertsCriteria;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\DB;
 
 class GoTransitAlertSelectProvider implements AlertSelectProvider
 {
-    public function select(): Builder
+    public function select(UnifiedAlertsCriteria $criteria): Builder
     {
         $driver = DB::getDriverName();
         $source = AlertSource::GoTransit->value;
@@ -23,7 +24,7 @@ class GoTransitAlertSelectProvider implements AlertSelectProvider
             ? "json_object('alert_type', alert_type, 'service_mode', service_mode, 'sub_category', sub_category, 'corridor_code', corridor_code, 'direction', direction, 'trip_number', trip_number, 'delay_duration', delay_duration, 'line_colour', line_colour, 'message_body', message_body)"
             : "JSON_OBJECT('alert_type', alert_type, 'service_mode', service_mode, 'sub_category', sub_category, 'corridor_code', corridor_code, 'direction', direction, 'trip_number', trip_number, 'delay_duration', delay_duration, 'line_colour', line_colour, 'message_body', message_body)";
 
-        return GoTransitAlert::query()
+        $query = GoTransitAlert::query()
             ->selectRaw(
                 "{$idExpression} as id,
                 '{$source}' as source,
@@ -35,7 +36,15 @@ class GoTransitAlertSelectProvider implements AlertSelectProvider
                 NULL as lat,
                 NULL as lng,
                 {$metaExpression} as meta"
-            )
-            ->toBase();
+            );
+
+        if ($criteria->query !== null && $driver === 'mysql') {
+            $query->whereRaw(
+                'MATCH(message_subject, message_body, corridor_or_route, corridor_code, service_mode) AGAINST (? IN NATURAL LANGUAGE MODE)',
+                [$criteria->query],
+            );
+        }
+
+        return $query->toBase();
     }
 }

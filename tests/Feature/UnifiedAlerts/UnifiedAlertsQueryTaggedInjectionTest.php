@@ -13,7 +13,7 @@ test('unified alerts query resolves tagged providers and includes custom tagged 
     $this->app->bind('alerts.providers.fake', function () {
         return new class implements AlertSelectProvider
         {
-            public function select(): Builder
+            public function select(UnifiedAlertsCriteria $criteria): Builder
             {
                 return DB::query()->selectRaw(
                     "? as id,\n                    ? as source,\n                    ? as external_id,\n                    ? as is_active,\n                    ? as timestamp,\n                    ? as title,\n                    ? as location_name,\n                    ? as lat,\n                    ? as lng,\n                    ? as meta",

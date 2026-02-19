@@ -5,12 +5,13 @@ namespace App\Services\Alerts\Providers;
 use App\Enums\AlertSource;
 use App\Models\TransitAlert;
 use App\Services\Alerts\Contracts\AlertSelectProvider;
+use App\Services\Alerts\DTOs\UnifiedAlertsCriteria;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\DB;
 
 class TransitAlertSelectProvider implements AlertSelectProvider
 {
-    public function select(): Builder
+    public function select(UnifiedAlertsCriteria $criteria): Builder
     {
         $driver = DB::getDriverName();
         $source = AlertSource::Transit->value;
@@ -27,10 +28,18 @@ class TransitAlertSelectProvider implements AlertSelectProvider
             ? "json_object('route_type', route_type, 'route', route, 'severity', severity, 'effect', effect, 'source_feed', source_feed, 'alert_type', alert_type, 'description', description, 'url', url, 'direction', direction, 'cause', cause, 'stop_start', stop_start, 'stop_end', stop_end)"
             : "JSON_OBJECT('route_type', route_type, 'route', route, 'severity', severity, 'effect', effect, 'source_feed', source_feed, 'alert_type', alert_type, 'description', description, 'url', url, 'direction', direction, 'cause', cause, 'stop_start', stop_start, 'stop_end', stop_end)";
 
-        return TransitAlert::query()
+        $query = TransitAlert::query()
             ->selectRaw(
                 "{$idExpression} as id,\n                '{$source}' as source,\n                external_id,\n                is_active,\n                COALESCE(active_period_start, created_at) as timestamp,\n                title,\n                {$locationExpression} as location_name,\n                NULL as lat,\n                NULL as lng,\n                {$metaExpression} as meta"
-            )
-            ->toBase();
+            );
+
+        if ($criteria->query !== null && $driver === 'mysql') {
+            $query->whereRaw(
+                'MATCH(title, description, stop_start, stop_end, route, route_type) AGAINST (? IN NATURAL LANGUAGE MODE)',
+                [$criteria->query],
+            );
+        }
+
+        return $query->toBase();
     }
 }

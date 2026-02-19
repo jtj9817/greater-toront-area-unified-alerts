@@ -39,13 +39,7 @@ function expectAlertsOrderedByDeterministicTuple(array $items): void
             continue;
         }
 
-        if ($previous->source !== $current->source) {
-            expect(strcmp($previous->source, $current->source))->toBeLessThanOrEqual(0);
-
-            continue;
-        }
-
-        expect(strcmp($previous->externalId, $current->externalId))->toBeGreaterThanOrEqual(0);
+        expect(strcmp($previous->id, $current->id))->toBeGreaterThanOrEqual(0);
     }
 }
 
@@ -237,6 +231,83 @@ test('unified alerts query filters by status', function () {
     ]);
 });
 
+test('unified alerts query filters by source across the full dataset', function () {
+    Carbon::setTestNow(Carbon::parse('2026-02-02 12:00:00'));
+    $this->seed(UnifiedAlertsTestSeeder::class);
+
+    $results = app(UnifiedAlertsQuery::class)->paginate(
+        new UnifiedAlertsCriteria(status: 'all', source: 'fire', perPage: 50)
+    );
+
+    expect($results->total())->toBe(4);
+    expect(collect($results->items())->every(fn (UnifiedAlert $a) => $a->source === 'fire'))->toBeTrue();
+});
+
+test('unified alerts query filters by since cutoff using test now', function () {
+    Carbon::setTestNow(Carbon::parse('2026-02-02 12:00:00'));
+    $this->seed(UnifiedAlertsTestSeeder::class);
+
+    $results = app(UnifiedAlertsQuery::class)->paginate(
+        new UnifiedAlertsCriteria(status: 'all', since: '30m', perPage: 50)
+    );
+
+    $ids = collect($results->items())->map(fn (UnifiedAlert $a) => $a->id)->values()->all();
+
+    expect($ids)->toBe([
+        'fire:FIRE-0001',
+        'police:900001',
+        'transit:api:TR-0001',
+        'fire:FIRE-0002',
+    ]);
+});
+
+test('unified alerts query filters by q across title and location_name (sqlite fallback)', function () {
+    Carbon::setTestNow(Carbon::parse('2026-02-02 12:00:00'));
+    $this->seed(UnifiedAlertsTestSeeder::class);
+
+    $assault = app(UnifiedAlertsQuery::class)->paginate(
+        new UnifiedAlertsCriteria(status: 'all', query: 'assault', perPage: 50)
+    );
+
+    $assaultIds = collect($assault->items())->map(fn (UnifiedAlert $a) => $a->id)->values()->all();
+    expect($assaultIds)->toBe(['police:900001']);
+
+    FireIncident::factory()->create([
+        'event_num' => 'FIRE-Q-LOC-1',
+        'event_type' => 'ALARM',
+        'prime_street' => 'Yonge St',
+        'cross_streets' => 'Dundas St',
+        'dispatch_time' => Carbon::now()->subMinute(),
+        'is_active' => true,
+    ]);
+
+    $yonge = app(UnifiedAlertsQuery::class)->paginate(
+        new UnifiedAlertsCriteria(status: 'all', query: 'yonge', perPage: 50)
+    );
+
+    $yongeIds = collect($yonge->items())->map(fn (UnifiedAlert $a) => $a->id)->values()->all();
+    expect($yongeIds)->toContain('fire:FIRE-Q-LOC-1');
+});
+
+test('unified alerts query combines status, source, since, and q filters', function () {
+    Carbon::setTestNow(Carbon::parse('2026-02-02 12:00:00'));
+    $this->seed(UnifiedAlertsTestSeeder::class);
+
+    $results = app(UnifiedAlertsQuery::class)->paginate(
+        new UnifiedAlertsCriteria(
+            status: 'active',
+            source: 'fire',
+            since: '30m',
+            query: 'alarm',
+            perPage: 50,
+        )
+    );
+
+    $ids = collect($results->items())->map(fn (UnifiedAlert $a) => $a->id)->values()->all();
+
+    expect($ids)->toBe(['fire:FIRE-0002']);
+});
+
 test('unified alerts query maps dto fields for each source', function () {
     Carbon::setTestNow(Carbon::parse('2026-02-02 12:00:00'));
     $this->seed(UnifiedAlertsTestSeeder::class);
@@ -426,10 +497,10 @@ test('unified alerts query uses deterministic tie-breakers for identical timesta
     $ids = collect($results->items())->map(fn (UnifiedAlert $a) => $a->id)->all();
 
     expect($ids)->toBe([
-        'fire:FIRE-TIE-B',
-        'fire:FIRE-TIE-A',
         'police:2',
         'police:1',
+        'fire:FIRE-TIE-B',
+        'fire:FIRE-TIE-A',
     ]);
 
     expectAlertsOrderedByDeterministicTuple($results->items());
@@ -469,14 +540,14 @@ test('unified alerts query stays stable when ties cross a page boundary', functi
     expect(array_intersect($page1Ids, $page2Ids))->toBeEmpty();
 
     $expected = [
-        'fire:FIRE-TIE-004',
-        'fire:FIRE-TIE-003',
-        'fire:FIRE-TIE-002',
-        'fire:FIRE-TIE-001',
         'police:4',
         'police:3',
         'police:2',
         'police:1',
+        'fire:FIRE-TIE-004',
+        'fire:FIRE-TIE-003',
+        'fire:FIRE-TIE-002',
+        'fire:FIRE-TIE-001',
     ];
 
     expect(array_merge($page1Ids, $page2Ids))->toBe($expected);
@@ -486,6 +557,36 @@ test('unified alerts query stays stable when ties cross a page boundary', functi
 
     expectUnifiedAlertsHaveValidIdentifiers($page1->items());
     expectUnifiedAlertsHaveValidIdentifiers($page2->items());
+});
+
+test('unified alerts query cursor pagination returns deterministic batches without duplicates', function () {
+    Carbon::setTestNow(Carbon::parse('2026-02-02 12:00:00'));
+    $this->seed(UnifiedAlertsTestSeeder::class);
+
+    $baseline = app(UnifiedAlertsQuery::class)->paginate(
+        new UnifiedAlertsCriteria(status: 'all', perPage: 50)
+    );
+    $expected = collect($baseline->items())->map(fn (UnifiedAlert $a) => $a->id)->values()->all();
+
+    $seen = [];
+    $cursor = null;
+
+    do {
+        $batch = app(UnifiedAlertsQuery::class)->cursorPaginate(
+            new UnifiedAlertsCriteria(status: 'all', perPage: 3, cursor: $cursor)
+        );
+
+        /** @var array<int, UnifiedAlert> $items */
+        $items = $batch['items'];
+        $ids = array_map(fn (UnifiedAlert $a) => $a->id, $items);
+
+        expect(array_intersect($seen, $ids))->toBeEmpty();
+        $seen = array_merge($seen, $ids);
+
+        $cursor = $batch['next_cursor'];
+    } while ($cursor !== null);
+
+    expect($seen)->toBe($expected);
 });
 
 test('unified alerts query throws for invalid status values', function () {
@@ -498,14 +599,14 @@ test('unified alerts query decodes meta to an array and never leaks json excepti
         providers: [
             new class implements AlertSelectProvider
             {
-                public function select(): Builder
+                public function select(UnifiedAlertsCriteria $criteria): Builder
                 {
                     return emptyUnifiedSelect('fire');
                 }
             },
             new class implements AlertSelectProvider
             {
-                public function select(): Builder
+                public function select(UnifiedAlertsCriteria $criteria): Builder
                 {
                     return emptyUnifiedSelect('police');
                 }
@@ -514,7 +615,7 @@ test('unified alerts query decodes meta to an array and never leaks json excepti
             {
                 public function __construct(private readonly mixed $meta) {}
 
-                public function select(): Builder
+                public function select(UnifiedAlertsCriteria $criteria): Builder
                 {
                     return singleRowUnifiedSelect([
                         'id' => 'meta:1',
@@ -550,21 +651,21 @@ test('unified alerts query throws when timestamp is missing', function () {
         providers: [
             new class implements AlertSelectProvider
             {
-                public function select(): Builder
+                public function select(UnifiedAlertsCriteria $criteria): Builder
                 {
                     return emptyUnifiedSelect('fire');
                 }
             },
             new class implements AlertSelectProvider
             {
-                public function select(): Builder
+                public function select(UnifiedAlertsCriteria $criteria): Builder
                 {
                     return emptyUnifiedSelect('police');
                 }
             },
             new class implements AlertSelectProvider
             {
-                public function select(): Builder
+                public function select(UnifiedAlertsCriteria $criteria): Builder
                 {
                     return singleRowUnifiedSelect([
                         'id' => 'ts:missing',
@@ -587,21 +688,21 @@ test('unified alerts query throws when timestamp is not parseable', function () 
         providers: [
             new class implements AlertSelectProvider
             {
-                public function select(): Builder
+                public function select(UnifiedAlertsCriteria $criteria): Builder
                 {
                     return emptyUnifiedSelect('fire');
                 }
             },
             new class implements AlertSelectProvider
             {
-                public function select(): Builder
+                public function select(UnifiedAlertsCriteria $criteria): Builder
                 {
                     return emptyUnifiedSelect('police');
                 }
             },
             new class implements AlertSelectProvider
             {
-                public function select(): Builder
+                public function select(UnifiedAlertsCriteria $criteria): Builder
                 {
                     return singleRowUnifiedSelect([
                         'id' => 'ts:bad',

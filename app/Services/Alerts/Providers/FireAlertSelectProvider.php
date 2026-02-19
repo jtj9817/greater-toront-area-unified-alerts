@@ -5,12 +5,13 @@ namespace App\Services\Alerts\Providers;
 use App\Enums\AlertSource;
 use App\Models\FireIncident;
 use App\Services\Alerts\Contracts\AlertSelectProvider;
+use App\Services\Alerts\DTOs\UnifiedAlertsCriteria;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\DB;
 
 class FireAlertSelectProvider implements AlertSelectProvider
 {
-    public function select(): Builder
+    public function select(UnifiedAlertsCriteria $criteria): Builder
     {
         $driver = DB::getDriverName();
         $source = AlertSource::Fire->value;
@@ -48,11 +49,19 @@ class FireAlertSelectProvider implements AlertSelectProvider
                 'intel_last_updated', ({$lastUpdatedExpression})
             )";
 
-        return FireIncident::query()
+        $query = FireIncident::query()
             ->selectRaw(
                 "{$idExpression} as id,\n                '{$source}' as source,\n                {$externalIdExpression} as external_id,\n                is_active,\n                dispatch_time as timestamp,\n                event_type as title,\n                {$locationExpression} as location_name,\n                NULL as lat,\n                NULL as lng,\n                {$metaExpression} as meta"
-            )
-            ->toBase();
+            );
+
+        if ($criteria->query !== null && $driver === 'mysql') {
+            $query->whereRaw(
+                'MATCH(event_type, prime_street, cross_streets) AGAINST (? IN NATURAL LANGUAGE MODE)',
+                [$criteria->query],
+            );
+        }
+
+        return $query->toBase();
     }
 
     private function getSummarySubquery(string $driver): string

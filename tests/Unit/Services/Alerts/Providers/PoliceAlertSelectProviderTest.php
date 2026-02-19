@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\PoliceCall;
+use App\Services\Alerts\DTOs\UnifiedAlertsCriteria;
 use App\Services\Alerts\Mappers\UnifiedAlertMapper;
 use App\Services\Alerts\Providers\PoliceAlertSelectProvider;
 use Carbon\CarbonImmutable;
@@ -22,7 +23,7 @@ test('police alert select provider maps unified columns', function () {
         'is_active' => false,
     ]);
 
-    $row = (new PoliceAlertSelectProvider)->select()->first();
+    $row = (new PoliceAlertSelectProvider)->select(new UnifiedAlertsCriteria)->first();
 
     expect($row)->not->toBeNull();
     expect($row->id)->toBe('police:4242');
@@ -47,7 +48,7 @@ test('police alert select provider uses non-sqlite expressions when driver is no
         ->shouldReceive('getDriverName')
         ->andReturn('mysql');
 
-    $sql = (new PoliceAlertSelectProvider)->select()->toSql();
+    $sql = (new PoliceAlertSelectProvider)->select(new UnifiedAlertsCriteria)->toSql();
 
     expect($sql)->toContain("CONCAT('police:', object_id)");
     expect($sql)->toContain('CAST(object_id AS CHAR)');

@@ -6,6 +6,7 @@ use App\Services\Alerts\DTOs\UnifiedAlertsCriteria;
 use App\Services\Alerts\Mappers\UnifiedAlertMapper;
 use App\Services\Alerts\Providers\FireAlertSelectProvider;
 use App\Services\Alerts\Providers\PoliceAlertSelectProvider;
+use App\Services\Alerts\Providers\TransitAlertSelectProvider;
 use App\Services\Alerts\UnifiedAlertsQuery;
 use Carbon\CarbonImmutable;
 use Database\Seeders\UnifiedAlertsTestSeeder;
@@ -39,7 +40,7 @@ test('mysql fire provider returns formatted location and decodable meta', functi
     ]);
 
     $row = (new FireAlertSelectProvider)
-        ->select()
+        ->select(new UnifiedAlertsCriteria)
         ->where('event_num', 'FIRE-MYSQL-1')
         ->first();
 
@@ -73,7 +74,7 @@ test('mysql police provider returns decodable meta and coordinates', function ()
     ]);
 
     $row = (new PoliceAlertSelectProvider)
-        ->select()
+        ->select(new UnifiedAlertsCriteria)
         ->where('object_id', 4242)
         ->first();
 
@@ -118,4 +119,21 @@ test('mysql unified alerts query returns a deterministic mixed feed', function (
         'fire:FIRE-0004',
         'police:900004',
     ]);
+});
+
+test('mysql providers use fulltext predicates when q is provided', function () {
+    if (DB::getDriverName() !== 'mysql') {
+        $this->markTestSkipped('MySQL only.');
+    }
+
+    $criteria = new UnifiedAlertsCriteria(query: 'delay');
+
+    $fireSql = (new FireAlertSelectProvider)->select($criteria)->toSql();
+    expect(strtolower($fireSql))->toContain('match(');
+
+    $policeSql = (new PoliceAlertSelectProvider)->select($criteria)->toSql();
+    expect(strtolower($policeSql))->toContain('match(');
+
+    $transitSql = (new TransitAlertSelectProvider)->select($criteria)->toSql();
+    expect(strtolower($transitSql))->toContain('match(');
 });
