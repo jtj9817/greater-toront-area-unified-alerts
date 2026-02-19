@@ -2,6 +2,46 @@
 
 All notable documentation-relevant changes are tracked here.
 
+## [February 18, 2026] - Feed Tickets, Notification Fan-Out, and Observability Additions
+
+### Added
+- Created four open feed improvement tickets in `docs/tickets/`:
+  - `FEED-001-server-side-filters-infinite-scroll.md` - Move category/search/time filters server-side, replace pagination with cursor-based infinite scroll
+  - `FEED-002-real-time-push.md` - Real-time push updates for the alert feed (depends on FEED-001)
+  - `FEED-003-saved-filter-presets.md` - Saved filter presets (depends on FEED-001)
+  - `FEED-004-sort-direction-toggle.md` - Sort direction toggle (depends on FEED-001)
+- Archived 16 closed tickets from `docs/tickets/` to `docs/tickets/archive/`.
+- Updated `docs/backend/notification-system.md`:
+  - Expanded architecture diagram to reflect the three-stage fan-out pipeline: `FanOutAlertNotificationsJob` -> `DispatchAlertNotificationChunkJob` (250 users/chunk) -> `DeliverAlertNotificationJob`
+  - Added "Fan-Out Pipeline" explanation section
+  - Added `SavedPlace` CRUD API endpoints (`GET/POST/PATCH/DELETE /api/saved-places`) including 20-place maximum limit
+  - Added `SubscriptionOptions` API endpoint (`GET /api/subscriptions/options`) with response shape
+  - Expanded file reference list with `FanOutAlertNotificationsJob`, `DispatchAlertNotificationChunkJob`, `SavedPlaceController`, `SubscriptionOptionsController`, `LocalGeocodingSearchController`, `LocalGeocodingService`, `NotificationAlertFactory`, `NotificationSeverity`, and all geocoding/saved-place models
+  - Expanded test file references with all Notification feature test files
+- Updated `docs/backend/enums.md`:
+  - Added `IncidentUpdateType` enum documentation (`milestone`, `resource_status`, `alarm_change`, `phase_change`, `manual_note`)
+  - Added frontend equivalent for Scene Intel update types
+- Updated `docs/backend/unified-alerts-system.md`:
+  - Added `subscription_route_options` to the controller props list
+- Updated `docs/README.md`:
+  - Added `backend/scene-intel.md` to the documentation structure tree
+  - Added `plans/notification-system-feature-plan.md`, `plans/scene-intel-feature-plan.md`, `plans/frontend-typed-alert-domain-plan.md` to plan docs listing
+  - Added `tickets/` directory to the documentation structure tree
+  - Added Scene Intel to the Implementation Status table
+  - Added FEED-001/FEED-002 planned items to the Implementation Status table
+  - Added "Open Tickets" section
+  - Added `backend/scene-intel.md` to the Recommended Reading Order
+
+### Changed
+- `GtaAlertsController` now passes `subscription_route_options` (sorted route IDs from `config/transit_data.php`) as an Inertia prop, sourced from the backend rather than hardcoded in the frontend.
+- Notification delivery pipeline refactored to fan-out: `DispatchAlertNotifications` listener now dispatches `FanOutAlertNotificationsJob`, which chunks matching users into groups of 250 before dispatching per-chunk and per-user delivery jobs.
+- `useSceneIntel` hook updated to prevent overlapping poll requests (in-flight guard added).
+
+### Fixed
+- Scene intel GET endpoint (`GET /api/incidents/{eventNum}/intel`) now has `throttle:60,1` rate limiting applied.
+- `FetchTransitAlertsCommand` now trims whitespace from `external_id` before persisting, preventing duplicate-key issues from padding differences.
+- `QueueEnqueueDebugServiceProvider` added for queue enqueue debug logging (controlled by `QUEUE_ENQUEUE_DEBUG_ENABLED` env var).
+
 ## [February 13, 2026] - Notifications Phase 4 QA & Documentation Alignment
 
 ### Added

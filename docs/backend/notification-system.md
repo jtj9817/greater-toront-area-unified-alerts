@@ -24,14 +24,28 @@ AlertCreated event (NotificationAlert DTO)
     ↓
 DispatchAlertNotifications listener
     ↓
+FanOutAlertNotificationsJob
+    ↓
 NotificationMatcher (type + severity + subscriptions + saved-place geofence)
     ↓
-DeliverAlertNotificationJob (per matching user)
+DispatchAlertNotificationChunkJob (chunks of 250 matching user IDs)
+    ↓
+DeliverAlertNotificationJob (per user)
     ↓
 NotificationLog persisted + AlertNotificationSent broadcast
     ↓
 Frontend toast + inbox refresh
 ```
+
+### Fan-Out Pipeline
+
+The delivery pipeline uses a three-stage fan-out to scale across large user bases:
+
+1. `DispatchAlertNotifications` listener serializes the alert into a payload and dispatches `FanOutAlertNotificationsJob`.
+2. `FanOutAlertNotificationsJob` runs `NotificationMatcher::matchingPreferences()` to identify all matching users, then chunks them into groups of 250 and dispatches `DispatchAlertNotificationChunkJob` per chunk.
+3. `DispatchAlertNotificationChunkJob` dispatches one `DeliverAlertNotificationJob` per user ID in its chunk.
+
+This prevents a single large listener from blocking the queue and bounds per-job user counts.
 
 ## Database Schema
 
@@ -147,6 +161,39 @@ Backwards-compatibility is preserved for legacy clients:
 | `PATCH` | `/notifications/inbox/{id}/dismiss` | Dismiss one item |
 | `DELETE` | `/notifications/inbox` | Clear all undismissed items |
 
+### Saved Places
+
+Saved places are managed via a separate CRUD API. Maximum 20 saved places per user.
+
+| Method | URI | Description |
+|---|---|---|
+| `GET` | `/api/saved-places` | List the current user's saved places |
+| `POST` | `/api/saved-places` | Create a new saved place |
+| `PATCH` | `/api/saved-places/{id}` | Update a saved place |
+| `DELETE` | `/api/saved-places/{id}` | Delete a saved place |
+
+All saved-place endpoints are ownership-enforced (users can only access their own places).
+
+### Subscription Options
+
+| Method | URI | Description |
+|---|---|---|
+| `GET` | `/api/subscriptions/options` | Return available routes, lines, stations, and agency for subscription UI |
+
+Response shape:
+```json
+{
+  "data": {
+    "agency": { "urn": "agency:ttc", "name": "TTC" },
+    "routes": [{ "urn": "route:501", "id": "501", "name": "Queen" }],
+    "stations": [{ "urn": "station:union", "slug": "union", "name": "Union Station" }],
+    "lines": [{ "urn": "line:yonge-university", "id": "yonge-university", "name": "Yonge-University" }]
+  }
+}
+```
+
+Options are sourced from `config/transit_data.php`.
+
 ## Pruning Policy
 
 Notification retention is documented in `docs/backend/maintenance.md`.
@@ -157,15 +204,25 @@ Notification retention is documented in `docs/backend/maintenance.md`.
 
 - `app/Services/Notifications/NotificationMatcher.php`
 - `app/Services/Notifications/NotificationAlert.php`
+- `app/Services/Notifications/NotificationAlertFactory.php`
 - `app/Services/Notifications/AlertContentExtractor.php`
+- `app/Services/Notifications/NotificationSeverity.php`
 - `app/Listeners/DispatchAlertNotifications.php`
+- `app/Jobs/FanOutAlertNotificationsJob.php`
+- `app/Jobs/DispatchAlertNotificationChunkJob.php`
 - `app/Jobs/DeliverAlertNotificationJob.php`
 - `app/Jobs/GenerateDailyDigestJob.php`
 - `app/Http/Controllers/Settings/NotificationPreferenceController.php`
 - `app/Http/Controllers/Notifications/NotificationInboxController.php`
+- `app/Http/Controllers/Notifications/SavedPlaceController.php`
+- `app/Http/Controllers/Notifications/SubscriptionOptionsController.php`
+- `app/Http/Controllers/Geocoding/LocalGeocodingSearchController.php`
+- `app/Services/Geocoding/LocalGeocodingService.php`
 - `app/Models/NotificationPreference.php`
 - `app/Models/SavedPlace.php`
 - `app/Models/NotificationLog.php`
+- `app/Models/TorontoAddress.php`
+- `app/Models/TorontoPointOfInterest.php`
 - `routes/settings.php`
 
 ### Frontend
@@ -180,6 +237,12 @@ Notification retention is documented in `docs/backend/maintenance.md`.
 
 - `tests/Feature/Notifications/AlertCreatedMatchingTest.php`
 - `tests/Feature/Notifications/NotificationSystemIntegrationTest.php`
-- `tests/Feature/Commands/FetchTransitAlertsCommandTest.php`
+- `tests/Feature/Notifications/DeliverAlertNotificationJobTest.php`
+- `tests/Feature/Notifications/FanOutAlertNotificationsJobTest.php`
+- `tests/Feature/Notifications/GenerateDailyDigestJobTest.php`
+- `tests/Feature/Notifications/NotificationInboxControllerTest.php`
+- `tests/Feature/Notifications/SavedPlaceControllerTest.php`
+- `tests/Feature/Notifications/SavedPlaceLimitTest.php`
+- `tests/Feature/Notifications/SubscriptionOptionsControllerTest.php`
 - `tests/Feature/Commands/PruneNotificationsCommandTest.php`
 - `tests/Feature/Geocoding/LocalGeocodingSearchControllerTest.php`

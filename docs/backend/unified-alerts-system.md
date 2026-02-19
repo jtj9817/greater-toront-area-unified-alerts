@@ -58,6 +58,7 @@ HTTP Request (/, status/page)
   - `alerts` (resource collection)
   - `filters.status`
   - `latest_feed_updated_at` (max across fire/police/transit/go_transit feed timestamps)
+  - `subscription_route_options` (sorted array of route IDs from `config/transit_data.php`, used to populate the frontend subscription route selector)
 
 ## Unified Row Contract
 

@@ -47,6 +47,29 @@ enum AlertStatus: string
 
 Used by `GtaAlertsController` and `UnifiedAlertsCriteria` to enforce valid status filters.
 
+## IncidentUpdateType
+
+- File: `app/Enums/IncidentUpdateType.php`
+
+```php
+enum IncidentUpdateType: string
+{
+    case Milestone = 'milestone';
+    case ResourceStatus = 'resource_status';
+    case AlarmChange = 'alarm_change';
+    case PhaseChange = 'phase_change';
+    case ManualNote = 'manual_note';
+}
+```
+
+Used to classify entries in the `incident_updates` table (Scene Intel system). Values are stored as strings in the database.
+
+### Usage
+
+- `IncidentUpdate` model cast
+- `SceneIntelProcessor` when generating synthetic intel entries
+- `SceneIntelController` resource serialization
+
 ## Frontend Equivalents
 
 - File: `resources/js/features/gta-alerts/types.ts`
@@ -54,4 +77,11 @@ Used by `GtaAlertsController` and `UnifiedAlertsCriteria` to enforce valid statu
 ```typescript
 type AlertSource = 'fire' | 'police' | 'transit' | 'go_transit';
 type AlertStatus = 'all' | 'active' | 'cleared';
+```
+
+Scene Intel update types are defined in:
+- File: `resources/js/features/gta-alerts/domain/alerts/fire/scene-intel.ts`
+
+```typescript
+type UpdateType = 'milestone' | 'resource_status' | 'alarm_change' | 'phase_change' | 'manual_note';
 ```
