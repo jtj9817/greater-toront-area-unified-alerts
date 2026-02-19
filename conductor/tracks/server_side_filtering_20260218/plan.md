@@ -6,69 +6,69 @@ This plan is aligned to `docs/tickets/FEED-001-server-side-filters-infinite-scro
 **Goal:** Make filtering server-authoritative and enable cursor pagination keyed on `(timestamp, id)` for stable infinite scroll.
 
 - [ ] Task: Contract - Confirm URL Params + UI Mapping
-    - [ ] Confirm canonical filter params: `status`, `source`, `q`, `since`, plus `cursor` for infinite scroll.
+    - [x] Confirm canonical filter params: `status`, `source`, `q`, `since`, plus `cursor` for infinite scroll.
     - [ ] Decide what to do with the existing “Today / Yesterday / All Dates” UI:
         - [ ] If it cannot be expressed via `since`, remove it for FEED-001 (do not reintroduce client-side feed filtering).
 
-- [ ] Task: TDD - Define Criteria + Query Contract (tests first)
-    - [ ] Request validation + criteria normalization tests:
-        - [ ] `status` accepts `all|active|cleared`; rejects invalid enum value.
-        - [ ] `source` accepts known sources; rejects unknown sources.
-        - [ ] `q` trims whitespace; empty string behaves as “no search”.
-        - [ ] `since` accepts `30m|1h|3h|6h|12h` (or validated pattern); rejects invalid values.
-        - [ ] `cursor` rejects malformed/invalid cursor payload (tampered/invalid base64/invalid tuple).
-    - [ ] Query behavior tests (red → green):
-        - [ ] filters by `source` across full dataset (not page-scoped).
-        - [ ] filters by `since` cutoff using `Carbon::setTestNow()`.
-        - [ ] filters by `q` and matches expected fields (at least `title`, `location_name`).
-        - [ ] combines filters (`status + source + since + q`) and returns correct intersection.
-        - [ ] cursor pagination returns deterministic batches with no duplicates across cursors.
+- [x] Task: TDD - Define Criteria + Query Contract (tests first)
+    - [x] Request validation + criteria normalization tests:
+        - [x] `status` accepts `all|active|cleared`; rejects invalid enum value.
+        - [x] `source` accepts known sources; rejects unknown sources.
+        - [x] `q` trims whitespace; empty string behaves as “no search”.
+        - [x] `since` accepts `30m|1h|3h|6h|12h` (or validated pattern); rejects invalid values.
+        - [x] `cursor` rejects malformed/invalid cursor payload (tampered/invalid base64/invalid tuple).
+    - [x] Query behavior tests (red → green):
+        - [x] filters by `source` across full dataset (not page-scoped).
+        - [x] filters by `since` cutoff using `Carbon::setTestNow()`.
+        - [x] filters by `q` and matches expected fields (at least `title`, `location_name`).
+        - [x] combines filters (`status + source + since + q`) and returns correct intersection.
+        - [x] cursor pagination returns deterministic batches with no duplicates across cursors.
 
-- [ ] Task: Controller - Validate + Pass Filter Params
-    - [ ] Update `app/Http/Controllers/GtaAlertsController.php` validation rules to include:
-        - [ ] `status` (existing)
-        - [ ] `source` (enum-backed; should match unified alert sources)
-        - [ ] `q` (nullable string; trim; max length)
-        - [ ] `since` (nullable; validated duration string)
-        - [ ] `cursor` (nullable; opaque cursor string)
-    - [ ] Ensure the `filters` Inertia prop echoes the active values (`status`, `source`, `q`, `since`) so the UI rehydrates from URL state.
+- [x] Task: Controller - Validate + Pass Filter Params
+    - [x] Update `app/Http/Controllers/GtaAlertsController.php` validation rules to include:
+        - [x] `status` (existing)
+        - [x] `source` (enum-backed; should match unified alert sources)
+        - [x] `q` (nullable string; trim; max length)
+        - [x] `since` (nullable; validated duration string)
+        - [x] `cursor` (nullable; opaque cursor string)
+    - [x] Ensure the `filters` Inertia prop echoes the active values (`status`, `source`, `q`, `since`) so the UI rehydrates from URL state.
 
-- [ ] Task: Criteria DTO - Expand + Normalize
-    - [ ] Expand `app/Services/Alerts/DTOs/UnifiedAlertsCriteria.php` to include:
-        - [ ] `?string $source`
-        - [ ] `?string $query` (maps to `q`)
-        - [ ] `?string $since` (raw) and/or a normalized cutoff timestamp value
-        - [ ] cursor fields (e.g., `?CarbonImmutable $cursorTimestamp`, `?string $cursorId`) OR an encoded cursor string with decoder
-    - [ ] Add normalization helpers:
-        - [ ] normalize `source` (`null` for empty)
-        - [ ] normalize `q` (trim; `null` for empty)
-        - [ ] normalize `since` (validate + compute cutoff relative to now)
-        - [ ] normalize cursor tuple (validate timestamp + id format)
+- [x] Task: Criteria DTO - Expand + Normalize
+    - [x] Expand `app/Services/Alerts/DTOs/UnifiedAlertsCriteria.php` to include:
+        - [x] `?string $source`
+        - [x] `?string $query` (maps to `q`)
+        - [x] `?string $since` (raw) and/or a normalized cutoff timestamp value
+        - [x] cursor fields (e.g., `?CarbonImmutable $cursorTimestamp`, `?string $cursorId`) OR an encoded cursor string with decoder
+    - [x] Add normalization helpers:
+        - [x] normalize `source` (`null` for empty)
+        - [x] normalize `q` (trim; `null` for empty)
+        - [x] normalize `since` (validate + compute cutoff relative to now)
+        - [x] normalize cursor tuple (validate timestamp + id format)
 
-- [ ] Task: Cursor - Define + Lock Down Format
-    - [ ] Define an opaque cursor encoding for `(timestamp, id)` (e.g., base64url of JSON `{ ts, id }`).
-    - [ ] Implement encode/decode helpers and cover with tests:
-        - [ ] round-trip encode/decode
-        - [ ] invalid payloads fail closed
+- [x] Task: Cursor - Define + Lock Down Format
+    - [x] Define an opaque cursor encoding for `(timestamp, id)` (e.g., base64url of JSON `{ ts, id }`).
+    - [x] Implement encode/decode helpers and cover with tests:
+        - [x] round-trip encode/decode
+        - [x] invalid payloads fail closed
 
-- [ ] Task: Query - Apply Filters + Cursor Seek Pagination
-    - [ ] Update `app/Services/Alerts/UnifiedAlertsQuery.php` to:
-        - [ ] apply `status` (existing behavior)
-        - [ ] apply `source` (`WHERE source = ?`)
-        - [ ] apply `since` cutoff (`WHERE timestamp >= cutoff`)
-        - [ ] apply `q` search (see FULLTEXT requirement below)
-        - [ ] order by deterministic tuple `(timestamp DESC, id DESC)`
-        - [ ] apply cursor “seek” condition for DESC order:
-            - [ ] `timestamp < cursor_ts` OR (`timestamp = cursor_ts` AND `id < cursor_id`)
-        - [ ] return a cursor-paginated result (batch + `next_cursor`) while preserving filter params
-    - [ ] FULLTEXT requirement (explicit):
-        - [ ] **MySQL:** add FULLTEXT indexes on the underlying source tables’ searched columns and use MATCH...AGAINST predicates (not `LIKE`) for `q`.
-        - [ ] **SQLite (dev/tests):** implement a compatibility fallback for `q` (e.g., `LIKE` across selected fields) so tests run under sqlite.
-        - [ ] Add/extend MySQL coverage to ensure the FULLTEXT path is exercised.
+- [x] Task: Query - Apply Filters + Cursor Seek Pagination
+    - [x] Update `app/Services/Alerts/UnifiedAlertsQuery.php` to:
+        - [x] apply `status` (existing behavior)
+        - [x] apply `source` (`WHERE source = ?`)
+        - [x] apply `since` cutoff (`WHERE timestamp >= cutoff`)
+        - [x] apply `q` search (see FULLTEXT requirement below)
+        - [x] order by deterministic tuple `(timestamp DESC, id DESC)`
+        - [x] apply cursor “seek” condition for DESC order:
+            - [x] `timestamp < cursor_ts` OR (`timestamp = cursor_ts` AND `id < cursor_id`)
+        - [x] return a cursor-paginated result (batch + `next_cursor`) while preserving filter params
+    - [x] FULLTEXT requirement (explicit):
+        - [x] **MySQL:** add FULLTEXT indexes on the underlying source tables’ searched columns and use MATCH...AGAINST predicates (not `LIKE`) for `q`.
+        - [x] **SQLite (dev/tests):** implement a compatibility fallback for `q` (e.g., `LIKE` across selected fields) so tests run under sqlite.
+        - [x] Add/extend MySQL coverage to ensure the FULLTEXT path is exercised.
 
-- [ ] Task: Testing - Phase 1 Verification
-    - [ ] Ensure sqlite test suite passes for filter + cursor behavior.
-    - [ ] Ensure MySQL driver test suite exercises FULLTEXT-backed search.
+- [x] Task: Testing - Phase 1 Verification
+    - [x] Ensure sqlite test suite passes for filter + cursor behavior.
+    - [x] Ensure MySQL driver test suite exercises FULLTEXT-backed search.
 
 - [ ] Task: Conductor - User Manual Verification 'Phase 1: Backend Filters + Cursor Pagination' (Protocol in workflow.md)
 
