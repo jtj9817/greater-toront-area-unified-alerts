@@ -6,7 +6,8 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ## Active Tracks
 
-_None_
+- [ ] **Track: Server-Side Filtering & Search Refactor**
+*Link: [./tracks/server_side_filtering_20260218/](./tracks/server_side_filtering_20260218/)*
 
 ## Archived Tracks
 
