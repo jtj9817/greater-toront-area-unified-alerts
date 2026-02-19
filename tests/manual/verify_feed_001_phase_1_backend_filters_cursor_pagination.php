@@ -16,7 +16,10 @@
  * - ./vendor/bin/sail php tests/manual/verify_feed_001_phase_1_backend_filters_cursor_pagination.php
  *
  * Notes:
- * - This script is destructive (it deletes rows) but runs inside a DB transaction and rolls back.
+ * - This script is destructive (it deletes rows).
+ * - SQLite runs inside a DB transaction and rolls back.
+ * - MySQL does NOT use a wrapping transaction because InnoDB FULLTEXT search may not
+ *   see uncommitted inserts; it performs explicit cleanup in `finally` instead.
  * - It must run with APP_ENV=testing and the dedicated testing database.
  */
 
@@ -160,6 +163,7 @@ function pluckIds(array $items): array
 
 $exitCode = 0;
 $txStarted = false;
+$driverName = null;
 
 try {
     try {
@@ -202,11 +206,20 @@ try {
         throw new RuntimeException(rtrim($hint), previous: $e);
     }
 
-    DB::beginTransaction();
-    $txStarted = true;
+    $driverName = DB::getDriverName();
+
+    // MySQL FULLTEXT search can fail to return rows inserted in the same uncommitted transaction.
+    // Keep SQLite wrapped for safe rollback; run MySQL without the transaction and clean up.
+    $useTransaction = $driverName !== 'mysql';
+
+    if ($useTransaction) {
+        DB::beginTransaction();
+        $txStarted = true;
+    }
 
     logInfo('=== Starting Manual Test: FEED-001 Phase 1 Backend Filters + Cursor Pagination ===', [
-        'driver' => DB::getDriverName(),
+        'driver' => $driverName,
+        'wrapped_transaction' => $txStarted,
     ]);
 
     $now = CarbonImmutable::parse('2026-02-19 12:00:00');
@@ -216,6 +229,7 @@ try {
     logInfo('Step 1: Preparing deterministic dataset (transaction-scoped)');
 
     // Order matters if FK constraints exist; keep it explicit and narrow.
+    // `incident_updates` cascades on delete from `fire_incidents`.
     FireIncident::query()->delete();
     PoliceCall::query()->delete();
     TransitAlert::query()->delete();
@@ -541,6 +555,22 @@ try {
                 logInfo('Transaction rolled back (Database preserved).');
             }
         } catch (\Throwable) {
+        }
+    } else {
+        // MySQL path: cleanup explicitly since we cannot rely on rollback.
+        try {
+            FireIncident::query()->delete();
+            PoliceCall::query()->delete();
+            TransitAlert::query()->delete();
+            GoTransitAlert::query()->delete();
+
+            logInfo('Cleanup completed (tables cleared).');
+        } catch (\Throwable $cleanupException) {
+            logError('Cleanup failed', [
+                'message' => $cleanupException->getMessage(),
+                'trace' => $cleanupException->getTraceAsString(),
+                'driver' => $driverName,
+            ]);
         }
     }
 
