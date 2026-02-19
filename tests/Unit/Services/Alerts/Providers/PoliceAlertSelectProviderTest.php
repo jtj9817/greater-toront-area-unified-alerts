@@ -54,3 +54,21 @@ test('police alert select provider uses non-sqlite expressions when driver is no
     expect($sql)->toContain('CAST(object_id AS CHAR)');
     expect($sql)->toContain("JSON_OBJECT('division'");
 });
+
+test('police alert select provider pushes down status and since filters', function () {
+    CarbonImmutable::setTestNow(CarbonImmutable::parse('2026-02-02 12:00:00'));
+
+    try {
+        $criteria = new UnifiedAlertsCriteria(status: 'cleared', since: '30m');
+
+        $query = (new PoliceAlertSelectProvider)->select($criteria);
+        $sql = strtolower($query->toSql());
+
+        expect($sql)->toContain('is_active');
+        expect($sql)->toContain('occurrence_time');
+
+        expect($query->getBindings())->toContain($criteria->sinceCutoff?->toDateTimeString());
+    } finally {
+        CarbonImmutable::setTestNow();
+    }
+});

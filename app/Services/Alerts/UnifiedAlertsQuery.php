@@ -141,6 +141,10 @@ class UnifiedAlertsQuery
                 throw new \InvalidArgumentException("Invalid provider type '{$type}'. Expected AlertSelectProvider.");
             }
 
+            if ($criteria->source !== null && $provider->source() !== $criteria->source) {
+                continue;
+            }
+
             $providers[] = $provider;
         }
 

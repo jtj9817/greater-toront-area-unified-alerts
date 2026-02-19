@@ -176,13 +176,18 @@ try {
         providers: [
             new class implements AlertSelectProvider
             {
+                public function source(): string
+                {
+                    return 'fire';
+                }
+
                 public function select(UnifiedAlertsCriteria $criteria): Builder
                 {
                     return DB::query()->selectRaw(
                         "? as id,\n                        ? as source,\n                        ? as external_id,\n                        ? as is_active,\n                        ? as timestamp,\n                        ? as title,\n                        ? as location_name,\n                        ? as lat,\n                        ? as lng,\n                        ? as meta",
                         [
                             'fire:WRONG',
-                            'fire',
+                            $this->source(),
                             'RIGHT',
                             1,
                             '2026-02-02 12:00:00',

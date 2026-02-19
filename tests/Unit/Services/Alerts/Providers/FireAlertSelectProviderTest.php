@@ -135,3 +135,21 @@ test('fire alert select provider uses non-sqlite expressions when driver is not 
     expect($sql)->toContain('LATERAL');
     expect($sql)->toContain('DATE_FORMAT');
 });
+
+test('fire alert select provider pushes down status and since filters', function () {
+    CarbonImmutable::setTestNow(CarbonImmutable::parse('2026-02-02 12:00:00'));
+
+    try {
+        $criteria = new UnifiedAlertsCriteria(status: 'active', since: '1h');
+
+        $query = (new FireAlertSelectProvider)->select($criteria);
+        $sql = strtolower($query->toSql());
+
+        expect($sql)->toContain('is_active');
+        expect($sql)->toContain('dispatch_time');
+
+        expect($query->getBindings())->toContain($criteria->sinceCutoff?->toDateTimeString());
+    } finally {
+        CarbonImmutable::setTestNow();
+    }
+});

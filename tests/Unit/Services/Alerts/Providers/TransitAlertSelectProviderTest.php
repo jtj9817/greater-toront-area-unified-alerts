@@ -69,3 +69,22 @@ test('transit alert select provider uses non-sqlite expressions when driver is n
     expect($sql)->toContain('NULLIF(TRIM(CONCAT(');
     expect($sql)->toContain("JSON_OBJECT('route_type'");
 });
+
+test('transit alert select provider pushes down status and since filters', function () {
+    CarbonImmutable::setTestNow(CarbonImmutable::parse('2026-02-02 12:00:00'));
+
+    try {
+        $criteria = new UnifiedAlertsCriteria(status: 'active', since: '6h');
+
+        $query = (new TransitAlertSelectProvider)->select($criteria);
+        $sql = strtolower($query->toSql());
+
+        expect($sql)->toContain('is_active');
+        expect($sql)->toContain('active_period_start');
+        expect($sql)->toContain('created_at');
+
+        expect($query->getBindings())->toContain($criteria->sinceCutoff?->toDateTimeString());
+    } finally {
+        CarbonImmutable::setTestNow();
+    }
+});

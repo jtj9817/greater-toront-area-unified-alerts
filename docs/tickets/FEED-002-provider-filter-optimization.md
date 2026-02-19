@@ -29,9 +29,18 @@ Update `App\Services\Alerts\UnifiedAlertsQuery::unionSelect` to only include pro
     - The outer filters in `UnifiedAlertsQuery::baseQuery` can remain as a defensive measure, or be removed if we are confident all providers handle the criteria correctly.
 
 ## Acceptance Criteria
-- [ ] `FireAlertSelectProvider` applies `is_active` and timestamp filters in the generated SQL.
-- [ ] `PoliceAlertSelectProvider` applies `is_active` and timestamp filters in the generated SQL.
-- [ ] `TransitAlertSelectProvider` applies `is_active` and timestamp filters in the generated SQL.
-- [ ] `GoTransitAlertSelectProvider` applies `is_active` and timestamp filters in the generated SQL.
-- [ ] Requests with `source=fire` do not execute subqueries against police or transit tables (verify via query log or `explain`).
-- [ ] existing tests pass.
+- [x] `FireAlertSelectProvider` applies `is_active` and timestamp filters in the generated SQL.
+- [x] `PoliceAlertSelectProvider` applies `is_active` and timestamp filters in the generated SQL.
+- [x] `TransitAlertSelectProvider` applies `is_active` and timestamp filters in the generated SQL.
+- [x] `GoTransitAlertSelectProvider` applies `is_active` and timestamp filters in the generated SQL.
+- [x] Requests with `source=fire` do not execute subqueries against police or transit tables (verified via query log assertions in tests).
+- [x] existing tests pass.
+
+## Implementation Notes (Done)
+- Added `source(): string` to `AlertSelectProvider` so `UnifiedAlertsQuery::unionSelect()` can skip irrelevant providers when `source` is specified.
+- Pushed down `status`, `sinceCutoff`, and defensive `source` mismatch handling into each provider query.
+    - Transit `sinceCutoff` uses a split predicate (`active_period_start` when present, else `created_at`) to avoid filtering on a `COALESCE(...)` expression.
+- Kept outer filters in `UnifiedAlertsQuery::baseQuery()` as a defensive layer.
+
+## Verification
+- `php artisan test` (sqlite, in-memory) including unified feed + provider suites.

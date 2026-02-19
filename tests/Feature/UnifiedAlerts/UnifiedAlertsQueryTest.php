@@ -243,6 +243,40 @@ test('unified alerts query filters by source across the full dataset', function 
     expect(collect($results->items())->every(fn (UnifiedAlert $a) => $a->source === 'fire'))->toBeTrue();
 });
 
+test('unified alerts query skips irrelevant providers when source is specified', function () {
+    Carbon::setTestNow(Carbon::parse('2026-02-02 12:00:00'));
+    $this->seed(UnifiedAlertsTestSeeder::class);
+
+    DB::flushQueryLog();
+    DB::enableQueryLog();
+
+    $results = app(UnifiedAlertsQuery::class)->paginate(
+        new UnifiedAlertsCriteria(status: 'all', source: 'fire', perPage: 50)
+    );
+
+    DB::disableQueryLog();
+
+    expect($results->total())->toBe(4);
+
+    $queries = array_map(
+        static fn (array $row) => strtolower((string) ($row['query'] ?? '')),
+        DB::getQueryLog(),
+    );
+
+    $unifiedQueries = array_values(
+        array_filter($queries, static fn (string $sql) => str_contains($sql, 'unified_alerts'))
+    );
+
+    expect($unifiedQueries)->not->toBeEmpty();
+
+    $combined = implode("\n", $unifiedQueries);
+
+    expect($combined)->toContain('fire_incidents');
+    expect($combined)->not->toContain('police_calls');
+    expect($combined)->not->toContain('transit_alerts');
+    expect($combined)->not->toContain('go_transit_alerts');
+});
+
 test('unified alerts query filters by since cutoff using test now', function () {
     Carbon::setTestNow(Carbon::parse('2026-02-02 12:00:00'));
     $this->seed(UnifiedAlertsTestSeeder::class);
@@ -599,27 +633,42 @@ test('unified alerts query decodes meta to an array and never leaks json excepti
         providers: [
             new class implements AlertSelectProvider
             {
+                public function source(): string
+                {
+                    return 'fire';
+                }
+
                 public function select(UnifiedAlertsCriteria $criteria): Builder
                 {
-                    return emptyUnifiedSelect('fire');
+                    return emptyUnifiedSelect($this->source());
                 }
             },
             new class implements AlertSelectProvider
             {
+                public function source(): string
+                {
+                    return 'police';
+                }
+
                 public function select(UnifiedAlertsCriteria $criteria): Builder
                 {
-                    return emptyUnifiedSelect('police');
+                    return emptyUnifiedSelect($this->source());
                 }
             },
             new class($meta) implements AlertSelectProvider
             {
                 public function __construct(private readonly mixed $meta) {}
 
+                public function source(): string
+                {
+                    return 'fire';
+                }
+
                 public function select(UnifiedAlertsCriteria $criteria): Builder
                 {
                     return singleRowUnifiedSelect([
                         'id' => 'meta:1',
-                        'source' => 'fire',
+                        'source' => $this->source(),
                         'external_id' => '1',
                         'timestamp' => '2026-02-02 12:00:00',
                         'meta' => $this->meta,
@@ -651,25 +700,40 @@ test('unified alerts query throws when timestamp is missing', function () {
         providers: [
             new class implements AlertSelectProvider
             {
+                public function source(): string
+                {
+                    return 'fire';
+                }
+
                 public function select(UnifiedAlertsCriteria $criteria): Builder
                 {
-                    return emptyUnifiedSelect('fire');
+                    return emptyUnifiedSelect($this->source());
                 }
             },
             new class implements AlertSelectProvider
             {
+                public function source(): string
+                {
+                    return 'police';
+                }
+
                 public function select(UnifiedAlertsCriteria $criteria): Builder
                 {
-                    return emptyUnifiedSelect('police');
+                    return emptyUnifiedSelect($this->source());
                 }
             },
             new class implements AlertSelectProvider
             {
+                public function source(): string
+                {
+                    return 'fire';
+                }
+
                 public function select(UnifiedAlertsCriteria $criteria): Builder
                 {
                     return singleRowUnifiedSelect([
                         'id' => 'ts:missing',
-                        'source' => 'fire',
+                        'source' => $this->source(),
                         'external_id' => '1',
                         'timestamp' => null,
                     ]);
@@ -688,25 +752,40 @@ test('unified alerts query throws when timestamp is not parseable', function () 
         providers: [
             new class implements AlertSelectProvider
             {
+                public function source(): string
+                {
+                    return 'fire';
+                }
+
                 public function select(UnifiedAlertsCriteria $criteria): Builder
                 {
-                    return emptyUnifiedSelect('fire');
+                    return emptyUnifiedSelect($this->source());
                 }
             },
             new class implements AlertSelectProvider
             {
+                public function source(): string
+                {
+                    return 'police';
+                }
+
                 public function select(UnifiedAlertsCriteria $criteria): Builder
                 {
-                    return emptyUnifiedSelect('police');
+                    return emptyUnifiedSelect($this->source());
                 }
             },
             new class implements AlertSelectProvider
             {
+                public function source(): string
+                {
+                    return 'fire';
+                }
+
                 public function select(UnifiedAlertsCriteria $criteria): Builder
                 {
                     return singleRowUnifiedSelect([
                         'id' => 'ts:bad',
-                        'source' => 'fire',
+                        'source' => $this->source(),
                         'external_id' => '1',
                         'timestamp' => 'not-a-timestamp',
                     ]);

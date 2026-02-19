@@ -3,6 +3,7 @@
 namespace App\Services\Alerts\Providers;
 
 use App\Enums\AlertSource;
+use App\Enums\AlertStatus;
 use App\Models\GoTransitAlert;
 use App\Services\Alerts\Contracts\AlertSelectProvider;
 use App\Services\Alerts\DTOs\UnifiedAlertsCriteria;
@@ -11,10 +12,15 @@ use Illuminate\Support\Facades\DB;
 
 class GoTransitAlertSelectProvider implements AlertSelectProvider
 {
+    public function source(): string
+    {
+        return AlertSource::GoTransit->value;
+    }
+
     public function select(UnifiedAlertsCriteria $criteria): Builder
     {
         $driver = DB::getDriverName();
-        $source = AlertSource::GoTransit->value;
+        $source = $this->source();
 
         $idExpression = $driver === 'sqlite'
             ? "('{$source}:' || external_id)"
@@ -37,6 +43,20 @@ class GoTransitAlertSelectProvider implements AlertSelectProvider
                 NULL as lng,
                 {$metaExpression} as meta"
             );
+
+        if ($criteria->source !== null && $criteria->source !== $source) {
+            $query->whereRaw('1 = 0');
+        }
+
+        if ($criteria->status === AlertStatus::Active->value) {
+            $query->where('is_active', true);
+        } elseif ($criteria->status === AlertStatus::Cleared->value) {
+            $query->where('is_active', false);
+        }
+
+        if ($criteria->sinceCutoff !== null) {
+            $query->where('posted_at', '>=', $criteria->sinceCutoff->toDateTimeString());
+        }
 
         if ($criteria->query !== null && $driver === 'mysql') {
             $query->whereRaw(

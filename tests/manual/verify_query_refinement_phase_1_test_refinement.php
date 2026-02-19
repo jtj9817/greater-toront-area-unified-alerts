@@ -341,27 +341,42 @@ try {
             providers: [
                 new class implements AlertSelectProvider
                 {
+                    public function source(): string
+                    {
+                        return 'fire';
+                    }
+
                     public function select(UnifiedAlertsCriteria $criteria): Builder
                     {
-                        return emptyUnifiedSelect('fire');
+                        return emptyUnifiedSelect($this->source());
                     }
                 },
                 new class implements AlertSelectProvider
                 {
+                    public function source(): string
+                    {
+                        return 'police';
+                    }
+
                     public function select(UnifiedAlertsCriteria $criteria): Builder
                     {
-                        return emptyUnifiedSelect('police');
+                        return emptyUnifiedSelect($this->source());
                     }
                 },
                 new class($meta) implements AlertSelectProvider
                 {
                     public function __construct(private readonly mixed $meta) {}
 
+                    public function source(): string
+                    {
+                        return 'fire';
+                    }
+
                     public function select(UnifiedAlertsCriteria $criteria): Builder
                     {
                         return singleRowUnifiedSelect([
                             'id' => 'meta:1',
-                            'source' => 'fire',
+                            'source' => $this->source(),
                             'external_id' => '1',
                             'timestamp' => '2026-02-02 12:00:00',
                             'meta' => $this->meta,
@@ -385,25 +400,40 @@ try {
         providers: [
             new class implements AlertSelectProvider
             {
+                public function source(): string
+                {
+                    return 'fire';
+                }
+
                 public function select(UnifiedAlertsCriteria $criteria): Builder
                 {
-                    return emptyUnifiedSelect('fire');
+                    return emptyUnifiedSelect($this->source());
                 }
             },
             new class implements AlertSelectProvider
             {
+                public function source(): string
+                {
+                    return 'police';
+                }
+
                 public function select(UnifiedAlertsCriteria $criteria): Builder
                 {
-                    return emptyUnifiedSelect('police');
+                    return emptyUnifiedSelect($this->source());
                 }
             },
             new class implements AlertSelectProvider
             {
+                public function source(): string
+                {
+                    return 'fire';
+                }
+
                 public function select(UnifiedAlertsCriteria $criteria): Builder
                 {
                     return singleRowUnifiedSelect([
                         'id' => 'ts:missing',
-                        'source' => 'fire',
+                        'source' => $this->source(),
                         'external_id' => '1',
                         'timestamp' => null,
                     ]);
@@ -419,25 +449,40 @@ try {
         providers: [
             new class implements AlertSelectProvider
             {
+                public function source(): string
+                {
+                    return 'fire';
+                }
+
                 public function select(UnifiedAlertsCriteria $criteria): Builder
                 {
-                    return emptyUnifiedSelect('fire');
+                    return emptyUnifiedSelect($this->source());
                 }
             },
             new class implements AlertSelectProvider
             {
+                public function source(): string
+                {
+                    return 'police';
+                }
+
                 public function select(UnifiedAlertsCriteria $criteria): Builder
                 {
-                    return emptyUnifiedSelect('police');
+                    return emptyUnifiedSelect($this->source());
                 }
             },
             new class implements AlertSelectProvider
             {
+                public function source(): string
+                {
+                    return 'fire';
+                }
+
                 public function select(UnifiedAlertsCriteria $criteria): Builder
                 {
                     return singleRowUnifiedSelect([
                         'id' => 'ts:bad',
-                        'source' => 'fire',
+                        'source' => $this->source(),
                         'external_id' => '1',
                         'timestamp' => 'not-a-timestamp',
                     ]);

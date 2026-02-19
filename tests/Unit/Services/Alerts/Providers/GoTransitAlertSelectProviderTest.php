@@ -89,3 +89,21 @@ test('go transit alert select provider uses non-sqlite expressions when driver i
     expect($sql)->toContain("CONCAT('go_transit:', external_id)");
     expect($sql)->toContain("JSON_OBJECT('alert_type'");
 });
+
+test('go transit alert select provider pushes down status and since filters', function () {
+    CarbonImmutable::setTestNow(CarbonImmutable::parse('2026-02-02 12:00:00'));
+
+    try {
+        $criteria = new UnifiedAlertsCriteria(status: 'active', since: '12h');
+
+        $query = (new GoTransitAlertSelectProvider)->select($criteria);
+        $sql = strtolower($query->toSql());
+
+        expect($sql)->toContain('is_active');
+        expect($sql)->toContain('posted_at');
+
+        expect($query->getBindings())->toContain($criteria->sinceCutoff?->toDateTimeString());
+    } finally {
+        CarbonImmutable::setTestNow();
+    }
+});

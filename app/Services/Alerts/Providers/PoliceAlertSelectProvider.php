@@ -3,6 +3,7 @@
 namespace App\Services\Alerts\Providers;
 
 use App\Enums\AlertSource;
+use App\Enums\AlertStatus;
 use App\Models\PoliceCall;
 use App\Services\Alerts\Contracts\AlertSelectProvider;
 use App\Services\Alerts\DTOs\UnifiedAlertsCriteria;
@@ -11,10 +12,15 @@ use Illuminate\Support\Facades\DB;
 
 class PoliceAlertSelectProvider implements AlertSelectProvider
 {
+    public function source(): string
+    {
+        return AlertSource::Police->value;
+    }
+
     public function select(UnifiedAlertsCriteria $criteria): Builder
     {
         $driver = DB::getDriverName();
-        $source = AlertSource::Police->value;
+        $source = $this->source();
 
         $idExpression = $driver === 'sqlite'
             ? "('{$source}:' || object_id)"
@@ -32,6 +38,20 @@ class PoliceAlertSelectProvider implements AlertSelectProvider
             ->selectRaw(
                 "{$idExpression} as id,\n                '{$source}' as source,\n                {$externalIdExpression} as external_id,\n                is_active,\n                occurrence_time as timestamp,\n                call_type as title,\n                cross_streets as location_name,\n                latitude as lat,\n                longitude as lng,\n                {$metaExpression} as meta"
             );
+
+        if ($criteria->source !== null && $criteria->source !== $source) {
+            $query->whereRaw('1 = 0');
+        }
+
+        if ($criteria->status === AlertStatus::Active->value) {
+            $query->where('is_active', true);
+        } elseif ($criteria->status === AlertStatus::Cleared->value) {
+            $query->where('is_active', false);
+        }
+
+        if ($criteria->sinceCutoff !== null) {
+            $query->where('occurrence_time', '>=', $criteria->sinceCutoff->toDateTimeString());
+        }
 
         if ($criteria->query !== null && $driver === 'mysql') {
             $query->whereRaw(

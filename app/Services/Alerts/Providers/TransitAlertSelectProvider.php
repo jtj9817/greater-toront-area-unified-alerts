@@ -3,6 +3,7 @@
 namespace App\Services\Alerts\Providers;
 
 use App\Enums\AlertSource;
+use App\Enums\AlertStatus;
 use App\Models\TransitAlert;
 use App\Services\Alerts\Contracts\AlertSelectProvider;
 use App\Services\Alerts\DTOs\UnifiedAlertsCriteria;
@@ -11,10 +12,15 @@ use Illuminate\Support\Facades\DB;
 
 class TransitAlertSelectProvider implements AlertSelectProvider
 {
+    public function source(): string
+    {
+        return AlertSource::Transit->value;
+    }
+
     public function select(UnifiedAlertsCriteria $criteria): Builder
     {
         $driver = DB::getDriverName();
-        $source = AlertSource::Transit->value;
+        $source = $this->source();
 
         $idExpression = $driver === 'sqlite'
             ? "('{$source}:' || external_id)"
@@ -32,6 +38,30 @@ class TransitAlertSelectProvider implements AlertSelectProvider
             ->selectRaw(
                 "{$idExpression} as id,\n                '{$source}' as source,\n                external_id,\n                is_active,\n                COALESCE(active_period_start, created_at) as timestamp,\n                title,\n                {$locationExpression} as location_name,\n                NULL as lat,\n                NULL as lng,\n                {$metaExpression} as meta"
             );
+
+        if ($criteria->source !== null && $criteria->source !== $source) {
+            $query->whereRaw('1 = 0');
+        }
+
+        if ($criteria->status === AlertStatus::Active->value) {
+            $query->where('is_active', true);
+        } elseif ($criteria->status === AlertStatus::Cleared->value) {
+            $query->where('is_active', false);
+        }
+
+        if ($criteria->sinceCutoff !== null) {
+            $cutoff = $criteria->sinceCutoff->toDateTimeString();
+
+            $query->where(function ($where) use ($cutoff) {
+                $where->where(function ($nested) use ($cutoff) {
+                    $nested->whereNotNull('active_period_start')
+                        ->where('active_period_start', '>=', $cutoff);
+                })->orWhere(function ($nested) use ($cutoff) {
+                    $nested->whereNull('active_period_start')
+                        ->where('created_at', '>=', $cutoff);
+                });
+            });
+        }
 
         if ($criteria->query !== null && $driver === 'mysql') {
             $query->whereRaw(

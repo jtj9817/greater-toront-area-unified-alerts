@@ -3,6 +3,7 @@
 namespace App\Services\Alerts\Providers;
 
 use App\Enums\AlertSource;
+use App\Enums\AlertStatus;
 use App\Models\FireIncident;
 use App\Services\Alerts\Contracts\AlertSelectProvider;
 use App\Services\Alerts\DTOs\UnifiedAlertsCriteria;
@@ -11,10 +12,15 @@ use Illuminate\Support\Facades\DB;
 
 class FireAlertSelectProvider implements AlertSelectProvider
 {
+    public function source(): string
+    {
+        return AlertSource::Fire->value;
+    }
+
     public function select(UnifiedAlertsCriteria $criteria): Builder
     {
         $driver = DB::getDriverName();
-        $source = AlertSource::Fire->value;
+        $source = $this->source();
 
         $idExpression = $driver === 'sqlite'
             ? "('{$source}:' || event_num)"
@@ -53,6 +59,20 @@ class FireAlertSelectProvider implements AlertSelectProvider
             ->selectRaw(
                 "{$idExpression} as id,\n                '{$source}' as source,\n                {$externalIdExpression} as external_id,\n                is_active,\n                dispatch_time as timestamp,\n                event_type as title,\n                {$locationExpression} as location_name,\n                NULL as lat,\n                NULL as lng,\n                {$metaExpression} as meta"
             );
+
+        if ($criteria->source !== null && $criteria->source !== $source) {
+            $query->whereRaw('1 = 0');
+        }
+
+        if ($criteria->status === AlertStatus::Active->value) {
+            $query->where('is_active', true);
+        } elseif ($criteria->status === AlertStatus::Cleared->value) {
+            $query->where('is_active', false);
+        }
+
+        if ($criteria->sinceCutoff !== null) {
+            $query->where('dispatch_time', '>=', $criteria->sinceCutoff->toDateTimeString());
+        }
 
         if ($criteria->query !== null && $driver === 'mysql') {
             $query->whereRaw(
