@@ -69,9 +69,9 @@ export const FeedView: React.FC<FeedViewProps> = ({
         router.get(
             home({
                 query: {
-                    status: null,
+                    status: status === 'all' ? null : status,
                     source: null,
-                    q: null,
+                    q: searchQuery || null,
                     since: null,
                 },
             }).url,
