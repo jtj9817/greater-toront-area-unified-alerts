@@ -1,5 +1,5 @@
-import { Link, router, usePage } from '@inertiajs/react';
-import React, { useState, useMemo } from 'react';
+import { Link, router } from '@inertiajs/react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { formatTimeAgo } from '@/lib/utils';
 import { home } from '@/routes';
 import type { DomainAlert } from '../domain/alerts';
@@ -39,9 +39,22 @@ export const FeedView: React.FC<FeedViewProps> = ({
     // State for Filters
     const [viewMode, setViewMode] = useState<'cards' | 'table'>('cards');
 
-    // Loading state detection from Inertia
-    const { processing } = usePage().props;
-    const isLoading = processing === true;
+    // Loading state detection from Inertia router events
+    const [isLoading, setIsLoading] = useState(false);
+
+    useEffect(() => {
+        const removeStartListener = router.on('start', () => {
+            setIsLoading(true);
+        });
+        const removeFinishListener = router.on('finish', () => {
+            setIsLoading(false);
+        });
+
+        return () => {
+            removeStartListener();
+            removeFinishListener();
+        };
+    }, []);
 
     // Use server-provided alerts directly
     const filteredItems = allAlerts;
@@ -56,9 +69,9 @@ export const FeedView: React.FC<FeedViewProps> = ({
         router.get(
             home({
                 query: {
-                    status: status === 'all' ? null : status,
+                    status: null,
                     source: null,
-                    q: searchQuery || null,
+                    q: null,
                     since: null,
                 },
             }).url,
@@ -67,7 +80,7 @@ export const FeedView: React.FC<FeedViewProps> = ({
                 preserveScroll: true,
                 preserveState: true,
                 replace: true,
-                only: ['alerts'],
+                only: ['alerts', 'filters'],
             },
         );
     };
@@ -130,7 +143,7 @@ export const FeedView: React.FC<FeedViewProps> = ({
                                     }
                                     preserveScroll
                                     preserveState
-                                    only={['alerts']}
+                                    only={['alerts', 'filters']}
                                     disabled={isLoading}
                                     className={`flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[11px] font-bold whitespace-nowrap transition-all ${
                                         status === opt.id
@@ -180,7 +193,7 @@ export const FeedView: React.FC<FeedViewProps> = ({
                                     }
                                     preserveScroll
                                     preserveState
-                                    only={['alerts']}
+                                    only={['alerts', 'filters']}
                                     disabled={isLoading}
                                     className={`flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-medium whitespace-nowrap transition-all md:px-4 md:py-2 ${
                                         isSelected
@@ -238,7 +251,7 @@ export const FeedView: React.FC<FeedViewProps> = ({
                                             preserveScroll: true,
                                             preserveState: true,
                                             replace: true,
-                                            only: ['alerts'],
+                                            only: ['alerts', 'filters'],
                                         },
                                     )
                                 }
