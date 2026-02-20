@@ -1,5 +1,5 @@
 import { router } from '@inertiajs/react';
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { home } from '@/routes';
 import { AlertDetailsView } from './components/AlertDetailsView';
 import { BottomNav } from './components/BottomNav';
@@ -56,17 +56,33 @@ const App: React.FC<AppProps> = ({
     const [activeAlertId, setActiveAlertId] = useState<string | null>(null);
     const [searchQuery, setSearchQuery] = useState(filters.q || '');
 
-    // Sync local search query with URL state (e.g., when clicking back button)
-    const [prevQ, setPrevQ] = useState(filters.q);
-    if (filters.q !== prevQ) {
-        setPrevQ(filters.q);
-        setSearchQuery(filters.q || '');
-    }
+    // Sync local search query with URL state (e.g., back button, Reset All Filters).
+    const syncSearchQueryFromUrl = useCallback(() => {
+        if (typeof window === 'undefined') return;
+        const nextQuery =
+            new URLSearchParams(window.location.search).get('q') || '';
+        setSearchQuery((currentQuery) =>
+            currentQuery === nextQuery ? currentQuery : nextQuery,
+        );
+    }, []);
+
+    useEffect(() => {
+        const removeListener = router.on('success', (event) => {
+            if (event.detail.page.component !== 'gta-alerts') return;
+            syncSearchQueryFromUrl();
+        });
+        return () => removeListener();
+    }, [syncSearchQueryFromUrl]);
 
     // Debounce search update
     useEffect(() => {
         const timeoutId = setTimeout(() => {
-            if (searchQuery !== (filters.q || '')) {
+            const urlQuery =
+                typeof window === 'undefined'
+                    ? ''
+                    : new URLSearchParams(window.location.search).get('q') ||
+                      '';
+            if (searchQuery !== urlQuery) {
                 router.get(
                     home({
                         query: {
