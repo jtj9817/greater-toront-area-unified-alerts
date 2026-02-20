@@ -8,6 +8,15 @@ use Illuminate\Foundation\Http\FormRequest;
 
 class SavedPlaceStoreRequest extends FormRequest
 {
+    protected function prepareForValidation(): void
+    {
+        if ($this->has('name')) {
+            $this->merge([
+                'name' => strip_tags(trim($this->input('name'))),
+            ]);
+        }
+    }
+
     /**
      * @return array<string, ValidationRule|array<mixed>|string>
      */
