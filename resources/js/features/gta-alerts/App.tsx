@@ -1,4 +1,6 @@
-import React, { useState, useMemo } from 'react';
+import { router } from '@inertiajs/react';
+import React, { useEffect, useMemo, useState } from 'react';
+import { home } from '@/routes';
 import { AlertDetailsView } from './components/AlertDetailsView';
 import { BottomNav } from './components/BottomNav';
 import { FeedView } from './components/FeedView';
@@ -52,7 +54,43 @@ const App: React.FC<AppProps> = ({
 }) => {
     const [currentView, setCurrentView] = useState('feed');
     const [activeAlertId, setActiveAlertId] = useState<string | null>(null);
-    const [searchQuery, setSearchQuery] = useState('');
+    const [searchQuery, setSearchQuery] = useState(filters.q || '');
+
+    // Sync local search query with URL state (e.g., when clicking back button)
+    const [prevQ, setPrevQ] = useState(filters.q);
+    if (filters.q !== prevQ) {
+        setPrevQ(filters.q);
+        setSearchQuery(filters.q || '');
+    }
+
+    // Debounce search update
+    useEffect(() => {
+        const timeoutId = setTimeout(() => {
+            if (searchQuery !== (filters.q || '')) {
+                router.get(
+                    home({
+                        query: {
+                            status:
+                                filters.status === 'all'
+                                    ? null
+                                    : filters.status,
+                            source: filters.source ?? null,
+                            q: searchQuery || null,
+                            since: filters.since ?? null,
+                        },
+                    }).url,
+                    {},
+                    {
+                        preserveState: true,
+                        preserveScroll: true,
+                        replace: true,
+                    },
+                );
+            }
+        }, 300);
+
+        return () => clearTimeout(timeoutId);
+    }, [searchQuery, filters]);
 
     // Sidebar states
     const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
@@ -140,7 +178,6 @@ const App: React.FC<AppProps> = ({
                         latestFeedUpdatedAt={latestFeedUpdatedAt}
                         status={filters.status}
                         source={filters.source ?? null}
-                        query={filters.q ?? null}
                         since={filters.since ?? null}
                         pagination={pagination}
                     />

@@ -86,7 +86,7 @@ describe('FeedView', () => {
             <FeedView
                 searchQuery="NoMatch"
                 onSelectAlert={() => {}}
-                allAlerts={mockAlerts}
+                allAlerts={[]}
                 latestFeedUpdatedAt={null}
                 status="all"
                 pagination={{
@@ -94,7 +94,7 @@ describe('FeedView', () => {
                     nextUrl: null,
                     currentPage: 1,
                     lastPage: 1,
-                    total: 2,
+                    total: 0,
                 }}
             />,
         );

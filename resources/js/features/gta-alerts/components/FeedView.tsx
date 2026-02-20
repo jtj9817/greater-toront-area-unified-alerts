@@ -3,8 +3,6 @@ import React, { useState, useMemo } from 'react';
 import { formatTimeAgo } from '@/lib/utils';
 import { home } from '@/routes';
 import type { DomainAlert } from '../domain/alerts';
-import type { AlertFilterOptions } from '../services/AlertService';
-import { AlertService } from '../services/AlertService';
 import { AlertCard } from './AlertCard';
 import { AlertTableView } from './AlertTableView';
 import { Icon } from './Icon';
@@ -24,7 +22,6 @@ interface FeedViewProps {
     latestFeedUpdatedAt: string | null;
     status?: 'all' | 'active' | 'cleared';
     source?: string | null;
-    query?: string | null;
     since?: string | null;
     pagination?: FeedPagination;
 }
@@ -36,35 +33,27 @@ export const FeedView: React.FC<FeedViewProps> = ({
     latestFeedUpdatedAt,
     status = 'all',
     source = null,
-    query = null,
     since = null,
     pagination,
 }) => {
     // State for Filters
-    const [activeCategory, setActiveCategory] = useState<string>('all');
     const [viewMode, setViewMode] = useState<'cards' | 'table'>('cards');
 
-    // Compute filtered items using the Service
-    const filteredItems = useMemo(() => {
-        const options: AlertFilterOptions = {
-            query: searchQuery,
-            category: activeCategory,
-        };
-        return AlertService.searchDomainAlerts(allAlerts, options);
-    }, [searchQuery, activeCategory, allAlerts]);
+    // Use server-provided alerts directly
+    const filteredItems = allAlerts;
+    const activeCategory = source || 'all';
 
     // Get Set of Saved IDs for efficient lookup
     const savedIds = useMemo(() => new Set<string>([]), []); // Temporary empty until saved logic implemented
 
     // Handler for Reset
     const handleReset = () => {
-        setActiveCategory('all');
         router.get(
             home({
                 query: {
                     status: status === 'all' ? null : status,
-                    source: source ?? null,
-                    q: query ?? null,
+                    source: null,
+                    q: searchQuery || null,
                     since: null,
                 },
             }).url,
@@ -77,7 +66,8 @@ export const FeedView: React.FC<FeedViewProps> = ({
         { id: 'all', label: 'All Alerts', icon: 'grid_view' },
         { id: 'fire', label: 'Fire', icon: 'local_fire_department' },
         { id: 'police', label: 'Police', icon: 'local_police' },
-        { id: 'transit', label: 'Transit', icon: 'train' },
+        { id: 'transit', label: 'TTC', icon: 'train' },
+        { id: 'go_transit', label: 'GO Transit', icon: 'directions_bus' },
     ];
 
     const sinceOptions = [
@@ -123,7 +113,7 @@ export const FeedView: React.FC<FeedViewProps> = ({
                                                         ? null
                                                         : opt.id,
                                                 source: source ?? null,
-                                                q: query ?? null,
+                                                q: searchQuery || null,
                                                 since: since ?? null,
                                             },
                                         }).url
@@ -152,27 +142,43 @@ export const FeedView: React.FC<FeedViewProps> = ({
                 {/* Row 1: Categories */}
                 <div className="border-b border-white/5 px-4 py-3 md:px-6">
                     <div className="no-scrollbar mask-linear-fade flex w-full justify-start gap-2 overflow-x-auto pb-1">
-                        {categories.map((cat) => (
-                            <button
-                                key={cat.id}
-                                onClick={() =>
-                                    setActiveCategory(
-                                        cat.id === activeCategory &&
-                                            activeCategory !== 'all'
-                                            ? 'all'
-                                            : cat.id,
-                                    )
-                                }
-                                className={`flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-medium whitespace-nowrap transition-all md:px-4 md:py-2 ${
-                                    activeCategory === cat.id
-                                        ? 'border-white/20 bg-white/10 text-white shadow-lg'
-                                        : 'border-white/5 bg-surface-dark text-text-secondary hover:border-white/20 hover:bg-white/5 hover:text-white'
-                                }`}
-                            >
-                                <Icon name={cat.icon} className="text-lg" />
-                                {cat.label}
-                            </button>
-                        ))}
+                        {categories.map((cat) => {
+                            const isSelected = activeCategory === cat.id;
+                            const nextSource = isSelected
+                                ? null
+                                : cat.id === 'all'
+                                  ? null
+                                  : cat.id;
+
+                            return (
+                                <Link
+                                    key={cat.id}
+                                    href={
+                                        home({
+                                            query: {
+                                                status:
+                                                    status === 'all'
+                                                        ? null
+                                                        : status,
+                                                source: nextSource,
+                                                q: searchQuery || null,
+                                                since: since ?? null,
+                                            },
+                                        }).url
+                                    }
+                                    preserveScroll
+                                    preserveState
+                                    className={`flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-medium whitespace-nowrap transition-all md:px-4 md:py-2 ${
+                                        isSelected
+                                            ? 'border-white/20 bg-white/10 text-white shadow-lg'
+                                            : 'border-white/5 bg-surface-dark text-text-secondary hover:border-white/20 hover:bg-white/5 hover:text-white'
+                                    }`}
+                                >
+                                    <Icon name={cat.icon} className="text-lg" />
+                                    {cat.label}
+                                </Link>
+                            );
+                        })}
                     </div>
                 </div>
 
@@ -195,7 +201,7 @@ export const FeedView: React.FC<FeedViewProps> = ({
                                                         ? null
                                                         : status,
                                                 source: source ?? null,
-                                                q: query ?? null,
+                                                q: searchQuery || null,
                                                 since:
                                                     e.target.value === 'all'
                                                         ? null
@@ -365,7 +371,24 @@ export const FeedView: React.FC<FeedViewProps> = ({
                             see more results.
                         </p>
                         <button
-                            onClick={handleReset}
+                            onClick={() =>
+                                router.get(
+                                    home({
+                                        query: {
+                                            status: null,
+                                            source: null,
+                                            q: null,
+                                            since: null,
+                                        },
+                                    }).url,
+                                    {},
+                                    {
+                                        preserveScroll: true,
+                                        preserveState: true,
+                                        replace: true,
+                                    },
+                                )
+                            }
                             className="rounded-lg bg-primary px-6 py-2 text-sm font-bold text-white shadow-lg shadow-primary/20 transition-colors hover:bg-primary/90"
                         >
                             Reset All Filters
