@@ -335,3 +335,136 @@ test('the home page sets latest_feed_updated_at from go transit when it is most 
             ->where('latest_feed_updated_at', $goLatest->toIso8601String())
         );
 });
+
+// Phase 2: Frontend URL Filters + UX Tests
+
+test('the home page echoes all filter params in the filters prop for ui rehydration', function () {
+    $this->get(route('home', [
+        'status' => 'active',
+        'source' => 'fire',
+        'q' => 'test search',
+        'since' => '1h',
+    ]))
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('filters.status', 'active')
+            ->where('filters.source', 'fire')
+            ->where('filters.q', 'test search')
+            ->where('filters.since', '1h')
+        );
+});
+
+test('the home page preserves filter params through pagination links', function () {
+    Carbon::setTestNow(Carbon::parse('2026-02-03 12:00:00'));
+
+    // Create 30 fire incidents to trigger pagination (default per page is 25)
+    for ($i = 1; $i <= 30; $i++) {
+        FireIncident::factory()->create([
+            'event_num' => "E{$i}",
+            'is_active' => true,
+            'dispatch_time' => Carbon::now()->subMinutes($i),
+        ]);
+    }
+
+    $response = $this->get(route('home', [
+        'status' => 'active',
+        'source' => 'fire',
+        'since' => '3h',
+    ]));
+
+    $response->assertInertia(fn (Assert $page) => $page
+        ->where('filters.status', 'active')
+        ->where('filters.source', 'fire')
+        ->where('filters.since', '3h')
+        ->has('alerts.links')
+    );
+});
+
+test('the home page combines multiple filters correctly', function () {
+    Carbon::setTestNow(Carbon::parse('2026-02-03 12:00:00'));
+
+    // Create fire incidents at different times with different statuses
+    FireIncident::factory()->create([
+        'event_num' => 'E1',
+        'event_type' => 'ALARM',
+        'prime_street' => 'Yonge St',
+        'is_active' => true,
+        'dispatch_time' => Carbon::now()->subMinutes(10),
+    ]);
+
+    FireIncident::factory()->create([
+        'event_num' => 'E2',
+        'event_type' => 'ALARM',
+        'prime_street' => 'Bloor St',
+        'is_active' => false, // cleared
+        'dispatch_time' => Carbon::now()->subMinutes(20),
+    ]);
+
+    FireIncident::factory()->create([
+        'event_num' => 'E3',
+        'event_type' => 'FIRE',
+        'prime_street' => 'Yonge St',
+        'is_active' => true,
+        'dispatch_time' => Carbon::now()->subMinutes(5),
+    ]);
+
+    PoliceCall::factory()->create([
+        'object_id' => 123,
+        'is_active' => true,
+        'occurrence_time' => Carbon::now()->subMinutes(15),
+    ]);
+
+    // Test status + source combination
+    $this->get(route('home', ['status' => 'active', 'source' => 'fire']))
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('filters.status', 'active')
+            ->where('filters.source', 'fire')
+            ->has('alerts.data', 2) // E1 and E3
+        );
+
+    // Test status + q combination
+    $this->get(route('home', ['status' => 'cleared', 'q' => 'yonge']))
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('filters.status', 'cleared')
+            ->where('filters.q', 'yonge')
+            ->has('alerts.data', 0) // E2 is cleared but at Bloor, not Yonge
+        );
+});
+
+test('the home page handles all valid since options', function () {
+    Carbon::setTestNow(Carbon::parse('2026-02-03 12:00:00'));
+
+    FireIncident::factory()->create([
+        'event_num' => 'E1',
+        'is_active' => true,
+        'dispatch_time' => Carbon::now()->subMinutes(5),
+    ]);
+
+    $validOptions = ['30m', '1h', '3h', '6h', '12h'];
+
+    foreach ($validOptions as $option) {
+        $this->get(route('home', ['since' => $option]))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('filters.since', $option)
+            );
+    }
+});
+
+test('the home page handles empty filters gracefully', function () {
+    Carbon::setTestNow(Carbon::parse('2026-02-03 12:00:00'));
+
+    FireIncident::factory()->create([
+        'event_num' => 'E1',
+        'is_active' => true,
+        'dispatch_time' => Carbon::now()->subMinutes(5),
+    ]);
+
+    $this->get(route('home'))
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('filters.status', 'all')
+            ->where('filters.source', null)
+            ->where('filters.q', null)
+            ->where('filters.since', null)
+            ->has('alerts.data', 1)
+        );
+});

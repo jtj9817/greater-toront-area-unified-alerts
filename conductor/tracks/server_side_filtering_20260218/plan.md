@@ -3,6 +3,7 @@
 This plan is aligned to `docs/tickets/FEED-001-server-side-filters-infinite-scroll.md` (primary source of truth).
 
 ## Phase 1: Backend Filters + Cursor Pagination
+
 **Goal:** Make filtering server-authoritative and enable cursor pagination keyed on `(timestamp, id)` for stable infinite scroll.
 
 - [x] Task: Contract - Confirm URL Params + UI Mapping
@@ -79,55 +80,57 @@ This plan is aligned to `docs/tickets/FEED-001-server-side-filters-infinite-scro
 
 - [x] Task: Conductor - User Manual Verification 'Phase 1: Backend Filters + Cursor Pagination' (Protocol in workflow.md; script: `tests/manual/verify_feed_001_phase_1_backend_filters_cursor_pagination.php`)
 
-## Phase 2: Frontend URL Filters + UX (No Client Feed Filtering)
+## Phase 2: Frontend URL Filters + UX (No Client Feed Filtering) [checkpoint: TBD]
+
 **Goal:** Make the live feed render the server-provided list and drive filters via URL params (shareable/bookmarkable), with good loading UX.
 
-- [ ] Task: Update Alert Feed Component Structure
-    - [ ] Refactor `resources/js/features/gta-alerts/components/FeedView.tsx` (and/or `resources/js/features/gta-alerts/App.tsx`) to treat filters as server-driven props from Inertia (URL → controller → props → UI).
-    - [ ] Remove the “filter current page items” mental model:
-        - [ ] Stop using `AlertService.searchDomainAlerts()` for the live feed.
-        - [ ] Remove page-scoped filter state that changes the rendered feed list (`activeCategory`, date/time scoped filtering).
-    - [ ] Keep Cards/Table toggle client-side (presentational only).
+- [x] Task: Update Alert Feed Component Structure [commit: TBD]
+    - [x] Refactor `resources/js/features/gta-alerts/components/FeedView.tsx` (and/or `resources/js/features/gta-alerts/App.tsx`) to treat filters as server-driven props from Inertia (URL → controller → props → UI).
+    - [x] Remove the "filter current page items" mental model:
+        - [x] Stop using `AlertService.searchDomainAlerts()` for the live feed.
+        - [x] Remove page-scoped filter state that changes the rendered feed list (`activeCategory`, date/time scoped filtering).
+    - [x] Keep Cards/Table toggle client-side (presentational only).
 
-- [ ] Task: Frontend - URL Synchronization (Inertia)
-    - [ ] Use Inertia navigation (`router.get` / `useForm().get`) to update query params on filter changes.
-    - [ ] Ensure browser back/forward restores the filter state from the URL.
-    - [ ] Ensure the “Reset” action clears query params and reloads the default feed.
+- [x] Task: Frontend - URL Synchronization (Inertia) [commit: b299aba]
+    - [x] Use Inertia navigation (`router.get` / `useForm().get`) to update query params on filter changes.
+    - [x] Ensure browser back/forward restores the filter state from the URL.
+    - [x] Ensure the "Reset" action clears query params and reloads the default feed.
 
-- [ ] Task: Implement Filter UI Components
-    - [ ] Add/Update Source selector (Dropdown or Tabs) to trigger server reload on change (`source=fire|police|transit|go_transit`).
-        - [ ] Note: `hazard` is not a unified alert source; do not model it as a server-side `source` filter.
-    - [ ] Add/Update Search Bar to trigger server reload (with ~300ms debounce) via `q`.
-    - [ ] Add/Update Time window selector to update `since` (e.g., `30m`, `1h`, `3h`, `6h`, `12h`).
-    - [ ] Quick filters:
-        - [ ] Implement as `since` presets only (do not reintroduce client-side “today/yesterday” filtering).
-    - [ ] Out of scope reminder:
-        - [ ] Do not add `start_date/end_date` or `start_time/end_time` pickers for FEED-001 unless the ticket scope expands beyond `since`.
+- [x] Task: Implement Filter UI Components [commit: TBD]
+    - [x] Add/Update Source selector (Dropdown or Tabs) to trigger server reload on change (`source=fire|police|transit|go_transit`).
+        - [x] Note: `hazard` is not a unified alert source; do not model it as a server-side `source` filter.
+    - [x] Add/Update Search Bar to trigger server reload (with ~300ms debounce) via `q`.
+    - [x] Add/Update Time window selector to update `since` (e.g., `30m`, `1h`, `3h`, `6h`, `12h`).
+    - [x] Quick filters:
+        - [x] Implement as `since` presets only (do not reintroduce client-side "today/yesterday" filtering).
+    - [x] Out of scope reminder:
+        - [x] Do not add `start_date/end_date` or `start_time/end_time` pickers for FEED-001 unless the ticket scope expands beyond `since`.
 
-- [ ] Task: Implement "Active/Resolved" Toggle (Status)
-    - [ ] Ensure the existing Status UI cleanly maps to backend `status` (`all|active|cleared`).
-    - [ ] Preserve other active query params when toggling status.
+- [x] Task: Implement "Active/Resolved" Toggle (Status) [commit: TBD]
+    - [x] Ensure the existing Status UI cleanly maps to backend `status` (`all|active|cleared`).
+    - [x] Preserve other active query params when toggling status.
 
-- [ ] Task: Pagination Integration (URL + State Preservation)
-    - [ ] Ensure any remaining navigation links preserve active query parameters (`preserveState`, `preserveScroll` where appropriate).
-    - [ ] Verify filter changes do not accidentally drop other params (e.g., changing `source` keeps `status`, `q`, `since`).
-    - [ ] Note: “Load More” / infinite scroll is implemented in Phase 3; Phase 2 focuses on URL-driven filters.
+- [x] Task: Pagination Integration (URL + State Preservation) [commit: TBD]
+    - [x] Ensure any remaining navigation links preserve active query parameters (`preserveState`, `preserveScroll` where appropriate).
+    - [x] Verify filter changes do not accidentally drop other params (e.g., changing `source` keeps `status`, `q`, `since`).
+    - [x] Note: "Load More" / infinite scroll is implemented in Phase 3; Phase 2 focuses on URL-driven filters.
 
-- [ ] Task: Loading States & Feedback
-    - [ ] Implement visual loading indicators (Inertia progress + spinner/skeleton loader as needed).
-    - [ ] Disable/dim the feed while loading to make state changes clear.
-    - [ ] Keep/confirm “No Results” empty state includes a “Clear Filters” action.
+- [x] Task: Loading States & Feedback [commit: TBD]
+    - [x] Implement visual loading indicators (Inertia progress + spinner/skeleton loader as needed).
+    - [x] Disable/dim the feed while loading to make state changes clear.
+    - [x] Keep/confirm "No Results" empty state includes a "Clear Filters" action.
 
-- [ ] Task: Frontend - Partial Reloads (Performance)
-    - [ ] Use Inertia partial reloads (where appropriate) to refresh only the `alerts` prop and keep the rest of the page stable.
+- [x] Task: Frontend - Partial Reloads (Performance) [commit: TBD]
+    - [x] Use Inertia partial reloads (where appropriate) to refresh only the `alerts` prop and keep the rest of the page stable.
 
-- [ ] Task: Testing - Phase 2 Verification
-    - [ ] Verify URL param changes always round-trip (UI state ↔ URL ↔ Inertia props).
-    - [ ] Verify status/source/since/q combinations return expected results (no page-scoped filtering).
+- [x] Task: Testing - Phase 2 Verification [commit: TBD]
+    - [x] Verify URL param changes always round-trip (UI state ↔ URL ↔ Inertia props).
+    - [x] Verify status/source/since/q combinations return expected results (no page-scoped filtering).
 
-- [ ] Task: Conductor - User Manual Verification 'Phase 2: Frontend URL Filters + UX' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 2: Frontend URL Filters + UX' (Protocol in workflow.md) [commit: TBD]
 
 ## Phase 3: Infinite Scroll (Cursor-Based)
+
 **Goal:** Replace numbered paging with cursor-based infinite scroll that appends batches deterministically without skips/duplicates.
 
 - [ ] Task: Data Fetch Strategy
@@ -153,6 +156,7 @@ This plan is aligned to `docs/tickets/FEED-001-server-side-filters-infinite-scro
 - [ ] Task: Conductor - User Manual Verification 'Phase 3: Infinite Scroll (Cursor-Based)' (Protocol in workflow.md)
 
 ## Phase 4: Regression & Quality Gate
+
 **Goal:** Lock in correctness with a regression pass before writing final documentation.
 
 - [ ] Task: Coverage and Regression Verification
@@ -173,6 +177,7 @@ This plan is aligned to `docs/tickets/FEED-001-server-side-filters-infinite-scro
 - [ ] Task: Conductor - User Manual Verification 'Phase 4: Regression & Quality Gate' (Protocol in workflow.md)
 
 ## Phase 5: Documentation
+
 **Goal:** Document the shipped feature (backend params, frontend behavior, and operational notes).
 
 - [ ] Task: Documentation Update

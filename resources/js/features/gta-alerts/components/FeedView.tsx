@@ -1,4 +1,4 @@
-import { Link, router } from '@inertiajs/react';
+import { Link, router, usePage } from '@inertiajs/react';
 import React, { useState, useMemo } from 'react';
 import { formatTimeAgo } from '@/lib/utils';
 import { home } from '@/routes';
@@ -39,6 +39,10 @@ export const FeedView: React.FC<FeedViewProps> = ({
     // State for Filters
     const [viewMode, setViewMode] = useState<'cards' | 'table'>('cards');
 
+    // Loading state detection from Inertia
+    const { processing } = usePage().props;
+    const isLoading = processing === true;
+
     // Use server-provided alerts directly
     const filteredItems = allAlerts;
     const activeCategory = source || 'all';
@@ -48,6 +52,7 @@ export const FeedView: React.FC<FeedViewProps> = ({
 
     // Handler for Reset
     const handleReset = () => {
+        if (isLoading) return;
         router.get(
             home({
                 query: {
@@ -58,7 +63,12 @@ export const FeedView: React.FC<FeedViewProps> = ({
                 },
             }).url,
             {},
-            { preserveScroll: true, preserveState: true, replace: true },
+            {
+                preserveScroll: true,
+                preserveState: true,
+                replace: true,
+                only: ['alerts'],
+            },
         );
     };
 
@@ -120,11 +130,13 @@ export const FeedView: React.FC<FeedViewProps> = ({
                                     }
                                     preserveScroll
                                     preserveState
+                                    only={['alerts']}
+                                    disabled={isLoading}
                                     className={`flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[11px] font-bold whitespace-nowrap transition-all ${
                                         status === opt.id
                                             ? 'border-white/20 bg-white/10 text-white'
                                             : 'border-white/10 bg-transparent text-text-secondary hover:border-white/20 hover:bg-white/5 hover:text-white'
-                                    }`}
+                                    } ${isLoading ? 'pointer-events-none opacity-50' : ''}`}
                                 >
                                     <Icon name={opt.icon} className="text-sm" />
                                     {opt.label}
@@ -168,11 +180,13 @@ export const FeedView: React.FC<FeedViewProps> = ({
                                     }
                                     preserveScroll
                                     preserveState
+                                    only={['alerts']}
+                                    disabled={isLoading}
                                     className={`flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-medium whitespace-nowrap transition-all md:px-4 md:py-2 ${
                                         isSelected
                                             ? 'border-white/20 bg-white/10 text-white shadow-lg'
                                             : 'border-white/5 bg-surface-dark text-text-secondary hover:border-white/20 hover:bg-white/5 hover:text-white'
-                                    }`}
+                                    } ${isLoading ? 'pointer-events-none opacity-50' : ''}`}
                                 >
                                     <Icon name={cat.icon} className="text-lg" />
                                     {cat.label}
@@ -181,6 +195,16 @@ export const FeedView: React.FC<FeedViewProps> = ({
                         })}
                     </div>
                 </div>
+
+                {/* Loading Indicator Row */}
+                {isLoading && (
+                    <div className="flex items-center gap-2 border-b border-white/5 bg-primary/10 px-4 py-1.5 md:px-6">
+                        <span className="flex h-3 w-3 animate-pulse rounded-full bg-primary"></span>
+                        <span className="text-[11px] font-medium text-primary">
+                            Updating feed...
+                        </span>
+                    </div>
+                )}
 
                 {/* Row 2: Time Window + View Toggle */}
                 <div className="flex flex-wrap items-center gap-3 bg-surface-dark/30 px-4 py-2 md:px-6">
@@ -192,6 +216,7 @@ export const FeedView: React.FC<FeedViewProps> = ({
                             </div>
                             <select
                                 value={since ?? 'all'}
+                                disabled={isLoading}
                                 onChange={(e) =>
                                     router.get(
                                         home({
@@ -213,10 +238,11 @@ export const FeedView: React.FC<FeedViewProps> = ({
                                             preserveScroll: true,
                                             preserveState: true,
                                             replace: true,
+                                            only: ['alerts'],
                                         },
                                     )
                                 }
-                                className="w-36 cursor-pointer appearance-none rounded-lg border border-white/10 bg-surface-dark py-1.5 pr-8 pl-8 text-xs text-white transition-colors outline-none hover:border-white/20 focus:border-primary focus:ring-1 focus:ring-primary"
+                                className="w-36 cursor-pointer appearance-none rounded-lg border border-white/10 bg-surface-dark py-1.5 pr-8 pl-8 text-xs text-white transition-colors outline-none hover:border-white/20 focus:border-primary focus:ring-1 focus:ring-primary disabled:cursor-not-allowed disabled:opacity-50"
                             >
                                 {sinceOptions.map((opt) => (
                                     <option
@@ -238,7 +264,8 @@ export const FeedView: React.FC<FeedViewProps> = ({
                         {(since !== null || activeCategory !== 'all') && (
                             <button
                                 onClick={handleReset}
-                                className="flex items-center gap-1 rounded px-2 py-1 text-xs font-medium text-coral transition-colors hover:bg-coral/10 hover:text-amber"
+                                disabled={isLoading}
+                                className="flex items-center gap-1 rounded px-2 py-1 text-xs font-medium text-coral transition-colors hover:bg-coral/10 hover:text-amber disabled:cursor-not-allowed disabled:opacity-50"
                             >
                                 <Icon name="restart_alt" className="text-sm" />
                                 Reset
@@ -275,7 +302,20 @@ export const FeedView: React.FC<FeedViewProps> = ({
             </div>
 
             {/* List Container */}
-            <div className="flex-1 overflow-y-auto p-4 md:p-6">
+            <div
+                className={`relative flex-1 overflow-y-auto p-4 md:p-6 ${isLoading ? 'opacity-50' : 'opacity-100'} transition-opacity duration-200`}
+            >
+                {/* Loading Overlay */}
+                {isLoading && (
+                    <div className="absolute inset-0 z-10 flex items-start justify-center pt-20">
+                        <div className="flex items-center gap-2 rounded-lg border border-white/10 bg-surface-dark/90 px-4 py-3 shadow-lg backdrop-blur-sm">
+                            <span className="flex h-4 w-4 animate-spin rounded-full border-2 border-white/20 border-t-primary"></span>
+                            <span className="text-sm font-medium text-white">
+                                Loading alerts...
+                            </span>
+                        </div>
+                    </div>
+                )}
                 <div className="mx-auto flex w-full max-w-5xl flex-col gap-4 md:gap-5">
                     {latestFeedUpdatedAt && (
                         <div className="mb-2 flex items-center justify-between px-1">
@@ -325,7 +365,8 @@ export const FeedView: React.FC<FeedViewProps> = ({
                                             href={pagination.prevUrl}
                                             preserveScroll
                                             preserveState
-                                            className="rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-xs font-bold text-white/80 transition-colors hover:border-white/20 hover:bg-white/10 hover:text-white"
+                                            disabled={isLoading}
+                                            className={`rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-xs font-bold text-white/80 transition-colors hover:border-white/20 hover:bg-white/10 hover:text-white ${isLoading ? 'pointer-events-none opacity-50' : ''}`}
                                         >
                                             Previous
                                         </Link>
@@ -340,7 +381,8 @@ export const FeedView: React.FC<FeedViewProps> = ({
                                             href={pagination.nextUrl}
                                             preserveScroll
                                             preserveState
-                                            className="rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-xs font-bold text-white/80 transition-colors hover:border-white/20 hover:bg-white/10 hover:text-white"
+                                            disabled={isLoading}
+                                            className={`rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-xs font-bold text-white/80 transition-colors hover:border-white/20 hover:bg-white/10 hover:text-white ${isLoading ? 'pointer-events-none opacity-50' : ''}`}
                                         >
                                             Next
                                         </Link>

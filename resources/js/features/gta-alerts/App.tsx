@@ -100,6 +100,7 @@ const App: React.FC<AppProps> = ({
                         preserveState: true,
                         preserveScroll: true,
                         replace: true,
+                        only: ['alerts'],
                     },
                 );
             }
