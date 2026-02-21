@@ -173,16 +173,18 @@ export function useInfiniteScroll(
                 return; // Discard stale response
             }
 
-            // Deduplicate alerts by ID
+            // Deduplicate against the latest state to avoid stale closures.
             const newAlerts = AlertService.mapUnifiedAlertsToDomainAlerts(
                 data.data,
             );
-            const existingIds = new Set(alerts.map((a) => a.id));
-            const uniqueNewAlerts = newAlerts.filter(
-                (alert) => !existingIds.has(alert.id),
-            );
+            setAlerts((prev) => {
+                const existingIds = new Set(prev.map((alert) => alert.id));
+                const uniqueNewAlerts = newAlerts.filter(
+                    (alert) => !existingIds.has(alert.id),
+                );
 
-            setAlerts((prev) => [...prev, ...uniqueNewAlerts]);
+                return [...prev, ...uniqueNewAlerts];
+            });
             setNextCursor(data.next_cursor);
         } catch (err) {
             // Don't report errors from aborted requests
@@ -200,7 +202,7 @@ export function useInfiniteScroll(
             setIsLoading(false);
             abortControllerRef.current = null;
         }
-    }, [nextCursor, apiUrl, alerts]);
+    }, [nextCursor, apiUrl]);
 
     /**
      * Reset the infinite scroll state with new initial data.

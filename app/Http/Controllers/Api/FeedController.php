@@ -37,6 +37,7 @@ class FeedController extends Controller
             'q' => ['nullable', 'string', 'max:200'],
             'since' => ['nullable', Rule::in(UnifiedAlertsCriteria::SINCE_OPTIONS)],
             'cursor' => ['nullable', 'string', 'max:512', new UnifiedAlertsCursorRule],
+            'per_page' => ['nullable', 'integer', 'min:1', 'max:100'],
         ]);
 
         $criteria = new UnifiedAlertsCriteria(
@@ -45,7 +46,7 @@ class FeedController extends Controller
             query: $validated['q'] ?? null,
             since: $validated['since'] ?? null,
             cursor: $validated['cursor'] ?? null,
-            perPage: UnifiedAlertsCriteria::DEFAULT_PER_PAGE,
+            perPage: $validated['per_page'] ?? UnifiedAlertsCriteria::DEFAULT_PER_PAGE,
         );
 
         $result = $alerts->cursorPaginate($criteria);

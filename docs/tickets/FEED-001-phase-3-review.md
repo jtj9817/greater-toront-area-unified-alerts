@@ -1,10 +1,11 @@
 ---
 ticket_id: FEED-001-REVIEW
 title: "[Review] FEED-001 Phase 3 Infinite Scroll Implementation"
-status: Open
+status: Resolved
 priority: High
-assignee: Unassigned
+assignee: Codex
 created_at: 2026-02-21
+updated_at: 2026-02-21
 tags: [review, frontend, performance]
 related_files:
   - resources/js/features/gta-alerts/hooks/useInfiniteScroll.ts
@@ -92,3 +93,28 @@ Consider allowing the client to request a custom page size (with a sane maximum 
 The `loadMore` function attempts to set `abortControllerRef.current` *after* checking `isFetchingRef`. While this works because `isFetchingRef` prevents re-entry, the cleanup logic in `reset` and `useEffect` handles aborting. The explicit `abortControllerRef.current` assignment logic is slightly scattered.
 
 Ensure consistent lifecycle management: if `loadMore` is called, it should strictly be the owner of the *new* controller, and previous ones should generally have been cleaned up or irrelevant if `isFetchingRef` works correctly. No code change strictly required, but worth noting for future refactoring.
+
+## Resolution Notes (2026-02-21)
+
+### Completed
+
+1. Fixed IntersectionObserver thrashing source in `useInfiniteScroll`
+- Updated `resources/js/features/gta-alerts/hooks/useInfiniteScroll.ts` to deduplicate new alerts inside the functional `setAlerts` updater.
+- Removed `alerts` from the `loadMore` callback dependency array so the callback identity no longer changes after each append.
+
+2. Implemented optional API page size control
+- Updated `app/Http/Controllers/Api/FeedController.php` to accept optional `per_page` query param with validation (`integer|min:1|max:100`).
+- `perPage` now uses `per_page` when provided, otherwise falls back to `UnifiedAlertsCriteria::DEFAULT_PER_PAGE`.
+
+3. Added/updated automated coverage
+- Updated `tests/Feature/Api/FeedControllerTest.php`:
+  - Added `the feed api respects per_page parameter`.
+  - Added `the feed api rejects invalid per_page`.
+- Verification command:
+  - `php artisan test tests/Feature/Api/FeedControllerTest.php`
+  - Result: 16 passed, 95 assertions.
+
+### Deferred
+
+1. AbortController ownership cleanup refactor
+- Left as a future cleanup item because existing lifecycle behavior is functionally correct and does not block this ticket.

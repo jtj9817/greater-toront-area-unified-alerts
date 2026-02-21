@@ -170,6 +170,27 @@ test('the feed api returns next_cursor when there are more results', function ()
         ->and($nextCursor)->toBeString();
 });
 
+test('the feed api respects per_page parameter', function () {
+    Carbon::setTestNow(Carbon::parse('2026-02-03 12:00:00'));
+
+    for ($i = 1; $i <= 60; $i++) {
+        FireIncident::factory()->create([
+            'event_num' => "F{$i}",
+            'is_active' => true,
+            'dispatch_time' => Carbon::now()->subMinutes($i),
+        ]);
+    }
+
+    $response = $this->getJson(route('api.feed', ['per_page' => 20]));
+    $response->assertOk();
+
+    $data = $response->json('data');
+    $nextCursor = $response->json('next_cursor');
+
+    expect(count($data))->toBe(20)
+        ->and($nextCursor)->not->toBeNull();
+});
+
 test('the feed api fetches next page using cursor', function () {
     Carbon::setTestNow(Carbon::parse('2026-02-03 12:00:00'));
 
@@ -224,6 +245,12 @@ test('the feed api rejects invalid since', function () {
     $response = $this->getJson(route('api.feed', ['since' => '2d']));
     $response->assertUnprocessable()
         ->assertJsonValidationErrors(['since']);
+});
+
+test('the feed api rejects invalid per_page', function () {
+    $response = $this->getJson(route('api.feed', ['per_page' => 0]));
+    $response->assertUnprocessable()
+        ->assertJsonValidationErrors(['per_page']);
 });
 
 test('the feed api returns empty array when no alerts match', function () {
