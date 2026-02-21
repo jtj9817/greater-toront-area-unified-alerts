@@ -29,11 +29,15 @@ function fireResource(
 }
 
 describe('useInfiniteScroll', () => {
+    let originalFetch: typeof global.fetch | undefined;
+
     beforeEach(() => {
+        originalFetch = global.fetch;
         global.fetch = vi.fn();
     });
 
     afterEach(() => {
+        global.fetch = originalFetch as typeof global.fetch;
         vi.restoreAllMocks();
     });
 

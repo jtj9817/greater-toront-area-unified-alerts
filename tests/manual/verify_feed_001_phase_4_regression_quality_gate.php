@@ -46,7 +46,8 @@ $kernel->bootstrap();
 
 // Prevent production execution.
 if (app()->environment('production')) {
-    exit("Error: Cannot run manual tests in production!\n");
+    fwrite(STDERR, "Error: Cannot run manual tests in production!\n");
+    exit(1);
 }
 
 if (function_exists('posix_geteuid') && posix_geteuid() === 0 && getenv('ALLOW_ROOT_MANUAL_TESTS') !== '1') {
@@ -61,11 +62,13 @@ $connection = config('database.default');
 $currentDatabase = config("database.connections.{$connection}.database");
 
 if (! app()->environment('testing')) {
-    exit("Error: Manual tests must run with APP_ENV=testing. Destructive test operations are disabled outside the testing environment and cannot be overridden.\n");
+    fwrite(STDERR, "Error: Manual tests must run with APP_ENV=testing. Destructive test operations are disabled outside the testing environment and cannot be overridden.\n");
+    exit(1);
 }
 
 if ($currentDatabase !== $expectedDatabase) {
-    exit("Error: Manual tests must use the '{$expectedDatabase}' database (current: {$currentDatabase}). Destructive test operations are disabled and cannot be overridden.\n");
+    fwrite(STDERR, "Error: Manual tests must use the '{$expectedDatabase}' database (current: {$currentDatabase}). Destructive test operations are disabled and cannot be overridden.\n");
+    exit(1);
 }
 
 umask(002);
