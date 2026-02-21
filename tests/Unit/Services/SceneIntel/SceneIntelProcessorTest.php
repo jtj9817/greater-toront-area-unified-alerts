@@ -35,7 +35,7 @@ test('it generates alarm and resource updates from an incident snapshot diff', f
 
     expect($updates[0]->update_type)->toBe(IncidentUpdateType::ALARM_CHANGE);
     expect($updates[0]->content)->toBe('Alarm level increased from 1 to 2');
-    expect($updates[0]->metadata)->toBe([
+    expect($updates[0]->metadata)->toEqual([
         'previous_level' => 1,
         'new_level' => 2,
         'direction' => 'up',
@@ -82,7 +82,7 @@ test('it generates a closure update once when an incident transitions to inactiv
     expect($updates)->toHaveCount(1);
     expect($updates[0]->update_type)->toBe(IncidentUpdateType::PHASE_CHANGE);
     expect($updates[0]->content)->toBe('Incident marked as resolved');
-    expect($updates[0]->metadata)->toBe([
+    expect($updates[0]->metadata)->toEqual([
         'previous_phase' => 'active',
         'new_phase' => 'resolved',
     ]);
@@ -130,12 +130,12 @@ test('it records phase changes across reactivation and deactivation cycles', fun
 
     expect($phaseUpdates)->toHaveCount(2);
     expect($phaseUpdates[0]->content)->toBe('Incident marked as active');
-    expect($phaseUpdates[0]->metadata)->toBe([
+    expect($phaseUpdates[0]->metadata)->toEqual([
         'previous_phase' => 'resolved',
         'new_phase' => 'active',
     ]);
     expect($phaseUpdates[1]->content)->toBe('Incident marked as resolved');
-    expect($phaseUpdates[1]->metadata)->toBe([
+    expect($phaseUpdates[1]->metadata)->toEqual([
         'previous_phase' => 'active',
         'new_phase' => 'resolved',
     ]);

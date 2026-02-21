@@ -54,10 +54,15 @@ class PoliceAlertSelectProvider implements AlertSelectProvider
         }
 
         if ($criteria->query !== null && $driver === 'mysql') {
-            $query->whereRaw(
-                'MATCH(call_type, cross_streets) AGAINST (? IN NATURAL LANGUAGE MODE)',
-                [$criteria->query],
-            );
+            $needle = '%'.mb_strtolower($criteria->query).'%';
+
+            $query->where(function ($where) use ($criteria, $needle) {
+                $where->whereRaw(
+                    'MATCH(call_type, cross_streets) AGAINST (? IN NATURAL LANGUAGE MODE)',
+                    [$criteria->query],
+                )->orWhereRaw('LOWER(call_type) LIKE ?', [$needle])
+                    ->orWhereRaw('LOWER(cross_streets) LIKE ?', [$needle]);
+            });
         }
 
         return $query->toBase();

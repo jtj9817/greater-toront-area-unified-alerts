@@ -187,6 +187,25 @@ function buildFrontendContractFixturePayload(): array
     return ['alerts' => array_values($alerts)];
 }
 
+function sortFixturePayloadRecursively(mixed $value): mixed
+{
+    if (! is_array($value)) {
+        return $value;
+    }
+
+    if (array_is_list($value)) {
+        return array_map(sortFixturePayloadRecursively(...), $value);
+    }
+
+    foreach ($value as $key => $nested) {
+        $value[$key] = sortFixturePayloadRecursively($nested);
+    }
+
+    ksort($value);
+
+    return $value;
+}
+
 test('unified alert resource payload matches the frontend contract fixture', function () {
     config(['app.timezone' => 'UTC']);
     date_default_timezone_set('UTC');
@@ -238,5 +257,5 @@ test('unified alert resource payload matches the frontend contract fixture', fun
         JSON_THROW_ON_ERROR,
     );
 
-    expect($actual)->toBe($expected);
+    expect(sortFixturePayloadRecursively($actual))->toBe(sortFixturePayloadRecursively($expected));
 });

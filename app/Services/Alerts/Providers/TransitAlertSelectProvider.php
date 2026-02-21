@@ -64,10 +64,18 @@ class TransitAlertSelectProvider implements AlertSelectProvider
         }
 
         if ($criteria->query !== null && $driver === 'mysql') {
-            $query->whereRaw(
-                'MATCH(title, description, stop_start, stop_end, route, route_type) AGAINST (? IN NATURAL LANGUAGE MODE)',
-                [$criteria->query],
-            );
+            $needle = '%'.mb_strtolower($criteria->query).'%';
+
+            $query->where(function ($where) use ($criteria, $needle) {
+                $where->whereRaw(
+                    'MATCH(title, description, stop_start, stop_end, route, route_type) AGAINST (? IN NATURAL LANGUAGE MODE)',
+                    [$criteria->query],
+                )->orWhereRaw('LOWER(title) LIKE ?', [$needle])
+                    ->orWhereRaw('LOWER(route) LIKE ?', [$needle])
+                    ->orWhereRaw('LOWER(route_type) LIKE ?', [$needle])
+                    ->orWhereRaw('LOWER(stop_start) LIKE ?', [$needle])
+                    ->orWhereRaw('LOWER(stop_end) LIKE ?', [$needle]);
+            });
         }
 
         return $query->toBase();

@@ -159,5 +159,5 @@ test('subscription rename migration copies subscribed routes into subscriptions'
         ->where('user_id', $user->id)
         ->value('subscriptions');
 
-    expect($subscriptions)->toBe(json_encode(['route:501', 'station:union'], JSON_THROW_ON_ERROR));
+    expect(json_decode((string) $subscriptions, true, 512, JSON_THROW_ON_ERROR))->toBe(['route:501', 'station:union']);
 });

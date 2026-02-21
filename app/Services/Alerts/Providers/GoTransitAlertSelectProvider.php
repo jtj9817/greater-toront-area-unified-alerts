@@ -59,10 +59,18 @@ class GoTransitAlertSelectProvider implements AlertSelectProvider
         }
 
         if ($criteria->query !== null && $driver === 'mysql') {
-            $query->whereRaw(
-                'MATCH(message_subject, message_body, corridor_or_route, corridor_code, service_mode) AGAINST (? IN NATURAL LANGUAGE MODE)',
-                [$criteria->query],
-            );
+            $needle = '%'.mb_strtolower($criteria->query).'%';
+
+            $query->where(function ($where) use ($criteria, $needle) {
+                $where->whereRaw(
+                    'MATCH(message_subject, message_body, corridor_or_route, corridor_code, service_mode) AGAINST (? IN NATURAL LANGUAGE MODE)',
+                    [$criteria->query],
+                )->orWhereRaw('LOWER(message_subject) LIKE ?', [$needle])
+                    ->orWhereRaw('LOWER(message_body) LIKE ?', [$needle])
+                    ->orWhereRaw('LOWER(corridor_or_route) LIKE ?', [$needle])
+                    ->orWhereRaw('LOWER(corridor_code) LIKE ?', [$needle])
+                    ->orWhereRaw('LOWER(service_mode) LIKE ?', [$needle]);
+            });
         }
 
         return $query->toBase();

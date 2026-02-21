@@ -75,10 +75,16 @@ class FireAlertSelectProvider implements AlertSelectProvider
         }
 
         if ($criteria->query !== null && $driver === 'mysql') {
-            $query->whereRaw(
-                'MATCH(event_type, prime_street, cross_streets) AGAINST (? IN NATURAL LANGUAGE MODE)',
-                [$criteria->query],
-            );
+            $needle = '%'.mb_strtolower($criteria->query).'%';
+
+            $query->where(function ($where) use ($criteria, $needle) {
+                $where->whereRaw(
+                    'MATCH(event_type, prime_street, cross_streets) AGAINST (? IN NATURAL LANGUAGE MODE)',
+                    [$criteria->query],
+                )->orWhereRaw('LOWER(event_type) LIKE ?', [$needle])
+                    ->orWhereRaw('LOWER(prime_street) LIKE ?', [$needle])
+                    ->orWhereRaw('LOWER(cross_streets) LIKE ?', [$needle]);
+            });
         }
 
         return $query->toBase();
@@ -142,7 +148,7 @@ class FireAlertSelectProvider implements AlertSelectProvider
                         WHEN 'manual_note' THEN 'note'
                         ELSE 'info' END,
                     'content', t.content,
-                    'timestamp', DATE_FORMAT(t.created_at, '%Y-%m-%dT%T.000000Z'),
+                    'timestamp', DATE_FORMAT(t.created_at, '%Y-%m-%dT%TZ'),
                     'metadata', t.metadata
                 )
             ), JSON_ARRAY())

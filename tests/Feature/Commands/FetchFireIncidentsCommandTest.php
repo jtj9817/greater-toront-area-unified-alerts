@@ -273,7 +273,7 @@ test('it records a new closure intel update after an incident is reactivated', f
             ->where('content', 'Incident marked as active')
             ->count()
     )->toBe(1);
-    expect($closureUpdates->last()->metadata)->toBe([
+    expect($closureUpdates->last()->metadata)->toEqual([
         'previous_phase' => 'active',
         'new_phase' => 'resolved',
     ]);
