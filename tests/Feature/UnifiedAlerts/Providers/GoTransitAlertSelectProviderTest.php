@@ -120,3 +120,18 @@ test('go transit provider constructs correct meta json expression', function () 
     expect($meta['trip_number'])->toBe('123');
     expect($meta['message_body'])->toBe('Test Body');
 });
+
+test('go transit provider generates mysql fulltext search query', function () {
+    DB::shouldReceive('getDriverName')->andReturn('mysql');
+
+    $provider = new GoTransitAlertSelectProvider;
+    $query = $provider->select(new UnifiedAlertsCriteria(
+        status: AlertStatus::All->value,
+        query: 'search term'
+    ));
+
+    $sql = $query->toSql();
+
+    expect($sql)->toContain('MATCH(message_subject, message_body, corridor_or_route, corridor_code, service_mode) AGAINST (? IN NATURAL LANGUAGE MODE)');
+    expect($sql)->toContain('LOWER(message_subject) LIKE ?');
+});

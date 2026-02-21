@@ -113,3 +113,18 @@ test('police provider constructs correct meta json expression', function () {
     expect($meta['division'])->toBe('D51');
     expect($meta['call_type_code'])->toBe('THEFT');
 });
+
+test('police provider generates mysql fulltext search query', function () {
+    DB::shouldReceive('getDriverName')->andReturn('mysql');
+
+    $provider = new PoliceAlertSelectProvider;
+    $query = $provider->select(new UnifiedAlertsCriteria(
+        status: AlertStatus::All->value,
+        query: 'search term'
+    ));
+
+    $sql = $query->toSql();
+
+    expect($sql)->toContain('MATCH(call_type, cross_streets) AGAINST (? IN NATURAL LANGUAGE MODE)');
+    expect($sql)->toContain('LOWER(call_type) LIKE ?');
+});
