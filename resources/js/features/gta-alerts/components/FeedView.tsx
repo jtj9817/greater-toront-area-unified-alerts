@@ -43,8 +43,14 @@ export const FeedView: React.FC<FeedViewProps> = ({
     const [isLoading, setIsLoading] = useState(false);
 
     useEffect(() => {
-        const removeStartListener = router.on('start', () => {
-            setIsLoading(true);
+        const removeStartListener = router.on('start', (event) => {
+            // Only show loading if we are reloading alerts or filters
+            if (
+                event.detail.visit.only?.includes('alerts') ||
+                event.detail.visit.only?.includes('filters')
+            ) {
+                setIsLoading(true);
+            }
         });
         const removeFinishListener = router.on('finish', () => {
             setIsLoading(false);
