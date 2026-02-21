@@ -2,6 +2,29 @@
 
 All notable documentation-relevant changes are tracked here.
 
+## [February 21, 2026] - FEED-001 Phase 5 Documentation Completion
+
+### Added
+- Added FEED-001 Phase 5 documentation verification runner:
+  - `tests/manual/verify_feed_001_phase_5_documentation.php`
+  - Verifies feed query param docs (`status`, `source`, `q`, `since`, `cursor`), infinite scroll cursor semantics, FULLTEXT/sqlite fallback notes, and live-feed client-filter removal docs.
+
+### Changed
+- Updated root docs for shipped FEED-001 behavior:
+  - `README.md` now documents server-authoritative filters, cursor infinite scroll, and feed query parameter examples.
+- Updated backend architecture docs:
+  - `docs/backend/unified-alerts-system.md` now documents request/query flow for `/` and `/api/feed`, cursor tuple semantics, seek pagination rules, and MySQL FULLTEXT + sqlite fallback expectations.
+  - `docs/backend/dtos.md` now documents expanded `UnifiedAlertsCriteria` fields and `UnifiedAlertsCursor`.
+- Updated frontend docs:
+  - `docs/frontend/alert-service.md` now clarifies that live feed filtering is server-authoritative and `AlertService.searchDomainAlerts()` is not used for live feed request filtering.
+- Updated documentation index/status:
+  - `docs/README.md` now marks FEED-001 as implemented in the status table and removes it from open tickets.
+- Updated agent guidance:
+  - `CLAUDE.md` query flow and frontend feed descriptions now reflect cursor pagination and URL-driven server-side filtering.
+  - Added manual test command for `verify_feed_001_phase_5_documentation.php`.
+- Updated conductor track plan:
+  - `conductor/tracks/server_side_filtering_20260218/plan.md` now marks Phase 5 documentation and manual verification as complete with verification log reference.
+
 ## [February 18, 2026] - Feed Tickets, Notification Fan-Out, and Observability Additions
 
 ### Added

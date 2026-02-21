@@ -2,14 +2,21 @@
 
 - File: `resources/js/features/gta-alerts/services/AlertService.ts`
 
-`AlertService` is a thin facade over the typed domain boundary. It maps backend transport objects into `DomainAlert` values and performs search/filtering over domain alerts via derived presentation fields.
+`AlertService` is a thin facade over the typed domain boundary. It maps backend transport objects into `DomainAlert` values for rendering and infinite-scroll accumulation.
 
 ## Current Responsibilities
 
 - Map transport `UnifiedAlertResource` values into `DomainAlert` using `fromResource(...)`.
 - Discard invalid resources via hard enforcement (`catch/log/discard` at boundary).
 - Keep GO Transit alerts visible under the transit filter (`categoryAliases.transit = ['transit', 'go_transit']`).
-- Search and filter `DomainAlert[]` by category, time window, date scope, and query.
+- Perform legacy in-memory filtering helpers for non-live/local-only scenarios.
+
+## Live Feed Filtering Contract
+
+- Live feed filtering is server-authoritative and URL-driven (`status`, `source`, `q`, `since`, `cursor`).
+- `AlertService.searchDomainAlerts()` is not used for the live feed request cycle.
+- Infinite scroll fetches are performed by `useInfiniteScroll` against `/api/feed` and append mapped `DomainAlert` batches.
+- Filter changes trigger Inertia navigation, replacing initial feed props and resetting local infinite-scroll state.
 
 ## Source Handling
 

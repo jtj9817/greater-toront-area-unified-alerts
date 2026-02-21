@@ -8,7 +8,7 @@ GTA Alerts is built as a data aggregator and API using Laravel, with a high-perf
 
 ### Key Features
 
-- **Unified Alert Feed:** A mixed-source timeline of Fire, Police, TTC Transit, and GO Transit incidents, supporting pagination over both active and cleared history.
+- **Unified Alert Feed:** A mixed-source timeline of Fire, Police, TTC Transit, and GO Transit incidents with server-authoritative filters and cursor-based infinite scroll.
 - **Toronto Fire Integration:** Real-time sync with the Toronto Fire Services CAD (Computer Aided Dispatch) XML feed.
 - **Toronto Police Integration:** Automated scraping of the TPS "Calls for Service" ArcGIS FeatureServer.
 - **TTC Transit Integration:** Composite feed from alerts.ttc.ca JSON API, Sitecore SXA search, and static CMS pages.
@@ -34,7 +34,7 @@ The system follows a **Provider & Adapter** pattern to unify divergent data sour
 
 1.  **Source Models:** Raw data is persisted in source-specific tables (`fire_incidents`, `police_calls`, `transit_alerts`, `go_transit_alerts`).
 2.  **Select Providers:** Standardized query providers map source-specific columns into a unified SQL structure.
-3.  **Unified Aggregator:** A database-level `UNION ALL` query facilitates stable pagination across all alert types simultaneously.
+3.  **Unified Aggregator:** A database-level `UNION ALL` query supports stable cross-source ordering, server-side filtering, and cursor pagination.
 4.  **Frontend Boundary:** Inertia transport resources are validated with Zod and mapped to a typed `DomainAlert` discriminated union.
 5.  **Presentation Mapping:** UI components render a derived `AlertPresentation` model from `DomainAlert` values.
 
@@ -149,6 +149,22 @@ example:
 APP_ENV=testing ./vendor/bin/sail php tests/manual/verify_phase_1_foundations.php
 ```
 
+## Feed Query Parameters
+
+The live feed (`/`) and infinite-scroll API endpoint (`/api/feed`) support:
+
+- `status`: `all`, `active`, `cleared`
+- `source`: `fire`, `police`, `transit`, `go_transit`
+- `q`: free-text search (trimmed, max 200 chars)
+- `since`: `30m`, `1h`, `3h`, `6h`, `12h`
+- `cursor`: opaque base64url cursor for deterministic next-batch loading
+
+Example:
+
+```bash
+curl "http://localhost/api/feed?status=active&source=fire&q=alarm&since=1h"
+```
+
 ---
 
 ## Documentation
@@ -161,10 +177,10 @@ For detailed documentation on architecture, implementation, and development:
 
 ### Key Documentation Topics
 
-- **[Unified Alerts System](docs/backend/unified-alerts-system.md)** - Core architecture with UNION ALL aggregation
+- **[Unified Alerts System](docs/backend/unified-alerts-system.md)** - Core architecture with server-side filters and cursor infinite scroll
 - **[Provider & Adapter Pattern](docs/architecture/provider-adapter-pattern.md)** - Data source integration pattern
 - **[Frontend Types](docs/frontend/types.md)** - TypeScript domain types and presentation mapping
-- **[AlertService](docs/frontend/alert-service.md)** - Frontend filtering and search orchestration
+- **[AlertService](docs/frontend/alert-service.md)** - Frontend transport/domain mapping and live-feed boundary contract
 - **[Production Scheduler](docs/backend/production-scheduler.md)** - Background job observability
 - **[Scheduler Runbooks](docs/runbooks/scheduler-troubleshooting.md)** - Operations and recovery guide
 

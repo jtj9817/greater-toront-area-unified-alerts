@@ -35,6 +35,7 @@ APP_ENV=testing ./vendor/bin/sail php tests/manual/verify_phase_2_mapper_extract
 APP_ENV=testing ./vendor/bin/sail php tests/manual/verify_phase_3_unified_querying.php
 APP_ENV=testing ./vendor/bin/sail php tests/manual/verify_phase_4_frontend_integration.php
 APP_ENV=testing ./vendor/bin/sail php tests/manual/verify_phase_5_quality_gate.php
+APP_ENV=testing ./vendor/bin/sail php tests/manual/verify_feed_001_phase_5_documentation.php
 APP_ENV=testing ./vendor/bin/sail php tests/manual/verify_production_data_migration_phase_3_automation_documentation.php
 APP_ENV=testing ./vendor/bin/sail php tests/manual/verify_scheduler_resilience_phase_1_critical_fixes_foundation.php
 APP_ENV=testing ./vendor/bin/sail php tests/manual/verify_scheduler_resilience_phase_2_resilience_architecture_upgrade.php
@@ -93,6 +94,7 @@ AlertPresentation (frontend view model)
 - `App\Services\Alerts\DTOs\AlertLocation` - Nested location DTO
 - `App\Services\Alerts\DTOs\UnifiedAlertsCriteria` - Query criteria with validation
 - `App\Services\Alerts\DTOs\AlertId` - Composite ID (`source:externalId`) with validation
+- `App\Services\Alerts\DTOs\UnifiedAlertsCursor` - Opaque cursor `(ts,id)` encoder/decoder
 
 **Enums:**
 - `App\Enums\AlertSource` - Fire, Police, Transit, GoTransit (type-safe)
@@ -110,13 +112,13 @@ AlertPresentation (frontend view model)
 - `App\Services\Alerts\Mappers\UnifiedAlertMapper` - Maps DB rows to DTOs
 
 #### Query Flow
-1. `GtaAlertsController` receives request with `status` filter
-2. Creates `UnifiedAlertsCriteria` (with per-page/page validation)
-3. Calls `UnifiedAlertsQuery::paginate($criteria)`
-4. Query fetches tagged providers, builds UNION ALL
-5. Applies status filter, orders by timestamp DESC with tie-breakers
-6. Returns `LengthAwarePaginator` with items mapped through `UnifiedAlertMapper`
-7. Controller wraps results in `UnifiedAlertResource` collection
+1. `GtaAlertsController` and `Api\FeedController` receive request with `status`, `source`, `q`, `since`, and optional `cursor`
+2. Controllers create `UnifiedAlertsCriteria` (normalization for source/query/since/cursor/per-page)
+3. Controllers call `UnifiedAlertsQuery::cursorPaginate($criteria)`
+4. Query fetches tagged providers and builds a UNION ALL subquery
+5. Query applies status/source/since filters and cross-driver `q` behavior (MySQL FULLTEXT, SQLite fallback `LIKE`)
+6. Query uses deterministic seek pagination on `(timestamp DESC, id DESC)` to compute `next_cursor`
+7. Controllers return `UnifiedAlertResource` batches plus `next_cursor`
 
 ### Backend Data Pipeline
 
@@ -167,18 +169,20 @@ Inertia.js renders React pages from `resources/js/pages/`. The main public page 
 - Components consume `DomainAlert` and derive `AlertPresentation` with `mapDomainAlertToPresentation(...)`
 
 **Views:**
-- `FeedView` - Paginated alert feed with client-side search/filter
+- `FeedView` - Server-filtered feed with cursor-based infinite scroll and URL-driven filters
 - `ZonesView` - Geographic zone statistics (hard-coded, awaiting backend service)
 - `SavedView` - Saved alerts (client-side storage)
 - `SettingsView` - User settings
 - `AlertDetailsView` - Detail view for individual alerts
 
 **Services:**
-- `AlertService` - Domain boundary mapping plus domain search/filter orchestration
+- `AlertService` - Domain boundary mapping for transport -> domain conversion (no live-feed query filtering)
+- `useInfiniteScroll` hook - Cursor batch loading (`/api/feed`) with dedupe, abort, stale-response guards
 - Domain schemas/types in `resources/js/features/gta-alerts/domain/alerts/`
 
 ### Routing
 - `routes/web.php` — HTTP routes (home renders `gta-alerts` Inertia page; dashboard requires auth)
+- `routes/api.php` — Feed JSON batch endpoint (`/api/feed`) for infinite scroll
 - `routes/console.php` — Scheduled commands
 - `routes/settings.php` — Authenticated user settings
 

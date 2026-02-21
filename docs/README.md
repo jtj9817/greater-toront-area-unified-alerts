@@ -102,7 +102,6 @@ The unified feed currently aggregates four source types:
 
 Active work items and feature proposals:
 
-- **[tickets/FEED-001-server-side-filters-infinite-scroll.md](tickets/FEED-001-server-side-filters-infinite-scroll.md)** - Move all feed filters server-side and replace pagination with cursor-based infinite scroll
 - **[tickets/FEED-002-real-time-push.md](tickets/FEED-002-real-time-push.md)** - Real-time push updates for the alert feed (depends on FEED-001)
 - **[tickets/FEED-003-saved-filter-presets.md](tickets/FEED-003-saved-filter-presets.md)** - Saved filter presets for quick-access filter combinations (depends on FEED-001)
 - **[tickets/FEED-004-sort-direction-toggle.md](tickets/FEED-004-sort-direction-toggle.md)** - Sort direction toggle in the feed (depends on FEED-001)
@@ -123,10 +122,10 @@ Active work items and feature proposals:
 | TTC Transit Integration | Implemented | [sources/ttc-transit.md](sources/ttc-transit.md) |
 | GO Transit Integration | Implemented | [sources/go-transit.md](sources/go-transit.md) |
 | Unified Alerts Query | Implemented | [backend/unified-alerts-system.md](backend/unified-alerts-system.md) |
+| Server-Side Feed Filters + Infinite Scroll (FEED-001) | Implemented | [backend/unified-alerts-system.md](backend/unified-alerts-system.md) |
 | Production Scheduler | Implemented | [backend/production-scheduler.md](backend/production-scheduler.md) |
 | In-App Notifications | Implemented | [backend/notification-system.md](backend/notification-system.md) |
 | Scene Intel (Fire) | Implemented | [backend/scene-intel.md](backend/scene-intel.md) |
-| Server-Side Feed Filters + Infinite Scroll | Planned | [tickets/FEED-001-server-side-filters-infinite-scroll.md](tickets/FEED-001-server-side-filters-infinite-scroll.md) |
 | Real-Time Feed Push | Planned | [tickets/FEED-002-real-time-push.md](tickets/FEED-002-real-time-push.md) |
 | Dynamic Zones | Planned | [architecture/dynamic-zones.md](architecture/dynamic-zones.md) |
 

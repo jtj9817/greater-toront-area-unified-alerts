@@ -214,17 +214,18 @@ This plan is aligned to `docs/tickets/FEED-001-server-side-filters-infinite-scro
     - [x] Verify URL state is shareable and back/forward restores filters.
     - [x] Verify Cards/Table toggle remains client-side only.
 
-- [ ] Task: Conductor - User Manual Verification 'Phase 4: Regression & Quality Gate' (Protocol in workflow.md)
-      Manual verification script created: `tests/manual/verify_feed_001_phase_4_regression_quality_gate.php` (execution pending Docker/Sail availability).
+- [x] Task: Conductor - User Manual Verification 'Phase 4: Regression & Quality Gate' (Protocol in workflow.md)
+      Manual verification summary: resolved Phase 4 `composer test` failures captured in `storage/logs/manual_tests/command_output/composer_test.log` (fix: `8c050e8`); follow-up regression run is green.
 
 ## Phase 5: Documentation
 
 **Goal:** Document the shipped feature (backend params, frontend behavior, and operational notes).
 
-- [ ] Task: Documentation Update
-    - [ ] Document the feed query params (`status`, `source`, `q`, `since`, `cursor`) and examples.
-    - [ ] Document infinite scroll behavior (cursor semantics, “no more results”, reset behavior on filter change).
-    - [ ] Document FULLTEXT requirement and sqlite fallback expectations for local/dev.
-    - [ ] Update any GTA Alerts UI docs to reflect removal of client-side filtering for the live feed.
+- [x] Task: Documentation Update
+    - [x] Document the feed query params (`status`, `source`, `q`, `since`, `cursor`) and examples.
+    - [x] Document infinite scroll behavior (cursor semantics, “no more results”, reset behavior on filter change).
+    - [x] Document FULLTEXT requirement and sqlite fallback expectations for local/dev.
+    - [x] Update any GTA Alerts UI docs to reflect removal of client-side filtering for the live feed.
 
-- [ ] Task: Conductor - User Manual Verification 'Phase 5: Documentation' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 5: Documentation' (Protocol in workflow.md)
+      Manual verification summary: `tests/manual/verify_feed_001_phase_5_documentation.php` passed; log `storage/logs/manual_tests/feed_001_phase_5_documentation_2026_02_21_064701.log`.
