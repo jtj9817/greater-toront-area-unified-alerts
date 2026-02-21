@@ -12,7 +12,7 @@ The feed is hardcoded to newest-first ordering. Users investigating historical p
 
 ## Current State
 
-- `UnifiedAlertsQuery` sorts by `timestamp DESC` with tie-breakers on `source` and `external_id`
+- `UnifiedAlertsQuery` sorts by `timestamp DESC` with tie-breaker `id DESC`
 - No query parameter or UI control exists to change sort direction
 - Newest-first is the correct default for a live incident feed
 

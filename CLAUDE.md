@@ -132,9 +132,10 @@ AlertPresentation (frontend view model)
 - Command marks missing calls as `is_active = false`
 - Scheduled every 10 minutes in `routes/console.php`
 
-**TTC Transit (Future):**
+**TTC Transit:**
 - Multiple sources: alerts.ttc.ca JSON API, Sitecore SXA search, static CMS pages
-- Architecture documented in `docs/backend/sources/ttc-transit.md`
+- Command marks missing alerts as `is_active = false`
+- Scheduled every 5 minutes in `routes/console.php`
 
 **GO Transit:**
 - Metrolinx JSON API → `GoTransitFeedService` (fetch/parse) → `FetchGoTransitAlertsCommand` (upsert via `external_id`) → `GoTransitAlert` model
@@ -181,8 +182,7 @@ Inertia.js renders React pages from `resources/js/pages/`. The main public page 
 - Domain schemas/types in `resources/js/features/gta-alerts/domain/alerts/`
 
 ### Routing
-- `routes/web.php` — HTTP routes (home renders `gta-alerts` Inertia page; dashboard requires auth)
-- `routes/api.php` — Feed JSON batch endpoint (`/api/feed`) for infinite scroll
+- `routes/web.php` — HTTP routes (home renders `gta-alerts` Inertia page; includes `/api/feed` JSON batch endpoint; dashboard requires auth)
 - `routes/console.php` — Scheduled commands
 - `routes/settings.php` — Authenticated user settings
 

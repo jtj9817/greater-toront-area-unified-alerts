@@ -137,13 +137,13 @@ The backend follows a **layered architecture** with clear separation of concerns
 │                                                                              │
 │  private readonly UnifiedAlertMapper $mapper  ← Mapper injected              │
 │                                                                              │
-│  paginate(criteria): LengthAwarePaginator                                    │
-│  ───────────────────────────────────────                                     │
-│    1. unionSelect() → UNION ALL across all providers                         │
-│    2. Apply status filter (active/cleared/all)                               │
-│    3. Order by timestamp DESC, source, external_id                           │
-│    4. Paginate results via Laravel Paginator                                 │
-│    5. Map rows → UnifiedAlert DTOs via mapper                                │
+│  cursorPaginate(criteria): array{items,next_cursor}                          │
+│  ─────────────────────────────────────────────────                           │
+│    1. unionSelect() → UNION ALL across matching providers                    │
+│    2. Apply status/source/since/q filters                                    │
+│    3. Order by timestamp DESC, id DESC                                       │
+│    4. Apply seek condition for cursor tuples                                 │
+│    5. Fetch (perPage + 1), map rows, compute next_cursor                     │
 │                                                                              │
 └─────────────────────────────────────────────────────────────────────────────┘
                                        │
@@ -190,11 +190,14 @@ The backend follows a **layered architecture** with clear separation of concerns
 │      UnifiedAlertsQuery $alerts  ← Auto-resolved from container              │
 │  ): Response {                                                               │
 │                                                                              │
-│      $criteria = new UnifiedAlertsCriteria(status, perPage, page);           │
-│      $paginator = $alerts->paginate($criteria);                              │
+│      $criteria = new UnifiedAlertsCriteria(...validated filters...);         │
+│      $result = $alerts->cursorPaginate($criteria);                           │
 │                                                                              │
 │      return Inertia::render('gta-alerts', [                                  │
-│          'alerts' => UnifiedAlertResource::collection($paginator),           │
+│          'alerts' => [                                                       │
+│              'data' => UnifiedAlertResource::collection($result['items']),   │
+│              'next_cursor' => $result['next_cursor'],                        │
+│          ],                                                                  │
 │          'filters' => [...],                                                 │
 │          'latest_feed_updated_at' => ...                                     │
 │      ]);                                                                     │
@@ -306,14 +309,20 @@ readonly class UnifiedAlert
 readonly class UnifiedAlertsCriteria
 {
     public const DEFAULT_PER_PAGE = 50;
+    public const MIN_PER_PAGE = 1;
     public const MAX_PER_PAGE = 200;
+    public const SINCE_OPTIONS = ['30m', '1h', '3h', '6h', '12h'];
 
     public function __construct(
         string $status = AlertStatus::All->value,
         int $perPage = self::DEFAULT_PER_PAGE,
         ?int $page = null,
+        ?string $source = null,
+        ?string $query = null,
+        ?string $since = null,
+        ?string $cursor = null,
     ) {
-        // Validates and normalizes inputs
+        // Normalizes status/source/query/since/cursor + per-page bounds
     }
 }
 ```

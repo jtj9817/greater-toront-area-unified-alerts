@@ -6,10 +6,12 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ## Active Tracks
 
-- [ ] **Track: Server-Side Filtering & Search Refactor**
-*Link: [./tracks/server_side_filtering_20260218/](./tracks/server_side_filtering_20260218/)*
+- None currently.
 
 ## Archived Tracks
+
+- [x] **Track: Server-Side Filtering & Search Refactor**
+*Link: [./tracks/server_side_filtering_20260218/](./tracks/server_side_filtering_20260218/)*
 
 - [x] **Track: Scheduler Resilience & Stability Overhaul**
 *Link: [./archive/scheduler_resilience_20260216/](./archive/scheduler_resilience_20260216/)*

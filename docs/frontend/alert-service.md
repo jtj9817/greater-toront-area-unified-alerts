@@ -8,8 +8,6 @@
 
 - Map transport `UnifiedAlertResource` values into `DomainAlert` using `fromResource(...)`.
 - Discard invalid resources via hard enforcement (`catch/log/discard` at boundary).
-- Keep GO Transit alerts visible under the transit filter (`categoryAliases.transit = ['transit', 'go_transit']`).
-- Perform legacy in-memory filtering helpers for non-live/local-only scenarios.
 
 ## Live Feed Filtering Contract
 

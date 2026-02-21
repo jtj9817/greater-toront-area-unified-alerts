@@ -2,7 +2,7 @@
 
 ## What problem does this solve?
 
-A single timeline-style feed across `fire`, `police`, `transit`, and `go_transit`, with stable server-side pagination and optional status filtering.
+A single timeline-style feed across `fire`, `police`, `transit`, and `go_transit`, with server-authoritative filtering and stable cursor pagination.
 
 ## Why UNION at read-time?
 
@@ -18,8 +18,7 @@ Default `status=all` preserves feed continuity so alerts do not disappear after 
 
 Deterministic ordering tuple:
 1. `timestamp` DESC
-2. `source` ASC
-3. `external_id` DESC
+2. `id` DESC
 
 ## How do we add a new source?
 
@@ -32,5 +31,5 @@ Deterministic ordering tuple:
 
 ## Current residual risks
 
-- Deep offset pagination can degrade with very large history.
+- Very broad `q` searches can still be expensive without selective terms, even with FULLTEXT.
 - `meta` can become overloaded if too many fields stay unstructured.

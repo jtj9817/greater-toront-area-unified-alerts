@@ -85,7 +85,9 @@ All added WHERE clauses and ordering must work on both sqlite and mysql (consist
 ### 5.2 URL State + Reset
 
 - Changing filters updates query params (shareable link behavior).
-- “Reset” clears query params and reloads the default feed view.
+- Reset behavior is split in UI:
+  - Header `Reset` clears `source` + `since` while preserving `status` + `q`.
+  - Empty-state `Reset All Filters` clears all query params.
 
 ### 5.3 Search Debounce + Loading UX
 
@@ -97,11 +99,11 @@ All added WHERE clauses and ordering must work on both sqlite and mysql (consist
 
 ## 6. Acceptance Criteria (Aligned to Ticket)
 
-- [ ] Search and source filters query the backend across the full dataset (not just the currently loaded batch).
-- [ ] `since` correctly constrains results (e.g., `since=30m` returns only alerts in the last 30 minutes).
-- [ ] Infinite scroll appends additional results using a cursor, without skipping/duplicating items as new alerts arrive.
-- [ ] All active filters are reflected in the URL.
-- [ ] Cards/Table view toggle remains client-side (presentational only).
+- [x] Search and source filters query the backend across the full dataset (not just the currently loaded batch).
+- [x] `since` correctly constrains results (e.g., `since=30m` returns only alerts in the last 30 minutes).
+- [x] Infinite scroll appends additional results using a cursor, without skipping/duplicating items as new alerts arrive.
+- [x] All active filters are reflected in the URL.
+- [x] Cards/Table view toggle remains client-side (presentational only).
 
 ## 7. Out of Scope (Per Ticket)
 

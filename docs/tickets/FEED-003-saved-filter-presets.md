@@ -12,8 +12,8 @@ Users who regularly monitor specific subsets of alerts (e.g., transit delays on 
 
 ## Current State
 
-- Filters are either URL query params (status) or ephemeral client-side state (category, search, time)
-- After FEED-001, all filters will be server-side query params, making them shareable via URL
+- Live-feed filters are server-authoritative and URL-driven (`status`, `source`, `q`, `since`)
+- FEED-001 is implemented, so filter combinations are already shareable/bookmarkable via URL
 - No saved preset mechanism exists
 
 ## Proposed Solution

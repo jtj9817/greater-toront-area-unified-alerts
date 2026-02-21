@@ -12,7 +12,7 @@ The alert feed requires a manual page refresh or navigation to see new alerts. F
 
 ## Current State
 
-- Feed data is fetched on initial page load and on pagination/filter navigation via Inertia
+- Feed data is fetched on initial page load via Inertia and then via cursor-based `/api/feed` batch requests for infinite scroll
 - The backend already has a broadcast event `AlertNotificationSent` on `private-users.{userId}.notifications` for the notification system
 - No mechanism exists to push new alerts to the general feed view
 

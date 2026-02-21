@@ -2,6 +2,27 @@
 
 All notable documentation-relevant changes are tracked here.
 
+## [February 21, 2026] - FEED-001 Closure and Artifact Alignment
+
+### Changed
+- Marked FEED-001 ticket as closed/implemented and added implementation-resolution notes:
+  - `docs/tickets/FEED-001-server-side-filters-infinite-scroll.md`
+- Aligned conductor FEED-001 artifacts to completed state:
+  - `conductor/tracks.md`
+  - `conductor/tracks/server_side_filtering_20260218/metadata.json`
+  - `conductor/tracks/server_side_filtering_20260218/plan.md`
+  - `conductor/tracks/server_side_filtering_20260218/spec.md`
+- Updated architecture/guidance docs to match shipped cursor-based feed behavior:
+  - `docs/backend/architecture-walkthrough.md`
+  - `docs/backend/unified-alerts-qa.md`
+  - `CLAUDE.md`
+- Updated dependent/open ticket current-state language to reflect FEED-001 being shipped:
+  - `docs/tickets/FEED-002-real-time-push.md`
+  - `docs/tickets/FEED-003-saved-filter-presets.md`
+  - `docs/tickets/FEED-004-sort-direction-toggle.md`
+- Corrected frontend service docs to match current `AlertService` responsibilities:
+  - `docs/frontend/alert-service.md`
+
 ## [February 21, 2026] - FEED-001 Phase 5 Documentation Completion
 
 ### Added

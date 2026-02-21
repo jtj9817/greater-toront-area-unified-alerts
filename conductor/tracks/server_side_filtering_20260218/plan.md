@@ -8,7 +8,7 @@ This plan is aligned to `docs/tickets/FEED-001-server-side-filters-infinite-scro
 
 - [x] Task: Contract - Confirm URL Params + UI Mapping
     - [x] Confirm canonical filter params: `status`, `source`, `q`, `since`, plus `cursor` for infinite scroll.
-    - [ ] Clarify param contracts (backed by current backend validation + normalization):
+    - [x] Clarify param contracts (backed by current backend validation + normalization):
         - [x] `status`: `all|active|cleared` (UI toggle maps 1:1).
         - [x] `source`: unified sources only (`fire|police|transit|go_transit`); do not include `hazard`.
             - [x] Note: `ttc_accessibility` is notification-only and not a feed `source` filter.
@@ -130,22 +130,22 @@ This plan is aligned to `docs/tickets/FEED-001-server-side-filters-infinite-scro
 - [x] Task: Conductor - User Manual Verification 'Phase 2: Frontend URL Filters + UX' (Protocol in workflow.md) [commit: 945dd56]
       Manual verification summary (via `scripts/run-manual-test.sh`): dataset prep + URL echo checks completed, invalid params rejected, cleanup completed; log `storage/logs/manual_tests/feed_001_phase_2_frontend_url_filters_ux_2026_02_21_013435.log`.
 
-## Phase 3: Infinite Scroll (Cursor-Based) [checkpoint: TBD]
+## Phase 3: Infinite Scroll (Cursor-Based) [checkpoint: bf98745]
 
 **Goal:** Replace numbered paging with cursor-based infinite scroll that appends batches deterministically without skips/duplicates.
 
-- [x] Task: Data Fetch Strategy [commit: TBD]
+- [x] Task: Data Fetch Strategy [commit: bf98745]
     - [x] Decision: Use Option B - dedicated JSON endpoint (`/api/feed`) for feed batches
     - [x] Created `FeedController` in `app/Http/Controllers/Api/FeedController.php`
     - [x] Added route with rate limiting (120 req/min)
     - [x] Reuses `UnifiedAlertsQuery::cursorPaginate()` for consistent behavior
 
-- [x] Task: Backend - Update GtaAlertsController [commit: TBD]
+- [x] Task: Backend - Update GtaAlertsController [commit: bf98745]
     - [x] Switched from `paginate()` to `cursorPaginate()` for Inertia props
     - [x] Updated alerts prop structure: `{ data: [], next_cursor: string|null }`
     - [x] Removed traditional pagination metadata (links, meta)
 
-- [x] Task: Frontend - Implement Infinite Scroll [commit: TBD]
+- [x] Task: Frontend - Implement Infinite Scroll [commit: bf98745]
     - [x] Created `useInfiniteScroll` hook in `resources/js/features/gta-alerts/hooks/useInfiniteScroll.ts`
     - [x] Features:
         - IntersectionObserver with configurable rootMargin (default: 300px)
@@ -163,14 +163,14 @@ This plan is aligned to `docs/tickets/FEED-001-server-side-filters-infinite-scro
     - [x] Updated `App.tsx` to pass `initialAlerts` and `initialNextCursor` props
     - [x] Updated `gta-alerts.tsx` page component with new prop types
 
-- [x] Task: Edge Cases (Scroll + Filtering) [commit: TBD]
+- [x] Task: Edge Cases (Scroll + Filtering) [commit: a2e6cdc]
     - [x] Concurrent request prevention: `isFetchingRef` guards against double-fetch
     - [x] Stale response handling: Compares filter state before/after request, discards if changed
     - [x] Request cancellation: AbortController aborts in-flight requests on filter change
     - [x] Deduplication: Filters out alerts with existing IDs before appending
     - [x] Filter reset: `useEffect` watches `initialAlerts`/`initialNextCursor`, resets state
 
-- [x] Task: Testing - Phase 3 Verification [commit: TBD]
+- [x] Task: Testing - Phase 3 Verification [commit: a2e6cdc]
     - [x] Created `tests/Feature/Api/FeedControllerTest.php` with 14 tests:
         - API returns alerts with next_cursor structure
         - Respects status, source, since filters
@@ -185,7 +185,7 @@ This plan is aligned to `docs/tickets/FEED-001-server-side-filters-infinite-scro
     - [x] Updated `tests/Feature/GtaAlertsTest.php` for new alerts structure
     - [x] All 461 tests passing (4 MySQL-specific tests skipped in SQLite)
 
-- [x] Task: Conductor - User Manual Verification 'Phase 3: Infinite Scroll (Cursor-Based)' [commit: TBD]
+- [x] Task: Conductor - User Manual Verification 'Phase 3: Infinite Scroll (Cursor-Based)' [commit: a2e6cdc]
     - [x] Created `tests/manual/verify_feed_001_phase_3_infinite_scroll.php`
     - [x] Automated checks:
         - Seeds 70 test incidents for pagination testing

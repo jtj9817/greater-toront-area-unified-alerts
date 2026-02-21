@@ -1,11 +1,11 @@
 # [FEED-001] Server-Side Filters + Infinite Scroll for Alert Feed
 
 **Date:** 2026-02-18
-**Status:** Open
+**Status:** Closed (Implemented)
 **Priority:** High
 **Components:** Backend, Frontend, UX
 
-## Problem
+## Problem (Historical)
 
 The alert feed currently uses a hybrid filtering architecture that produces misleading results. Server-side pagination delivers 50 items per page, but category, search, date, and time filters are applied **client-side only** — meaning they filter the current page's 50 items, not the full dataset (6,400+ alerts).
 
@@ -16,7 +16,7 @@ The alert feed currently uses a hybrid filtering architecture that produces misl
 3. **Time/date filters are page-scoped:** "Last 30m" filters the current page rather than querying the backend for recent alerts.
 4. **Pagination style mismatch:** Numbered page navigation doesn't match the mental model of a live incident feed/timeline. Users scan for relevant incidents — they don't navigate to "page 47."
 
-### Current Architecture
+### Current Architecture (Historical, Pre-FEED-001)
 
 ```
 Backend (server-side)                    Frontend (client-side)
@@ -27,7 +27,7 @@ Backend (server-side)                    Frontend (client-side)
                                          - Time limit (30m, 1h, 3h, 6h, 12h)
 ```
 
-### Affected Files
+### Affected Files (Historical Scope)
 
 **Backend:**
 - `app/Http/Controllers/GtaAlertsController.php` — currently only validates `status` param
@@ -83,3 +83,22 @@ The Cards/Table toggle is purely presentational and should remain client-side.
 | [FEED-004](./FEED-004-sort-direction-toggle.md) | Sort direction toggle (newest/oldest first) | Low |
 
 All three depend on this ticket being completed first.
+
+## Resolution (Implemented 2026-02-21)
+
+FEED-001 is fully shipped.
+
+- Live feed filtering is server-authoritative (`status`, `source`, `q`, `since`) on both `/` and `/api/feed`.
+- Infinite scroll uses cursor pagination keyed by `(timestamp DESC, id DESC)` and returns `{ data, next_cursor }`.
+- Client-side live-feed filtering was removed; the frontend renders server-provided batches and appends via `/api/feed`.
+- URL query params are the source of truth for active filters.
+- Reset behavior is split: header `Reset` clears `source` + `since`, while empty-state `Reset All Filters` clears all params.
+
+Primary implementation references:
+
+- `app/Http/Controllers/GtaAlertsController.php`
+- `app/Http/Controllers/Api/FeedController.php`
+- `app/Services/Alerts/DTOs/UnifiedAlertsCriteria.php`
+- `app/Services/Alerts/UnifiedAlertsQuery.php`
+- `resources/js/features/gta-alerts/hooks/useInfiniteScroll.ts`
+- `resources/js/features/gta-alerts/components/FeedView.tsx`
