@@ -1,6 +1,7 @@
 import { router } from '@inertiajs/react';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { home } from '@/routes';
+import { AlertDetailsView } from './components/AlertDetailsView';
 import { BottomNav } from './components/BottomNav';
 import { FeedView } from './components/FeedView';
 import { Icon } from './components/Icon';
@@ -52,9 +53,7 @@ const App: React.FC<AppProps> = ({
 }) => {
     const [currentView, setCurrentView] = useState('feed');
     const [searchQuery, setSearchQuery] = useState(filters.q || '');
-
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const [_activeAlertId, setActiveAlertId] = useState<string | null>(null);
+    const [activeAlertId, setActiveAlertId] = useState<string | null>(null);
 
     // Sync local search query with URL state (e.g., back button, Reset All Filters).
     const syncSearchQueryFromUrl = useCallback(() => {
@@ -123,6 +122,17 @@ const App: React.FC<AppProps> = ({
         return AlertService.mapUnifiedAlertsToDomainAlerts(alerts.data);
     }, [alerts.data]);
 
+    const activeAlert = useMemo(() => {
+        if (!activeAlertId) {
+            return null;
+        }
+
+        return (
+            initialDomainAlerts.find((alert) => alert.id === activeAlertId) ??
+            null
+        );
+    }, [activeAlertId, initialDomainAlerts]);
+
     const handleNavigate = (view: string) => {
         setCurrentView(view);
         setActiveAlertId(null);
@@ -130,6 +140,15 @@ const App: React.FC<AppProps> = ({
     };
 
     const renderView = () => {
+        if (activeAlertId && activeAlert) {
+            return (
+                <AlertDetailsView
+                    alert={activeAlert}
+                    onBack={() => setActiveAlertId(null)}
+                />
+            );
+        }
+
         switch (currentView) {
             case 'saved':
                 return (

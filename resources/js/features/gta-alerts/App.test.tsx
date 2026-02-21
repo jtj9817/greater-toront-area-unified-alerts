@@ -59,8 +59,7 @@ function buildBasePropsWithAuth(
     return {
         alerts: {
             data: alerts,
-            links: { prev: null, next: null },
-            meta: { current_page: 1, last_page: 1, total: alerts.length },
+            next_cursor: null,
         },
         filters: { status: 'all' as const },
         latestFeedUpdatedAt: null,
@@ -72,8 +71,7 @@ function buildBaseProps(alerts: UnifiedAlertResource[]) {
     return {
         alerts: {
             data: alerts,
-            links: { prev: null, next: null },
-            meta: { current_page: 1, last_page: 1, total: alerts.length },
+            next_cursor: null,
         },
         filters: { status: 'all' as const },
         latestFeedUpdatedAt: null,

@@ -1,7 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 import type { UnifiedAlertResource } from '../domain/alerts';
-import { AlertService } from '../services/AlertService';
 import { FeedView } from './FeedView';
 
 // Mock Inertia's usePage hook
@@ -55,23 +54,15 @@ describe('FeedView', () => {
         },
     ];
 
-    const mockAlerts = AlertService.mapUnifiedAlertsToDomainAlerts(mockUnified);
-
     it('renders a list of alerts', () => {
         render(
             <FeedView
                 searchQuery=""
                 onSelectAlert={() => {}}
-                allAlerts={mockAlerts}
+                initialAlerts={mockUnified}
+                initialNextCursor={null}
                 latestFeedUpdatedAt={new Date().toISOString()}
                 status="all"
-                pagination={{
-                    prevUrl: null,
-                    nextUrl: null,
-                    currentPage: 1,
-                    lastPage: 1,
-                    total: 2,
-                }}
             />,
         );
 
@@ -84,16 +75,10 @@ describe('FeedView', () => {
             <FeedView
                 searchQuery=""
                 onSelectAlert={() => {}}
-                allAlerts={mockAlerts}
+                initialAlerts={mockUnified}
+                initialNextCursor={null}
                 latestFeedUpdatedAt={new Date().toISOString()}
                 status="all"
-                pagination={{
-                    prevUrl: null,
-                    nextUrl: null,
-                    currentPage: 1,
-                    lastPage: 1,
-                    total: 2,
-                }}
             />,
         );
 
@@ -106,16 +91,10 @@ describe('FeedView', () => {
             <FeedView
                 searchQuery="NoMatch"
                 onSelectAlert={() => {}}
-                allAlerts={[]}
+                initialAlerts={[]}
+                initialNextCursor={null}
                 latestFeedUpdatedAt={null}
                 status="all"
-                pagination={{
-                    prevUrl: null,
-                    nextUrl: null,
-                    currentPage: 1,
-                    lastPage: 1,
-                    total: 0,
-                }}
             />,
         );
 
@@ -129,16 +108,10 @@ describe('FeedView', () => {
             <FeedView
                 searchQuery=""
                 onSelectAlert={() => {}}
-                allAlerts={mockAlerts}
+                initialAlerts={mockUnified}
+                initialNextCursor={null}
                 latestFeedUpdatedAt={new Date().toISOString()}
                 status="all"
-                pagination={{
-                    prevUrl: null,
-                    nextUrl: null,
-                    currentPage: 1,
-                    lastPage: 1,
-                    total: 2,
-                }}
             />,
         );
 
@@ -152,17 +125,11 @@ describe('FeedView', () => {
             <FeedView
                 searchQuery=""
                 onSelectAlert={() => {}}
-                allAlerts={mockAlerts}
+                initialAlerts={mockUnified}
+                initialNextCursor={null}
                 latestFeedUpdatedAt={new Date().toISOString()}
                 status="all"
                 source={null}
-                pagination={{
-                    prevUrl: null,
-                    nextUrl: null,
-                    currentPage: 1,
-                    lastPage: 1,
-                    total: 2,
-                }}
             />,
         );
 
@@ -178,17 +145,11 @@ describe('FeedView', () => {
             <FeedView
                 searchQuery=""
                 onSelectAlert={() => {}}
-                allAlerts={mockAlerts}
+                initialAlerts={mockUnified}
+                initialNextCursor={null}
                 latestFeedUpdatedAt={new Date().toISOString()}
                 status="all"
                 since={null}
-                pagination={{
-                    prevUrl: null,
-                    nextUrl: null,
-                    currentPage: 1,
-                    lastPage: 1,
-                    total: 2,
-                }}
             />,
         );
 
@@ -197,48 +158,34 @@ describe('FeedView', () => {
         expect(select).toHaveValue('all');
     });
 
-    it('renders pagination controls when URLs are provided', () => {
+    it('renders loaded count when alerts are provided', () => {
         render(
             <FeedView
                 searchQuery=""
                 onSelectAlert={() => {}}
-                allAlerts={mockAlerts}
+                initialAlerts={mockUnified}
+                initialNextCursor={null}
                 latestFeedUpdatedAt={new Date().toISOString()}
                 status="all"
-                pagination={{
-                    prevUrl: '/?page=1',
-                    nextUrl: '/?page=3',
-                    currentPage: 2,
-                    lastPage: 5,
-                    total: 50,
-                }}
             />,
         );
 
-        expect(screen.getByText('Page 2 of 5')).toBeInTheDocument();
-        expect(screen.getByText('Previous')).toBeInTheDocument();
-        expect(screen.getByText('Next')).toBeInTheDocument();
+        expect(screen.getByText('2 loaded')).toBeInTheDocument();
     });
 
-    it('renders total count when pagination total is provided', () => {
+    it('renders loaded count when no alerts are present', () => {
         render(
             <FeedView
                 searchQuery=""
                 onSelectAlert={() => {}}
-                allAlerts={mockAlerts}
+                initialAlerts={[]}
+                initialNextCursor={null}
                 latestFeedUpdatedAt={new Date().toISOString()}
                 status="all"
-                pagination={{
-                    prevUrl: null,
-                    nextUrl: null,
-                    currentPage: 1,
-                    lastPage: 1,
-                    total: 42,
-                }}
             />,
         );
 
-        expect(screen.getByText('42 total')).toBeInTheDocument();
+        expect(screen.getByText('0 loaded')).toBeInTheDocument();
     });
 
     it('shows Reset button when filters are active', () => {
@@ -246,18 +193,12 @@ describe('FeedView', () => {
             <FeedView
                 searchQuery=""
                 onSelectAlert={() => {}}
-                allAlerts={mockAlerts}
+                initialAlerts={mockUnified}
+                initialNextCursor={null}
                 latestFeedUpdatedAt={new Date().toISOString()}
                 status="all"
                 source="fire"
                 since="1h"
-                pagination={{
-                    prevUrl: null,
-                    nextUrl: null,
-                    currentPage: 1,
-                    lastPage: 1,
-                    total: 2,
-                }}
             />,
         );
 
@@ -269,18 +210,12 @@ describe('FeedView', () => {
             <FeedView
                 searchQuery=""
                 onSelectAlert={() => {}}
-                allAlerts={mockAlerts}
+                initialAlerts={mockUnified}
+                initialNextCursor={null}
                 latestFeedUpdatedAt={new Date().toISOString()}
                 status="all"
                 source={null}
                 since={null}
-                pagination={{
-                    prevUrl: null,
-                    nextUrl: null,
-                    currentPage: 1,
-                    lastPage: 1,
-                    total: 2,
-                }}
             />,
         );
 
@@ -292,16 +227,10 @@ describe('FeedView', () => {
             <FeedView
                 searchQuery=""
                 onSelectAlert={() => {}}
-                allAlerts={mockAlerts}
+                initialAlerts={mockUnified}
+                initialNextCursor={null}
                 latestFeedUpdatedAt={new Date().toISOString()}
                 status="all"
-                pagination={{
-                    prevUrl: null,
-                    nextUrl: null,
-                    currentPage: 1,
-                    lastPage: 1,
-                    total: 2,
-                }}
             />,
         );
 

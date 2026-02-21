@@ -6,6 +6,57 @@ import { expect, afterEach } from 'vitest';
 // Extends Vitest's expect method with methods from react-testing-library
 expect.extend(matchers);
 
+if (!('IntersectionObserver' in globalThis)) {
+    class MockIntersectionObserver implements IntersectionObserver {
+        readonly root: Element | Document | null;
+        readonly rootMargin: string;
+        readonly thresholds: number[];
+
+        constructor(
+            private readonly _callback: IntersectionObserverCallback,
+            private readonly _options: IntersectionObserverInit = {},
+        ) {
+            this.root = _options.root ?? null;
+            this.rootMargin = _options.rootMargin ?? '';
+            const threshold = _options.threshold ?? 0;
+            this.thresholds = Array.isArray(threshold)
+                ? threshold
+                : [threshold];
+        }
+
+        disconnect(): void {}
+
+        observe(target: Element): void {
+            const rect = target.getBoundingClientRect();
+            const entry: IntersectionObserverEntry = {
+                boundingClientRect: rect,
+                intersectionRatio: 0,
+                intersectionRect: rect,
+                isIntersecting: false,
+                rootBounds: null,
+                target,
+                time: Date.now(),
+            };
+
+            this._callback([entry], this);
+        }
+
+        takeRecords(): IntersectionObserverEntry[] {
+            return [];
+        }
+
+        unobserve(target: Element): void {
+            void target;
+        }
+    }
+
+    Object.defineProperty(globalThis, 'IntersectionObserver', {
+        writable: true,
+        configurable: true,
+        value: MockIntersectionObserver,
+    });
+}
+
 // Runs a cleanup after each test case (e.g. clearing jsdom)
 afterEach(() => {
     cleanup();
