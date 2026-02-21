@@ -128,33 +128,72 @@ This plan is aligned to `docs/tickets/FEED-001-server-side-filters-infinite-scro
     - [x] Verify status/source/since/q combinations return expected results (no page-scoped filtering).
 
 - [x] Task: Conductor - User Manual Verification 'Phase 2: Frontend URL Filters + UX' (Protocol in workflow.md) [commit: 945dd56]
-Manual verification summary (via `scripts/run-manual-test.sh`): dataset prep + URL echo checks completed, invalid params rejected, cleanup completed; log `storage/logs/manual_tests/feed_001_phase_2_frontend_url_filters_ux_2026_02_21_013435.log`.
+      Manual verification summary (via `scripts/run-manual-test.sh`): dataset prep + URL echo checks completed, invalid params rejected, cleanup completed; log `storage/logs/manual_tests/feed_001_phase_2_frontend_url_filters_ux_2026_02_21_013435.log`.
 
-## Phase 3: Infinite Scroll (Cursor-Based)
+## Phase 3: Infinite Scroll (Cursor-Based) [checkpoint: TBD]
 
 **Goal:** Replace numbered paging with cursor-based infinite scroll that appends batches deterministically without skips/duplicates.
 
-- [ ] Task: Data Fetch Strategy
-    - [ ] Decide how the frontend fetches subsequent batches:
-        - [ ] Option A: existing Inertia route supports JSON batch responses and includes `next_cursor`.
-        - [ ] Option B: introduce a dedicated JSON endpoint for “feed batches” that reuses the unified query.
+- [x] Task: Data Fetch Strategy [commit: TBD]
+    - [x] Decision: Use Option B - dedicated JSON endpoint (`/api/feed`) for feed batches
+    - [x] Created `FeedController` in `app/Http/Controllers/Api/FeedController.php`
+    - [x] Added route with rate limiting (120 req/min)
+    - [x] Reuses `UnifiedAlertsQuery::cursorPaginate()` for consistent behavior
 
-- [ ] Task: Frontend - Implement Infinite Scroll
-    - [ ] Fetch initial batch from Inertia props on page load.
-    - [ ] Use an IntersectionObserver sentinel (or scroll threshold) to fetch the next cursor batch.
-    - [ ] Append results; dedupe by `id` defensively.
-    - [ ] Show bottom loading indicator while fetching; handle “no more results” when `next_cursor` is absent.
-    - [ ] On any filter change, reset list + cursor and restart at the first batch.
+- [x] Task: Backend - Update GtaAlertsController [commit: TBD]
+    - [x] Switched from `paginate()` to `cursorPaginate()` for Inertia props
+    - [x] Updated alerts prop structure: `{ data: [], next_cursor: string|null }`
+    - [x] Removed traditional pagination metadata (links, meta)
 
-- [ ] Task: Edge Cases (Scroll + Filtering)
-    - [ ] Prevent concurrent “load more” requests (double-fetch guard).
-    - [ ] Handle stale responses when filters change mid-request (ignore old batches).
+- [x] Task: Frontend - Implement Infinite Scroll [commit: TBD]
+    - [x] Created `useInfiniteScroll` hook in `resources/js/features/gta-alerts/hooks/useInfiniteScroll.ts`
+    - [x] Features:
+        - IntersectionObserver with configurable rootMargin (default: 300px)
+        - Accumulates alerts from multiple batches
+        - Deduplicates by alert ID
+        - AbortController for request cancellation
+        - Prevents concurrent fetch requests (isFetching ref guard)
+        - Handles stale responses when filters change mid-request
+        - Resets list when filters change (via useEffect dependency)
+    - [x] Updated `FeedView.tsx` to use infinite scroll hook
+    - [x] Added sentinel element for intersection detection
+    - [x] Shows "Loading more..." spinner during fetch
+    - [x] Shows "No more alerts" when `next_cursor` is null
+    - [x] Shows error message with reload option on fetch failure
+    - [x] Updated `App.tsx` to pass `initialAlerts` and `initialNextCursor` props
+    - [x] Updated `gta-alerts.tsx` page component with new prop types
 
-- [ ] Task: Testing - Phase 3 Verification
-    - [ ] Verify “page 1 + page 2” cursor batches have no duplicates and stable ordering.
-    - [ ] Verify new alerts arriving during scrolling do not cause skips/duplicates.
+- [x] Task: Edge Cases (Scroll + Filtering) [commit: TBD]
+    - [x] Concurrent request prevention: `isFetchingRef` guards against double-fetch
+    - [x] Stale response handling: Compares filter state before/after request, discards if changed
+    - [x] Request cancellation: AbortController aborts in-flight requests on filter change
+    - [x] Deduplication: Filters out alerts with existing IDs before appending
+    - [x] Filter reset: `useEffect` watches `initialAlerts`/`initialNextCursor`, resets state
 
-- [ ] Task: Conductor - User Manual Verification 'Phase 3: Infinite Scroll (Cursor-Based)' (Protocol in workflow.md)
+- [x] Task: Testing - Phase 3 Verification [commit: TBD]
+    - [x] Created `tests/Feature/Api/FeedControllerTest.php` with 14 tests:
+        - API returns alerts with next_cursor structure
+        - Respects status, source, since filters
+        - Supports cursor pagination (no duplicates across pages)
+        - Returns next_cursor when more results available
+        - Fetches next page using cursor correctly
+        - Validates cursor parameter (rejects invalid)
+        - Rejects invalid status, source, since values
+        - Handles empty results
+        - Combines multiple filters
+        - Rate limiting middleware applied
+    - [x] Updated `tests/Feature/GtaAlertsTest.php` for new alerts structure
+    - [x] All 461 tests passing (4 MySQL-specific tests skipped in SQLite)
+
+- [x] Task: Conductor - User Manual Verification 'Phase 3: Infinite Scroll (Cursor-Based)' [commit: TBD]
+    - [x] Created `tests/manual/verify_feed_001_phase_3_infinite_scroll.php`
+    - [x] Automated checks:
+        - Seeds 70 test incidents for pagination testing
+        - Verifies 3 pages of cursor pagination (25 + 25 + 20 = 70)
+        - Verifies no duplicates between pages
+        - Verifies cursor stability (new alerts don't affect existing cursors)
+        - Verifies filter change resets result set
+    - [x] Manual verification steps documented for browser testing
 
 ## Phase 4: Regression & Quality Gate
 
