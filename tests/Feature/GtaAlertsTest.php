@@ -375,7 +375,8 @@ test('the home page preserves filter params through pagination links', function 
         ->where('filters.status', 'active')
         ->where('filters.source', 'fire')
         ->where('filters.since', '3h')
-        ->has('alerts.links')
+        ->has('alerts.data')
+        ->has('alerts.next_cursor')
     );
 });
 

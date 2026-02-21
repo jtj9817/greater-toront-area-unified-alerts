@@ -6,11 +6,13 @@ import type { UnifiedAlertResource } from '../features/gta-alerts/domain/alerts'
 interface GTAAlertsProps {
     alerts: {
         data: UnifiedAlertResource[];
-        links: Record<string, string | null>;
-        meta: Record<string, unknown>;
+        next_cursor: string | null;
     };
     filters: {
         status: 'all' | 'active' | 'cleared';
+        source?: string | null;
+        q?: string | null;
+        since?: string | null;
     };
     latest_feed_updated_at: string | null;
     subscription_route_options: string[];

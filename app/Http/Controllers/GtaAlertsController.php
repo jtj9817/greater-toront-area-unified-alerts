@@ -42,13 +42,16 @@ class GtaAlertsController extends Controller
             page: $page > 0 ? $page : null,
         );
 
-        $paginator = $alerts->paginate($criteria);
-        $paginator->withQueryString();
+        // Use cursor pagination for infinite scroll instead of traditional pagination
+        $result = $alerts->cursorPaginate($criteria);
 
         $latestFeedUpdatedAt = $this->latestFeedUpdatedAt();
 
         return Inertia::render('gta-alerts', [
-            'alerts' => UnifiedAlertResource::collection($paginator),
+            'alerts' => [
+                'data' => UnifiedAlertResource::collection($result['items'])->resolve(),
+                'next_cursor' => $result['next_cursor'],
+            ],
             'filters' => [
                 'status' => $status,
                 'source' => $criteria->source,

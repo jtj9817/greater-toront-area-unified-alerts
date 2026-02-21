@@ -1,0 +1,286 @@
+<?php
+
+declare(strict_types=1);
+
+use App\Models\FireIncident;
+use App\Models\PoliceCall;
+use Carbon\Carbon;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+
+uses(RefreshDatabase::class);
+
+test('the feed api returns alerts with next_cursor', function () {
+    Carbon::setTestNow(Carbon::parse('2026-02-03 12:00:00'));
+
+    // Create 5 fire incidents
+    for ($i = 1; $i <= 5; $i++) {
+        FireIncident::factory()->create([
+            'event_num' => "F{$i}",
+            'is_active' => true,
+            'dispatch_time' => Carbon::now()->subMinutes($i),
+        ]);
+    }
+
+    $response = $this->getJson(route('api.feed'));
+
+    $response->assertOk()
+        ->assertJsonStructure([
+            'data' => [
+                '*' => [
+                    'id',
+                    'source',
+                    'external_id',
+                    'is_active',
+                    'timestamp',
+                    'title',
+                    'location',
+                    'meta',
+                ],
+            ],
+            'next_cursor',
+        ]);
+});
+
+test('the feed api respects status filter', function () {
+    Carbon::setTestNow(Carbon::parse('2026-02-03 12:00:00'));
+
+    FireIncident::factory()->create([
+        'event_num' => 'F1',
+        'is_active' => true,
+        'dispatch_time' => Carbon::now()->subMinutes(1),
+    ]);
+
+    FireIncident::factory()->create([
+        'event_num' => 'F2',
+        'is_active' => false,
+        'dispatch_time' => Carbon::now()->subMinutes(2),
+    ]);
+
+    $activeResponse = $this->getJson(route('api.feed', ['status' => 'active']));
+    $activeResponse->assertOk();
+    $activeData = $activeResponse->json('data');
+    expect($activeData)->toHaveCount(1)
+        ->and($activeData[0]['external_id'])->toBe('F1');
+
+    $clearedResponse = $this->getJson(route('api.feed', ['status' => 'cleared']));
+    $clearedResponse->assertOk();
+    $clearedData = $clearedResponse->json('data');
+    expect($clearedData)->toHaveCount(1)
+        ->and($clearedData[0]['external_id'])->toBe('F2');
+});
+
+test('the feed api respects source filter', function () {
+    Carbon::setTestNow(Carbon::parse('2026-02-03 12:00:00'));
+
+    FireIncident::factory()->create([
+        'event_num' => 'F1',
+        'is_active' => true,
+        'dispatch_time' => Carbon::now()->subMinutes(1),
+    ]);
+
+    PoliceCall::factory()->create([
+        'object_id' => 123456,
+        'is_active' => true,
+        'occurrence_time' => Carbon::now()->subMinutes(2),
+    ]);
+
+    $fireResponse = $this->getJson(route('api.feed', ['source' => 'fire']));
+    $fireResponse->assertOk();
+    $fireData = $fireResponse->json('data');
+    expect($fireData)->toHaveCount(1)
+        ->and($fireData[0]['source'])->toBe('fire');
+
+    $policeResponse = $this->getJson(route('api.feed', ['source' => 'police']));
+    $policeResponse->assertOk();
+    $policeData = $policeResponse->json('data');
+    expect($policeData)->toHaveCount(1)
+        ->and($policeData[0]['source'])->toBe('police');
+});
+
+test('the feed api respects since filter', function () {
+    Carbon::setTestNow(Carbon::parse('2026-02-03 12:00:00'));
+
+    // Create an alert from 5 minutes ago
+    FireIncident::factory()->create([
+        'event_num' => 'F1',
+        'is_active' => true,
+        'dispatch_time' => Carbon::now()->subMinutes(5),
+    ]);
+
+    // Create an alert from 2 hours ago
+    FireIncident::factory()->create([
+        'event_num' => 'F2',
+        'is_active' => true,
+        'dispatch_time' => Carbon::now()->subHours(2),
+    ]);
+
+    $response = $this->getJson(route('api.feed', ['since' => '30m']));
+    $response->assertOk();
+    $data = $response->json('data');
+    expect($data)->toHaveCount(1)
+        ->and($data[0]['external_id'])->toBe('F1');
+});
+
+test('the feed api supports cursor pagination', function () {
+    Carbon::setTestNow(Carbon::parse('2026-02-03 12:00:00'));
+
+    // Create 10 fire incidents
+    for ($i = 1; $i <= 10; $i++) {
+        FireIncident::factory()->create([
+            'event_num' => "F{$i}",
+            'is_active' => true,
+            'dispatch_time' => Carbon::now()->subMinutes($i),
+        ]);
+    }
+
+    // Get first page with small perPage via cursor (default is 50, so all will be returned)
+    // Instead, we'll verify the structure has next_cursor
+    $response = $this->getJson(route('api.feed'));
+    $response->assertOk();
+
+    $data = $response->json('data');
+    $nextCursor = $response->json('next_cursor');
+
+    // Since we have only 10 items and default perPage is 50, next_cursor should be null
+    expect(count($data))->toBe(10)
+        ->and($nextCursor)->toBeNull();
+});
+
+test('the feed api returns next_cursor when there are more results', function () {
+    Carbon::setTestNow(Carbon::parse('2026-02-03 12:00:00'));
+
+    // Create 60 fire incidents (more than default perPage of 50)
+    for ($i = 1; $i <= 60; $i++) {
+        FireIncident::factory()->create([
+            'event_num' => "F{$i}",
+            'is_active' => true,
+            'dispatch_time' => Carbon::now()->subMinutes($i),
+        ]);
+    }
+
+    $response = $this->getJson(route('api.feed'));
+    $response->assertOk();
+
+    $data = $response->json('data');
+    $nextCursor = $response->json('next_cursor');
+
+    // Should have 50 items and a next_cursor
+    expect(count($data))->toBe(50)
+        ->and($nextCursor)->not->toBeNull()
+        ->and($nextCursor)->toBeString();
+});
+
+test('the feed api fetches next page using cursor', function () {
+    Carbon::setTestNow(Carbon::parse('2026-02-03 12:00:00'));
+
+    // Create 60 fire incidents
+    for ($i = 1; $i <= 60; $i++) {
+        FireIncident::factory()->create([
+            'event_num' => "F{$i}",
+            'is_active' => true,
+            'dispatch_time' => Carbon::now()->subMinutes($i),
+        ]);
+    }
+
+    // Get first page
+    $page1 = $this->getJson(route('api.feed'));
+    $page1Data = $page1->json('data');
+    $cursor = $page1->json('next_cursor');
+
+    // Get second page using cursor
+    $page2 = $this->getJson(route('api.feed', ['cursor' => $cursor]));
+    $page2Data = $page2->json('data');
+
+    // Second page should have 10 items and no next cursor
+    expect(count($page2Data))->toBe(10)
+        ->and($page2->json('next_cursor'))->toBeNull();
+
+    // Ensure no duplicates between pages
+    $page1Ids = array_column($page1Data, 'id');
+    $page2Ids = array_column($page2Data, 'id');
+    $intersection = array_intersect($page1Ids, $page2Ids);
+    expect($intersection)->toBeEmpty();
+});
+
+test('the feed api validates cursor parameter', function () {
+    $response = $this->getJson(route('api.feed', ['cursor' => 'invalid-cursor']));
+    $response->assertUnprocessable()
+        ->assertJsonValidationErrors(['cursor']);
+});
+
+test('the feed api rejects invalid status', function () {
+    $response = $this->getJson(route('api.feed', ['status' => 'invalid']));
+    $response->assertUnprocessable()
+        ->assertJsonValidationErrors(['status']);
+});
+
+test('the feed api rejects invalid source', function () {
+    $response = $this->getJson(route('api.feed', ['source' => 'invalid']));
+    $response->assertUnprocessable()
+        ->assertJsonValidationErrors(['source']);
+});
+
+test('the feed api rejects invalid since', function () {
+    $response = $this->getJson(route('api.feed', ['since' => '2d']));
+    $response->assertUnprocessable()
+        ->assertJsonValidationErrors(['since']);
+});
+
+test('the feed api returns empty array when no alerts match', function () {
+    $response = $this->getJson(route('api.feed'));
+    $response->assertOk()
+        ->assertJsonCount(0, 'data')
+        ->assertJsonPath('next_cursor', null);
+});
+
+test('the feed api combines multiple filters correctly', function () {
+    Carbon::setTestNow(Carbon::parse('2026-02-03 12:00:00'));
+
+    // Create active fire incident from 5 minutes ago
+    FireIncident::factory()->create([
+        'event_num' => 'F1',
+        'is_active' => true,
+        'dispatch_time' => Carbon::now()->subMinutes(5),
+        'event_type' => 'ALARM',
+    ]);
+
+    // Create cleared fire incident from 5 minutes ago
+    FireIncident::factory()->create([
+        'event_num' => 'F2',
+        'is_active' => false,
+        'dispatch_time' => Carbon::now()->subMinutes(5),
+        'event_type' => 'ALARM',
+    ]);
+
+    // Create active fire incident from 2 hours ago
+    FireIncident::factory()->create([
+        'event_num' => 'F3',
+        'is_active' => true,
+        'dispatch_time' => Carbon::now()->subHours(2),
+        'event_type' => 'ALARM',
+    ]);
+
+    $response = $this->getJson(route('api.feed', [
+        'status' => 'active',
+        'source' => 'fire',
+        'since' => '30m',
+    ]));
+
+    $response->assertOk();
+    $data = $response->json('data');
+    expect($data)->toHaveCount(1)
+        ->and($data[0]['external_id'])->toBe('F1');
+});
+
+test('the feed api is rate limited', function () {
+    // The route has throttle:120,1 middleware
+    $route = route('api.feed');
+
+    // First request should succeed
+    $response1 = $this->getJson($route);
+    $response1->assertOk();
+
+    // The rate limit is high (120 per minute), so we just verify the middleware is applied
+    // by checking the headers exist
+    expect($response1->headers->has('X-RateLimit-Limit'))->toBeTrue();
+});

@@ -2,45 +2,38 @@ import { Link, router } from '@inertiajs/react';
 import React, { useEffect, useMemo, useState } from 'react';
 import { formatTimeAgo } from '@/lib/utils';
 import { home } from '@/routes';
-import type { DomainAlert } from '../domain/alerts';
+import type { UnifiedAlertResource } from '../domain/alerts';
+import { useInfiniteScroll } from '../hooks/useInfiniteScroll';
 import { AlertCard } from './AlertCard';
 import { AlertTableView } from './AlertTableView';
 import { Icon } from './Icon';
 
-type FeedPagination = {
-    prevUrl: string | null;
-    nextUrl: string | null;
-    currentPage: number | null;
-    lastPage: number | null;
-    total: number | null;
-};
-
 interface FeedViewProps {
     searchQuery: string;
     onSelectAlert: (id: string) => void;
-    allAlerts: DomainAlert[];
+    initialAlerts: UnifiedAlertResource[];
+    initialNextCursor: string | null;
     latestFeedUpdatedAt: string | null;
     status?: 'all' | 'active' | 'cleared';
     source?: string | null;
     since?: string | null;
-    pagination?: FeedPagination;
 }
 
 export const FeedView: React.FC<FeedViewProps> = ({
     searchQuery,
     onSelectAlert,
-    allAlerts,
+    initialAlerts,
+    initialNextCursor,
     latestFeedUpdatedAt,
     status = 'all',
     source = null,
     since = null,
-    pagination,
 }) => {
     // State for Filters
     const [viewMode, setViewMode] = useState<'cards' | 'table'>('cards');
 
     // Loading state detection from Inertia router events
-    const [isLoading, setIsLoading] = useState(false);
+    const [isFilterLoading, setIsFilterLoading] = useState(false);
 
     useEffect(() => {
         const removeStartListener = router.on('start', (event) => {
@@ -49,11 +42,11 @@ export const FeedView: React.FC<FeedViewProps> = ({
                 event.detail.visit.only?.includes('alerts') ||
                 event.detail.visit.only?.includes('filters')
             ) {
-                setIsLoading(true);
+                setIsFilterLoading(true);
             }
         });
         const removeFinishListener = router.on('finish', () => {
-            setIsLoading(false);
+            setIsFilterLoading(false);
         });
 
         return () => {
@@ -62,8 +55,26 @@ export const FeedView: React.FC<FeedViewProps> = ({
         };
     }, []);
 
-    // Use server-provided alerts directly
-    const filteredItems = allAlerts;
+    // Infinite scroll hook
+    const {
+        alerts: allAlerts,
+        isLoading: isLoadingMore,
+        error: loadMoreError,
+        hasMore,
+        sentinelRef,
+    } = useInfiniteScroll({
+        initialAlerts,
+        initialNextCursor,
+        filters: {
+            status,
+            source,
+            q: searchQuery,
+            since,
+        },
+        apiUrl: '/api/feed',
+        rootMargin: '300px',
+    });
+
     const activeCategory = source || 'all';
 
     // Get Set of Saved IDs for efficient lookup
@@ -71,7 +82,7 @@ export const FeedView: React.FC<FeedViewProps> = ({
 
     // Handler for Reset
     const handleReset = () => {
-        if (isLoading) return;
+        if (isFilterLoading) return;
         router.get(
             home({
                 query: {
@@ -118,7 +129,7 @@ export const FeedView: React.FC<FeedViewProps> = ({
         { id: 'cleared', label: 'Cleared', icon: 'check_circle' },
     ];
 
-    const paginationTotal = pagination?.total;
+    const totalCount = allAlerts.length;
 
     return (
         <div className="flex h-full flex-col">
@@ -150,23 +161,21 @@ export const FeedView: React.FC<FeedViewProps> = ({
                                     preserveScroll
                                     preserveState
                                     only={['alerts', 'filters']}
-                                    disabled={isLoading}
+                                    disabled={isFilterLoading}
                                     className={`flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[11px] font-bold whitespace-nowrap transition-all ${
                                         status === opt.id
                                             ? 'border-white/20 bg-white/10 text-white'
                                             : 'border-white/10 bg-transparent text-text-secondary hover:border-white/20 hover:bg-white/5 hover:text-white'
-                                    } ${isLoading ? 'pointer-events-none opacity-50' : ''}`}
+                                    } ${isFilterLoading ? 'pointer-events-none opacity-50' : ''}`}
                                 >
                                     <Icon name={opt.icon} className="text-sm" />
                                     {opt.label}
                                 </Link>
                             ))}
                         </div>
-                        {typeof paginationTotal === 'number' && (
-                            <span className="ml-auto rounded-full border border-white/5 bg-white/5 px-2.5 py-1 text-[10px] text-text-secondary">
-                                {paginationTotal} total
-                            </span>
-                        )}
+                        <span className="ml-auto rounded-full border border-white/5 bg-white/5 px-2.5 py-1 text-[10px] text-text-secondary">
+                            {totalCount} loaded
+                        </span>
                     </div>
                 </div>
 
@@ -200,12 +209,12 @@ export const FeedView: React.FC<FeedViewProps> = ({
                                     preserveScroll
                                     preserveState
                                     only={['alerts', 'filters']}
-                                    disabled={isLoading}
+                                    disabled={isFilterLoading}
                                     className={`flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-medium whitespace-nowrap transition-all md:px-4 md:py-2 ${
                                         isSelected
                                             ? 'border-white/20 bg-white/10 text-white shadow-lg'
                                             : 'border-white/5 bg-surface-dark text-text-secondary hover:border-white/20 hover:bg-white/5 hover:text-white'
-                                    } ${isLoading ? 'pointer-events-none opacity-50' : ''}`}
+                                    } ${isFilterLoading ? 'pointer-events-none opacity-50' : ''}`}
                                 >
                                     <Icon name={cat.icon} className="text-lg" />
                                     {cat.label}
@@ -216,7 +225,7 @@ export const FeedView: React.FC<FeedViewProps> = ({
                 </div>
 
                 {/* Loading Indicator Row */}
-                {isLoading && (
+                {isFilterLoading && (
                     <div className="flex items-center gap-2 border-b border-white/5 bg-primary/10 px-4 py-1.5 md:px-6">
                         <span className="flex h-3 w-3 animate-pulse rounded-full bg-primary"></span>
                         <span className="text-[11px] font-medium text-primary">
@@ -235,7 +244,7 @@ export const FeedView: React.FC<FeedViewProps> = ({
                             </div>
                             <select
                                 value={since ?? 'all'}
-                                disabled={isLoading}
+                                disabled={isFilterLoading}
                                 onChange={(e) =>
                                     router.get(
                                         home({
@@ -283,7 +292,7 @@ export const FeedView: React.FC<FeedViewProps> = ({
                         {(since !== null || activeCategory !== 'all') && (
                             <button
                                 onClick={handleReset}
-                                disabled={isLoading}
+                                disabled={isFilterLoading}
                                 className="flex items-center gap-1 rounded px-2 py-1 text-xs font-medium text-coral transition-colors hover:bg-coral/10 hover:text-amber disabled:cursor-not-allowed disabled:opacity-50"
                             >
                                 <Icon name="restart_alt" className="text-sm" />
@@ -322,10 +331,10 @@ export const FeedView: React.FC<FeedViewProps> = ({
 
             {/* List Container */}
             <div
-                className={`relative flex-1 overflow-y-auto p-4 md:p-6 ${isLoading ? 'opacity-50' : 'opacity-100'} transition-opacity duration-200`}
+                className={`relative flex-1 overflow-y-auto p-4 md:p-6 ${isFilterLoading ? 'opacity-50' : 'opacity-100'} transition-opacity duration-200`}
             >
                 {/* Loading Overlay */}
-                {isLoading && (
+                {isFilterLoading && (
                     <div className="absolute inset-0 z-10 flex items-start justify-center pt-20">
                         <div className="flex items-center gap-2 rounded-lg border border-white/10 bg-surface-dark/90 px-4 py-3 shadow-lg backdrop-blur-sm">
                             <span className="flex h-4 w-4 animate-spin rounded-full border-2 border-white/20 border-t-primary"></span>
@@ -353,7 +362,7 @@ export const FeedView: React.FC<FeedViewProps> = ({
                     )}
 
                     {viewMode === 'cards' ? (
-                        filteredItems.map((item) => (
+                        allAlerts.map((item) => (
                             <AlertCard
                                 key={item.id}
                                 alert={item}
@@ -363,60 +372,50 @@ export const FeedView: React.FC<FeedViewProps> = ({
                         ))
                     ) : (
                         <AlertTableView
-                            items={filteredItems}
+                            items={allAlerts}
                             onSelectAlert={onSelectAlert}
                             savedIds={savedIds}
                         />
                     )}
 
-                    {pagination &&
-                        (pagination.prevUrl || pagination.nextUrl) && (
-                            <div className="mt-2 flex items-center justify-between border-t border-white/5 pt-4">
-                                <div className="text-xs text-text-secondary">
-                                    {pagination.currentPage !== null &&
-                                    pagination.lastPage !== null
-                                        ? `Page ${pagination.currentPage} of ${pagination.lastPage}`
-                                        : null}
+                    {/* Infinite Scroll Sentinel */}
+                    {allAlerts.length > 0 && (
+                        <div
+                            ref={sentinelRef}
+                            className="flex h-20 items-center justify-center"
+                        >
+                            {isLoadingMore && (
+                                <div className="flex items-center gap-2 text-text-secondary">
+                                    <span className="flex h-4 w-4 animate-spin rounded-full border-2 border-white/20 border-t-primary"></span>
+                                    <span className="text-sm">
+                                        Loading more...
+                                    </span>
                                 </div>
-                                <div className="flex gap-2">
-                                    {pagination.prevUrl ? (
-                                        <Link
-                                            href={pagination.prevUrl}
-                                            preserveScroll
-                                            preserveState
-                                            disabled={isLoading}
-                                            className={`rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-xs font-bold text-white/80 transition-colors hover:border-white/20 hover:bg-white/10 hover:text-white ${isLoading ? 'pointer-events-none opacity-50' : ''}`}
-                                        >
-                                            Previous
-                                        </Link>
-                                    ) : (
-                                        <span className="rounded-lg border border-white/5 bg-white/5 px-3 py-2 text-xs font-bold text-white/20 select-none">
-                                            Previous
-                                        </span>
-                                    )}
-
-                                    {pagination.nextUrl ? (
-                                        <Link
-                                            href={pagination.nextUrl}
-                                            preserveScroll
-                                            preserveState
-                                            disabled={isLoading}
-                                            className={`rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-xs font-bold text-white/80 transition-colors hover:border-white/20 hover:bg-white/10 hover:text-white ${isLoading ? 'pointer-events-none opacity-50' : ''}`}
-                                        >
-                                            Next
-                                        </Link>
-                                    ) : (
-                                        <span className="rounded-lg border border-white/5 bg-white/5 px-3 py-2 text-xs font-bold text-white/20 select-none">
-                                            Next
-                                        </span>
-                                    )}
+                            )}
+                            {!isLoadingMore && !hasMore && (
+                                <span className="text-xs text-text-secondary/50">
+                                    No more alerts
+                                </span>
+                            )}
+                            {loadMoreError && (
+                                <div className="flex flex-col items-center gap-2">
+                                    <span className="text-sm text-coral">
+                                        {loadMoreError}
+                                    </span>
+                                    <button
+                                        onClick={() => window.location.reload()}
+                                        className="text-xs text-primary hover:underline"
+                                    >
+                                        Reload page
+                                    </button>
                                 </div>
-                            </div>
-                        )}
+                            )}
+                        </div>
+                    )}
                 </div>
 
                 {/* Empty State */}
-                {filteredItems.length === 0 && (
+                {allAlerts.length === 0 && !isFilterLoading && (
                     <div className="flex animate-in flex-col items-center justify-center py-20 text-center duration-300 fade-in zoom-in">
                         <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-white/5">
                             <Icon
