@@ -84,7 +84,7 @@ This plan is aligned to `docs/tickets/FEED-001-server-side-filters-infinite-scro
 
 **Goal:** Make the live feed render the server-provided list and drive filters via URL params (shareable/bookmarkable), with good loading UX.
 
-- [x] Task: Update Alert Feed Component Structure [commit: TBD]
+- [x] Task: Update Alert Feed Component Structure [commit: 945dd56]
     - [x] Refactor `resources/js/features/gta-alerts/components/FeedView.tsx` (and/or `resources/js/features/gta-alerts/App.tsx`) to treat filters as server-driven props from Inertia (URL → controller → props → UI).
     - [x] Remove the "filter current page items" mental model:
         - [x] Stop using `AlertService.searchDomainAlerts()` for the live feed.
@@ -96,7 +96,7 @@ This plan is aligned to `docs/tickets/FEED-001-server-side-filters-infinite-scro
     - [x] Ensure browser back/forward restores the filter state from the URL.
     - [x] Ensure the "Reset" action clears query params and reloads the default feed.
 
-- [x] Task: Implement Filter UI Components [commit: TBD]
+- [x] Task: Implement Filter UI Components [commit: 945dd56]
     - [x] Add/Update Source selector (Dropdown or Tabs) to trigger server reload on change (`source=fire|police|transit|go_transit`).
         - [x] Note: `hazard` is not a unified alert source; do not model it as a server-side `source` filter.
     - [x] Add/Update Search Bar to trigger server reload (with ~300ms debounce) via `q`.
@@ -106,28 +106,29 @@ This plan is aligned to `docs/tickets/FEED-001-server-side-filters-infinite-scro
     - [x] Out of scope reminder:
         - [x] Do not add `start_date/end_date` or `start_time/end_time` pickers for FEED-001 unless the ticket scope expands beyond `since`.
 
-- [x] Task: Implement "Active/Resolved" Toggle (Status) [commit: TBD]
+- [x] Task: Implement "Active/Resolved" Toggle (Status) [commit: 945dd56]
     - [x] Ensure the existing Status UI cleanly maps to backend `status` (`all|active|cleared`).
     - [x] Preserve other active query params when toggling status.
 
-- [x] Task: Pagination Integration (URL + State Preservation) [commit: TBD]
+- [x] Task: Pagination Integration (URL + State Preservation) [commit: 945dd56]
     - [x] Ensure any remaining navigation links preserve active query parameters (`preserveState`, `preserveScroll` where appropriate).
     - [x] Verify filter changes do not accidentally drop other params (e.g., changing `source` keeps `status`, `q`, `since`).
     - [x] Note: "Load More" / infinite scroll is implemented in Phase 3; Phase 2 focuses on URL-driven filters.
 
-- [x] Task: Loading States & Feedback [commit: TBD]
+- [x] Task: Loading States & Feedback [commit: 945dd56]
     - [x] Implement visual loading indicators (Inertia progress + spinner/skeleton loader as needed).
     - [x] Disable/dim the feed while loading to make state changes clear.
     - [x] Keep/confirm "No Results" empty state includes a "Clear Filters" action.
 
-- [x] Task: Frontend - Partial Reloads (Performance) [commit: TBD]
+- [x] Task: Frontend - Partial Reloads (Performance) [commit: 945dd56]
     - [x] Use Inertia partial reloads (where appropriate) to refresh only the `alerts` prop and keep the rest of the page stable.
 
-- [x] Task: Testing - Phase 2 Verification [commit: TBD]
+- [x] Task: Testing - Phase 2 Verification [commit: 945dd56]
     - [x] Verify URL param changes always round-trip (UI state ↔ URL ↔ Inertia props).
     - [x] Verify status/source/since/q combinations return expected results (no page-scoped filtering).
 
-- [x] Task: Conductor - User Manual Verification 'Phase 2: Frontend URL Filters + UX' (Protocol in workflow.md) [commit: TBD]
+- [x] Task: Conductor - User Manual Verification 'Phase 2: Frontend URL Filters + UX' (Protocol in workflow.md) [commit: 945dd56]
+Manual verification summary (via `scripts/run-manual-test.sh`): dataset prep + URL echo checks completed, invalid params rejected, cleanup completed; log `storage/logs/manual_tests/feed_001_phase_2_frontend_url_filters_ux_2026_02_21_013435.log`.
 
 ## Phase 3: Infinite Scroll (Cursor-Based)
 
