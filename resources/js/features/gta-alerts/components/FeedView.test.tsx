@@ -6,9 +6,10 @@ import { FeedView } from './FeedView';
 
 // Mock Inertia's usePage hook
 vi.mock('@inertiajs/react', async () => {
-    const actual = await vi.importActual<typeof import('@inertiajs/react')>(
-        '@inertiajs/react',
-    );
+    const actual = (await vi.importActual('@inertiajs/react')) as {
+        usePage: () => { props: Record<string, unknown> };
+        router: { on: (...args: unknown[]) => unknown };
+    };
     return {
         ...actual,
         usePage: () => ({
