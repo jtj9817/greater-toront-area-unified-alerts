@@ -149,29 +149,74 @@ function assertEqual(mixed $actual, mixed $expected, string $label): void
     logInfo("Assertion passed: {$label}");
 }
 
+/**
+ * Executes a shell command and captures full output to a per-command log file.
+ *
+ * The manual test log stores only a short tail on failure; the full output is
+ * written to the command log file to simplify debugging.
+ */
 function runCommand(string $label, string $command): void
 {
-    logInfo("Running command: {$label}", ['command' => $command]);
+    $slug = strtolower($label);
+    $slug = preg_replace('/[^a-z0-9]+/', '_', $slug) ?: 'command';
+    $commandLogFileRelative = "storage/logs/manual_tests/command_output/{$slug}.log";
+    $commandLogFile = storage_path("logs/manual_tests/command_output/{$slug}.log");
+
+    $commandLogDir = dirname($commandLogFile);
+    if (! is_dir($commandLogDir) && ! mkdir($commandLogDir, 0775, true) && ! is_dir($commandLogDir)) {
+        throw new RuntimeException("Failed to create command log directory: {$commandLogDir}");
+    }
+
+    $handle = fopen($commandLogFile, 'ab');
+    if ($handle === false) {
+        throw new RuntimeException("Failed to open command log file: {$commandLogFile}");
+    }
+
+    $header = "\n".str_repeat('=', 80)."\n";
+    $header .= "COMMAND: {$label}\n";
+    $header .= 'CWD: '.base_path()."\n";
+    $header .= 'AT: '.Carbon::now()->toIso8601String()."\n";
+    $header .= "SHELL: bash -lc\n";
+    $header .= "RAW: {$command}\n";
+    $header .= str_repeat('=', 80)."\n";
+    fwrite($handle, $header);
+
+    logInfo("Running command: {$label}", [
+        'command' => $command,
+        'output_log' => $commandLogFileRelative,
+    ]);
 
     $process = new Process(['bash', '-lc', $command], base_path());
     $process->setTimeout(null);
 
-    $outputBuffer = '';
-    $process->run(function (string $type, string $output) use (&$outputBuffer): void {
-        $outputBuffer .= $output;
+    $tailBuffer = '';
+    $process->run(function (string $type, string $output) use (&$tailBuffer, $handle): void {
+        // Keep a bounded tail for error reporting without storing full output in memory.
+        $tailBuffer .= $output;
+        if (strlen($tailBuffer) > 20_000) {
+            $tailBuffer = substr($tailBuffer, -20_000);
+        }
+
+        fwrite($handle, $output);
         echo $output;
     });
+
+    fclose($handle);
 
     if (! $process->isSuccessful()) {
         logError("Command failed: {$label}", [
             'exit_code' => $process->getExitCode(),
-            'output_tail' => mb_substr($outputBuffer, -5000),
+            'output_log' => $commandLogFileRelative,
+            'output_tail' => mb_substr($tailBuffer, -5000),
         ]);
 
         throw new RuntimeException("Phase 4 quality gate failed at: {$label}");
     }
 
-    logInfo("Command succeeded: {$label}", ['exit_code' => $process->getExitCode()]);
+    logInfo("Command succeeded: {$label}", [
+        'exit_code' => $process->getExitCode(),
+        'output_log' => $commandLogFileRelative,
+    ]);
 }
 
 /**
