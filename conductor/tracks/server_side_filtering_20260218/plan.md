@@ -199,22 +199,23 @@ This plan is aligned to `docs/tickets/FEED-001-server-side-filters-infinite-scro
 
 **Goal:** Lock in correctness with a regression pass before writing final documentation.
 
-- [ ] Task: Coverage and Regression Verification
-    - [ ] Execute `composer test` and resolve FEED-001-related failures only.
-    - [ ] Execute `pnpm run lint`.
-    - [ ] Execute `pnpm run format` (only if touched files in `resources/` need formatting).
+- [x] Task: Coverage and Regression Verification [commit: a5dc03b]
+    - [x] Execute `composer test` and resolve FEED-001-related failures only.
+    - [x] Execute `pnpm run lint`.
+    - [x] Execute `pnpm run format` (only if touched files in `resources/` need formatting).
 
-- [ ] Task: Regression Checklist (Feature Behaviors)
-    - [ ] Verify server-side filters are authoritative (no page-scoped filtering):
-        - [ ] `status` + `source` + `since` + `q` combinations behave as expected.
-    - [ ] Verify infinite scroll behavior:
-        - [ ] appends batches deterministically with no duplicates
-        - [ ] handles “no more results”
-        - [ ] resets list + cursor when any filter changes
-    - [ ] Verify URL state is shareable and back/forward restores filters.
-    - [ ] Verify Cards/Table toggle remains client-side only.
+- [x] Task: Regression Checklist (Feature Behaviors) [commit: a5dc03b]
+    - [x] Verify server-side filters are authoritative (no page-scoped filtering):
+        - [x] `status` + `source` + `since` + `q` combinations behave as expected.
+    - [x] Verify infinite scroll behavior:
+        - [x] appends batches deterministically with no duplicates
+        - [x] handles “no more results”
+        - [x] resets list + cursor when any filter changes
+    - [x] Verify URL state is shareable and back/forward restores filters.
+    - [x] Verify Cards/Table toggle remains client-side only.
 
 - [ ] Task: Conductor - User Manual Verification 'Phase 4: Regression & Quality Gate' (Protocol in workflow.md)
+      Manual verification script created: `tests/manual/verify_feed_001_phase_4_regression_quality_gate.php` (execution pending Docker/Sail availability).
 
 ## Phase 5: Documentation
 
