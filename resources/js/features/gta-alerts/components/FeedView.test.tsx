@@ -1,7 +1,12 @@
-import { render, screen } from '@testing-library/react';
-import { describe, it, expect, vi } from 'vitest';
+import { fireEvent, render, screen } from '@testing-library/react';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import type { UnifiedAlertResource } from '../domain/alerts';
 import { FeedView } from './FeedView';
+
+const inertiaRouterMocks = vi.hoisted(() => ({
+    on: vi.fn(() => vi.fn()),
+    get: vi.fn(),
+}));
 
 // Mock Inertia's usePage hook
 vi.mock('@inertiajs/react', async () => {
@@ -18,12 +23,18 @@ vi.mock('@inertiajs/react', async () => {
         }),
         router: {
             ...actual.router,
-            on: vi.fn(() => vi.fn()),
+            on: inertiaRouterMocks.on,
+            get: inertiaRouterMocks.get,
         },
     };
 });
 
 describe('FeedView', () => {
+    beforeEach(() => {
+        inertiaRouterMocks.on.mockClear();
+        inertiaRouterMocks.get.mockClear();
+    });
+
     const timestamp = new Date('2026-02-03T12:00:00Z').toISOString();
 
     const mockUnified: UnifiedAlertResource[] = [
@@ -236,5 +247,25 @@ describe('FeedView', () => {
 
         expect(screen.getByText('Cards')).toBeInTheDocument();
         expect(screen.getByText('Table')).toBeInTheDocument();
+    });
+
+    it('keeps cards/table toggle client-side and does not trigger navigation', () => {
+        render(
+            <FeedView
+                searchQuery=""
+                onSelectAlert={() => {}}
+                initialAlerts={mockUnified}
+                initialNextCursor={null}
+                latestFeedUpdatedAt={new Date().toISOString()}
+                status="all"
+            />,
+        );
+
+        const callsBeforeToggle = inertiaRouterMocks.get.mock.calls.length;
+
+        fireEvent.click(screen.getByRole('button', { name: /Table/ }));
+        fireEvent.click(screen.getByRole('button', { name: /Cards/ }));
+
+        expect(inertiaRouterMocks.get).toHaveBeenCalledTimes(callsBeforeToggle);
     });
 });

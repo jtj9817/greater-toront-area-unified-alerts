@@ -263,12 +263,14 @@ test('the feed api returns empty array when no alerts match', function () {
 test('the feed api combines multiple filters correctly', function () {
     Carbon::setTestNow(Carbon::parse('2026-02-03 12:00:00'));
 
+    $searchToken = 'FEED001COMBINATIONTOKEN';
+
     // Create active fire incident from 5 minutes ago
     FireIncident::factory()->create([
         'event_num' => 'F1',
         'is_active' => true,
         'dispatch_time' => Carbon::now()->subMinutes(5),
-        'event_type' => 'ALARM',
+        'event_type' => "ALARM {$searchToken}",
     ]);
 
     // Create cleared fire incident from 5 minutes ago
@@ -291,6 +293,7 @@ test('the feed api combines multiple filters correctly', function () {
         'status' => 'active',
         'source' => 'fire',
         'since' => '30m',
+        'q' => $searchToken,
     ]));
 
     $response->assertOk();
