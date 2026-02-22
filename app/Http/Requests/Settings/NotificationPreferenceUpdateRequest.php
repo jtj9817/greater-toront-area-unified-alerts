@@ -18,6 +18,7 @@ class NotificationPreferenceUpdateRequest extends FormRequest
                 if (is_array($geofence) && isset($geofence['name']) && is_string($geofence['name'])) {
                     $geofence['name'] = strip_tags(trim($geofence['name']));
                 }
+
                 return $geofence;
             }, $this->input('geofences'));
         }

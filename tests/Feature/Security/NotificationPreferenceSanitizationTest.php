@@ -16,7 +16,7 @@ test('notification settings sanitizes geofence names to prevent Stored XSS', fun
                 'name' => '<script>alert("XSS")</script>Home',
                 'lat' => 43.7001,
                 'lng' => -79.4163,
-                'radius_km' => 2
+                'radius_km' => 2,
             ],
         ],
     ];
