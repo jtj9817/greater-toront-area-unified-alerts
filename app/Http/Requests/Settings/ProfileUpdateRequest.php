@@ -10,6 +10,16 @@ class ProfileUpdateRequest extends FormRequest
 {
     use ProfileValidationRules;
 
+    protected function prepareForValidation(): void
+    {
+        if ($this->has('name')) {
+            $this->merge([
+                // Sentinel: Sanitize name to prevent Stored XSS
+                'name' => strip_tags(trim((string) $this->input('name'))),
+            ]);
+        }
+    }
+
     /**
      * Get the validation rules that apply to the request.
      *
