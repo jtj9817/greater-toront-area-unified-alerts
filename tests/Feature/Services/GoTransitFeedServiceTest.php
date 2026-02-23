@@ -163,6 +163,42 @@ test('it strips html from message body', function () {
     expect($results['alerts'][0]['message_body'])->toBe('Delay on Lakeshore West line.Details');
 });
 
+test('it strips embedded style blocks and decodes html entities from message body', function () {
+    $json = [
+        'LastUpdated' => '2026-02-05T14:30:00-05:00',
+        'Trains' => ['Train' => []],
+        'Buses' => ['Bus' => []],
+        'Stations' => [
+            'Station' => [
+                [
+                    'Code' => 'AG',
+                    'Name' => 'Agincourt GO',
+                    'Notifications' => [
+                        'Notification' => [
+                            [
+                                'SubCategory' => 'SADIS',
+                                'MessageSubject' => 'Power outage at station',
+                                'MessageBody' => '<style type="text/css">.masteroverridePublic_En {font-family: "Arial" !important;font-size:10.5pt !important;}.masteroverridePublic_En p {font-family: "Arial" !important;font-size:10.5pt !important;}.masteroverridePublic_En div {font-family: "Arial" !important;font-size:10.5pt !important;}</style><div class="masteroverridePublic_En"><div><span style="font-size:10.5pt;font-family:&quot;Arial&quot;,sans-serif">Local power outage affecting your bus station.&nbsp;&nbsp;To purchase an e-ticket, click here.&nbsp;</span></div></div>',
+                                'PostedDateTime' => '02/05/2026 10:00:00',
+                                'Status' => 'INIT',
+                            ],
+                        ],
+                    ],
+                ],
+            ],
+        ],
+    ];
+
+    Http::fake([
+        '*' => Http::response($json, 200),
+    ]);
+
+    $results = app(GoTransitFeedService::class)->fetch();
+
+    expect($results['alerts'][0]['message_body'])
+        ->toBe('Local power outage affecting your bus station. To purchase an e-ticket, click here.');
+});
+
 test('it skips notifications without message subject', function () {
     config(['feeds.allow_empty_feeds' => true]);
 

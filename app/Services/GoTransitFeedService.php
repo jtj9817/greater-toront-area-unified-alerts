@@ -193,7 +193,7 @@ class GoTransitFeedService
             $externalId = 'notif:'.$code.':'.$subCategory.':'.md5($subject);
 
             $body = trim((string) ($notification['MessageBody'] ?? ''));
-            $body = $body !== '' ? strip_tags($body) : null;
+            $body = $body !== '' ? $this->stripHtmlToText($body) : null;
 
             $postedAt = trim((string) ($notification['PostedDateTime'] ?? ''));
 
@@ -295,6 +295,28 @@ class GoTransitFeedService
                 'posted_at' => $postedAt,
             ];
         }
+    }
+
+    /**
+     * Convert HTML to clean plaintext by stripping style/script blocks,
+     * tags, entities, and normalizing whitespace.
+     */
+    private function stripHtmlToText(string $html): ?string
+    {
+        // Remove <style> and <script> blocks (content + tags)
+        $text = preg_replace('/<style\b[^>]*>.*?<\/style>/si', '', $html);
+        $text = preg_replace('/<script\b[^>]*>.*?<\/script>/si', '', $text);
+
+        // Remove remaining HTML tags
+        $text = strip_tags($text);
+
+        // Decode HTML entities (&nbsp; → space, &amp; → &, etc.)
+        $text = html_entity_decode($text, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+
+        // Collapse whitespace runs (including non-breaking spaces) into single space and trim
+        $text = trim(preg_replace('/[\s\x{00A0}]+/u', ' ', $text));
+
+        return $text !== '' ? $text : null;
     }
 
     /**
