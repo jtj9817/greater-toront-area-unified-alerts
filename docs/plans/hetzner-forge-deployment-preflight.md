@@ -18,7 +18,7 @@
 | Web Server (Nginx) | ✅ Ready | Forge default config sufficient |
 | External APIs (feeds) | ✅ Ready | No API keys required |
 | Broadcasting (real-time) | ⚠ Ready with gaps | Choose Reverb or Pusher, configure env |
-| Mail / Transactional Email | ❌ Not configured | Must choose a provider and configure |
+| Mail / Transactional Email | ⚠ Deferred | Set `MAIL_MAILER=log` (no password resets) |
 | Storage | ✅ Ready | Run `storage:link` post-deploy |
 | Authentication (Fortify + 2FA) | ✅ Ready | Depends on mail being configured |
 | Security | ✅ Ready | Recommend adding security headers |
@@ -33,35 +33,7 @@
 
 ## Critical Blockers (Must Resolve Before First Deploy)
 
-### 1. Mail / Transactional Email — ❌ Not Configured
-
-The application uses email for password reset, email verification, and the daily digest feature. Currently `.env.example` defaults to `MAIL_MAILER=log`, which silently discards all mail.
-
-**Choose a provider and set these in Forge:**
-
-```env
-# Option A — Postmark (recommended, reliable deliverability)
-MAIL_MAILER=postmark
-POSTMARK_TOKEN=your-token
-
-# Option B — SMTP (e.g. Mailgun, SendGrid, or Resend)
-MAIL_MAILER=smtp
-MAIL_HOST=smtp.example.com
-MAIL_PORT=587
-MAIL_USERNAME=your-username
-MAIL_PASSWORD=your-password
-MAIL_ENCRYPTION=tls
-
-# Required regardless of provider
-MAIL_FROM_ADDRESS=alerts@your-domain.com
-MAIL_FROM_NAME="GTA Alerts"
-```
-
-**Impact if skipped:** Registration email verification will fail silently; password reset will not work; daily digest notifications will not be sent.
-
----
-
-### 2. Core Application Environment Variables — ⚠ Must Be Set in Forge
+### 1. Core Application Environment Variables — ⚠ Must Be Set in Forge
 
 Set these in Forge under **Environment → Edit Environment**:
 
@@ -92,7 +64,7 @@ LOG_LEVEL=warning
 
 ---
 
-### 3. Queue Worker — Must Add Forge Daemon
+### 2. Queue Worker — Must Add Forge Daemon
 
 The following jobs run via the queue and are critical to application function:
 
@@ -113,7 +85,7 @@ Without this, queued jobs will pile up indefinitely and feeds will never sync.
 
 ---
 
-### 4. Scheduler (Cron) — Must Add Forge Cron Entry
+### 3. Scheduler (Cron) — Must Add Forge Cron Entry
 
 The scheduler manages all timed data fetches and maintenance tasks. **Add in Forge → Scheduler:**
 
@@ -145,7 +117,7 @@ Forge translates this to the standard Laravel cron entry:
 
 ## High Priority (Configure Before Going Live)
 
-### 5. Broadcasting / Real-Time Notifications — ⚠ Needs Provider Choice
+### 4. Broadcasting / Real-Time Notifications — ⚠ Needs Provider Choice
 
 Notifications broadcast over WebSockets on a private channel (`private-users.{userId}.notifications`). The current default is `BROADCAST_CONNECTION=log` (dev-only no-op).
 
@@ -188,7 +160,7 @@ VITE_PUSHER_APP_CLUSTER="${PUSHER_APP_CLUSTER}"
 
 ---
 
-### 6. HTTPS / SSL Certificate — ✅ Forge Handles This
+### 5. HTTPS / SSL Certificate — ✅ Forge Handles This
 
 Forge integrates with Let's Encrypt. When adding your site:
 - Enable **Let's Encrypt** in Forge → SSL
@@ -199,7 +171,7 @@ No code changes required.
 
 ---
 
-### 7. Security Headers — ⚠ Not Configured in Codebase
+### 6. Security Headers — ⚠ Not Configured in Codebase
 
 The codebase has solid application-level security (CSRF, rate limiting, SQL parameterisation, no `APP_DEBUG` in production) but does not set HTTP security headers. Add these to the Forge Nginx config (**Edit Nginx Config** in Forge):
 
@@ -218,7 +190,7 @@ Place these inside the `server {}` block.
 
 ## Recommended Improvements (Not Blockers)
 
-### 8. Redis — Upgrade from Database Driver
+### 7. Redis — Upgrade from Database Driver
 
 The application defaults to the `database` driver for both queue and cache. This works but adds read/write load to MySQL under sustained use. Redis is already present in the development Docker Compose stack.
 
@@ -244,7 +216,7 @@ This is optional for initial launch but recommended if the queue worker processe
 
 ---
 
-### 9. Logging and Error Monitoring
+### 8. Logging and Error Monitoring
 
 **Set `LOG_LEVEL=warning` in production** to avoid verbose debug output filling disk.
 
@@ -264,7 +236,7 @@ SENTRY_LARAVEL_DSN=https://...@sentry.io/...
 
 ---
 
-### 10. Database Backups
+### 9. Database Backups
 
 Forge supports automated database backups (Forge → Backups). Configure:
 - **Frequency:** Daily
@@ -358,3 +330,23 @@ The feed ingestion jobs are I/O-bound (network fetches + DB upserts). CPU is les
 - **Docker/Sail not used in production:** Correct. Forge manages PHP-FPM, Nginx, and MySQL natively. Sail is development-only.
 - **Broadcast connection defaults to `log`:** Safe default. Broadcasting is an enhancement; the application is fully functional without it.
 - **`DB::prohibitDestructiveCommands(app()->isProduction())`** — already in `AppServiceProvider`. This will prevent accidental `migrate:fresh` or `db:wipe` in production.
+
+---
+
+## Deferred / Known Limitations
+
+### Mail / Transactional Email — ⚠ Skipped for Launch
+
+The application currently relies on in-app notifications and does not use email for core features. Password reset functionality will be unavailable.
+
+**Configuration in Forge:**
+Keep the default `log` driver to prevent errors if the app attempts to send mail.
+
+```env
+MAIL_MAILER=log
+```
+
+**Impact:**
+- **Password Reset:** Will not work. Users forgetting passwords will need admin intervention.
+- **Email Verification:** Will not work (but `MustVerifyEmail` is currently disabled in `User.php`).
+- **Daily Digest:** Will be generated as an in-app notification only.
