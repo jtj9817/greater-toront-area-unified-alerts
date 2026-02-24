@@ -41,7 +41,8 @@
     - [x] Sub-task: Add `@deprecated` docblocks to `ExportProductionData.php` and `VerifyProductionSeed.php`.
     - [x] Sub-task: Add deprecation notice to `scripts/generate-production-seed.sh`.
     - [x] Sub-task: Update `scripts/README.md` to document `db:export-sql`/`db:import-sql` and mark the seeder flow as superseded.
-- [ ] Task: Conductor - User Manual Verification 'Phase 3: Shell Scripting and Deprecation' (Protocol in workflow.md)
+- [~] Task: Conductor - User Manual Verification 'Phase 3: Shell Scripting and Deprecation' (Protocol in workflow.md; script: `tests/manual/verify_sql_export_pipeline_phase_3_shell_scripting_and_deprecation.php`)
+    - [x] Sub-task: Add manual verification script `tests/manual/verify_sql_export_pipeline_phase_3_shell_scripting_and_deprecation.php`.
 
 ## Phase 4: Quality & Documentation
 - [ ] Task: Verify test coverage.
