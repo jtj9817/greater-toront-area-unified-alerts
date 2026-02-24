@@ -194,6 +194,7 @@ $exitCode = 0;
 $txStarted = false;
 $defaultOutputPath = storage_path('app/alert-export.sql');
 $defaultOutputBackupPath = $workingDir.'/alert-export.sql.backup';
+$defaultOutputExistedBeforeRun = false;
 $defaultOutputBackedUp = false;
 
 try {
@@ -216,6 +217,7 @@ try {
     }
 
     if (file_exists($defaultOutputPath)) {
+        $defaultOutputExistedBeforeRun = true;
         $defaultContents = file_get_contents($defaultOutputPath);
         assertTrueManual($defaultContents !== false, 'existing default export file is readable before backup');
 
@@ -387,7 +389,7 @@ try {
         } catch (Throwable $restoreException) {
             logError('Failed to restore default export backup', ['message' => $restoreException->getMessage()]);
         }
-    } else {
+    } elseif (! $defaultOutputExistedBeforeRun) {
         @unlink($defaultOutputPath);
     }
 
