@@ -43,6 +43,10 @@ test('db export sql exports default tables with postgres upsert statements', fun
         expect($contents)->toContain('INSERT INTO "transit_alerts"');
         expect($contents)->toContain('INSERT INTO "go_transit_alerts"');
         expect($contents)->toContain('ON CONFLICT (id) DO NOTHING;');
+        expect($contents)->toContain("pg_get_serial_sequence('fire_incidents', 'id')");
+        expect($contents)->toContain("pg_get_serial_sequence('police_calls', 'id')");
+        expect($contents)->toContain("pg_get_serial_sequence('transit_alerts', 'id')");
+        expect($contents)->toContain("pg_get_serial_sequence('go_transit_alerts', 'id')");
         expect($contents)->not->toContain('`');
     } finally {
         @unlink($outputPath);
@@ -131,6 +135,8 @@ test('db export sql preserves null values and escapes single quotes correctly', 
         'prime_street' => null,
         'cross_streets' => "Queen's Quay & King's",
         'dispatch_time' => CarbonImmutable::parse('2026-02-20 12:34:56', 'UTC'),
+        'alarm_level' => 3,
+        'is_active' => false,
         'units_dispatched' => "P1,'P2'",
     ]);
 
@@ -148,6 +154,8 @@ test('db export sql preserves null values and escapes single quotes correctly', 
         expect($contents)->toContain("'O''HARA'");
         expect($contents)->toContain("'Queen''s Quay & King''s'");
         expect($contents)->toContain("'P1,''P2'''");
+        expect($contents)->toContain(', FALSE,');
+        expect($contents)->not->toContain(', 0,');
         expect($contents)->toContain('NULL');
         expect($contents)->not->toContain("'NULL'");
     } finally {

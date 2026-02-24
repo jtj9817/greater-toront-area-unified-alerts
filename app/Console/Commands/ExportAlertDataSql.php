@@ -223,12 +223,13 @@ class ExportAlertDataSql extends Command
             fn (string $column): string => $this->quoteIdentifier($column),
             $columns
         ));
+        $booleanColumns = $this->resolveBooleanColumns($table, $columns);
 
         $exported = 0;
 
         DB::table($table)
             ->orderBy('id')
-            ->chunkById($chunkSize, function ($rows) use ($columns, $quotedColumns, $quotedTable, &$exported, $write): void {
+            ->chunkById($chunkSize, function ($rows) use ($columns, $quotedColumns, $quotedTable, $booleanColumns, &$exported, $write): void {
                 if ($rows->isEmpty()) {
                     return;
                 }
@@ -239,7 +240,10 @@ class ExportAlertDataSql extends Command
                     $literals = [];
 
                     foreach ($columns as $column) {
-                        $literals[] = $this->toSqlLiteral($attributes[$column] ?? null);
+                        $literals[] = $this->toSqlLiteral(
+                            value: $attributes[$column] ?? null,
+                            treatAsBoolean: isset($booleanColumns[$column]),
+                        );
                     }
 
                     $valueRows[] = '('.implode(', ', $literals).')';
@@ -253,6 +257,8 @@ class ExportAlertDataSql extends Command
                 $exported += count($valueRows);
             }, 'id');
 
+        $write($this->buildSequenceResetStatement($table));
+
         return $exported;
     }
 
@@ -261,10 +267,41 @@ class ExportAlertDataSql extends Command
         return '"'.str_replace('"', '""', $identifier).'"';
     }
 
-    private function toSqlLiteral(mixed $value): string
+    private function buildSequenceResetStatement(string $table): string
+    {
+        $tableLiteral = str_replace("'", "''", $table);
+        $quotedTable = $this->quoteIdentifier($table);
+
+        return "SELECT setval(pg_get_serial_sequence('{$tableLiteral}', 'id'), COALESCE(MAX(\"id\"), 1), MAX(\"id\") IS NOT NULL) FROM {$quotedTable};\n\n";
+    }
+
+    /**
+     * @param  list<string>  $columns
+     * @return array<string, true>
+     */
+    private function resolveBooleanColumns(string $table, array $columns): array
+    {
+        $booleanColumns = [];
+
+        foreach ($columns as $column) {
+            $columnType = strtolower(Schema::getColumnType($table, $column));
+
+            if (in_array($columnType, ['bool', 'boolean'], true) || $column === 'is_active') {
+                $booleanColumns[$column] = true;
+            }
+        }
+
+        return $booleanColumns;
+    }
+
+    private function toSqlLiteral(mixed $value, bool $treatAsBoolean = false): string
     {
         if ($value === null) {
             return 'NULL';
+        }
+
+        if ($treatAsBoolean) {
+            return $this->toBooleanLiteral($value);
         }
 
         if (is_bool($value)) {
@@ -278,5 +315,30 @@ class ExportAlertDataSql extends Command
         $stringValue = str_replace("'", "''", (string) $value);
 
         return "'{$stringValue}'";
+    }
+
+    private function toBooleanLiteral(mixed $value): string
+    {
+        if (is_bool($value)) {
+            return $value ? 'TRUE' : 'FALSE';
+        }
+
+        if (is_int($value) || is_float($value)) {
+            return (int) $value === 0 ? 'FALSE' : 'TRUE';
+        }
+
+        if (is_string($value)) {
+            $normalized = strtolower(trim($value));
+
+            if (in_array($normalized, ['0', 'f', 'false', 'n', 'no', 'off'], true)) {
+                return 'FALSE';
+            }
+
+            if (in_array($normalized, ['1', 't', 'true', 'y', 'yes', 'on'], true)) {
+                return 'TRUE';
+            }
+        }
+
+        return (bool) $value ? 'TRUE' : 'FALSE';
     }
 }
