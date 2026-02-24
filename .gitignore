@@ -34,3 +34,5 @@ docker-compose.override.yml
 *_coverage_results.log
 pest_suite_results.log
 .fuse_hidden*
+
+/phase-commit-audit-skill
