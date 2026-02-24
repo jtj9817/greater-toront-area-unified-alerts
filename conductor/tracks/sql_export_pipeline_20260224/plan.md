@@ -17,19 +17,19 @@
     - [x] Sub-task: Add manual verification script `tests/manual/verify_sql_export_pipeline_phase_1_export_command_implementation.php`.
 
 ## Phase 2: Import Command Implementation
-- [ ] Task: Create `tests/Feature/ImportAlertDataSqlTest.php` to define expected behavior for `db:import-sql`.
-    - [ ] Sub-task: Test `--dry-run` rejecting DDL statements (`DROP`, `CREATE`, `ALTER`, etc.).
-    - [ ] Sub-task: Test failure when `psql` binary is missing.
-    - [ ] Sub-task: Test prompt confirmation vs `--force`.
-    - [ ] Sub-task: Test `.sql.gz` rejection with correct decompress-and-pipe hint.
-    - [ ] Sub-task: Test import refusal in `APP_ENV=testing` unless `--allow-testing` is set.
-- [ ] Task: Implement `app/Console/Commands/ImportAlertDataSql.php`.
-    - [ ] Sub-task: Build `Process::run` execution using `psql --file` (avoid reading SQL into PHP memory).
-    - [ ] Sub-task: Pass credentials via environment (`PGPASSWORD`) rather than CLI flags.
-    - [ ] Sub-task: Reject `.gz` inputs and print the exact `gunzip -c ... | psql ...` guidance.
-    - [ ] Sub-task: Implement `--dry-run` allowlist validation (`INSERT`, `SET`, comments) plus DDL rejection.
-    - [ ] Sub-task: Enforce strict execution logic including `--force` verification.
-    - [ ] Sub-task: Implement `--allow-testing` override for `*_testing` / `APP_ENV=testing`.
+- [x] [74126c4] Task: Create `tests/Feature/ImportAlertDataSqlTest.php` to define expected behavior for `db:import-sql`.
+    - [x] Sub-task: Test `--dry-run` rejecting DDL statements (`DROP`, `CREATE`, `ALTER`, etc.).
+    - [x] Sub-task: Test failure when `psql` binary is missing.
+    - [x] Sub-task: Test prompt confirmation vs `--force`.
+    - [x] Sub-task: Test `.sql.gz` rejection with correct decompress-and-pipe hint.
+    - [x] Sub-task: Test import refusal in `APP_ENV=testing` unless `--allow-testing` is set.
+- [x] [74126c4] Task: Implement `app/Console/Commands/ImportAlertDataSql.php`.
+    - [x] Sub-task: Build `Process::run` execution using `psql --file` (avoid reading SQL into PHP memory).
+    - [x] Sub-task: Pass credentials via environment (`PGPASSWORD`) rather than CLI flags.
+    - [x] Sub-task: Reject `.gz` inputs and print the exact `gunzip -c ... | psql ...` guidance.
+    - [x] Sub-task: Implement `--dry-run` allowlist validation (`INSERT`, `SET`, comments) plus DDL rejection.
+    - [x] Sub-task: Enforce strict execution logic including `--force` verification.
+    - [x] Sub-task: Implement `--allow-testing` override for `*_testing` / `APP_ENV=testing`.
 - [ ] Task: Conductor - User Manual Verification 'Phase 2: Import Command Implementation' (Protocol in workflow.md)
 
 ## Phase 3: Shell Scripting and Deprecation
