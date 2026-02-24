@@ -24,10 +24,6 @@ class ImportAlertDataSql extends Command
             $filePath = $this->resolveFilePath();
             $connection = $this->resolveDatabaseConnection();
             $database = $this->resolveConnectionValue($connection, 'database', 'database');
-            $host = $this->resolveConnectionValue($connection, 'host', 'host');
-            $port = $this->resolveConnectionValue($connection, 'port', 'port');
-            $username = $this->resolveConnectionValue($connection, 'username', 'username');
-            $password = (string) ($connection['password'] ?? '');
 
             if (! $this->option('allow-testing') && $this->isTestingTarget($database)) {
                 $this->error('Refusing to import while APP_ENV is testing. Re-run with --allow-testing to override.');
@@ -36,8 +32,11 @@ class ImportAlertDataSql extends Command
             }
 
             if (str_ends_with(strtolower($filePath), '.gz')) {
+                $hostForHint = $this->resolveConnectionValueOrDefault($connection, 'host', '<host>');
+                $portForHint = $this->resolveConnectionValueOrDefault($connection, 'port', '<port>');
+                $usernameForHint = $this->resolveConnectionValueOrDefault($connection, 'username', '<username>');
                 $this->error('Compressed SQL files are not supported by db:import-sql.');
-                $this->line("Use: gunzip -c {$filePath} | psql -h {$host} -p {$port} -U {$username} -d {$database}");
+                $this->line("Use: gunzip -c {$filePath} | psql -h {$hostForHint} -p {$portForHint} -U {$usernameForHint} -d {$database}");
 
                 return self::FAILURE;
             }
@@ -50,6 +49,11 @@ class ImportAlertDataSql extends Command
 
                 return self::SUCCESS;
             }
+
+            $host = $this->resolveConnectionValue($connection, 'host', 'host');
+            $port = $this->resolveConnectionValue($connection, 'port', 'port');
+            $username = $this->resolveConnectionValue($connection, 'username', 'username');
+            $password = (string) ($connection['password'] ?? '');
 
             if (! $this->option('force')) {
                 $confirmed = $this->confirm(
@@ -73,7 +77,7 @@ class ImportAlertDataSql extends Command
                 "--file={$filePath}",
             ];
 
-            $result = Process::env([
+            $result = Process::forever()->env([
                 'PGPASSWORD' => $password,
             ])->run($command);
 
@@ -168,6 +172,23 @@ class ImportAlertDataSql extends Command
 
         if ($resolved === '') {
             throw new RuntimeException("Import failed: database connection is missing {$label}.");
+        }
+
+        return $resolved;
+    }
+
+    private function resolveConnectionValueOrDefault(array $connection, string $key, string $default): string
+    {
+        $value = $connection[$key] ?? null;
+
+        if (! is_string($value) && ! is_int($value)) {
+            return $default;
+        }
+
+        $resolved = trim((string) $value);
+
+        if ($resolved === '') {
+            return $default;
         }
 
         return $resolved;

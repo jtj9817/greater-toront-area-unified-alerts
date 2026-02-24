@@ -23,11 +23,21 @@ function configureImportPostgresConnection(string $database = 'gta_alerts'): voi
     ]);
 }
 
+function configureImportSqliteConnection(): void
+{
+    config()->set('database.default', 'sqlite');
+    config()->set('database.connections.sqlite', [
+        'driver' => 'sqlite',
+        'database' => ':memory:',
+        'prefix' => '',
+    ]);
+}
+
 test('db import sql dry run rejects ddl statements', function () {
     configureImportPostgresConnection();
 
     $filePath = makeSqlImportPath(implode("\n", [
-        "-- GTA Alerts SQL Export",
+        '-- GTA Alerts SQL Export',
         "SET client_encoding = 'UTF8';",
         'INSERT INTO "fire_incidents" ("id") VALUES (1) ON CONFLICT (id) DO NOTHING;',
         'DROP TABLE fire_incidents;',
@@ -43,6 +53,28 @@ test('db import sql dry run rejects ddl statements', function () {
         ])
             ->expectsOutputToContain('Dry-run failed: DDL statements are not allowed')
             ->assertExitCode(1);
+
+        Process::assertNothingRan();
+    } finally {
+        @unlink($filePath);
+    }
+});
+
+test('db import sql dry run does not require postgres network credentials', function () {
+    configureImportSqliteConnection();
+
+    $filePath = makeSqlImportPath('INSERT INTO "fire_incidents" ("id") VALUES (1) ON CONFLICT (id) DO NOTHING;');
+
+    Process::fake();
+
+    try {
+        $this->artisan('db:import-sql', [
+            '--file' => $filePath,
+            '--dry-run' => true,
+            '--allow-testing' => true,
+        ])
+            ->expectsOutputToContain('Dry-run validation passed.')
+            ->assertExitCode(0);
 
         Process::assertNothingRan();
     } finally {
@@ -77,6 +109,7 @@ test('db import sql reports missing psql binary', function () {
 
             return $process->command[0] === 'psql'
                 && in_array('--file='.$filePath, $process->command, true)
+                && $process->timeout === null
                 && (($process->environment['PGPASSWORD'] ?? null) === 'super-secret');
         });
     } finally {
