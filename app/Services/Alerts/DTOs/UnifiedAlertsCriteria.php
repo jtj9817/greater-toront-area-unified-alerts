@@ -103,7 +103,8 @@ readonly class UnifiedAlertsCriteria
             return null;
         }
 
-        $normalized = trim($query);
+        // Sentinel: Sanitize query to prevent Stored XSS
+        $normalized = strip_tags(trim($query));
 
         return $normalized === '' ? null : $normalized;
     }
