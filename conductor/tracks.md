@@ -6,7 +6,8 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ## Active Tracks
 
-- None currently.
+- [ ] **Track: Replace PHP Seeder Export with SQL Dump Pipeline (Postgres)**
+*Link: [./tracks/sql_export_pipeline_20260224/](./tracks/sql_export_pipeline_20260224/)*
 
 ## Archived Tracks
 
