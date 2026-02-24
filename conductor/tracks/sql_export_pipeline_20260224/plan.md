@@ -1,18 +1,18 @@
 # Implementation Plan: Replace PHP Seeder Export with SQL Dump Pipeline
 
 ## Phase 1: Export Command Implementation
-- [ ] Task: Create `tests/Feature/ExportAlertDataSqlTest.php` to define expected behavior for `db:export-sql`.
-    - [ ] Sub-task: Test default table exports and correct Postgres SQL structure (`INSERT ... ON CONFLICT (id) DO NOTHING`).
-    - [ ] Sub-task: Test option flags (`--tables`, `--chunk`, `--compress`, `--no-header`).
-    - [ ] Sub-task: Test header presence (`SET client_encoding`, `SET TIME ZONE`) and omission via `--no-header`.
-    - [ ] Sub-task: Test `NULL` value handling and quoting edge cases.
-- [ ] Task: Implement `app/Console/Commands/ExportAlertDataSql.php`.
-    - [ ] Sub-task: Build core SQL generation loop iterating over chunks to prevent memory bloat.
-    - [ ] Sub-task: Ensure output uses Postgres UPSERT syntax (`INSERT INTO ... ON CONFLICT (id) DO NOTHING`).
-    - [ ] Sub-task: Emit a deterministic header block unless `--no-header` is set.
-    - [ ] Sub-task: Ensure identifiers are Postgres-compatible (no MySQL backticks).
-    - [ ] Sub-task: Wire up `--compress` logic to generate `.sql.gz`.
-    - [ ] Sub-task: Ensure default output targets `storage/app/alert-export.sql`.
+- [x] [14523d0] Task: Create `tests/Feature/ExportAlertDataSqlTest.php` to define expected behavior for `db:export-sql`.
+    - [x] Sub-task: Test default table exports and correct Postgres SQL structure (`INSERT ... ON CONFLICT (id) DO NOTHING`).
+    - [x] Sub-task: Test option flags (`--tables`, `--chunk`, `--compress`, `--no-header`).
+    - [x] Sub-task: Test header presence (`SET client_encoding`, `SET TIME ZONE`) and omission via `--no-header`.
+    - [x] Sub-task: Test `NULL` value handling and quoting edge cases.
+- [x] [14523d0] Task: Implement `app/Console/Commands/ExportAlertDataSql.php`.
+    - [x] Sub-task: Build core SQL generation loop iterating over chunks to prevent memory bloat.
+    - [x] Sub-task: Ensure output uses Postgres UPSERT syntax (`INSERT INTO ... ON CONFLICT (id) DO NOTHING`).
+    - [x] Sub-task: Emit a deterministic header block unless `--no-header` is set.
+    - [x] Sub-task: Ensure identifiers are Postgres-compatible (no MySQL backticks).
+    - [x] Sub-task: Wire up `--compress` logic to generate `.sql.gz`.
+    - [x] Sub-task: Ensure default output targets `storage/app/alert-export.sql`.
 - [ ] Task: Conductor - User Manual Verification 'Phase 1: Export Command Implementation' (Protocol in workflow.md)
 
 ## Phase 2: Import Command Implementation
