@@ -215,7 +215,7 @@ function runWithTimeoutManual(callable $callback, int $timeoutSeconds, string $l
 
 /**
  * @param  array<string, mixed>  $options
- * @param  int|null  $timeoutSeconds Optional override. Default timeout is applied for --force paths.
+ * @param  int|null  $timeoutSeconds  Optional override. Default timeout is applied for --force paths.
  * @return array{exit_code: int, output: string}
  */
 function runImportCommandManual(array $options, ?int $timeoutSeconds = null): array
@@ -500,7 +500,7 @@ try {
     config()->set('database.default', $originalDefaultConnection);
     config()->set('database.connections.pgsql', $originalPgsqlConnection);
     config()->set('database.connections.sqlite', $originalSqliteConnection);
-    Process::swap(new Factory());
+    Process::swap(new Factory);
 
     deleteDirectoryRecursivelyManual($workingDir);
 

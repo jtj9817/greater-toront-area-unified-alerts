@@ -119,6 +119,7 @@ if [[ ! -f "artisan" ]]; then
 fi
 
 ARTISAN_PREFIX=()
+AUTO_FALLBACK_TO_SAIL=0
 
 if [[ "${RUNNER_MODE}" == "sail" ]]; then
     if [[ ! -x "./vendor/bin/sail" ]]; then
@@ -135,9 +136,23 @@ elif [[ "${RUNNER_MODE}" == "local" ]]; then
 
     ARTISAN_PREFIX=("php" "artisan")
 else
+    local_runner_available=0
+    sail_runner_available=0
+
     if command -v php >/dev/null 2>&1 && php artisan --version >/dev/null 2>&1; then
+        local_runner_available=1
+    fi
+
+    if [[ -x "./vendor/bin/sail" ]]; then
+        sail_runner_available=1
+    fi
+
+    if [[ "${local_runner_available}" -eq 1 ]]; then
         ARTISAN_PREFIX=("php" "artisan")
-    elif [[ -x "./vendor/bin/sail" ]]; then
+        if [[ "${sail_runner_available}" -eq 1 ]]; then
+            AUTO_FALLBACK_TO_SAIL=1
+        fi
+    elif [[ "${sail_runner_available}" -eq 1 ]]; then
         ARTISAN_PREFIX=("./vendor/bin/sail" "artisan")
     else
         log_error "Unable to find a working Artisan runner. Install PHP locally or use --sail."
@@ -186,7 +201,17 @@ if [[ "${USE_NO_HEADER}" -eq 1 ]]; then
 fi
 
 log_info "Running db:export-sql..."
-run_artisan "${command_args[@]}"
+if ! run_artisan "${command_args[@]}"; then
+    if [[ "${AUTO_FALLBACK_TO_SAIL}" -eq 1 ]]; then
+        log_warn "Local export failed in auto mode; retrying with Sail."
+        ARTISAN_PREFIX=("./vendor/bin/sail" "artisan")
+        log_info "Using Artisan runner: ${ARTISAN_PREFIX[*]}"
+        run_artisan "${command_args[@]}"
+    else
+        log_error "db:export-sql failed using runner: ${ARTISAN_PREFIX[*]}"
+        exit 1
+    fi
+fi
 
 if [[ ! -f "${final_output_path}" ]]; then
     log_error "Expected export file was not generated: ${final_output_path}"
@@ -197,11 +222,14 @@ absolute_output_path="$(resolve_absolute_path "${final_output_path}")"
 file_size_bytes="$(wc -c < "${final_output_path}" | tr -d ' ')"
 file_name="$(basename "${final_output_path}")"
 checksum=""
+checksum_command=""
 
 if command -v sha256sum >/dev/null 2>&1; then
     checksum="$(sha256sum "${final_output_path}" | awk '{print $1}')"
+    checksum_command="sha256sum"
 elif command -v shasum >/dev/null 2>&1; then
     checksum="$(shasum -a 256 "${final_output_path}" | awk '{print $1}')"
+    checksum_command="shasum -a 256"
 fi
 
 echo
@@ -219,9 +247,9 @@ echo "1. Copy from source host to destination machine (run on destination):"
 echo "   scp <user>@<source-host>:${absolute_output_path} ./"
 echo "2. Verify checksum after transfer:"
 if [[ -n "${checksum}" ]]; then
-    echo "   sha256sum ${file_name}   # expected ${checksum}"
+    echo "   ${checksum_command} ${file_name}   # expected ${checksum}"
 else
-    echo "   sha256sum ${file_name}"
+    echo "   shasum -a 256 ${file_name}   # or sha256sum ${file_name}"
 fi
 echo "3. Import on destination host:"
 if [[ "${final_output_path}" == *.gz ]]; then
