@@ -30,7 +30,8 @@
     - [x] Sub-task: Implement `--dry-run` allowlist validation (`INSERT`, `SET`, comments) plus DDL rejection.
     - [x] Sub-task: Enforce strict execution logic including `--force` verification.
     - [x] Sub-task: Implement `--allow-testing` override for `*_testing` / `APP_ENV=testing`.
-- [ ] Task: Conductor - User Manual Verification 'Phase 2: Import Command Implementation' (Protocol in workflow.md)
+- [~] Task: Conductor - User Manual Verification 'Phase 2: Import Command Implementation' (Protocol in workflow.md; pending operator run, script: `tests/manual/verify_sql_export_pipeline_phase_2_import_command_implementation.php`)
+    - [x] Sub-task: Add manual verification script `tests/manual/verify_sql_export_pipeline_phase_2_import_command_implementation.php`.
 
 ## Phase 3: Shell Scripting and Deprecation
 - [ ] Task: Implement `scripts/export-alert-data.sh`.
