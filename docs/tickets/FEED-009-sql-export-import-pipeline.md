@@ -16,9 +16,9 @@ related_files:
 
 The current production data transfer mechanism (`db:export-to-seeder`) serialises all rows from the four alert tables into PHP seeder files using `var_export()`, commits those files to git, and then runs them on production via `php artisan db:seed`. This approach is functional but carries structural problems: database records do not belong in version control, PHP's `var_export()` format is verbose and slow to parse under load, and the 10 MB file-splitting logic is a symptom of a format that was not designed for bulk data transfer.
 
-The correct tool for moving relational data between MySQL instances is SQL. This ticket replaces the seeder-based workflow with two new artisan commands — `db:export-sql` and `db:import-sql` — that produce and consume a standard `.sql` dump file. The file is transferred out-of-band (SCP, Forge file manager, etc.) and never committed to git.
+The correct tool for moving relational data between PostgreSQL instances is SQL. This ticket replaces the seeder-based workflow with two new artisan commands — `db:export-sql` and `db:import-sql` — that produce and consume a standard `.sql` dump file. The file is transferred out-of-band (SCP, Forge file manager, etc.) and never committed to git.
 
-This is especially important now that the production database contains live records collected since deployment. The development database holds historical records captured during development. Merging both datasets requires an idempotent, conflict-safe mechanism. The PHP seeder uses `insertOrIgnore`, which achieves idempotency but at the cost of the format problems above. The SQL pipeline achieves the same idempotency via `INSERT INTO ... ON DUPLICATE KEY UPDATE id = id` while remaining portable, inspectable, and importable by native MySQL tooling without any Laravel runtime involvement.
+This is especially important now that the production database contains live records collected since deployment. The development database holds historical records captured during development. Merging both datasets requires an idempotent, conflict-safe mechanism. The PHP seeder uses `insertOrIgnore`, which achieves idempotency but at the cost of the format problems above. The SQL pipeline achieves the same idempotency via `INSERT INTO ... ON CONFLICT (id) DO NOTHING` while remaining portable, inspectable, and importable by native Postgres tooling (`psql`) without any Laravel runtime involvement.
 
 ## Problem Analysis
 
@@ -50,7 +50,7 @@ PHP's `var_export()` produces deeply indented array syntax with explicit key nam
 
 **3. PHP runtime required for import**
 
-Running the seeder requires a working Laravel installation (`composer install`, `.env`, `APP_KEY`, migrations) on the target machine before a single row can be inserted. A `.sql` file can be imported with only `mysql` — no PHP runtime, no framework, no environment configuration.
+Running the seeder requires a working Laravel installation (`composer install`, `.env`, `APP_KEY`, migrations) on the target machine before a single row can be inserted. A `.sql` file can be imported with only `psql` — no PHP runtime, no framework, no environment configuration.
 
 **4. No standalone import path**
 
@@ -60,9 +60,9 @@ The current codebase has no import command of any kind. The seeder is the only m
 
 Seeder files serialise column names as array keys at the time of export. If a column is renamed or dropped before the seeder is executed, the `insertOrIgnore` will silently drop mismatched columns or throw. SQL `INSERT INTO table (col1, col2, ...) VALUES (...)` has the same risk, but the failure mode is explicit and the fix (re-exporting) is obvious. PHP array files in git may sit for weeks before execution, accumulating drift silently.
 
-### Why `insertOrIgnore` / `ON DUPLICATE KEY UPDATE` Is Still Required
+### Why `insertOrIgnore` / `ON CONFLICT` Is Still Required
 
-Production already has live data. Development has historical data. The union of both is needed. Any import mechanism must be idempotent — re-running it must not duplicate rows or overwrite production data that was collected after the export was taken. Both the PHP seeder (`insertOrIgnore`) and the SQL pipeline (`ON DUPLICATE KEY UPDATE id = id`) achieve this. The SQL approach does so without changing the format.
+Production already has live data. Development has historical data. The union of both is needed. Any import mechanism must be idempotent — re-running it must not duplicate rows or overwrite production data that was collected after the export was taken. Both the PHP seeder (`insertOrIgnore`) and the SQL pipeline (`ON CONFLICT (id) DO NOTHING`) achieve this. The SQL approach does so without changing the format.
 
 ### Current Command Inventory
 
@@ -85,7 +85,7 @@ db:export-sql
     {--tables= : Comma-separated list of tables to export (default: all four alert tables)}
     {--chunk=500 : Rows per INSERT VALUES batch}
     {--compress : Gzip the output file (appends .gz extension)}
-    {--no-header : Omit the SQL file header (SET NAMES, FOREIGN_KEY_CHECKS)}
+    {--no-header : Omit the SQL file header (SET client_encoding, SET TIME ZONE)}
 ```
 
 **Output format:**
@@ -93,43 +93,42 @@ db:export-sql
 ```sql
 -- GTA Alerts SQL export
 -- Generated: 2026-02-24 14:30:00 UTC
--- Source: gta_alerts_dev (mysql, 127.0.0.1:3307)
+-- Source: gta_alerts_dev (pgsql, 127.0.0.1:5432)
 -- Tables: fire_incidents, police_calls, transit_alerts, go_transit_alerts
 
-SET NAMES utf8mb4;
-SET TIME_ZONE = '+00:00';
-SET FOREIGN_KEY_CHECKS = 0;
+SET client_encoding = 'UTF8';
+SET TIME ZONE 'UTC';
 
 --
 -- Table: fire_incidents (1 247 rows)
 --
 
-INSERT INTO `fire_incidents`
-    (`id`, `event_num`, `alarm_lev`, `event_type`, `address`, `lat`, `lng`,
-     `is_active`, `units`, `fire_station`, `fire_district`, `fire_num`,
-     `ext_updated_at`, `created_at`, `updated_at`)
+INSERT INTO fire_incidents
+    (id, event_num, alarm_lev, event_type, address, lat, lng,
+     is_active, units, fire_station, fire_district, fire_num,
+     ext_updated_at, created_at, updated_at)
 VALUES
     (1, 'F2026-0001', 1, 'Structure Fire', '123 Main St', 43.6532, -79.3832,
      1, 'P312 P314', '312', '4', NULL, '2026-02-24 12:00:00', '2026-02-24 12:00:00', '2026-02-24 12:01:00'),
     (2, 'F2026-0002', 2, 'Medical', '456 King St W', 43.6441, -79.3992,
      0, 'A241', '241', '3', NULL, '2026-02-24 11:45:00', '2026-02-24 11:45:00', '2026-02-24 12:05:00')
-ON DUPLICATE KEY UPDATE `id` = `id`;
+ON CONFLICT (id) DO NOTHING;
 
 --
 -- Table: police_calls (3 891 rows)
 --
 ...
 
-SET FOREIGN_KEY_CHECKS = 1;
+-- End export
 ```
 
 **Implementation notes:**
 
 - Value escaping: use `DB::connection()->getPdo()->quote($value)` for string/unknown types; emit the bare literal `NULL` (unquoted) for PHP `null` values; emit unquoted integers and floats for numeric columns.
-- Column names and table names are backtick-quoted.
+- Column names and table names are emitted unquoted (lowercase snake_case) for PostgreSQL compatibility.
 - Rows are grouped into batches of `--chunk` size per `VALUES` block. Each batch is a single `INSERT` statement, keeping individual statement sizes bounded.
-- `ON DUPLICATE KEY UPDATE id = id` is a MySQL no-op that satisfies the `INSERT ... ON DUPLICATE KEY` parser requirement without modifying any column. This makes every import idempotent.
-- The `--compress` flag pipes output through `gzencode()` before writing. The caller is responsible for decompressing before passing to `mysql`. Compression is not applied by default because `mysql` cannot read gzip natively.
+- `ON CONFLICT (id) DO NOTHING` makes every import idempotent without overwriting any existing row.
+- The `--compress` flag pipes output through `gzencode()` before writing. The caller is responsible for decompressing before passing to `psql`. Compression is not applied by default because `psql` cannot read gzip natively.
 - If `--output` points to `storage/app/`, the file is excluded from git via the existing `storage/app/.gitignore` (`*` / `!.gitignore`). Callers targeting other paths must ensure the file is not staged.
 
 **Chunking and memory:**
@@ -145,40 +144,38 @@ The existing `ExportProductionData.php` uses `chunkById()` to avoid loading full
 **Signature:**
 ```
 db:import-sql
-    {file : Path to the .sql file to import}
+    {--file= : Path to the .sql file to import}
     {--force : Skip confirmation prompt (required for non-interactive / CI use)}
     {--dry-run : Parse and validate the file without executing any statements}
 ```
 
 **Implementation approach:**
 
-The command shells out to the `mysql` CLI binary via Laravel's `Process` facade, passing connection parameters from the application's active database configuration:
+The command shells out to the `psql` CLI binary via Laravel's `Process` facade, passing connection parameters from the application's active database configuration. Passwords should not be passed via CLI flags; use `PGPASSWORD` (or a `.pgpass` file) for non-interactive runs.
 
 ```php
 $config = config('database.connections.' . config('database.default'));
 
 $command = [
-    'mysql',
+    'psql',
     '--host=' . $config['host'],
     '--port=' . $config['port'],
-    '--user=' . $config['username'],
-    '--password=' . $config['password'],
-    $config['database'],
+    '--username=' . $config['username'],
+    '--dbname=' . $config['database'],
+    '--set', 'ON_ERROR_STOP=1',
+    '--file', $file,
 ];
 
-$result = Process::pipe(function (Pipe $pipe) use ($command, $file) {
-    $pipe->command("cat {$file}");
-    $pipe->command($command);
-});
+$result = Process::env(['PGPASSWORD' => $config['password']])->run($command);
 ```
 
-This avoids reading the entire SQL file into PHP memory and delegates parsing and execution to the native MySQL client, which handles large files efficiently.
+This avoids reading the entire SQL file into PHP memory and delegates parsing and execution to the native Postgres client, which handles large files efficiently.
 
 **Dry-run mode:**
 
 When `--dry-run` is passed, the command reads the file in chunks and verifies:
 1. The file is readable and non-empty
-2. The header block is present (`SET NAMES`, `SET FOREIGN_KEY_CHECKS`)
+2. The header block is present (`SET client_encoding`, `SET TIME ZONE`) unless `--no-header` was used at export time
 3. Each `INSERT` statement references a known table (`fire_incidents`, `police_calls`, `transit_alerts`, `go_transit_alerts`)
 4. No statements other than `INSERT`, `SET`, and comments are present (reject DDL — `DROP`, `CREATE`, `ALTER`, `TRUNCATE` — to prevent accidental schema mutation)
 
@@ -239,12 +236,12 @@ Replaces `scripts/generate-production-seed.sh` for the production data transfer 
 | Export format | PHP `var_export()` array literals in `.php` files | SQL `INSERT INTO ... VALUES (...)` in a `.sql` file |
 | Export destination | `database/seeders/ProductionDataSeeder.php` (committed to git) | `storage/app/alert-export.sql` (gitignored) |
 | Transfer mechanism | `git push` / `git pull` | SCP, Forge file manager, or any file transfer |
-| Import mechanism | `php artisan db:seed --class=ProductionDataSeeder` | `php artisan db:import-sql --file=alert-export.sql` or `mysql < alert-export.sql` |
-| Laravel runtime required for import | Yes | No (for `mysql` direct import) |
+| Import mechanism | `php artisan db:seed --class=ProductionDataSeeder` | `php artisan db:import-sql --file=alert-export.sql` or `psql -f alert-export.sql` |
+| Laravel runtime required for import | Yes | No (for `psql` direct import) |
 | Git repository bloat | Grows with every export | None |
 | File size (approximate, 10k rows) | ~12–18 MB PHP text | ~4–7 MB SQL text |
 | DDL safety | No guard (seeder executes arbitrary PHP) | `db:import-sql` rejects DDL statements |
-| Idempotency | `insertOrIgnore` | `ON DUPLICATE KEY UPDATE id = id` |
+| Idempotency | `insertOrIgnore` | `ON CONFLICT (id) DO NOTHING` |
 
 ### What Does NOT Change
 
@@ -270,25 +267,25 @@ The export writes sequentially to a single file handle. If disk space is exhaust
 
 **Timestamp and datetime columns**
 
-Laravel stores `created_at`/`updated_at` as strings in the format `Y-m-d H:i:s`. These are retrieved as strings from `getAttributes()` and quoted as strings in the SQL output. MySQL accepts this format natively. No conversion is required.
+Laravel stores `created_at`/`updated_at` as strings in the format `Y-m-d H:i:s`. These are retrieved as strings from `getAttributes()` and quoted as strings in the SQL output. PostgreSQL accepts this format natively. No conversion is required.
 
 **Binary or non-UTF-8 data**
 
-The `SET NAMES utf8mb4` header at the top of the export file sets the client character set for the import session. All four alert tables use `utf8mb4`. If any column contains non-UTF-8 binary data (unexpected but possible in scrape targets like `TransitAlert.description`), `PDO::quote()` will still escape it correctly because it operates on the raw byte string. The import will succeed if the column is declared as a binary or blob type; it may produce incorrect results if the column is declared as `VARCHAR CHARACTER SET utf8mb4` and the data contains invalid sequences.
+The `SET client_encoding = 'UTF8'` header at the top of the export file sets the client encoding for the import session. PostgreSQL databases are typically created with UTF-8 encoding. If any column contains non-UTF-8 byte sequences in a text column (unexpected but possible in scrape targets like `TransitAlert.description`), `PDO::quote()` will still escape it correctly because it operates on the raw byte string, but the insert may fail due to invalid encoding.
 
-**`db:import-sql` without `mysql` binary**
+**`db:import-sql` without `psql` binary**
 
-If the `mysql` CLI is not available in the execution environment (e.g., a minimal Docker image with only PHP), `db:import-sql` fails at process spawn. The error message must explicitly state that the `mysql` binary is required and suggest `./vendor/bin/sail artisan db:import-sql` as an alternative that runs inside the Sail container where `mysql` is available.
+If the `psql` CLI is not available in the execution environment (e.g., a minimal Docker image with only PHP), `db:import-sql` fails at process spawn. The error message must explicitly state that the `psql` binary is required and suggest `./vendor/bin/sail artisan db:import-sql` as an alternative that runs inside the Sail container where `psql` is available.
 
 **Concurrent imports**
 
-Two simultaneous `db:import-sql` executions against the same target database will not produce duplicates because `ON DUPLICATE KEY UPDATE id = id` is applied at the MySQL level. However, concurrent imports of the same file will produce redundant I/O. No application-level locking is implemented; this is considered an operator concern.
+Two simultaneous `db:import-sql` executions against the same target database will not produce duplicates because `ON CONFLICT (id) DO NOTHING` is applied at the Postgres level. However, concurrent imports of the same file will produce redundant I/O. No application-level locking is implemented; this is considered an operator concern.
 
-**`--compress` with direct `mysql` import**
+**`--compress` with direct `psql` import**
 
-The `mysql` CLI does not natively decompress gzip. Callers must decompress before importing:
+The `psql` CLI does not natively decompress gzip. Callers must decompress before importing:
 ```bash
-gunzip -c alert-export.sql.gz | mysql -u user -p database
+gunzip -c alert-export.sql.gz | psql -h host -p 5432 -U user -d database
 ```
 The `db:import-sql` command does not support `.gz` files. If a compressed file is passed, the command detects the `.gz` extension and emits an error with the correct decompress-and-pipe invocation.
 
@@ -296,7 +293,7 @@ The `db:import-sql` command does not support `.gz` files. If a compressed file i
 
 ## Acceptance Criteria
 
-- [ ] `php artisan db:export-sql` produces a valid `.sql` file containing `INSERT INTO ... ON DUPLICATE KEY UPDATE id = id` statements for all four alert tables
+- [ ] `php artisan db:export-sql` produces a valid `.sql` file containing `INSERT INTO ... ON CONFLICT (id) DO NOTHING` statements for all four alert tables
 - [ ] Exported SQL file is written to `storage/app/alert-export.sql` by default and is absent from git tracking
 - [ ] `php artisan db:export-sql --tables=fire_incidents` exports only the specified table
 - [ ] `php artisan db:export-sql --compress` produces a `.sql.gz` file
@@ -304,11 +301,11 @@ The `db:import-sql` command does not support `.gz` files. If a compressed file i
 - [ ] `php artisan db:import-sql --dry-run --file=alert-export.sql` validates the file without executing any SQL
 - [ ] `db:import-sql` rejects files containing `DROP TABLE`, `CREATE TABLE`, `ALTER TABLE`, or `TRUNCATE` statements
 - [ ] `db:import-sql` prompts for confirmation when `--force` is not provided
-- [ ] Importing the same file twice does not duplicate rows (`ON DUPLICATE KEY UPDATE` is idempotent)
+- [ ] Importing the same file twice does not duplicate rows (`ON CONFLICT` is idempotent)
 - [ ] Importing into a database that already has live records preserves the live records (no row is overwritten by the import)
 - [ ] `NULL` values in nullable columns are correctly emitted as the SQL literal `NULL` (not `''` or `'NULL'`)
 - [ ] `scripts/export-alert-data.sh --sail` runs the export inside the Sail container and prints transfer instructions
 - [ ] `scripts/generate-production-seed.sh` emits a deprecation notice directing users to `scripts/export-alert-data.sh`
 - [ ] `ExportProductionData` and `VerifyProductionSeed` classes carry `@deprecated` docblocks
 - [ ] Feature tests cover: export produces valid SQL, import dry-run rejects DDL, import dry-run accepts valid export, null column handling
-- [ ] `composer run test` passes clean
+- [ ] `composer test` passes clean
