@@ -4,14 +4,18 @@ set -euo pipefail
 usage() {
   cat <<'EOF'
 Usage:
-  ./scripts/pg-backup.sh [--out-dir DIR] [--name NAME] [--format {custom|plain}]
-                        [--host HOST] [--port PORT] [--db DATABASE]
-                        [--user USER] [--password PASSWORD]
+  ./scripts/mysql-backup.sh [--out-dir DIR] [--name NAME] [--compress]
+                            [--host HOST] [--port PORT] [--db DATABASE]
+                            [--user USER] [--password PASSWORD]
 
 Defaults:
-  - Reads DB_* from .env when present (DB_CONNECTION must be pgsql).
+  - Reads DB_* from .env when present (DB_CONNECTION must be mysql/mariadb).
   - Writes to storage/app/private/db-backups (gitignored).
-  - Uses custom format (.dump) by default.
+  - Output is a single .sql file (optionally gzipped).
+
+Notes:
+  - Uses --single-transaction for consistent InnoDB dumps.
+  - Does not embed secrets in the output file name.
 EOF
 }
 
@@ -51,7 +55,7 @@ load_env_file() {
 
 OUT_DIR=""
 NAME=""
-FORMAT="custom"
+COMPRESS=0
 DB_HOST=""
 DB_PORT=""
 DB_DATABASE=""
@@ -63,7 +67,7 @@ while [[ $# -gt 0 ]]; do
     -h|--help) usage; exit 0 ;;
     --out-dir) OUT_DIR="${2:-}"; shift 2 ;;
     --name) NAME="${2:-}"; shift 2 ;;
-    --format) FORMAT="${2:-}"; shift 2 ;;
+    --compress) COMPRESS=1; shift 1 ;;
     --host) DB_HOST="${2:-}"; shift 2 ;;
     --port) DB_PORT="${2:-}"; shift 2 ;;
     --db) DB_DATABASE="${2:-}"; shift 2 ;;
@@ -78,15 +82,18 @@ cd "$ROOT"
 
 load_env_file "$ROOT/.env"
 
-if [[ "${DB_CONNECTION:-}" != "pgsql" ]]; then
-  echo "Refusing to run: DB_CONNECTION is '${DB_CONNECTION:-<unset>}' (expected 'pgsql')." >&2
-  echo "Set Postgres connection vars or pass --host/--port/--db/--user/--password explicitly." >&2
-  exit 3
-fi
+case "${DB_CONNECTION:-}" in
+  mysql|mariadb) ;;
+  *)
+    echo "Refusing to run: DB_CONNECTION is '${DB_CONNECTION:-<unset>}' (expected 'mysql' or 'mariadb')." >&2
+    echo "Set MySQL connection vars or pass --host/--port/--db/--user/--password explicitly." >&2
+    exit 3
+    ;;
+esac
 
-if ! command -v pg_dump >/dev/null 2>&1; then
-  echo "pg_dump not found in PATH." >&2
-  echo "Install PostgreSQL client tools (pg_dump/psql) or run this on a host that has them." >&2
+if ! command -v mysqldump >/dev/null 2>&1; then
+  echo "mysqldump not found in PATH." >&2
+  echo "Install MySQL client tools (mysqldump/mysql) or run this on a host that has them." >&2
   exit 4
 fi
 
@@ -98,39 +105,50 @@ if [[ -z "$OUT_DIR" ]]; then
 fi
 mkdir -p "$OUT_DIR"
 
-ext="dump"
-pg_format_arg=(-F c -Z 9)
-if [[ "$FORMAT" == "plain" ]]; then
-  ext="sql"
-  pg_format_arg=(-F p)
-elif [[ "$FORMAT" != "custom" ]]; then
-  echo "Invalid --format '$FORMAT' (expected 'custom' or 'plain')." >&2
-  exit 2
+ext="sql"
+if [[ "$COMPRESS" -eq 1 ]]; then
+  ext="sql.gz"
 fi
 
 if [[ -z "$NAME" ]]; then
-  NAME="pgdump_${db_safe}_${timestamp}.${ext}"
+  NAME="mysqldump_${db_safe}_${timestamp}.${ext}"
 else
   NAME="$(sanitize "$NAME")"
 fi
 
 out_path="$OUT_DIR/$NAME"
 
-pg_args=(
+dump_args=(
   --host "${DB_HOST:?DB_HOST is required}"
   --port "${DB_PORT:?DB_PORT is required}"
-  --username "${DB_USERNAME:?DB_USERNAME is required}"
-  --no-owner
-  --no-privileges
-  "${pg_format_arg[@]}"
-  --file "$out_path"
-  "${DB_DATABASE:?DB_DATABASE is required}"
+  --user "${DB_USERNAME:?DB_USERNAME is required}"
+  --single-transaction
+  --quick
+  --skip-lock-tables
+  --set-gtid-purged=OFF
+  --databases "${DB_DATABASE:?DB_DATABASE is required}"
 )
 
+tmp_out="$out_path.tmp"
+rm -f "$tmp_out"
+
+cleanup() {
+  rm -f "$tmp_out"
+}
+trap cleanup EXIT
+
 if [[ -n "${DB_PASSWORD:-}" ]]; then
-  PGPASSWORD="$DB_PASSWORD" pg_dump "${pg_args[@]}"
-else
-  pg_dump "${pg_args[@]}"
+  # MYSQL_PWD avoids exposing the password via argv; still visible to same-user processes.
+  export MYSQL_PWD="$DB_PASSWORD"
 fi
+
+if [[ "$COMPRESS" -eq 1 ]]; then
+  mysqldump "${dump_args[@]}" | gzip -c >"$tmp_out"
+else
+  mysqldump "${dump_args[@]}" >"$tmp_out"
+fi
+
+mv -f "$tmp_out" "$out_path"
+trap - EXIT
 
 echo "Wrote backup: $out_path"
