@@ -13,7 +13,8 @@
     - [x] Sub-task: Ensure identifiers are Postgres-compatible (no MySQL backticks).
     - [x] Sub-task: Wire up `--compress` logic to generate `.sql.gz`.
     - [x] Sub-task: Ensure default output targets `storage/app/alert-export.sql`.
-- [ ] Task: Conductor - User Manual Verification 'Phase 1: Export Command Implementation' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 1: Export Command Implementation' (Protocol in workflow.md; verified 2026-02-24, script: `tests/manual/verify_sql_export_pipeline_phase_1_export_command_implementation.php`, log: `storage/logs/manual_tests/sql_export_pipeline_phase_1_export_command_implementation_2026_02_24_192527.log`)
+    - [x] Sub-task: Add manual verification script `tests/manual/verify_sql_export_pipeline_phase_1_export_command_implementation.php`.
 
 ## Phase 2: Import Command Implementation
 - [ ] Task: Create `tests/Feature/ImportAlertDataSqlTest.php` to define expected behavior for `db:import-sql`.
