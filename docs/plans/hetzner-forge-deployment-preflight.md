@@ -249,35 +249,21 @@ Hetzner also offers VPS snapshots at the infrastructure level — enable those a
 
 ## Deployment Script
 
+We have added a custom deployment script in version control that correctly compiles the React/Inertia frontend using `pnpm`.
+
 Configure this as your **Forge Deploy Script** (Site → Deployment → Deploy Script):
 
 ```bash
 cd /home/forge/your-site
+git pull origin $FORGE_SITE_BRANCH
 
-# Install PHP dependencies (no dev, optimized autoloader)
-composer install --no-dev --optimize-autoloader --no-interaction
-
-# Install and build frontend assets
-pnpm install --frozen-lockfile
-pnpm run build
-
-# Cache configuration for production performance
-php artisan config:cache
-php artisan route:cache
-php artisan view:cache
-php artisan event:cache
-
-# Run any pending database migrations
-php artisan migrate --force
-
-# Ensure public storage symlink exists
-php artisan storage:link
-
-# Reload queue workers to pick up new code
-php artisan queue:restart
+# Delegate to the version-controlled script
+bash scripts/forge-deploy.sh
 ```
 
-> **Note:** `php artisan storage:link` is idempotent — it is safe to run on every deploy.
+This ensures that Forge will install `pnpm` dependencies, build the React components, run migrations, and safely reload PHP and the queue workers.
+
+> **Note:** Ensure `pnpm` is installed globally on your Forge server (e.g., `npm install -g pnpm`) if it isn't already.
 
 ---
 
