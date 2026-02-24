@@ -469,3 +469,24 @@ test('the home page handles empty filters gracefully', function () {
             ->has('alerts.data', 1)
         );
 });
+
+test('the home page returns empty results for short queries', function () {
+    FireIncident::factory()->create([
+        'event_num' => 'E1',
+        'event_type' => 'ALARM',
+        'prime_street' => 'Yonge St',
+    ]);
+
+    $this->get(route('home', ['q' => 'y']))
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('filters.q', 'y')
+            ->has('alerts.data', 0)
+        );
+});
+
+test('the home page sanitizes search query', function () {
+    $this->get(route('home', ['q' => '<script>alert(1)</script>']))
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('filters.q', 'alert(1)')
+        );
+});

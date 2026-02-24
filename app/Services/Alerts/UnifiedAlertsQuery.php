@@ -24,6 +24,17 @@ class UnifiedAlertsQuery
 
     public function paginate(UnifiedAlertsCriteria $criteria): LengthAwarePaginator
     {
+        // Sentinel: Prevent expensive queries by requiring at least 2 characters
+        if ($criteria->query !== null && mb_strlen($criteria->query) < 2) {
+            return new LengthAwarePaginator(
+                items: [],
+                total: 0,
+                perPage: $criteria->perPage,
+                currentPage: $criteria->page ?? Paginator::resolveCurrentPage(),
+                options: ['path' => Paginator::resolveCurrentPath()],
+            );
+        }
+
         $union = $this->unionSelect($criteria);
 
         if ($union === null) {
@@ -55,6 +66,11 @@ class UnifiedAlertsQuery
      */
     public function cursorPaginate(UnifiedAlertsCriteria $criteria): array
     {
+        // Sentinel: Prevent expensive queries by requiring at least 2 characters
+        if ($criteria->query !== null && mb_strlen($criteria->query) < 2) {
+            return ['items' => [], 'next_cursor' => null];
+        }
+
         $union = $this->unionSelect($criteria);
 
         if ($union === null) {

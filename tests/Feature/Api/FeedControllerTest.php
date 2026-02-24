@@ -314,3 +314,14 @@ test('the feed api is rate limited', function () {
     // by checking the headers exist
     expect($response1->headers->has('X-RateLimit-Limit'))->toBeTrue();
 });
+
+test('the feed api returns empty array for short search query', function () {
+    FireIncident::factory()->create([
+        'event_num' => 'F1',
+        'event_type' => 'ALARM',
+    ]);
+
+    $response = $this->getJson(route('api.feed', ['q' => 'a']));
+    $response->assertOk()
+        ->assertJsonCount(0, 'data');
+});
