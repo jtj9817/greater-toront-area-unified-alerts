@@ -5,6 +5,9 @@ namespace App\Console\Commands;
 use Illuminate\Console\Command;
 use RuntimeException;
 
+/**
+ * @deprecated 2026-02-24 Seeder export verification is superseded by the SQL workflow (`db:export-sql` / `db:import-sql`).
+ */
 class VerifyProductionSeed extends Command
 {
     protected $signature = 'db:verify-production-seed

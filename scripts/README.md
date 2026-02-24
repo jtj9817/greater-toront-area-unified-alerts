@@ -1,4 +1,39 @@
-# Phase Audit Scripts
+# Scripts Guide
+
+## SQL Export Pipeline (Preferred)
+
+Use the SQL workflow for production data transfer:
+
+```bash
+# Export SQL (native PHP runner auto-detected)
+./scripts/export-alert-data.sh
+
+# Export SQL through Sail and gzip the output
+./scripts/export-alert-data.sh --sail --compress
+
+# Import exported SQL on the destination host
+php artisan db:import-sql --file=/path/to/alert-export.sql --force
+```
+
+If your export file is compressed (`.sql.gz`), `db:import-sql` intentionally rejects it.
+Decompress first:
+
+```bash
+gunzip -c alert-export.sql.gz > alert-export.sql
+php artisan db:import-sql --file=/path/to/alert-export.sql --force
+```
+
+## Legacy Seeder Workflow (Deprecated)
+
+The seeder-based workflow remains available for compatibility but is superseded:
+
+- `php artisan db:export-to-seeder`
+- `php artisan db:verify-production-seed`
+- `./scripts/generate-production-seed.sh`
+
+Use the SQL workflow above for all new export/import operations.
+
+## Phase Audit Scripts
 
 Automated commit auditing and analysis tools.
 
@@ -100,4 +135,3 @@ Warns if PHASE_AUDIT.md is not current before pushing
 - Add [skip-audit] to meta commits (docs, chores)
 - Run full audit after completing each phase
 - Use JSON export to provide context to AI agents
-

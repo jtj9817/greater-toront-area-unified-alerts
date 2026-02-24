@@ -16,6 +16,9 @@ usage() {
     cat <<'USAGE'
 Usage: ./scripts/generate-production-seed.sh [options]
 
+DEPRECATED: This workflow is superseded by SQL export/import.
+Use ./scripts/export-alert-data.sh + php artisan db:import-sql for new transfers.
+
 Generates production seeders from current alert tables, verifies them,
 and optionally stages/commits generated seeder files.
 
@@ -165,6 +168,8 @@ log_info "Using Artisan runner: ${ARTISAN_PREFIX[*]}"
 log_info "Export path: ${OUTPUT_PATH}"
 log_info "Chunk size: ${CHUNK_SIZE}"
 log_info "Max bytes per file: ${MAX_BYTES}"
+log_warn "DEPRECATED: Seeder export workflow is superseded."
+log_warn "Use ./scripts/export-alert-data.sh and db:import-sql for new data transfers."
 
 log_info "Running db:export-to-seeder..."
 run_artisan db:export-to-seeder --path="${OUTPUT_PATH}" --chunk="${CHUNK_SIZE}" --max-bytes="${MAX_BYTES}"

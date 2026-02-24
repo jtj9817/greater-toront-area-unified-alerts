@@ -11,6 +11,9 @@ use Illuminate\Database\Eloquent\Model;
 use RuntimeException;
 use Throwable;
 
+/**
+ * @deprecated 2026-02-24 Use `db:export-sql` (or `scripts/export-alert-data.sh`) instead of seeder exports.
+ */
 class ExportProductionData extends Command
 {
     private const DEFAULT_CHUNK_SIZE = 500;
