@@ -6,10 +6,12 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ## Active Tracks
 
-- [ ] **Track: Replace PHP Seeder Export with SQL Dump Pipeline (Postgres)**
-*Link: [./tracks/sql_export_pipeline_20260224/](./tracks/sql_export_pipeline_20260224/)*
+- None.
 
 ## Archived Tracks
+
+- [x] **Track: Replace PHP Seeder Export with SQL Dump Pipeline (Postgres)**
+*Link: [./archive/sql_export_pipeline_20260224/](./archive/sql_export_pipeline_20260224/)*
 
 - [x] **Track: Server-Side Filtering & Search Refactor**
 *Link: [./archive/server_side_filtering_20260218/](./archive/server_side_filtering_20260218/)*
