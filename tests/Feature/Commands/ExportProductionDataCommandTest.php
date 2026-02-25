@@ -4,6 +4,7 @@ use App\Models\FireIncident;
 use App\Models\GoTransitAlert;
 use App\Models\PoliceCall;
 use App\Models\TransitAlert;
+use App\Console\Commands\ExportProductionData;
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
@@ -175,4 +176,83 @@ test('it splits export output into linked part seeders when output exceeds confi
     } finally {
         deleteDirectoryRecursively($directory);
     }
+});
+
+test('it warns and falls back for invalid chunk and max-bytes values', function () {
+    FireIncident::factory()->count(2)->create();
+
+    $outputPath = makeSeederOutputPath();
+
+    try {
+        $this->artisan('db:export-to-seeder', [
+            '--path' => $outputPath,
+            '--chunk' => 0,
+            '--max-bytes' => 0,
+        ])->assertExitCode(0)
+            ->expectsOutputToContain('Invalid --chunk value provided. Falling back to 500.')
+            ->expectsOutputToContain('Invalid --max-bytes value provided. Falling back to 10485760.');
+    } finally {
+        @unlink($outputPath);
+    }
+});
+
+test('it fails when output directory cannot be created', function () {
+    $directory = makeSeederOutputDirectory();
+    $blockingFile = $directory.'/blocked-parent';
+    file_put_contents($blockingFile, 'x');
+    $outputPath = $blockingFile.'/ProductionDataSeeder.php';
+
+    try {
+        expect(fn () => $this->artisan('db:export-to-seeder', [
+            '--path' => $outputPath,
+        ]))->toThrow(\ErrorException::class, 'mkdir(): File exists');
+    } finally {
+        @unlink($blockingFile);
+        deleteDirectoryRecursively($directory);
+    }
+});
+
+test('it fails cleanly when split rename step cannot create part files', function () {
+    if (DIRECTORY_SEPARATOR === '\\') {
+        $this->markTestSkipped('Directory permission assertions are not reliable on Windows.');
+    }
+
+    FireIncident::factory()->count(40)->create([
+        'units_dispatched' => str_repeat('P100, ', 30),
+    ]);
+
+    $directory = makeSeederOutputDirectory();
+    $outputPath = $directory.'/ProductionDataSeeder.php';
+
+    try {
+        file_put_contents($outputPath, '');
+        chmod($directory, 0555);
+
+        $this->artisan('db:export-to-seeder', [
+            '--path' => $outputPath,
+            '--chunk' => 5,
+            '--max-bytes' => 3000,
+        ])->assertExitCode(1)
+            ->expectsOutputToContain('Export failed');
+    } finally {
+        @chmod($directory, 0755);
+        deleteDirectoryRecursively($directory);
+    }
+});
+
+test('it throws guard errors when writeBlock and closeSeederFile are called without an active file', function () {
+    $command = new ExportProductionData;
+    $reflection = new \ReflectionClass($command);
+
+    $writeBlock = $reflection->getMethod('writeBlock');
+    $writeBlock->setAccessible(true);
+
+    $closeSeederFile = $reflection->getMethod('closeSeederFile');
+    $closeSeederFile->setAccessible(true);
+
+    expect(fn () => $writeBlock->invoke($command, 'test'))
+        ->toThrow(\RuntimeException::class, 'Cannot write export block without an active seeder file.');
+
+    expect(fn () => $closeSeederFile->invoke($command))
+        ->toThrow(\RuntimeException::class, 'No active seeder file is open for writing.');
 });

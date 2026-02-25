@@ -117,3 +117,160 @@ PHP);
         deleteVerifySeederTempDirectory($directory);
     }
 });
+
+test('it uses the default seeder path when path option is omitted', function () {
+    $defaultPath = database_path('seeders/ProductionDataSeeder.php');
+    $backupPath = $defaultPath.'.bak-'.bin2hex(random_bytes(4));
+    $moved = false;
+
+    if (is_file($defaultPath)) {
+        $moved = rename($defaultPath, $backupPath);
+    }
+
+    try {
+        $this->artisan('db:verify-production-seed')
+            ->assertExitCode(1)
+            ->expectsOutputToContain("Seeder file not found: {$defaultPath}");
+    } finally {
+        if ($moved) {
+            @rename($backupPath, $defaultPath);
+        }
+    }
+});
+
+test('it fails verification when a referenced split seeder file is missing', function () {
+    $directory = makeVerifySeederTempDirectory();
+    $outputPath = $directory.'/ProductionDataSeeder.php';
+
+    try {
+        file_put_contents($outputPath, <<<'PHP'
+<?php
+
+namespace Database\Seeders;
+
+use Illuminate\Database\Seeder;
+
+class ProductionDataSeeder extends Seeder
+{
+    public function run(): void
+    {
+        $this->call([
+            ProductionDataSeeder_Part1::class,
+        ]);
+    }
+}
+PHP);
+
+        $this->artisan('db:verify-production-seed', [
+            '--path' => $outputPath,
+        ])->assertExitCode(1)
+            ->expectsOutputToContain('Missing split seeder file referenced by main seeder');
+    } finally {
+        deleteVerifySeederTempDirectory($directory);
+    }
+});
+
+test('it fails verification when created_at sentinel is missing', function () {
+    $directory = makeVerifySeederTempDirectory();
+    $outputPath = $directory.'/ProductionDataSeeder.php';
+
+    try {
+        file_put_contents($outputPath, <<<'PHP'
+<?php
+
+namespace Database\Seeders;
+
+use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
+
+class ProductionDataSeeder extends Seeder
+{
+    public function run(): void
+    {
+        DB::table('fire_incidents')->insertOrIgnore([
+            ['id' => 1, 'updated_at' => '2026-02-01 00:00:00'],
+        ]);
+        DB::table('police_calls')->insertOrIgnore([
+            ['id' => 2, 'updated_at' => '2026-02-01 00:00:00'],
+        ]);
+        DB::table('transit_alerts')->insertOrIgnore([
+            ['id' => 3, 'updated_at' => '2026-02-01 00:00:00'],
+        ]);
+        DB::table('go_transit_alerts')->insertOrIgnore([
+            ['id' => 4, 'updated_at' => '2026-02-01 00:00:00'],
+        ]);
+    }
+}
+PHP);
+
+        $this->artisan('db:verify-production-seed', [
+            '--path' => $outputPath,
+        ])->assertExitCode(1)
+            ->expectsOutputToContain("Missing 'created_at' values");
+    } finally {
+        deleteVerifySeederTempDirectory($directory);
+    }
+});
+
+test('it fails verification when updated_at sentinel is missing', function () {
+    $directory = makeVerifySeederTempDirectory();
+    $outputPath = $directory.'/ProductionDataSeeder.php';
+
+    try {
+        file_put_contents($outputPath, <<<'PHP'
+<?php
+
+namespace Database\Seeders;
+
+use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
+
+class ProductionDataSeeder extends Seeder
+{
+    public function run(): void
+    {
+        DB::table('fire_incidents')->insertOrIgnore([
+            ['id' => 1, 'created_at' => '2026-02-01 00:00:00'],
+        ]);
+        DB::table('police_calls')->insertOrIgnore([
+            ['id' => 2, 'created_at' => '2026-02-01 00:00:00'],
+        ]);
+        DB::table('transit_alerts')->insertOrIgnore([
+            ['id' => 3, 'created_at' => '2026-02-01 00:00:00'],
+        ]);
+        DB::table('go_transit_alerts')->insertOrIgnore([
+            ['id' => 4, 'created_at' => '2026-02-01 00:00:00'],
+        ]);
+    }
+}
+PHP);
+
+        $this->artisan('db:verify-production-seed', [
+            '--path' => $outputPath,
+        ])->assertExitCode(1)
+            ->expectsOutputToContain("Missing 'updated_at' values");
+    } finally {
+        deleteVerifySeederTempDirectory($directory);
+    }
+});
+
+test('it fails verification when seeder file cannot be read', function () {
+    if (DIRECTORY_SEPARATOR === '\\') {
+        $this->markTestSkipped('Permission-based unreadable file assertions are not reliable on Windows.');
+    }
+
+    $directory = makeVerifySeederTempDirectory();
+    $outputPath = $directory.'/ProductionDataSeeder.php';
+
+    try {
+        file_put_contents($outputPath, "<?php\n");
+        chmod($outputPath, 0000);
+
+        expect(fn () => $this->artisan('db:verify-production-seed', [
+            '--path' => $outputPath,
+        ]))->toThrow(\ErrorException::class, 'Failed to open stream: Permission denied');
+    } finally {
+        @chmod($outputPath, 0644);
+        deleteVerifySeederTempDirectory($directory);
+    }
+});

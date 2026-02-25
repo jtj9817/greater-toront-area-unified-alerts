@@ -51,18 +51,18 @@ Highest-impact under-covered modules:
 
 ### Priority 1 (largest likely coverage lift)
 
-1. `tests/Feature/ImportAlertDataSqlTest.php`
-2. `tests/Feature/ExportAlertDataSqlTest.php`
-3. `tests/Feature/Console/ImportTorontoGeospatialDataCommandTest.php`
-4. `tests/Feature/Commands/SailWrapperCommandTest.php`
-5. `tests/Feature/Notifications/DeliverAlertNotificationJobTest.php`
-6. `tests/Feature/Notifications/AlertCreatedMatchingTest.php`
+1. [x] `tests/Feature/ImportAlertDataSqlTest.php`
+2. [x] `tests/Feature/ExportAlertDataSqlTest.php`
+3. [x] `tests/Feature/Console/ImportTorontoGeospatialDataCommandTest.php`
+4. [x] `tests/Feature/Commands/SailWrapperCommandTest.php`
+5. [x] `tests/Feature/Notifications/DeliverAlertNotificationJobTest.php`
+6. [x] `tests/Feature/Notifications/AlertCreatedMatchingTest.php`
 
 ### Priority 2 (small files with severe branch gaps / cheap wins)
 
-1. `tests/Feature/Commands/VerifyProductionSeedCommandTest.php`
-2. `tests/Feature/Commands/ExportProductionDataCommandTest.php`
-3. `tests/Unit/Models/NotificationLogTest.php`
+1. [x] `tests/Feature/Commands/VerifyProductionSeedCommandTest.php`
+2. [x] `tests/Feature/Commands/ExportProductionDataCommandTest.php`
+3. [x] `tests/Unit/Models/NotificationLogTest.php`
 
 ### Priority 3 (add missing targeted files where no direct branch coverage exists)
 
