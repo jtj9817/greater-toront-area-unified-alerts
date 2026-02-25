@@ -258,6 +258,9 @@ test('it fails verification when seeder file cannot be read', function () {
     if (DIRECTORY_SEPARATOR === '\\') {
         $this->markTestSkipped('Permission-based unreadable file assertions are not reliable on Windows.');
     }
+    if (function_exists('posix_geteuid') && posix_geteuid() === 0) {
+        $this->markTestSkipped('Permission-based unreadable file assertions are not reliable when running as root.');
+    }
 
     $directory = makeVerifySeederTempDirectory();
     $outputPath = $directory.'/ProductionDataSeeder.php';
@@ -265,6 +268,13 @@ test('it fails verification when seeder file cannot be read', function () {
     try {
         file_put_contents($outputPath, "<?php\n");
         chmod($outputPath, 0000);
+        clearstatcache(true, $outputPath);
+
+        // If permissions can't be enforced here, the command may read the file and the assertion becomes flaky.
+        $probeRead = @file_get_contents($outputPath);
+        if ($probeRead !== false) {
+            $this->markTestSkipped('Unable to make seeder file unreadable in this environment.');
+        }
 
         expect(fn () => $this->artisan('db:verify-production-seed', [
             '--path' => $outputPath,

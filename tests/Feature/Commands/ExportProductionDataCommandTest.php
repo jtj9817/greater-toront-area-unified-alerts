@@ -1,10 +1,10 @@
 <?php
 
+use App\Console\Commands\ExportProductionData;
 use App\Models\FireIncident;
 use App\Models\GoTransitAlert;
 use App\Models\PoliceCall;
 use App\Models\TransitAlert;
-use App\Console\Commands\ExportProductionData;
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
@@ -216,6 +216,9 @@ test('it fails cleanly when split rename step cannot create part files', functio
     if (DIRECTORY_SEPARATOR === '\\') {
         $this->markTestSkipped('Directory permission assertions are not reliable on Windows.');
     }
+    if (function_exists('posix_geteuid') && posix_geteuid() === 0) {
+        $this->markTestSkipped('Directory permission assertions are not reliable when running as root.');
+    }
 
     FireIncident::factory()->count(40)->create([
         'units_dispatched' => str_repeat('P100, ', 30),
@@ -227,6 +230,15 @@ test('it fails cleanly when split rename step cannot create part files', functio
     try {
         file_put_contents($outputPath, '');
         chmod($directory, 0555);
+        clearstatcache(true, $directory);
+
+        // If the filesystem ignores permissions (or chmod failed), the command may still succeed.
+        $probePath = $directory.'/.writability-probe';
+        $probeWrite = @file_put_contents($probePath, 'x');
+        if ($probeWrite !== false) {
+            @unlink($probePath);
+            $this->markTestSkipped('Unable to make output directory non-writable in this environment.');
+        }
 
         $this->artisan('db:export-to-seeder', [
             '--path' => $outputPath,
