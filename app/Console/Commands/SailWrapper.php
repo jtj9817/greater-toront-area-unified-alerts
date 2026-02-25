@@ -33,8 +33,12 @@ class SailWrapper extends Command
         $this->info('Running sail command: sail '.implode(' ', $args));
 
         $process = new Process(['bash', $sailPath, ...$args], base_path());
-        if (Process::isTtySupported()) {
-            $process->setTty(true);
+        if (Process::isTtySupported() && ! app()->runningUnitTests()) {
+            try {
+                $process->setTty(true);
+            } catch (\Throwable) {
+                // Fall back to non-TTY mode when the environment cannot open /dev/tty.
+            }
         }
         $process->setTimeout(null);
 
