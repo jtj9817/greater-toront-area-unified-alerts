@@ -212,3 +212,42 @@ Highest-impact under-covered modules:
 - [ ] No existing behavior changes in production code beyond testability seams (if required)
 - [ ] New tests document previously untested edge/error paths for import/export pipeline commands
 - [ ] Ticket references remain current with final touched test files
+
+## Assertion Quality Review (2026-02-25)
+
+Follow-up review of the newly added FEED-011 unit tests found no incorrect
+logic in current assertions, but identified quality and resilience gaps.
+
+### Findings to Address
+
+- SQL literal coupling in source-mismatch tests:
+  `FireAlertSelectProviderTest` and `TransitAlertSelectProviderTest` assert
+  `toSql()` contains `1 = 0`. This proves implementation detail, not behavior.
+  Add result-level assertions that the query returns no rows for mismatched
+  source criteria.
+- Incomplete cast coverage in `UserTest`:
+  Test name says "fillable hidden and casts" but only datetime casts are
+  asserted. Add assertion that password assignment is hashed.
+- Relationship tests only prove inclusion:
+  Add second-user records and assert those records are excluded from current
+  user's relationship collections to validate FK isolation.
+- High brittleness from exact SQL/fillable/hidden arrays:
+  Keep core exact assertions where contract matters, but add behavior-level
+  assertions so harmless SQL formatting or array-order refactors do not cause
+  noisy failures.
+
+### Edge Cases Not Yet Covered
+
+- Cursor rule accepts valid encoded cursor with surrounding whitespace.
+- Queue debug provider `compactStack` enforces limit truncation.
+- Queue debug provider matcher parsing trims and drops empty comma entries.
+- Transit `since` cutoff includes rows exactly at the cutoff boundary (`>=`).
+
+### Immediate Follow-Up Tasks
+
+- [ ] Update provider source-mismatch tests to assert empty result sets.
+- [ ] Expand `UserTest` to assert password hash cast behavior.
+- [ ] Expand `UserTest` relationships to assert cross-user exclusion.
+- [ ] Add cursor whitespace-acceptance test.
+- [ ] Add queue matcher parsing and compact-stack limit tests.
+- [ ] Add transit since-cutoff boundary equality test.
