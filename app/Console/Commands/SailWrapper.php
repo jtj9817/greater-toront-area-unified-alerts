@@ -22,7 +22,7 @@ class SailWrapper extends Command
             return 0;
         }
 
-        $sailPath = base_path('vendor/bin/sail');
+        $sailPath = $this->resolveSailPath();
 
         if (! file_exists($sailPath)) {
             $this->error('Sail script not found at: '.$sailPath);
@@ -47,5 +47,16 @@ class SailWrapper extends Command
         });
 
         return $process->getExitCode();
+    }
+
+    private function resolveSailPath(): string
+    {
+        $configuredPath = config('commands.sail_wrapper.bin');
+
+        if (is_string($configuredPath) && trim($configuredPath) !== '') {
+            return trim($configuredPath);
+        }
+
+        return base_path('vendor/bin/sail');
     }
 }

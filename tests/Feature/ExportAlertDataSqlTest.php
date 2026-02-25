@@ -6,6 +6,8 @@ use App\Models\PoliceCall;
 use App\Models\TransitAlert;
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 uses(RefreshDatabase::class);
 
@@ -158,6 +160,234 @@ test('db export sql preserves null values and escapes single quotes correctly', 
         expect($contents)->not->toContain(', 0,');
         expect($contents)->toContain('NULL');
         expect($contents)->not->toContain("'NULL'");
+    } finally {
+        @unlink($outputPath);
+    }
+});
+
+test('db export sql rejects unsupported tables', function () {
+    $outputPath = makeSqlExportPath();
+
+    try {
+        $this->artisan('db:export-sql', [
+            '--output' => $outputPath,
+            '--tables' => 'fire_incidents,not_a_table',
+        ])
+            ->expectsOutputToContain('Export failed: Unsupported table(s): not_a_table.')
+            ->assertExitCode(1);
+    } finally {
+        @unlink($outputPath);
+    }
+});
+
+test('db export sql rejects empty normalized tables option', function () {
+    $outputPath = makeSqlExportPath();
+
+    try {
+        $this->artisan('db:export-sql', [
+            '--output' => $outputPath,
+            '--tables' => ' , , ',
+        ])
+            ->expectsOutputToContain('Export failed: No tables were provided for export.')
+            ->assertExitCode(1);
+    } finally {
+        @unlink($outputPath);
+    }
+});
+
+test('db export sql warns and falls back when chunk size is invalid', function () {
+    FireIncident::factory()->create(['event_num' => 'F26060001']);
+
+    $outputPath = makeSqlExportPath();
+
+    try {
+        $this->artisan('db:export-sql', [
+            '--output' => $outputPath,
+            '--tables' => 'fire_incidents',
+            '--chunk' => 0,
+            '--no-header' => true,
+        ])
+            ->expectsOutputToContain('Invalid --chunk value provided. Falling back to 500.')
+            ->assertExitCode(0);
+    } finally {
+        @unlink($outputPath);
+    }
+});
+
+test('db export sql respects explicit gzip extension without appending another suffix', function () {
+    FireIncident::factory()->create(['event_num' => 'F26070001']);
+
+    $outputPath = makeSqlExportPath('.sql.gz');
+
+    try {
+        $this->artisan('db:export-sql', [
+            '--output' => $outputPath,
+            '--compress' => true,
+        ])->assertExitCode(0);
+
+        expect(file_exists($outputPath))->toBeTrue();
+        expect(file_exists($outputPath.'.gz'))->toBeFalse();
+    } finally {
+        @unlink($outputPath);
+    }
+});
+
+test('db export sql fails when output directory cannot be created', function () {
+    $blockingPath = sys_get_temp_dir().'/alert-export-blocking-'.bin2hex(random_bytes(6));
+    file_put_contents($blockingPath, 'blocking-file');
+
+    $outputPath = $blockingPath.'/nested/export.sql';
+
+    try {
+        $this->artisan('db:export-sql', [
+            '--output' => $outputPath,
+            '--tables' => 'fire_incidents',
+        ])
+            ->expectsOutputToContain('Export failed: Unable to create output directory:')
+            ->assertExitCode(1);
+    } finally {
+        @unlink($blockingPath);
+    }
+});
+
+test('db export sql fails when output path points to an existing directory in plain mode', function () {
+    $outputPath = sys_get_temp_dir().'/alert-export-dir-'.bin2hex(random_bytes(6));
+    mkdir($outputPath, 0755, true);
+
+    try {
+        $this->artisan('db:export-sql', [
+            '--output' => $outputPath,
+            '--tables' => 'fire_incidents',
+        ])
+            ->expectsOutputToContain('Export failed: Unable to open output file for writing:')
+            ->assertExitCode(1);
+    } finally {
+        @rmdir($outputPath);
+    }
+});
+
+test('db export sql fails when output path points to an existing directory in gzip mode', function () {
+    $outputPath = sys_get_temp_dir().'/alert-export-dir-'.bin2hex(random_bytes(6)).'.gz';
+    mkdir($outputPath, 0755, true);
+
+    try {
+        $this->artisan('db:export-sql', [
+            '--output' => $outputPath,
+            '--tables' => 'fire_incidents',
+            '--compress' => true,
+        ])
+            ->expectsOutputToContain('Export failed: Unable to open compressed output file:')
+            ->assertExitCode(1);
+    } finally {
+        @rmdir($outputPath);
+    }
+});
+
+test('db export sql fails when target table is missing from schema', function () {
+    Schema::drop('fire_incidents');
+
+    $outputPath = makeSqlExportPath();
+
+    try {
+        $this->artisan('db:export-sql', [
+            '--output' => $outputPath,
+            '--tables' => 'fire_incidents',
+        ])
+            ->expectsOutputToContain('Export failed: Table does not exist: fire_incidents')
+            ->assertExitCode(1);
+    } finally {
+        @unlink($outputPath);
+    }
+});
+
+test('db export sql fails when table does not expose required id column', function () {
+    Schema::partialMock()
+        ->shouldReceive('hasTable')
+        ->once()
+        ->with('fire_incidents')
+        ->andReturn(true);
+
+    Schema::shouldReceive('getColumnListing')
+        ->once()
+        ->with('fire_incidents')
+        ->andReturn(['event_num', 'event_type']);
+
+    $outputPath = makeSqlExportPath();
+
+    try {
+        $this->artisan('db:export-sql', [
+            '--output' => $outputPath,
+            '--tables' => 'fire_incidents',
+        ])
+            ->expectsOutputToContain('Export failed: Table fire_incidents is missing required primary key column: id')
+            ->assertExitCode(1);
+    } finally {
+        @unlink($outputPath);
+    }
+});
+
+test('db export sql normalizes boolean literals for numeric and string variants', function () {
+    $now = now();
+
+    $rows = [
+        ['event_num' => 'BOOL_ZERO', 'is_active' => 0],
+        ['event_num' => 'BOOL_ONE', 'is_active' => 1],
+        ['event_num' => 'BOOL_NO', 'is_active' => 'no'],
+        ['event_num' => 'BOOL_OFF', 'is_active' => 'off'],
+        ['event_num' => 'BOOL_YES', 'is_active' => 'yes'],
+        ['event_num' => 'BOOL_ON', 'is_active' => 'on'],
+        ['event_num' => 'BOOL_UNKNOWN', 'is_active' => 'maybe'],
+    ];
+
+    foreach ($rows as $index => $row) {
+        DB::table('fire_incidents')->insert([
+            'event_num' => $row['event_num'],
+            'event_type' => 'Alarm',
+            'prime_street' => 'Queen St W',
+            'cross_streets' => null,
+            'dispatch_time' => CarbonImmutable::parse('2026-02-20 12:00:00', 'UTC')->addMinutes($index),
+            'alarm_level' => 1,
+            'beat' => null,
+            'units_dispatched' => null,
+            'is_active' => $row['is_active'],
+            'feed_updated_at' => null,
+            'created_at' => $now,
+            'updated_at' => $now,
+        ]);
+    }
+
+    $outputPath = makeSqlExportPath();
+
+    try {
+        $this->artisan('db:export-sql', [
+            '--output' => $outputPath,
+            '--tables' => 'fire_incidents',
+            '--no-header' => true,
+        ])->assertExitCode(0);
+
+        $contents = readTextFile($outputPath);
+        $valueLines = array_values(array_filter(
+            explode("\n", $contents),
+            static fn (string $line): bool => str_contains($line, "'BOOL_")
+        ));
+
+        $lineFor = static function (string $eventNum) use ($valueLines): string {
+            foreach ($valueLines as $line) {
+                if (str_contains($line, "'{$eventNum}'")) {
+                    return $line;
+                }
+            }
+
+            return '';
+        };
+
+        expect($lineFor('BOOL_ZERO'))->toContain('FALSE');
+        expect($lineFor('BOOL_ONE'))->toContain('TRUE');
+        expect($lineFor('BOOL_NO'))->toContain('FALSE');
+        expect($lineFor('BOOL_OFF'))->toContain('FALSE');
+        expect($lineFor('BOOL_YES'))->toContain('TRUE');
+        expect($lineFor('BOOL_ON'))->toContain('TRUE');
+        expect($lineFor('BOOL_UNKNOWN'))->toContain('TRUE');
     } finally {
         @unlink($outputPath);
     }

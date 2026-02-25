@@ -272,3 +272,149 @@ test('geofence matching succeeds when at least one saved place is within range',
     expect($deliveries)->toHaveCount(1);
     expect($deliveries->sole()->userId)->toBe($preference->user_id);
 });
+
+test('accessibility preferences match ttc accessibility source alerts', function () {
+    $preference = NotificationPreference::factory()->create([
+        'alert_type' => 'accessibility',
+        'severity_threshold' => 'minor',
+        'subscriptions' => [],
+        'push_enabled' => true,
+    ]);
+
+    $deliveries = fanOutDeliveriesForAlert(new NotificationAlert(
+        alertId: 'ttc-access:001',
+        source: 'ttc_accessibility',
+        severity: 'minor',
+        summary: 'Elevator outage at Bloor station',
+        occurredAt: CarbonImmutable::parse('2026-02-13T10:00:00Z'),
+        routes: ['2'],
+    ));
+
+    expect($deliveries)->toHaveCount(1);
+    expect($deliveries->sole()->userId)->toBe($preference->user_id);
+});
+
+test('accessibility preferences match transit and go alerts by accessibility keywords', function () {
+    $transitPreference = NotificationPreference::factory()->create([
+        'alert_type' => 'accessibility',
+        'severity_threshold' => 'minor',
+        'subscriptions' => [],
+        'push_enabled' => true,
+    ]);
+
+    $goPreference = NotificationPreference::factory()->create([
+        'alert_type' => 'accessibility',
+        'severity_threshold' => 'minor',
+        'subscriptions' => [],
+        'push_enabled' => true,
+    ]);
+
+    $transitDeliveries = fanOutDeliveriesForAlert(new NotificationAlert(
+        alertId: 'transit:access:001',
+        source: 'transit',
+        severity: 'minor',
+        summary: 'Escalator outage and accessibility impacts at station',
+        occurredAt: CarbonImmutable::parse('2026-02-13T11:00:00Z'),
+    ));
+
+    $goDeliveries = fanOutDeliveriesForAlert(new NotificationAlert(
+        alertId: 'go:access:001',
+        source: 'go_transit',
+        severity: 'minor',
+        summary: 'Service advisory',
+        occurredAt: CarbonImmutable::parse('2026-02-13T12:00:00Z'),
+        metadata: [
+            'description' => 'Wheel-Trans transfer point temporarily unavailable',
+        ],
+    ));
+
+    expect($transitDeliveries->pluck('userId')->all())->toContain($transitPreference->user_id, $goPreference->user_id);
+    expect($goDeliveries->pluck('userId')->all())->toContain($transitPreference->user_id, $goPreference->user_id);
+});
+
+test('transit subscription matching normalizes route ids and deduplicates subscriptions', function () {
+    $matching = NotificationPreference::factory()->create([
+        'alert_type' => 'transit',
+        'severity_threshold' => 'minor',
+        'subscriptions' => [' 501 ', 'ROUTE:501', 'route:501', ' Go-LW ', ''],
+        'push_enabled' => true,
+    ]);
+
+    NotificationPreference::factory()->create([
+        'alert_type' => 'transit',
+        'severity_threshold' => 'minor',
+        'subscriptions' => ['route:504'],
+        'push_enabled' => true,
+    ]);
+
+    $deliveries = fanOutDeliveriesForAlert(new NotificationAlert(
+        alertId: 'transit:norm:001',
+        source: 'transit',
+        severity: 'minor',
+        summary: 'Route 501 service adjustment',
+        occurredAt: CarbonImmutable::parse('2026-02-13T13:00:00Z'),
+        routes: ['501'],
+    ));
+
+    expect($deliveries)->toHaveCount(1);
+    expect($deliveries->sole()->userId)->toBe($matching->user_id);
+});
+
+test('go transit alerts with subscriptions configured do not match when no subscription urns are extracted', function () {
+    NotificationPreference::factory()->create([
+        'alert_type' => 'transit',
+        'severity_threshold' => 'minor',
+        'subscriptions' => ['route:999'],
+        'push_enabled' => true,
+    ]);
+
+    $deliveries = fanOutDeliveriesForAlert(new NotificationAlert(
+        alertId: 'go:no-urns:001',
+        source: 'go_transit',
+        severity: 'minor',
+        summary: 'General advisory with no route references',
+        occurredAt: CarbonImmutable::parse('2026-02-13T14:00:00Z'),
+    ));
+
+    expect($deliveries)->toHaveCount(0);
+});
+
+test('notification matcher uses per-run saved-place cache consistently for repeated checks', function () {
+    $preference = NotificationPreference::factory()->create([
+        'alert_type' => 'emergency',
+        'severity_threshold' => 'minor',
+        'subscriptions' => [],
+        'push_enabled' => true,
+    ]);
+
+    SavedPlace::factory()->create([
+        'user_id' => $preference->user_id,
+        'name' => 'Far Place',
+        'lat' => 44.2000,
+        'long' => -79.8000,
+        'radius' => 500,
+        'type' => 'address',
+    ]);
+
+    $alert = new NotificationAlert(
+        alertId: 'police:cache:001',
+        source: 'police',
+        severity: 'major',
+        summary: 'Police response in progress',
+        occurredAt: CarbonImmutable::parse('2026-02-13T15:00:00Z'),
+        lat: 43.7010,
+        lng: -79.4010,
+    );
+
+    $matcher = app(NotificationMatcher::class);
+    $firstResult = $matcher->matches($preference->fresh(), $alert);
+
+    SavedPlace::query()->where('user_id', $preference->user_id)->delete();
+
+    $secondResultWithSameMatcher = $matcher->matches($preference->fresh(), $alert);
+    $resultWithFreshMatcher = app(NotificationMatcher::class)->matches($preference->fresh(), $alert);
+
+    expect($firstResult)->toBeFalse();
+    expect($secondResultWithSameMatcher)->toBeFalse();
+    expect($resultWithFreshMatcher)->toBeTrue();
+});

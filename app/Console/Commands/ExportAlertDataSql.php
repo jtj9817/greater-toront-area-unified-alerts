@@ -139,7 +139,7 @@ class ExportAlertDataSql extends Command
             return;
         }
 
-        if (! mkdir($directory, 0755, true) && ! is_dir($directory)) {
+        if (! @mkdir($directory, 0755, true) && ! is_dir($directory)) {
             throw new RuntimeException("Unable to create output directory: {$directory}");
         }
     }
@@ -153,7 +153,7 @@ class ExportAlertDataSql extends Command
     private function openWriter(string $outputPath, bool $compress): array
     {
         if ($compress) {
-            $stream = gzopen($outputPath, 'wb9');
+            $stream = @gzopen($outputPath, 'wb9');
 
             if ($stream === false) {
                 throw new RuntimeException("Unable to open compressed output file: {$outputPath}");
@@ -171,7 +171,7 @@ class ExportAlertDataSql extends Command
             ];
         }
 
-        $stream = fopen($outputPath, 'wb');
+        $stream = @fopen($outputPath, 'wb');
 
         if ($stream === false) {
             throw new RuntimeException("Unable to open output file for writing: {$outputPath}");

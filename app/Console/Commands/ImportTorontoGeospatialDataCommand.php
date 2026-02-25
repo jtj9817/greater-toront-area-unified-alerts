@@ -200,7 +200,11 @@ class ImportTorontoGeospatialDataCommand extends Command
                     continue;
                 }
 
-                $combined = array_combine($normalizedHeaders, $row);
+                try {
+                    $combined = array_combine($normalizedHeaders, $row);
+                } catch (\ValueError) {
+                    continue;
+                }
 
                 if ($combined === false) {
                     continue;
