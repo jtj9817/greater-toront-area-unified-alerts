@@ -155,9 +155,17 @@ test('fire alert select provider pushes down status and since filters', function
 });
 
 test('fire alert select provider source mismatch adds hard false predicate', function () {
-    $sql = (new FireAlertSelectProvider)->select(new UnifiedAlertsCriteria(source: 'transit'))->toSql();
+    FireIncident::factory()->create([
+        'event_num' => 'F-EXISTS',
+        'is_active' => true,
+    ]);
+
+    $query = (new FireAlertSelectProvider)->select(new UnifiedAlertsCriteria(source: 'transit'));
+    $sql = $query->toSql();
+    $rows = $query->get();
 
     expect($sql)->toContain('1 = 0');
+    expect($rows)->toBeEmpty();
 });
 
 test('fire alert select provider applies cleared status filter', function () {

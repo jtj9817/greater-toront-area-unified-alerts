@@ -90,9 +90,17 @@ test('transit alert select provider pushes down status and since filters', funct
 });
 
 test('transit alert select provider source mismatch adds hard false predicate', function () {
-    $sql = (new TransitAlertSelectProvider)->select(new UnifiedAlertsCriteria(source: 'fire'))->toSql();
+    TransitAlert::factory()->create([
+        'external_id' => 'api:exists',
+        'is_active' => true,
+    ]);
+
+    $query = (new TransitAlertSelectProvider)->select(new UnifiedAlertsCriteria(source: 'fire'));
+    $sql = $query->toSql();
+    $rows = $query->get();
 
     expect($sql)->toContain('1 = 0');
+    expect($rows)->toBeEmpty();
 });
 
 test('transit alert select provider applies cleared status filter', function () {
@@ -169,6 +177,45 @@ test('transit alert select provider since cutoff falls back to created at when a
         expect($externalIds)->toContain('api:created-fallback-included');
         expect($externalIds)->toContain('api:active-period-included');
         expect($externalIds)->not->toContain('api:old-created');
+    } finally {
+        CarbonImmutable::setTestNow();
+    }
+});
+
+test('transit alert select provider since cutoff includes rows exactly at cutoff', function () {
+    $now = CarbonImmutable::parse('2026-02-25 12:00:00');
+    CarbonImmutable::setTestNow($now);
+
+    try {
+        $cutoff = $now->subHour();
+
+        TransitAlert::factory()->create([
+            'external_id' => 'api:created-at-cutoff',
+            'active_period_start' => null,
+            'created_at' => $cutoff,
+            'updated_at' => $cutoff,
+        ]);
+
+        TransitAlert::factory()->create([
+            'external_id' => 'api:active-start-at-cutoff',
+            'active_period_start' => $cutoff,
+            'created_at' => $now->subHours(4),
+            'updated_at' => $now->subHours(4),
+        ]);
+
+        TransitAlert::factory()->create([
+            'external_id' => 'api:just-before-cutoff',
+            'active_period_start' => null,
+            'created_at' => $cutoff->subSecond(),
+            'updated_at' => $cutoff->subSecond(),
+        ]);
+
+        $rows = (new TransitAlertSelectProvider)->select(new UnifiedAlertsCriteria(since: '1h'))->get();
+        $externalIds = collect($rows)->pluck('external_id')->map(static fn ($id) => (string) $id)->all();
+
+        expect($externalIds)->toContain('api:created-at-cutoff');
+        expect($externalIds)->toContain('api:active-start-at-cutoff');
+        expect($externalIds)->not->toContain('api:just-before-cutoff');
     } finally {
         CarbonImmutable::setTestNow();
     }

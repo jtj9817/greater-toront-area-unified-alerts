@@ -43,6 +43,19 @@ test('queue enqueue debug provider uses default matchers when env matcher is emp
     ]);
 });
 
+test('queue enqueue debug provider matcher list trims values and drops empty entries', function () {
+    putenv('QUEUE_DEBUG_ENQUEUES_MATCH=  App\\Jobs\\AJob  , , App\\Jobs\\BJob ,   ');
+    $_ENV['QUEUE_DEBUG_ENQUEUES_MATCH'] = '  App\\Jobs\\AJob  , , App\\Jobs\\BJob ,   ';
+
+    $provider = new QueueEnqueueDebugServiceProvider(app());
+    $matchers = invokePrivate($provider, 'matchers');
+
+    expect($matchers)->toBe([
+        'App\\Jobs\\AJob',
+        'App\\Jobs\\BJob',
+    ]);
+});
+
 test('queue enqueue debug provider matcher supports wildcard exact and partial matching', function () {
     $provider = new QueueEnqueueDebugServiceProvider(app());
 
@@ -121,6 +134,22 @@ test('queue enqueue debug provider toggles stack inclusion and compacts stack fr
             'call' => 'run',
         ],
     ]);
+});
+
+test('queue enqueue debug provider compact stack enforces frame limit', function () {
+    $provider = new QueueEnqueueDebugServiceProvider(app());
+
+    $frames = [
+        ['file' => '/tmp/one.php', 'line' => 10, 'function' => 'a'],
+        ['file' => '/tmp/two.php', 'line' => 20, 'function' => 'b'],
+    ];
+
+    $compacted = invokePrivate($provider, 'compactStack', $frames, 1);
+
+    expect($compacted)->toHaveCount(1);
+    expect($compacted[0]['file'])->toBe('/tmp/one.php');
+    expect($compacted[0]['line'])->toBe(10);
+    expect($compacted[0]['call'])->toBe('a');
 });
 
 function invokePrivate(object $target, string $method, mixed ...$args): mixed

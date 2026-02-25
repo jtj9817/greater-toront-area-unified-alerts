@@ -63,3 +63,18 @@ test('unified alerts cursor rule accepts valid encoded cursor', function () {
 
     expect($validator->passes())->toBeTrue();
 });
+
+test('unified alerts cursor rule accepts valid encoded cursor with surrounding whitespace', function () {
+    $cursor = UnifiedAlertsCursor::fromTuple(
+        CarbonImmutable::parse('2026-02-24 12:00:00'),
+        'transit:api:61748',
+    )->encode();
+
+    $validator = Validator::make([
+        'cursor' => "  {$cursor}  ",
+    ], [
+        'cursor' => [new UnifiedAlertsCursorRule],
+    ]);
+
+    expect($validator->passes())->toBeTrue();
+});
