@@ -110,17 +110,34 @@ Empty feed protection is enforced by default (`ALLOW_EMPTY_FEEDS=false`) to prev
 
 ---
 
-## Production Data Seeding
+## SQL Export/Import Pipeline (Preferred)
 
-To migrate locally scraped alert data into production as code-managed seeders:
+Use the SQL pipeline to transfer alert data between environments:
 
 ```bash
-# Generate + verify seeder files
-./scripts/generate-production-seed.sh --sail
+# Export SQL (native runner auto-detect)
+./scripts/export-alert-data.sh
 
-# Or run commands directly
+# Export SQL through Sail and compress
+./scripts/export-alert-data.sh --sail --compress
+
+# Import SQL dump on destination host
+php artisan db:import-sql --file=/path/to/alert-export.sql --force
+```
+
+If the file is compressed (`.sql.gz`), decompress first:
+
+```bash
+gunzip -c /path/to/alert-export.sql.gz > /path/to/alert-export.sql
+php artisan db:import-sql --file=/path/to/alert-export.sql --force
+```
+
+Legacy seeder workflow is retained for compatibility but deprecated:
+
+```bash
 php artisan db:export-to-seeder
 php artisan db:verify-production-seed
+./scripts/generate-production-seed.sh --sail
 ```
 
 Forge deployment runbook:
