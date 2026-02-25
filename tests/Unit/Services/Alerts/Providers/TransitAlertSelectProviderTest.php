@@ -88,3 +88,88 @@ test('transit alert select provider pushes down status and since filters', funct
         CarbonImmutable::setTestNow();
     }
 });
+
+test('transit alert select provider source mismatch adds hard false predicate', function () {
+    $sql = (new TransitAlertSelectProvider)->select(new UnifiedAlertsCriteria(source: 'fire'))->toSql();
+
+    expect($sql)->toContain('1 = 0');
+});
+
+test('transit alert select provider applies cleared status filter', function () {
+    TransitAlert::factory()->create([
+        'external_id' => 'api:active',
+        'is_active' => true,
+    ]);
+    TransitAlert::factory()->inactive()->create([
+        'external_id' => 'api:cleared',
+        'is_active' => false,
+    ]);
+
+    $rows = (new TransitAlertSelectProvider)->select(new UnifiedAlertsCriteria(status: 'cleared'))->get();
+
+    expect($rows)->toHaveCount(1);
+    expect((string) $rows[0]->external_id)->toBe('api:cleared');
+    expect((int) $rows[0]->is_active)->toBe(0);
+});
+
+test('transit alert select provider mysql query path includes fulltext and like fallback', function () {
+    DB::partialMock()
+        ->shouldReceive('getDriverName')
+        ->andReturn('mysql');
+
+    $query = (new TransitAlertSelectProvider)->select(new UnifiedAlertsCriteria(query: 'Finch'));
+    $sql = $query->toSql();
+
+    expect($sql)->toContain('MATCH(title, description, stop_start, stop_end, route, route_type) AGAINST (? IN NATURAL LANGUAGE MODE)');
+    expect($sql)->toContain('LOWER(title) LIKE ?');
+    expect($sql)->toContain('LOWER(route) LIKE ?');
+    expect($sql)->toContain('LOWER(route_type) LIKE ?');
+    expect($sql)->toContain('LOWER(stop_start) LIKE ?');
+    expect($sql)->toContain('LOWER(stop_end) LIKE ?');
+    expect($query->getBindings())->toBe([
+        'Finch',
+        '%finch%',
+        '%finch%',
+        '%finch%',
+        '%finch%',
+        '%finch%',
+    ]);
+});
+
+test('transit alert select provider since cutoff falls back to created at when active period start is null', function () {
+    $now = CarbonImmutable::parse('2026-02-25 12:00:00');
+    CarbonImmutable::setTestNow($now);
+
+    try {
+        TransitAlert::factory()->create([
+            'external_id' => 'api:old-created',
+            'active_period_start' => null,
+            'created_at' => $now->subHours(5),
+            'updated_at' => $now->subHours(5),
+        ]);
+
+        TransitAlert::factory()->create([
+            'external_id' => 'api:created-fallback-included',
+            'active_period_start' => null,
+            'created_at' => $now->subMinutes(40),
+            'updated_at' => $now->subMinutes(40),
+        ]);
+
+        TransitAlert::factory()->create([
+            'external_id' => 'api:active-period-included',
+            'active_period_start' => $now->subMinutes(30),
+            'created_at' => $now->subHours(6),
+            'updated_at' => $now->subHours(6),
+        ]);
+
+        $criteria = new UnifiedAlertsCriteria(since: '1h');
+        $rows = (new TransitAlertSelectProvider)->select($criteria)->get();
+        $externalIds = collect($rows)->pluck('external_id')->map(static fn ($id) => (string) $id)->all();
+
+        expect($externalIds)->toContain('api:created-fallback-included');
+        expect($externalIds)->toContain('api:active-period-included');
+        expect($externalIds)->not->toContain('api:old-created');
+    } finally {
+        CarbonImmutable::setTestNow();
+    }
+});

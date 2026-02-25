@@ -153,3 +153,70 @@ test('fire alert select provider pushes down status and since filters', function
         CarbonImmutable::setTestNow();
     }
 });
+
+test('fire alert select provider source mismatch adds hard false predicate', function () {
+    $sql = (new FireAlertSelectProvider)->select(new UnifiedAlertsCriteria(source: 'transit'))->toSql();
+
+    expect($sql)->toContain('1 = 0');
+});
+
+test('fire alert select provider applies cleared status filter', function () {
+    FireIncident::factory()->create([
+        'event_num' => 'F-ACTIVE-1',
+        'is_active' => true,
+    ]);
+    FireIncident::factory()->inactive()->create([
+        'event_num' => 'F-CLEARED-1',
+        'is_active' => false,
+    ]);
+
+    $rows = (new FireAlertSelectProvider)->select(new UnifiedAlertsCriteria(status: 'cleared'))->get();
+
+    expect($rows)->toHaveCount(1);
+    expect((string) $rows[0]->external_id)->toBe('F-CLEARED-1');
+    expect((int) $rows[0]->is_active)->toBe(0);
+});
+
+test('fire alert select provider mysql query path includes fulltext and like fallback', function () {
+    DB::partialMock()
+        ->shouldReceive('getDriverName')
+        ->andReturn('mysql');
+
+    $query = (new FireAlertSelectProvider)->select(new UnifiedAlertsCriteria(query: 'Yonge'));
+    $sql = $query->toSql();
+
+    expect($sql)->toContain('MATCH(event_type, prime_street, cross_streets) AGAINST (? IN NATURAL LANGUAGE MODE)');
+    expect($sql)->toContain('LOWER(event_type) LIKE ?');
+    expect($sql)->toContain('LOWER(prime_street) LIKE ?');
+    expect($sql)->toContain('LOWER(cross_streets) LIKE ?');
+    expect($query->getBindings())->toBe([
+        'Yonge',
+        '%yonge%',
+        '%yonge%',
+        '%yonge%',
+    ]);
+});
+
+test('fire alert select provider maps unknown incident update type to fallback label and icon', function () {
+    FireIncident::factory()->create(['event_num' => 'F-UNKNOWN-TYPE']);
+
+    DB::table('incident_updates')->insert([
+        'event_num' => 'F-UNKNOWN-TYPE',
+        'update_type' => 'custom_type',
+        'content' => 'Custom update content',
+        'metadata' => json_encode(['key' => 'value'], JSON_THROW_ON_ERROR),
+        'source' => 'manual',
+        'created_by' => null,
+        'created_at' => '2026-02-25 12:00:00',
+        'updated_at' => '2026-02-25 12:00:00',
+    ]);
+
+    $row = (new FireAlertSelectProvider)->select(new UnifiedAlertsCriteria)->first();
+    $meta = UnifiedAlertMapper::decodeMeta($row->meta);
+
+    expect($meta['intel_summary'])->toHaveCount(1);
+    expect($meta['intel_summary'][0]['type'])->toBe('custom_type');
+    expect($meta['intel_summary'][0]['type_label'])->toBe('custom_type');
+    expect($meta['intel_summary'][0]['icon'])->toBe('info');
+    expect($meta['intel_summary'][0]['content'])->toBe('Custom update content');
+});
