@@ -5,12 +5,14 @@ This track removes MySQL-only SQL from the unified feed providers so the app run
 ---
 
 ## Phase 0: Preflight Decisions (Don’t Code Yet)
-- [ ] Task: Confirm supported DB drivers and expectations.
-    - [ ] Sub-task: Treat SQLite as “test/dev fallback” (no native FTS); MySQL as “FTS + LIKE fallback”; PostgreSQL as “FTS + ILIKE fallback”.
-    - [ ] Sub-task: Explicitly document whether `mariadb` should be treated as MySQL-family (optional but recommended, since `config/database.php` defines it).
-- [ ] Task: Lock down transport invariants used by the frontend typed boundary.
-    - [ ] Sub-task: `meta.intel_summary` must be a JSON array (never `null`); default should be `[]`.
-    - [ ] Sub-task: `meta.intel_last_updated` must be `null` or an ISO-8601 timestamp with timezone offset (`Z` or `+00:00`), matching `resources/js/features/gta-alerts/domain/alerts/fire/schema.ts`.
+- [x] Task: Confirm supported DB drivers and expectations.
+    - [x] Sub-task: Treat SQLite as “test/dev fallback” (no native FTS); MySQL as “FTS + LIKE fallback”; PostgreSQL as “FTS + ILIKE fallback”.
+    - [x] Sub-task: Explicitly document whether `mariadb` should be treated as MySQL-family (optional but recommended, since `config/database.php` defines it).
+    - [x] Notes: `conductor/tracks/feed_010_postgresql_refactoring/phase_0_preflight_decisions.md`
+- [x] Task: Lock down transport invariants used by the frontend typed boundary.
+    - [x] Sub-task: `meta.intel_summary` must be a JSON array (never `null`); default should be `[]`.
+    - [x] Sub-task: `meta.intel_last_updated` must be `null` or an ISO-8601 timestamp with timezone offset (`Z` or `+00:00`), matching `resources/js/features/gta-alerts/domain/alerts/fire/schema.ts`.
+    - [x] Notes: `conductor/tracks/feed_010_postgresql_refactoring/phase_0_preflight_decisions.md`
 
 ---
 
