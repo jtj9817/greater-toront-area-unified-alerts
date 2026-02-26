@@ -70,6 +70,23 @@ test('transit alert select provider uses non-sqlite expressions when driver is n
     expect($sql)->toContain("JSON_OBJECT('route_type'");
 });
 
+test('transit alert select provider uses pgsql-safe expressions when driver is pgsql', function () {
+    DB::partialMock()
+        ->shouldReceive('getDriverName')
+        ->andReturn('pgsql');
+
+    $sql = (new TransitAlertSelectProvider)->select(new UnifiedAlertsCriteria)->toSql();
+
+    expect($sql)->toContain("('transit:' || CAST(external_id AS text))");
+    expect($sql)->toContain('CAST(external_id AS text) as external_id');
+    expect($sql)->toContain('coalesce(CASE WHEN route IS NOT NULL THEN');
+    expect($sql)->toContain('CAST(NULL AS double precision) as lat');
+    expect($sql)->toContain('CAST(NULL AS double precision) as lng');
+    expect($sql)->toContain('json_build_object(');
+    expect($sql)->toContain('::jsonb');
+    expect($sql)->not->toContain('JSON_OBJECT(');
+});
+
 test('transit alert select provider pushes down status and since filters', function () {
     CarbonImmutable::setTestNow(CarbonImmutable::parse('2026-02-02 12:00:00'));
 

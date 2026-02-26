@@ -90,6 +90,22 @@ test('go transit alert select provider uses non-sqlite expressions when driver i
     expect($sql)->toContain("JSON_OBJECT('alert_type'");
 });
 
+test('go transit alert select provider uses pgsql-safe expressions when driver is pgsql', function () {
+    DB::partialMock()
+        ->shouldReceive('getDriverName')
+        ->andReturn('pgsql');
+
+    $sql = (new GoTransitAlertSelectProvider)->select(new UnifiedAlertsCriteria)->toSql();
+
+    expect($sql)->toContain("('go_transit:' || CAST(external_id AS text))");
+    expect($sql)->toContain('CAST(external_id AS text) as external_id');
+    expect($sql)->toContain('CAST(NULL AS double precision) as lat');
+    expect($sql)->toContain('CAST(NULL AS double precision) as lng');
+    expect($sql)->toContain('json_build_object(');
+    expect($sql)->toContain('::jsonb');
+    expect($sql)->not->toContain('JSON_OBJECT(');
+});
+
 test('go transit alert select provider pushes down status and since filters', function () {
     CarbonImmutable::setTestNow(CarbonImmutable::parse('2026-02-02 12:00:00'));
 

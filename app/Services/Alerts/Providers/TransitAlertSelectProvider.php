@@ -20,23 +20,35 @@ class TransitAlertSelectProvider implements AlertSelectProvider
     public function select(UnifiedAlertsCriteria $criteria): Builder
     {
         $driver = DB::getDriverName();
+        $isMySqlFamily = in_array($driver, ['mysql', 'mariadb'], true);
         $source = $this->source();
 
-        $idExpression = $driver === 'sqlite'
-            ? "('{$source}:' || external_id)"
-            : "CONCAT('{$source}:', external_id)";
-
-        $locationExpression = $driver === 'sqlite'
-            ? "NULLIF(trim(\n                COALESCE('Route ' || route, '') ||\n                CASE WHEN route IS NOT NULL AND (stop_start IS NOT NULL OR stop_end IS NOT NULL) THEN ': ' ELSE '' END ||\n                COALESCE(stop_start, '') ||\n                CASE WHEN stop_start IS NOT NULL AND stop_end IS NOT NULL THEN ' to ' ELSE '' END ||\n                COALESCE(stop_end, '')\n            ), '')"
-            : "NULLIF(TRIM(CONCAT(\n                IF(route IS NOT NULL, CONCAT('Route ', route), ''),\n                IF(route IS NOT NULL AND (stop_start IS NOT NULL OR stop_end IS NOT NULL), ': ', ''),\n                IFNULL(stop_start, ''),\n                IF(stop_start IS NOT NULL AND stop_end IS NOT NULL, ' to ', ''),\n                IFNULL(stop_end, '')\n            )), '')";
-
-        $metaExpression = $driver === 'sqlite'
-            ? "json_object('route_type', route_type, 'route', route, 'severity', severity, 'effect', effect, 'source_feed', source_feed, 'alert_type', alert_type, 'description', description, 'url', url, 'direction', direction, 'cause', cause, 'stop_start', stop_start, 'stop_end', stop_end)"
-            : "JSON_OBJECT('route_type', route_type, 'route', route, 'severity', severity, 'effect', effect, 'source_feed', source_feed, 'alert_type', alert_type, 'description', description, 'url', url, 'direction', direction, 'cause', cause, 'stop_start', stop_start, 'stop_end', stop_end)";
+        if ($driver === 'sqlite') {
+            $idExpression = "('{$source}:' || external_id)";
+            $externalIdExpression = 'external_id';
+            $locationExpression = "NULLIF(trim(\n                COALESCE('Route ' || route, '') ||\n                CASE WHEN route IS NOT NULL AND (stop_start IS NOT NULL OR stop_end IS NOT NULL) THEN ': ' ELSE '' END ||\n                COALESCE(stop_start, '') ||\n                CASE WHEN stop_start IS NOT NULL AND stop_end IS NOT NULL THEN ' to ' ELSE '' END ||\n                COALESCE(stop_end, '')\n            ), '')";
+            $latExpression = 'NULL';
+            $lngExpression = 'NULL';
+            $metaExpression = "json_object('route_type', route_type, 'route', route, 'severity', severity, 'effect', effect, 'source_feed', source_feed, 'alert_type', alert_type, 'description', description, 'url', url, 'direction', direction, 'cause', cause, 'stop_start', stop_start, 'stop_end', stop_end)";
+        } elseif ($driver === 'pgsql') {
+            $idExpression = "('{$source}:' || CAST(external_id AS text))";
+            $externalIdExpression = 'CAST(external_id AS text)';
+            $locationExpression = "NULLIF(trim(\n                coalesce(CASE WHEN route IS NOT NULL THEN 'Route ' || route END, '') ||\n                CASE WHEN route IS NOT NULL AND (stop_start IS NOT NULL OR stop_end IS NOT NULL) THEN ': ' ELSE '' END ||\n                coalesce(stop_start, '') ||\n                CASE WHEN stop_start IS NOT NULL AND stop_end IS NOT NULL THEN ' to ' ELSE '' END ||\n                coalesce(stop_end, '')\n            ), '')";
+            $latExpression = 'CAST(NULL AS double precision)';
+            $lngExpression = 'CAST(NULL AS double precision)';
+            $metaExpression = "json_build_object('route_type', route_type, 'route', route, 'severity', severity, 'effect', effect, 'source_feed', source_feed, 'alert_type', alert_type, 'description', description, 'url', url, 'direction', direction, 'cause', cause, 'stop_start', stop_start, 'stop_end', stop_end)::jsonb";
+        } else {
+            $idExpression = "CONCAT('{$source}:', external_id)";
+            $externalIdExpression = 'external_id';
+            $locationExpression = "NULLIF(TRIM(CONCAT(\n                IF(route IS NOT NULL, CONCAT('Route ', route), ''),\n                IF(route IS NOT NULL AND (stop_start IS NOT NULL OR stop_end IS NOT NULL), ': ', ''),\n                IFNULL(stop_start, ''),\n                IF(stop_start IS NOT NULL AND stop_end IS NOT NULL, ' to ', ''),\n                IFNULL(stop_end, '')\n            )), '')";
+            $latExpression = 'NULL';
+            $lngExpression = 'NULL';
+            $metaExpression = "JSON_OBJECT('route_type', route_type, 'route', route, 'severity', severity, 'effect', effect, 'source_feed', source_feed, 'alert_type', alert_type, 'description', description, 'url', url, 'direction', direction, 'cause', cause, 'stop_start', stop_start, 'stop_end', stop_end)";
+        }
 
         $query = TransitAlert::query()
             ->selectRaw(
-                "{$idExpression} as id,\n                '{$source}' as source,\n                external_id,\n                is_active,\n                COALESCE(active_period_start, created_at) as timestamp,\n                title,\n                {$locationExpression} as location_name,\n                NULL as lat,\n                NULL as lng,\n                {$metaExpression} as meta"
+                "{$idExpression} as id,\n                '{$source}' as source,\n                {$externalIdExpression} as external_id,\n                is_active,\n                COALESCE(active_period_start, created_at) as timestamp,\n                title,\n                {$locationExpression} as location_name,\n                {$latExpression} as lat,\n                {$lngExpression} as lng,\n                {$metaExpression} as meta"
             );
 
         if ($criteria->source !== null && $criteria->source !== $source) {
@@ -63,7 +75,7 @@ class TransitAlertSelectProvider implements AlertSelectProvider
             });
         }
 
-        if ($criteria->query !== null && $driver === 'mysql') {
+        if ($criteria->query !== null && $isMySqlFamily) {
             $needle = '%'.mb_strtolower($criteria->query).'%';
 
             $query->where(function ($where) use ($criteria, $needle) {

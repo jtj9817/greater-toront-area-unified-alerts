@@ -136,6 +136,25 @@ test('fire alert select provider uses non-sqlite expressions when driver is not 
     expect($sql)->toContain('DATE_FORMAT');
 });
 
+test('fire alert select provider uses pgsql-safe expressions when driver is pgsql', function () {
+    DB::partialMock()
+        ->shouldReceive('getDriverName')
+        ->andReturn('pgsql');
+
+    $sql = (new FireAlertSelectProvider)->select(new UnifiedAlertsCriteria)->toSql();
+
+    expect($sql)->toContain("('fire:' || CAST(event_num AS text))");
+    expect($sql)->toContain('CAST(event_num AS text)');
+    expect($sql)->toContain("NULLIF(concat_ws(' / ', prime_street, cross_streets), '')");
+    expect($sql)->toContain('CAST(NULL AS double precision) as lat');
+    expect($sql)->toContain('CAST(NULL AS double precision) as lng');
+    expect($sql)->toContain('json_build_object(');
+    expect($sql)->toContain('::jsonb');
+    expect($sql)->toContain('json_agg(');
+    expect($sql)->not->toContain('JSON_OBJECT(');
+    expect($sql)->not->toContain('DATE_FORMAT');
+});
+
 test('fire alert select provider pushes down status and since filters', function () {
     CarbonImmutable::setTestNow(CarbonImmutable::parse('2026-02-02 12:00:00'));
 

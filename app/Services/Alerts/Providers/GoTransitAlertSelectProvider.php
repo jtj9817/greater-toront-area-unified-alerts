@@ -20,27 +20,40 @@ class GoTransitAlertSelectProvider implements AlertSelectProvider
     public function select(UnifiedAlertsCriteria $criteria): Builder
     {
         $driver = DB::getDriverName();
+        $isMySqlFamily = in_array($driver, ['mysql', 'mariadb'], true);
         $source = $this->source();
 
-        $idExpression = $driver === 'sqlite'
-            ? "('{$source}:' || external_id)"
-            : "CONCAT('{$source}:', external_id)";
-
-        $metaExpression = $driver === 'sqlite'
-            ? "json_object('alert_type', alert_type, 'service_mode', service_mode, 'sub_category', sub_category, 'corridor_code', corridor_code, 'direction', direction, 'trip_number', trip_number, 'delay_duration', delay_duration, 'line_colour', line_colour, 'message_body', message_body)"
-            : "JSON_OBJECT('alert_type', alert_type, 'service_mode', service_mode, 'sub_category', sub_category, 'corridor_code', corridor_code, 'direction', direction, 'trip_number', trip_number, 'delay_duration', delay_duration, 'line_colour', line_colour, 'message_body', message_body)";
+        if ($driver === 'sqlite') {
+            $idExpression = "('{$source}:' || external_id)";
+            $externalIdExpression = 'external_id';
+            $latExpression = 'NULL';
+            $lngExpression = 'NULL';
+            $metaExpression = "json_object('alert_type', alert_type, 'service_mode', service_mode, 'sub_category', sub_category, 'corridor_code', corridor_code, 'direction', direction, 'trip_number', trip_number, 'delay_duration', delay_duration, 'line_colour', line_colour, 'message_body', message_body)";
+        } elseif ($driver === 'pgsql') {
+            $idExpression = "('{$source}:' || CAST(external_id AS text))";
+            $externalIdExpression = 'CAST(external_id AS text)';
+            $latExpression = 'CAST(NULL AS double precision)';
+            $lngExpression = 'CAST(NULL AS double precision)';
+            $metaExpression = "json_build_object('alert_type', alert_type, 'service_mode', service_mode, 'sub_category', sub_category, 'corridor_code', corridor_code, 'direction', direction, 'trip_number', trip_number, 'delay_duration', delay_duration, 'line_colour', line_colour, 'message_body', message_body)::jsonb";
+        } else {
+            $idExpression = "CONCAT('{$source}:', external_id)";
+            $externalIdExpression = 'external_id';
+            $latExpression = 'NULL';
+            $lngExpression = 'NULL';
+            $metaExpression = "JSON_OBJECT('alert_type', alert_type, 'service_mode', service_mode, 'sub_category', sub_category, 'corridor_code', corridor_code, 'direction', direction, 'trip_number', trip_number, 'delay_duration', delay_duration, 'line_colour', line_colour, 'message_body', message_body)";
+        }
 
         $query = GoTransitAlert::query()
             ->selectRaw(
                 "{$idExpression} as id,
                 '{$source}' as source,
-                external_id,
+                {$externalIdExpression} as external_id,
                 is_active,
                 posted_at as timestamp,
                 message_subject as title,
                 corridor_or_route as location_name,
-                NULL as lat,
-                NULL as lng,
+                {$latExpression} as lat,
+                {$lngExpression} as lng,
                 {$metaExpression} as meta"
             );
 
@@ -58,7 +71,7 @@ class GoTransitAlertSelectProvider implements AlertSelectProvider
             $query->where('posted_at', '>=', $criteria->sinceCutoff->toDateTimeString());
         }
 
-        if ($criteria->query !== null && $driver === 'mysql') {
+        if ($criteria->query !== null && $isMySqlFamily) {
             $needle = '%'.mb_strtolower($criteria->query).'%';
 
             $query->where(function ($where) use ($criteria, $needle) {

@@ -55,6 +55,22 @@ test('police alert select provider uses non-sqlite expressions when driver is no
     expect($sql)->toContain("JSON_OBJECT('division'");
 });
 
+test('police alert select provider uses pgsql-safe expressions when driver is pgsql', function () {
+    DB::partialMock()
+        ->shouldReceive('getDriverName')
+        ->andReturn('pgsql');
+
+    $sql = (new PoliceAlertSelectProvider)->select(new UnifiedAlertsCriteria)->toSql();
+
+    expect($sql)->toContain("('police:' || CAST(object_id AS text))");
+    expect($sql)->toContain('CAST(object_id AS text)');
+    expect($sql)->toContain('CAST(latitude AS double precision) as lat');
+    expect($sql)->toContain('CAST(longitude AS double precision) as lng');
+    expect($sql)->toContain('json_build_object(');
+    expect($sql)->toContain('::jsonb');
+    expect($sql)->not->toContain('JSON_OBJECT(');
+});
+
 test('police alert select provider pushes down status and since filters', function () {
     CarbonImmutable::setTestNow(CarbonImmutable::parse('2026-02-02 12:00:00'));
 
