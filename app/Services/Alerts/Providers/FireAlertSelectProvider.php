@@ -177,7 +177,7 @@ class FireAlertSelectProvider implements AlertSelectProvider
                             WHEN 'manual_note' THEN 'note'
                             ELSE 'info' END,
                         'content', t.content,
-                        'timestamp', to_char(t.created_at AT TIME ZONE 'UTC', 'YYYY-MM-DD\"T\"HH24:MI:SS\"Z\"'),
+                        'timestamp', to_char(t.created_at, 'YYYY-MM-DD\"T\"HH24:MI:SS\"Z\"'),
                         'metadata', t.metadata
                     )
                     ORDER BY t.created_at DESC, t.id DESC
@@ -230,7 +230,7 @@ class FireAlertSelectProvider implements AlertSelectProvider
     private function getLastUpdatedSubquery(string $driver): string
     {
         if ($driver === 'pgsql') {
-            return "SELECT to_char(MAX(created_at) AT TIME ZONE 'UTC', 'YYYY-MM-DD\"T\"HH24:MI:SS\"Z\"') FROM incident_updates WHERE incident_updates.event_num = fire_incidents.event_num";
+            return "SELECT to_char(MAX(created_at), 'YYYY-MM-DD\"T\"HH24:MI:SS\"Z\"') FROM incident_updates WHERE incident_updates.event_num = fire_incidents.event_num";
         }
 
         return 'SELECT MAX(created_at) FROM incident_updates WHERE incident_updates.event_num = fire_incidents.event_num';

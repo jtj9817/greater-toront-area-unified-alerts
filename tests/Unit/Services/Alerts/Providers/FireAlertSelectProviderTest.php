@@ -151,9 +151,9 @@ test('fire alert select provider uses pgsql-safe expressions when driver is pgsq
     expect($sql)->toContain('json_build_object(');
     expect($sql)->toContain('::jsonb');
     expect($sql)->toContain('json_agg(');
-    expect($sql)->toContain("to_char(t.created_at AT TIME ZONE 'UTC'");
+    expect($sql)->toContain('to_char(t.created_at,');
     expect($sql)->toContain('ORDER BY t.created_at DESC, t.id DESC');
-    expect($sql)->toContain("to_char(MAX(created_at) AT TIME ZONE 'UTC'");
+    expect($sql)->toContain('to_char(MAX(created_at),');
     expect($sql)->not->toContain('JSON_OBJECT(');
     expect($sql)->not->toContain('DATE_FORMAT');
 });
