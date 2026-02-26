@@ -151,6 +151,9 @@ test('fire alert select provider uses pgsql-safe expressions when driver is pgsq
     expect($sql)->toContain('json_build_object(');
     expect($sql)->toContain('::jsonb');
     expect($sql)->toContain('json_agg(');
+    expect($sql)->toContain("to_char(t.created_at AT TIME ZONE 'UTC'");
+    expect($sql)->toContain('ORDER BY t.created_at DESC, t.id DESC');
+    expect($sql)->toContain("to_char(MAX(created_at) AT TIME ZONE 'UTC'");
     expect($sql)->not->toContain('JSON_OBJECT(');
     expect($sql)->not->toContain('DATE_FORMAT');
 });
@@ -216,6 +219,26 @@ test('fire alert select provider mysql query path includes fulltext and like fal
     expect($sql)->toContain('LOWER(event_type) LIKE ?');
     expect($sql)->toContain('LOWER(prime_street) LIKE ?');
     expect($sql)->toContain('LOWER(cross_streets) LIKE ?');
+    expect($query->getBindings())->toBe([
+        'Yonge',
+        '%yonge%',
+        '%yonge%',
+        '%yonge%',
+    ]);
+});
+
+test('fire alert select provider pgsql query path includes fulltext and ilike fallback', function () {
+    DB::partialMock()
+        ->shouldReceive('getDriverName')
+        ->andReturn('pgsql');
+
+    $query = (new FireAlertSelectProvider)->select(new UnifiedAlertsCriteria(query: 'Yonge'));
+    $sql = $query->toSql();
+
+    expect($sql)->toContain("to_tsvector('simple', coalesce(event_type, '') || ' ' || coalesce(prime_street, '') || ' ' || coalesce(cross_streets, '')) @@ plainto_tsquery('simple', ?)");
+    expect($sql)->toContain("coalesce(event_type, '') ILIKE ?");
+    expect($sql)->toContain("coalesce(prime_street, '') ILIKE ?");
+    expect($sql)->toContain("coalesce(cross_streets, '') ILIKE ?");
     expect($query->getBindings())->toBe([
         'Yonge',
         '%yonge%',

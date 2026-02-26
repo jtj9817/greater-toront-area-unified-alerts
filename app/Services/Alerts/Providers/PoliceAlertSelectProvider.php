@@ -62,16 +62,26 @@ class PoliceAlertSelectProvider implements AlertSelectProvider
             $query->where('occurrence_time', '>=', $criteria->sinceCutoff->toDateTimeString());
         }
 
-        if ($criteria->query !== null && $isMySqlFamily) {
+        if ($criteria->query !== null) {
             $needle = '%'.mb_strtolower($criteria->query).'%';
 
-            $query->where(function ($where) use ($criteria, $needle) {
-                $where->whereRaw(
-                    'MATCH(call_type, cross_streets) AGAINST (? IN NATURAL LANGUAGE MODE)',
-                    [$criteria->query],
-                )->orWhereRaw('LOWER(call_type) LIKE ?', [$needle])
-                    ->orWhereRaw('LOWER(cross_streets) LIKE ?', [$needle]);
-            });
+            if ($isMySqlFamily) {
+                $query->where(function ($where) use ($criteria, $needle) {
+                    $where->whereRaw(
+                        'MATCH(call_type, cross_streets) AGAINST (? IN NATURAL LANGUAGE MODE)',
+                        [$criteria->query],
+                    )->orWhereRaw('LOWER(call_type) LIKE ?', [$needle])
+                        ->orWhereRaw('LOWER(cross_streets) LIKE ?', [$needle]);
+                });
+            } elseif ($driver === 'pgsql') {
+                $query->where(function ($where) use ($criteria, $needle) {
+                    $where->whereRaw(
+                        "to_tsvector('simple', coalesce(call_type, '') || ' ' || coalesce(cross_streets, '')) @@ plainto_tsquery('simple', ?)",
+                        [$criteria->query],
+                    )->orWhereRaw("coalesce(call_type, '') ILIKE ?", [$needle])
+                        ->orWhereRaw("coalesce(cross_streets, '') ILIKE ?", [$needle]);
+                });
+            }
         }
 
         return $query->toBase();

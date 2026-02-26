@@ -92,17 +92,28 @@ class FireAlertSelectProvider implements AlertSelectProvider
             $query->where('dispatch_time', '>=', $criteria->sinceCutoff->toDateTimeString());
         }
 
-        if ($criteria->query !== null && $isMySqlFamily) {
+        if ($criteria->query !== null) {
             $needle = '%'.mb_strtolower($criteria->query).'%';
 
-            $query->where(function ($where) use ($criteria, $needle) {
-                $where->whereRaw(
-                    'MATCH(event_type, prime_street, cross_streets) AGAINST (? IN NATURAL LANGUAGE MODE)',
-                    [$criteria->query],
-                )->orWhereRaw('LOWER(event_type) LIKE ?', [$needle])
-                    ->orWhereRaw('LOWER(prime_street) LIKE ?', [$needle])
-                    ->orWhereRaw('LOWER(cross_streets) LIKE ?', [$needle]);
-            });
+            if ($isMySqlFamily) {
+                $query->where(function ($where) use ($criteria, $needle) {
+                    $where->whereRaw(
+                        'MATCH(event_type, prime_street, cross_streets) AGAINST (? IN NATURAL LANGUAGE MODE)',
+                        [$criteria->query],
+                    )->orWhereRaw('LOWER(event_type) LIKE ?', [$needle])
+                        ->orWhereRaw('LOWER(prime_street) LIKE ?', [$needle])
+                        ->orWhereRaw('LOWER(cross_streets) LIKE ?', [$needle]);
+                });
+            } elseif ($driver === 'pgsql') {
+                $query->where(function ($where) use ($criteria, $needle) {
+                    $where->whereRaw(
+                        "to_tsvector('simple', coalesce(event_type, '') || ' ' || coalesce(prime_street, '') || ' ' || coalesce(cross_streets, '')) @@ plainto_tsquery('simple', ?)",
+                        [$criteria->query],
+                    )->orWhereRaw("coalesce(event_type, '') ILIKE ?", [$needle])
+                        ->orWhereRaw("coalesce(prime_street, '') ILIKE ?", [$needle])
+                        ->orWhereRaw("coalesce(cross_streets, '') ILIKE ?", [$needle]);
+                });
+            }
         }
 
         return $query->toBase();
@@ -166,9 +177,10 @@ class FireAlertSelectProvider implements AlertSelectProvider
                             WHEN 'manual_note' THEN 'note'
                             ELSE 'info' END,
                         'content', t.content,
-                        'timestamp', t.created_at::text,
+                        'timestamp', to_char(t.created_at AT TIME ZONE 'UTC', 'YYYY-MM-DD\"T\"HH24:MI:SS\"Z\"'),
                         'metadata', t.metadata
                     )
+                    ORDER BY t.created_at DESC, t.id DESC
                 ), '[]'::json)
                 FROM (
                     SELECT id, update_type, content, created_at, metadata
@@ -218,7 +230,7 @@ class FireAlertSelectProvider implements AlertSelectProvider
     private function getLastUpdatedSubquery(string $driver): string
     {
         if ($driver === 'pgsql') {
-            return 'SELECT MAX(created_at)::text FROM incident_updates WHERE incident_updates.event_num = fire_incidents.event_num';
+            return "SELECT to_char(MAX(created_at) AT TIME ZONE 'UTC', 'YYYY-MM-DD\"T\"HH24:MI:SS\"Z\"') FROM incident_updates WHERE incident_updates.event_num = fire_incidents.event_num";
         }
 
         return 'SELECT MAX(created_at) FROM incident_updates WHERE incident_updates.event_num = fire_incidents.event_num';

@@ -71,19 +71,32 @@ class GoTransitAlertSelectProvider implements AlertSelectProvider
             $query->where('posted_at', '>=', $criteria->sinceCutoff->toDateTimeString());
         }
 
-        if ($criteria->query !== null && $isMySqlFamily) {
+        if ($criteria->query !== null) {
             $needle = '%'.mb_strtolower($criteria->query).'%';
 
-            $query->where(function ($where) use ($criteria, $needle) {
-                $where->whereRaw(
-                    'MATCH(message_subject, message_body, corridor_or_route, corridor_code, service_mode) AGAINST (? IN NATURAL LANGUAGE MODE)',
-                    [$criteria->query],
-                )->orWhereRaw('LOWER(message_subject) LIKE ?', [$needle])
-                    ->orWhereRaw('LOWER(message_body) LIKE ?', [$needle])
-                    ->orWhereRaw('LOWER(corridor_or_route) LIKE ?', [$needle])
-                    ->orWhereRaw('LOWER(corridor_code) LIKE ?', [$needle])
-                    ->orWhereRaw('LOWER(service_mode) LIKE ?', [$needle]);
-            });
+            if ($isMySqlFamily) {
+                $query->where(function ($where) use ($criteria, $needle) {
+                    $where->whereRaw(
+                        'MATCH(message_subject, message_body, corridor_or_route, corridor_code, service_mode) AGAINST (? IN NATURAL LANGUAGE MODE)',
+                        [$criteria->query],
+                    )->orWhereRaw('LOWER(message_subject) LIKE ?', [$needle])
+                        ->orWhereRaw('LOWER(message_body) LIKE ?', [$needle])
+                        ->orWhereRaw('LOWER(corridor_or_route) LIKE ?', [$needle])
+                        ->orWhereRaw('LOWER(corridor_code) LIKE ?', [$needle])
+                        ->orWhereRaw('LOWER(service_mode) LIKE ?', [$needle]);
+                });
+            } elseif ($driver === 'pgsql') {
+                $query->where(function ($where) use ($criteria, $needle) {
+                    $where->whereRaw(
+                        "to_tsvector('simple', coalesce(message_subject, '') || ' ' || coalesce(message_body, '') || ' ' || coalesce(corridor_or_route, '') || ' ' || coalesce(corridor_code, '') || ' ' || coalesce(service_mode, '')) @@ plainto_tsquery('simple', ?)",
+                        [$criteria->query],
+                    )->orWhereRaw("coalesce(message_subject, '') ILIKE ?", [$needle])
+                        ->orWhereRaw("coalesce(message_body, '') ILIKE ?", [$needle])
+                        ->orWhereRaw("coalesce(corridor_or_route, '') ILIKE ?", [$needle])
+                        ->orWhereRaw("coalesce(corridor_code, '') ILIKE ?", [$needle])
+                        ->orWhereRaw("coalesce(service_mode, '') ILIKE ?", [$needle]);
+                });
+            }
         }
 
         return $query->toBase();

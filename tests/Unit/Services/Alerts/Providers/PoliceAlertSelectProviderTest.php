@@ -71,6 +71,24 @@ test('police alert select provider uses pgsql-safe expressions when driver is pg
     expect($sql)->not->toContain('JSON_OBJECT(');
 });
 
+test('police alert select provider pgsql query path includes fulltext and ilike fallback', function () {
+    DB::partialMock()
+        ->shouldReceive('getDriverName')
+        ->andReturn('pgsql');
+
+    $query = (new PoliceAlertSelectProvider)->select(new UnifiedAlertsCriteria(query: 'Assault'));
+    $sql = $query->toSql();
+
+    expect($sql)->toContain("to_tsvector('simple', coalesce(call_type, '') || ' ' || coalesce(cross_streets, '')) @@ plainto_tsquery('simple', ?)");
+    expect($sql)->toContain("coalesce(call_type, '') ILIKE ?");
+    expect($sql)->toContain("coalesce(cross_streets, '') ILIKE ?");
+    expect($query->getBindings())->toBe([
+        'Assault',
+        '%assault%',
+        '%assault%',
+    ]);
+});
+
 test('police alert select provider pushes down status and since filters', function () {
     CarbonImmutable::setTestNow(CarbonImmutable::parse('2026-02-02 12:00:00'));
 

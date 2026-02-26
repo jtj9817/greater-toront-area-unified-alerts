@@ -123,3 +123,27 @@ test('go transit alert select provider pushes down status and since filters', fu
         CarbonImmutable::setTestNow();
     }
 });
+
+test('go transit alert select provider pgsql query path includes fulltext and ilike fallback', function () {
+    DB::partialMock()
+        ->shouldReceive('getDriverName')
+        ->andReturn('pgsql');
+
+    $query = (new GoTransitAlertSelectProvider)->select(new UnifiedAlertsCriteria(query: 'Lakeshore'));
+    $sql = $query->toSql();
+
+    expect($sql)->toContain("to_tsvector('simple', coalesce(message_subject, '') || ' ' || coalesce(message_body, '') || ' ' || coalesce(corridor_or_route, '') || ' ' || coalesce(corridor_code, '') || ' ' || coalesce(service_mode, '')) @@ plainto_tsquery('simple', ?)");
+    expect($sql)->toContain("coalesce(message_subject, '') ILIKE ?");
+    expect($sql)->toContain("coalesce(message_body, '') ILIKE ?");
+    expect($sql)->toContain("coalesce(corridor_or_route, '') ILIKE ?");
+    expect($sql)->toContain("coalesce(corridor_code, '') ILIKE ?");
+    expect($sql)->toContain("coalesce(service_mode, '') ILIKE ?");
+    expect($query->getBindings())->toBe([
+        'Lakeshore',
+        '%lakeshore%',
+        '%lakeshore%',
+        '%lakeshore%',
+        '%lakeshore%',
+        '%lakeshore%',
+    ]);
+});

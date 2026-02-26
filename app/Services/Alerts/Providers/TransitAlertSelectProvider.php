@@ -75,19 +75,33 @@ class TransitAlertSelectProvider implements AlertSelectProvider
             });
         }
 
-        if ($criteria->query !== null && $isMySqlFamily) {
+        if ($criteria->query !== null) {
             $needle = '%'.mb_strtolower($criteria->query).'%';
 
-            $query->where(function ($where) use ($criteria, $needle) {
-                $where->whereRaw(
-                    'MATCH(title, description, stop_start, stop_end, route, route_type) AGAINST (? IN NATURAL LANGUAGE MODE)',
-                    [$criteria->query],
-                )->orWhereRaw('LOWER(title) LIKE ?', [$needle])
-                    ->orWhereRaw('LOWER(route) LIKE ?', [$needle])
-                    ->orWhereRaw('LOWER(route_type) LIKE ?', [$needle])
-                    ->orWhereRaw('LOWER(stop_start) LIKE ?', [$needle])
-                    ->orWhereRaw('LOWER(stop_end) LIKE ?', [$needle]);
-            });
+            if ($isMySqlFamily) {
+                $query->where(function ($where) use ($criteria, $needle) {
+                    $where->whereRaw(
+                        'MATCH(title, description, stop_start, stop_end, route, route_type) AGAINST (? IN NATURAL LANGUAGE MODE)',
+                        [$criteria->query],
+                    )->orWhereRaw('LOWER(title) LIKE ?', [$needle])
+                        ->orWhereRaw('LOWER(route) LIKE ?', [$needle])
+                        ->orWhereRaw('LOWER(route_type) LIKE ?', [$needle])
+                        ->orWhereRaw('LOWER(stop_start) LIKE ?', [$needle])
+                        ->orWhereRaw('LOWER(stop_end) LIKE ?', [$needle]);
+                });
+            } elseif ($driver === 'pgsql') {
+                $query->where(function ($where) use ($criteria, $needle) {
+                    $where->whereRaw(
+                        "to_tsvector('simple', coalesce(title, '') || ' ' || coalesce(description, '') || ' ' || coalesce(stop_start, '') || ' ' || coalesce(stop_end, '') || ' ' || coalesce(route, '') || ' ' || coalesce(route_type, '')) @@ plainto_tsquery('simple', ?)",
+                        [$criteria->query],
+                    )->orWhereRaw("coalesce(title, '') ILIKE ?", [$needle])
+                        ->orWhereRaw("coalesce(description, '') ILIKE ?", [$needle])
+                        ->orWhereRaw("coalesce(stop_start, '') ILIKE ?", [$needle])
+                        ->orWhereRaw("coalesce(stop_end, '') ILIKE ?", [$needle])
+                        ->orWhereRaw("coalesce(route, '') ILIKE ?", [$needle])
+                        ->orWhereRaw("coalesce(route_type, '') ILIKE ?", [$needle]);
+                });
+            }
         }
 
         return $query->toBase();

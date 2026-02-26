@@ -161,6 +161,32 @@ test('transit alert select provider mysql query path includes fulltext and like 
     ]);
 });
 
+test('transit alert select provider pgsql query path includes fulltext and ilike fallback', function () {
+    DB::partialMock()
+        ->shouldReceive('getDriverName')
+        ->andReturn('pgsql');
+
+    $query = (new TransitAlertSelectProvider)->select(new UnifiedAlertsCriteria(query: 'Finch'));
+    $sql = $query->toSql();
+
+    expect($sql)->toContain("to_tsvector('simple', coalesce(title, '') || ' ' || coalesce(description, '') || ' ' || coalesce(stop_start, '') || ' ' || coalesce(stop_end, '') || ' ' || coalesce(route, '') || ' ' || coalesce(route_type, '')) @@ plainto_tsquery('simple', ?)");
+    expect($sql)->toContain("coalesce(title, '') ILIKE ?");
+    expect($sql)->toContain("coalesce(description, '') ILIKE ?");
+    expect($sql)->toContain("coalesce(stop_start, '') ILIKE ?");
+    expect($sql)->toContain("coalesce(stop_end, '') ILIKE ?");
+    expect($sql)->toContain("coalesce(route, '') ILIKE ?");
+    expect($sql)->toContain("coalesce(route_type, '') ILIKE ?");
+    expect($query->getBindings())->toBe([
+        'Finch',
+        '%finch%',
+        '%finch%',
+        '%finch%',
+        '%finch%',
+        '%finch%',
+        '%finch%',
+    ]);
+});
+
 test('transit alert select provider since cutoff falls back to created at when active period start is null', function () {
     $now = CarbonImmutable::parse('2026-02-25 12:00:00');
     CarbonImmutable::setTestNow($now);
