@@ -28,7 +28,7 @@ This track removes MySQL-only SQL from the unified feed providers so the app run
     - [ ] Sub-task: Use a tsvector expression that is:
         - robust to nullable columns, and
         - matchable by the provider WHERE clause for index usage.
-      **Recommended pattern:** `to_tsvector('simple', concat_ws(' ', col1, col2, ...))` (so `NULL` inputs don’t null-out the whole vector. Using 'simple' instead of 'english' preserves exact matching for proper nouns like street names).
+      **Recommended pattern:** `to_tsvector('simple', concat_ws(' ', col1, col2, ...))` (so `NULL` inputs don’t null-out the whole vector. Using `'simple'` instead of `'english'` avoids stemming, which is often better for proper nouns like street names. Note: FTS still tokenizes; substring/prefix matching is handled by the required `ILIKE` fallback in Phase 3, not by `to_tsvector` alone).
     - [ ] Sub-task: Add `down()` logic that drops indexes safely (`DROP INDEX CONCURRENTLY IF EXISTS ...`).
 - [ ] Task: Decide what to do with the existing MySQL-only migration.
     - [ ] Sub-task: Option A (safe): leave it MySQL-only and rely on the new pgsql migration.
