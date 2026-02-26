@@ -19,22 +19,22 @@ test('pgsql fulltext migration creates concurrent gin indexes with expected expr
 
     DB::shouldReceive('statement')->once()->withArgs(function (string $sql): bool {
         return str_contains($sql, 'CREATE INDEX CONCURRENTLY IF NOT EXISTS fire_incidents_fulltext')
-            && str_contains($sql, "to_tsvector('simple', concat_ws(' ', event_type, prime_street, cross_streets))");
+            && str_contains($sql, "to_tsvector('simple', coalesce(event_type, '') || ' ' || coalesce(prime_street, '') || ' ' || coalesce(cross_streets, ''))");
     });
 
     DB::shouldReceive('statement')->once()->withArgs(function (string $sql): bool {
         return str_contains($sql, 'CREATE INDEX CONCURRENTLY IF NOT EXISTS police_calls_fulltext')
-            && str_contains($sql, "to_tsvector('simple', concat_ws(' ', call_type, cross_streets))");
+            && str_contains($sql, "to_tsvector('simple', coalesce(call_type, '') || ' ' || coalesce(cross_streets, ''))");
     });
 
     DB::shouldReceive('statement')->once()->withArgs(function (string $sql): bool {
         return str_contains($sql, 'CREATE INDEX CONCURRENTLY IF NOT EXISTS transit_alerts_fulltext')
-            && str_contains($sql, "to_tsvector('simple', concat_ws(' ', title, description, stop_start, stop_end, route, route_type))");
+            && str_contains($sql, "to_tsvector('simple', coalesce(title, '') || ' ' || coalesce(description, '') || ' ' || coalesce(stop_start, '') || ' ' || coalesce(stop_end, '') || ' ' || coalesce(route, '') || ' ' || coalesce(route_type, ''))");
     });
 
     DB::shouldReceive('statement')->once()->withArgs(function (string $sql): bool {
         return str_contains($sql, 'CREATE INDEX CONCURRENTLY IF NOT EXISTS go_transit_alerts_fulltext')
-            && str_contains($sql, "to_tsvector('simple', concat_ws(' ', message_subject, message_body, corridor_or_route, corridor_code, service_mode))");
+            && str_contains($sql, "to_tsvector('simple', coalesce(message_subject, '') || ' ' || coalesce(message_body, '') || ' ' || coalesce(corridor_or_route, '') || ' ' || coalesce(corridor_code, '') || ' ' || coalesce(service_mode, ''))");
     });
 
     $migration = loadMigration('2026_02_26_000001_add_pgsql_fulltext_indexes_to_alert_tables.php');
