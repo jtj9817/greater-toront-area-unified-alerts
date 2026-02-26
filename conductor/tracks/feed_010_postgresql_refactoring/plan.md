@@ -17,26 +17,27 @@ This track removes MySQL-only SQL from the unified feed providers so the app run
 ---
 
 ## Phase 1: Database Indexing & Migrations (FTS)
-- [ ] Task: Add Postgres full-text indexes in a **new** migration (recommended).
-    - [ ] Why: Editing `database/migrations/2026_02_19_120000_add_fulltext_indexes_to_alert_tables.php` is not sufficient if it has already been recorded as “ran” on a Postgres environment (it currently returns early on non-MySQL, but still may have been logged).
-    - [ ] Sub-task: Create a new migration that runs only when `Schema::getConnection()->getDriverName() === 'pgsql'`.
-    - [ ] Sub-task: Use `CREATE INDEX CONCURRENTLY IF NOT EXISTS` to avoid blocking live writes during deployment.
-    - [ ] Sub-task: Set `public $withinTransaction = false;` in the migration class so `CONCURRENTLY` works.
-    - [ ] Sub-task: Create the four indexes with names that match the existing convention:
+- [x] (67dd036) Task: Add Postgres full-text indexes in a **new** migration (recommended).
+    - [x] (67dd036) Why: Editing `database/migrations/2026_02_19_120000_add_fulltext_indexes_to_alert_tables.php` is not sufficient if it has already been recorded as “ran” on a Postgres environment (it currently returns early on non-MySQL, but still may have been logged).
+    - [x] (67dd036) Sub-task: Create a new migration that runs only when `Schema::getConnection()->getDriverName() === 'pgsql'`.
+    - [x] (67dd036) Sub-task: Use `CREATE INDEX CONCURRENTLY IF NOT EXISTS` to avoid blocking live writes during deployment.
+    - [x] (67dd036) Sub-task: Set `public $withinTransaction = false;` in the migration class so `CONCURRENTLY` works.
+    - [x] (67dd036) Sub-task: Create the four indexes with names that match the existing convention:
         - `fire_incidents_fulltext`
         - `police_calls_fulltext`
         - `transit_alerts_fulltext`
         - `go_transit_alerts_fulltext`
-    - [ ] Sub-task: Use a tsvector expression that is:
+    - [x] (67dd036) Sub-task: Use a tsvector expression that is:
         - robust to nullable columns, and
         - matchable by the provider WHERE clause for index usage.
       **Recommended pattern:** `to_tsvector('simple', concat_ws(' ', col1, col2, ...))` (so `NULL` inputs don’t null-out the whole vector. Using `'simple'` instead of `'english'` avoids stemming, which is often better for proper nouns like street names. Note: FTS still tokenizes; substring/prefix matching is handled by the required `ILIKE` fallback in Phase 3, not by `to_tsvector` alone).
-    - [ ] Sub-task: Add `down()` logic that drops indexes safely (`DROP INDEX CONCURRENTLY IF EXISTS ...`).
-- [ ] Task: Decide what to do with the existing MySQL-only migration.
+    - [x] (67dd036) Sub-task: Add `down()` logic that drops indexes safely (`DROP INDEX CONCURRENTLY IF EXISTS ...`).
+- [x] (67dd036) Task: Decide what to do with the existing MySQL-only migration.
     - [ ] Sub-task: Option A (safe): leave it MySQL-only and rely on the new pgsql migration.
-    - [ ] Sub-task: Option B (cleanup): broaden it to `mysql`/`mariadb` while keeping pgsql handled by the new migration.
-- [ ] Task: Verification of index presence and usage.
-    - [ ] Sub-task: Add a short runbook step (or dev note) to confirm index existence (`pg_indexes`) and confirm planner usage via `EXPLAIN` on representative provider queries with `q`.
+    - [x] (67dd036) Sub-task: Option B (cleanup): broaden it to `mysql`/`mariadb` while keeping pgsql handled by the new migration.
+- [x] (67dd036) Task: Verification of index presence and usage.
+    - [x] (67dd036) Sub-task: Add a short runbook step (or dev note) to confirm index existence (`pg_indexes`) and confirm planner usage via `EXPLAIN` on representative provider queries with `q`.
+    - [x] (67dd036) Notes: `conductor/tracks/feed_010_postgresql_refactoring/phase_1_index_verification.md`
 
 ---
 
