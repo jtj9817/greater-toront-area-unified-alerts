@@ -18,6 +18,8 @@ This track removes MySQL-only SQL from the unified feed providers so the app run
 - [ ] Task: Add Postgres full-text indexes in a **new** migration (recommended).
     - [ ] Why: Editing `database/migrations/2026_02_19_120000_add_fulltext_indexes_to_alert_tables.php` is not sufficient if it has already been recorded as “ran” on a Postgres environment (it currently returns early on non-MySQL, but still may have been logged).
     - [ ] Sub-task: Create a new migration that runs only when `Schema::getConnection()->getDriverName() === 'pgsql'`.
+    - [ ] Sub-task: Use `CREATE INDEX CONCURRENTLY IF NOT EXISTS` to avoid blocking live writes during deployment.
+    - [ ] Sub-task: Set `public $withinTransaction = false;` in the migration class so `CONCURRENTLY` works.
     - [ ] Sub-task: Create the four indexes with names that match the existing convention:
         - `fire_incidents_fulltext`
         - `police_calls_fulltext`
@@ -26,8 +28,8 @@ This track removes MySQL-only SQL from the unified feed providers so the app run
     - [ ] Sub-task: Use a tsvector expression that is:
         - robust to nullable columns, and
         - matchable by the provider WHERE clause for index usage.
-      **Recommended pattern:** `to_tsvector('english', concat_ws(' ', col1, col2, ...))` (so `NULL` inputs don’t null-out the whole vector).
-    - [ ] Sub-task: Add `down()` logic that drops indexes safely (`DROP INDEX IF EXISTS ...`).
+      **Recommended pattern:** `to_tsvector('simple', concat_ws(' ', col1, col2, ...))` (so `NULL` inputs don’t null-out the whole vector. Using 'simple' instead of 'english' preserves exact matching for proper nouns like street names).
+    - [ ] Sub-task: Add `down()` logic that drops indexes safely (`DROP INDEX CONCURRENTLY IF EXISTS ...`).
 - [ ] Task: Decide what to do with the existing MySQL-only migration.
     - [ ] Sub-task: Option A (safe): leave it MySQL-only and rely on the new pgsql migration.
     - [ ] Sub-task: Option B (cleanup): broaden it to `mysql`/`mariadb` while keeping pgsql handled by the new migration.
@@ -45,8 +47,9 @@ This track removes MySQL-only SQL from the unified feed providers so the app run
 
 - [ ] Task: Add explicit `$driver === 'pgsql'` branches (do not fall through to MySQL SQL).
     - [ ] Sub-task: Ensure `id` and `external_id` are **text** across all providers on pgsql (cast numeric identifiers like `object_id`).
+    - [ ] Sub-task: Ensure `lat` and `lng` are explicitly cast if they are `NULL` (e.g., `CAST(NULL AS double precision)`) to prevent `UNION ALL` coercion edge cases.
     - [ ] Sub-task: Replace MySQL-only string helpers (`CONCAT`, `CONCAT_WS`, `IF`, `IFNULL`) with pgsql-safe equivalents (`||`, `concat_ws`, `CASE`, `coalesce`).
-    - [ ] Sub-task: Replace JSON constructors with pgsql equivalents (`json_build_object`, `json_agg`) and ensure unions do not type-mismatch the `meta` column.
+    - [ ] Sub-task: Replace JSON constructors with pgsql equivalents (`json_build_object`, `json_agg`). Crucially, explicitly cast the final `meta` expression to `::jsonb` (or `::text`) across all providers so `UNION ALL` has strictly matching types.
 
 ---
 
@@ -59,7 +62,7 @@ This track removes MySQL-only SQL from the unified feed providers so the app run
     - [ ] Sub-task: Implement a pgsql version of `getSummarySubquery()` using `json_build_object` + `json_agg`.
     - [ ] Sub-task: Ensure deterministic ordering of the summary items (most recent first) via `ORDER BY` inside the aggregate (or equivalent safe ordering approach).
     - [ ] Sub-task: Ensure `intel_summary` is always a JSON array (`COALESCE(..., '[]'::json)`), never `null`.
-    - [ ] Sub-task: Format both per-item `timestamp` **and** `intel_last_updated` to ISO-8601 with offset (`...Z` is acceptable) so the frontend Fire schema does not discard alerts.
+    - [ ] Sub-task: Format both per-item `timestamp` **and** the overall `intel_last_updated` (from `getLastUpdatedSubquery()`) to ISO-8601 with offset (`...Z` is acceptable) so the frontend Fire schema does not discard alerts.
 
 ---
 

@@ -84,34 +84,35 @@ For pgsql, create explicit indexes using a single text normalization expression 
 
 **Canonical pgsql index/search expression (per table):**
 ```
-to_tsvector('english', concat_ws(' ', <columns...>))
+to_tsvector('simple', concat_ws(' ', <columns...>))
 ```
 
 This avoids NULL-nullification and provides a stable expression for both:
-- `CREATE INDEX ... USING gin ((<expression>))`
-- `WHERE (<expression>) @@ plainto_tsquery('english', ?)`
+- `CREATE INDEX CONCURRENTLY ... USING gin ((<expression>))`
+- `WHERE (<expression>) @@ plainto_tsquery('simple', ?)`
 
 **Required column sets (must match existing MySQL FULLTEXT intent):**
 - `fire_incidents_fulltext`:
-  - `to_tsvector('english', concat_ws(' ', event_type, prime_street, cross_streets))`
+  - `to_tsvector('simple', concat_ws(' ', event_type, prime_street, cross_streets))`
 - `police_calls_fulltext`:
-  - `to_tsvector('english', concat_ws(' ', call_type, cross_streets))`
+  - `to_tsvector('simple', concat_ws(' ', call_type, cross_streets))`
 - `transit_alerts_fulltext`:
-  - `to_tsvector('english', concat_ws(' ', title, description, stop_start, stop_end, route, route_type))`
+  - `to_tsvector('simple', concat_ws(' ', title, description, stop_start, stop_end, route, route_type))`
 - `go_transit_alerts_fulltext`:
-  - `to_tsvector('english', concat_ws(' ', message_subject, message_body, corridor_or_route, corridor_code, service_mode))`
+  - `to_tsvector('simple', concat_ws(' ', message_subject, message_body, corridor_or_route, corridor_code, service_mode))`
 
 ### Migration Strategy (Backfill-Safe)
 Editing the existing MySQL-only migration is not sufficient if it has already been applied (or logged) on a pgsql environment.
 
 **Therefore:**
 - Add a new migration that runs only when the driver is `pgsql`.
-- Use `CREATE INDEX IF NOT EXISTS` with the existing index names:
+- Because building a GIN index on a live production table can block writes, the migration MUST use `CREATE INDEX CONCURRENTLY IF NOT EXISTS` with the existing index names:
   - `fire_incidents_fulltext`
   - `police_calls_fulltext`
   - `transit_alerts_fulltext`
   - `go_transit_alerts_fulltext`
-- Use `DROP INDEX IF EXISTS` in `down()`.
+- Ensure the migration class sets `public $withinTransaction = false;` so `CONCURRENTLY` can run.
+- Use `DROP INDEX CONCURRENTLY IF EXISTS` in `down()`.
 
 ---
 
@@ -122,9 +123,12 @@ Editing the existing MySQL-only migration is not sufficient if it has already be
   - MySQL: `CONCAT(a, b)` / `CONCAT_WS(' / ', ...)`
   - PostgreSQL: `a || b` and/or `concat_ws(' / ', ...)`
   - Important: cast numeric IDs to text before concatenating.
-- **JSON**
+- **Untyped NULLs in UNION**
+  - PostgreSQL: Ensure `NULL` columns (like `lat`, `lng`) are explicitly cast to numeric types (e.g., `CAST(NULL AS double precision)` or `NULL::float`) to prevent type coercion ambiguity in `UNION ALL`.
+- **JSON and UNION Types**
   - MySQL: `JSON_OBJECT`, `JSON_ARRAYAGG`, `JSON_ARRAY()`
   - PostgreSQL: `json_build_object`, `json_agg`, `COALESCE(json_agg(...), '[]'::json)`
+  - Important: The resulting `meta` column MUST have exactly the same type across all `UNION ALL` arms. Explicitly cast the final JSON expression to `::jsonb` (or `::text`) across all providers.
 - **Date/timestamp formatting for embedded JSON fields**
   - MySQL: `DATE_FORMAT(ts, '%Y-%m-%dT%TZ')` (literal `Z`)
   - PostgreSQL: `to_char(ts, 'YYYY-MM-DD"T"HH24:MI:SS"Z"')` (literal `Z`)
@@ -134,7 +138,7 @@ Editing the existing MySQL-only migration is not sufficient if it has already be
 Postgres implementation MUST ensure:
 - `intel_summary` is always a JSON array (`[]` when none)
 - `intel_summary` items are ordered most-recent-first deterministically
-- `intel_last_updated` uses ISO-8601 with offset and matches frontend schema expectations
+- `intel_last_updated` uses ISO-8601 with offset and matches frontend schema expectations. The aggregated `MAX(created_at)` subquery for `intel_last_updated` MUST also be explicitly formatted to ISO-8601 with offset in the pgsql branch, not just the raw timestamp.
 
 ### Search (`q`) semantics (pgsql)
 Each provider must implement pgsql search with:
