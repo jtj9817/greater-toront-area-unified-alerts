@@ -64,17 +64,17 @@ This track removes MySQL-only SQL from the unified feed providers so the app run
 ---
 
 ## Phase 3: Provider Refactors (Search + Scene Intel Meta)
-- [ ] Task: PostgreSQL `q` filtering must be implemented at the provider layer.
-    - [ ] Sub-task: Use Postgres FTS (`to_tsvector(...) @@ plainto_tsquery(...)`) with an expression that matches the migration’s index expression.
-    - [ ] Sub-task: Add a substring fallback **in addition** to FTS (ticket requires this) using `ILIKE`/`LOWER(...) LIKE` across the same columns used for FTS.
-    - [ ] Sub-task: Ensure nullable columns do not break search (wrap with `coalesce(col, '')` where needed).
-- [ ] Task: Fire provider Scene Intel embedding must be pgsql-safe and frontend-valid.
-    - [ ] Sub-task: Implement a pgsql version of `getSummarySubquery()` using `json_build_object` + `json_agg`.
-    - [ ] Sub-task: Ensure deterministic ordering of the summary items (most recent first) via `ORDER BY` inside the aggregate (or equivalent safe ordering approach).
-    - [ ] Sub-task: Ensure `intel_summary` is always a JSON array (`COALESCE(..., '[]'::json)`), never `null`.
-    - [ ] Sub-task: Format both per-item `timestamp` **and** the overall `intel_last_updated` (from `getLastUpdatedSubquery()`) to ISO-8601 with offset (`...Z` is acceptable) so the frontend Fire schema does not discard alerts.
-- [ ] Task: Conductor - User Manual Verification 'Phase 3: Provider Refactors (Search + Scene Intel Meta)' (Protocol in workflow.md; script: `tests/manual/verify_feed_010_phase_3_provider_refactors_search_scene_intel_meta.php`)
-    - [ ] Sub-task: Add manual verification script `tests/manual/verify_feed_010_phase_3_provider_refactors_search_scene_intel_meta.php`.
+- [x] (0e3ced4) Task: PostgreSQL `q` filtering must be implemented at the provider layer.
+    - [x] (0e3ced4) Sub-task: Use Postgres FTS (`to_tsvector(...) @@ plainto_tsquery(...)`) with an expression that matches the migration’s index expression.
+    - [x] (0e3ced4) Sub-task: Add a substring fallback **in addition** to FTS (ticket requires this) using `ILIKE`/`LOWER(...) LIKE` across the same columns used for FTS.
+    - [x] (0e3ced4) Sub-task: Ensure nullable columns do not break search (wrap with `coalesce(col, '')` where needed).
+- [x] (0e3ced4) Task: Fire provider Scene Intel embedding must be pgsql-safe and frontend-valid.
+    - [x] (0e3ced4) Sub-task: Implement a pgsql version of `getSummarySubquery()` using `json_build_object` + `json_agg`.
+    - [x] (0e3ced4) Sub-task: Ensure deterministic ordering of the summary items (most recent first) via `ORDER BY` inside the aggregate (or equivalent safe ordering approach).
+    - [x] (0e3ced4) Sub-task: Ensure `intel_summary` is always a JSON array (`COALESCE(..., '[]'::json)`), never `null`.
+    - [x] (0e3ced4) Sub-task: Format both per-item `timestamp` **and** the overall `intel_last_updated` (from `getLastUpdatedSubquery()`) to ISO-8601 with offset (`...Z` is acceptable) so the frontend Fire schema does not discard alerts.
+- [~] Task: Conductor - User Manual Verification 'Phase 3: Provider Refactors (Search + Scene Intel Meta)' (Protocol in workflow.md; script: `tests/manual/verify_feed_010_phase_3_provider_refactors_search_scene_intel_meta.php`)
+    - [x] (0e3ced4) Sub-task: Add manual verification script `tests/manual/verify_feed_010_phase_3_provider_refactors_search_scene_intel_meta.php`.
     - [ ] Sub-task: Seed known data and verify `q=<term>` returns matching results via pgsql FTS (`to_tsvector @@ plainto_tsquery`), and that results are absent when the term does not match.
     - [ ] Sub-task: Verify the `ILIKE` substring fallback also matches the same seeded data (confirms combined FTS + `ILIKE` path is functional on pgsql).
     - [ ] Sub-task: Verify `meta->intel_summary` is always a JSON array (never `null`) for all fire alert rows, including incidents with zero updates.
