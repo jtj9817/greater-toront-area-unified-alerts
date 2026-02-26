@@ -53,12 +53,13 @@ This track removes MySQL-only SQL from the unified feed providers so the app run
     - [x] (eb6d2a3) Sub-task: Ensure `lat` and `lng` are explicitly cast if they are `NULL` (e.g., `CAST(NULL AS double precision)`) to prevent `UNION ALL` coercion edge cases.
     - [x] (eb6d2a3) Sub-task: Replace MySQL-only string helpers (`CONCAT`, `CONCAT_WS`, `IF`, `IFNULL`) with pgsql-safe equivalents (`||`, `concat_ws`, `CASE`, `coalesce`).
     - [x] (eb6d2a3) Sub-task: Replace JSON constructors with pgsql equivalents (`json_build_object`, `json_agg`). Crucially, explicitly cast the final `meta` expression to `::jsonb` (or `::text`) across all providers so `UNION ALL` has strictly matching types.
-- [~] Task: Conductor - User Manual Verification 'Phase 2: Provider Refactors (Core Compatibility)' (Protocol in workflow.md; script: `tests/manual/verify_feed_010_phase_2_provider_refactors_core_compatibility.php`)
+- [x] Task: Conductor - User Manual Verification 'Phase 2: Provider Refactors (Core Compatibility)' (Protocol in workflow.md; script: `tests/manual/verify_feed_010_phase_2_provider_refactors_core_compatibility.php`)
+    - [x] Notes: PASS log `storage/logs/manual_tests/feed_010_phase_2_provider_refactors_core_compatibility_2026_02_26_042535.log`
     - [x] (eb6d2a3) Sub-task: Add manual verification script `tests/manual/verify_feed_010_phase_2_provider_refactors_core_compatibility.php`.
-    - [ ] Sub-task: Verify all 4 providers execute without `QueryException` on pgsql (`UNION ALL` type consistency, no MySQL-only functions in the pgsql branch).
-    - [ ] Sub-task: Verify `id` and `external_id` return string values for all providers (e.g., Police `object_id` is cast from numeric).
-    - [ ] Sub-task: Verify `meta` column parses as valid JSON for every row returned by each provider.
-    - [ ] Sub-task: Verify `lat`/`lng` columns are `null` or numeric (no type coercion errors from the `UNION ALL`).
+    - [x] Sub-task: Verify all 4 providers execute without `QueryException` on pgsql (`UNION ALL` type consistency, no MySQL-only functions in the pgsql branch).
+    - [x] Sub-task: Verify `id` and `external_id` return string values for all providers (e.g., Police `object_id` is cast from numeric).
+    - [x] Sub-task: Verify `meta` column parses as valid JSON for every row returned by each provider.
+    - [x] Sub-task: Verify `lat`/`lng` columns are `null` or numeric (no type coercion errors from the `UNION ALL`).
 
 ---
 
