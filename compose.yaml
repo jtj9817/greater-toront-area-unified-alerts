@@ -72,6 +72,24 @@ services:
             timeout: 5s
         profiles:
             - testing
+    pgsql-testing:
+        image: 'postgres:17-alpine'
+        environment:
+            POSTGRES_DB: '${TEST_PG_DATABASE:-gta_alerts_testing_pgsql}'
+            POSTGRES_USER: '${TEST_PG_USERNAME:-sail}'
+            POSTGRES_PASSWORD: '${TEST_PG_PASSWORD:-password}'
+        volumes:
+            - 'sail-pgsql-testing:/var/lib/postgresql/data'
+        networks:
+            - sail
+        healthcheck:
+            test:
+                - CMD-SHELL
+                - 'pg_isready -U ${TEST_PG_USERNAME:-sail} -d ${TEST_PG_DATABASE:-gta_alerts_testing_pgsql}'
+            retries: 5
+            timeout: 5s
+        profiles:
+            - testing
     redis:
         image: 'redis:alpine'
         ports:
@@ -94,6 +112,8 @@ volumes:
     sail-mysql:
         driver: local
     sail-mysql-testing:
+        driver: local
+    sail-pgsql-testing:
         driver: local
     sail-redis:
         driver: local
