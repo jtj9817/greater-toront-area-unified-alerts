@@ -53,6 +53,12 @@ This track removes MySQL-only SQL from the unified feed providers so the app run
     - [ ] Sub-task: Ensure `lat` and `lng` are explicitly cast if they are `NULL` (e.g., `CAST(NULL AS double precision)`) to prevent `UNION ALL` coercion edge cases.
     - [ ] Sub-task: Replace MySQL-only string helpers (`CONCAT`, `CONCAT_WS`, `IF`, `IFNULL`) with pgsql-safe equivalents (`||`, `concat_ws`, `CASE`, `coalesce`).
     - [ ] Sub-task: Replace JSON constructors with pgsql equivalents (`json_build_object`, `json_agg`). Crucially, explicitly cast the final `meta` expression to `::jsonb` (or `::text`) across all providers so `UNION ALL` has strictly matching types.
+- [ ] Task: Conductor - User Manual Verification 'Phase 2: Provider Refactors (Core Compatibility)' (Protocol in workflow.md; script: `tests/manual/verify_feed_010_phase_2_provider_refactors_core_compatibility.php`)
+    - [ ] Sub-task: Add manual verification script `tests/manual/verify_feed_010_phase_2_provider_refactors_core_compatibility.php`.
+    - [ ] Sub-task: Verify all 4 providers execute without `QueryException` on pgsql (`UNION ALL` type consistency, no MySQL-only functions in the pgsql branch).
+    - [ ] Sub-task: Verify `id` and `external_id` return string values for all providers (e.g., Police `object_id` is cast from numeric).
+    - [ ] Sub-task: Verify `meta` column parses as valid JSON for every row returned by each provider.
+    - [ ] Sub-task: Verify `lat`/`lng` columns are `null` or numeric (no type coercion errors from the `UNION ALL`).
 
 ---
 
@@ -66,6 +72,12 @@ This track removes MySQL-only SQL from the unified feed providers so the app run
     - [ ] Sub-task: Ensure deterministic ordering of the summary items (most recent first) via `ORDER BY` inside the aggregate (or equivalent safe ordering approach).
     - [ ] Sub-task: Ensure `intel_summary` is always a JSON array (`COALESCE(..., '[]'::json)`), never `null`.
     - [ ] Sub-task: Format both per-item `timestamp` **and** the overall `intel_last_updated` (from `getLastUpdatedSubquery()`) to ISO-8601 with offset (`...Z` is acceptable) so the frontend Fire schema does not discard alerts.
+- [ ] Task: Conductor - User Manual Verification 'Phase 3: Provider Refactors (Search + Scene Intel Meta)' (Protocol in workflow.md; script: `tests/manual/verify_feed_010_phase_3_provider_refactors_search_scene_intel_meta.php`)
+    - [ ] Sub-task: Add manual verification script `tests/manual/verify_feed_010_phase_3_provider_refactors_search_scene_intel_meta.php`.
+    - [ ] Sub-task: Seed known data and verify `q=<term>` returns matching results via pgsql FTS (`to_tsvector @@ plainto_tsquery`), and that results are absent when the term does not match.
+    - [ ] Sub-task: Verify the `ILIKE` substring fallback also matches the same seeded data (confirms combined FTS + `ILIKE` path is functional on pgsql).
+    - [ ] Sub-task: Verify `meta->intel_summary` is always a JSON array (never `null`) for all fire alert rows, including incidents with zero updates.
+    - [ ] Sub-task: Verify `meta->intel_last_updated` is `null` for incidents with no updates, and a valid ISO-8601 timestamp with timezone offset for incidents that have updates.
 
 ---
 
@@ -83,6 +95,12 @@ This track removes MySQL-only SQL from the unified feed providers so the app run
 - [ ] Task: Smoke test on a pgsql environment.
     - [ ] Sub-task: Load `/` and `/api/feed` with and without `q`, ensure no `QueryException`.
     - [ ] Sub-task: Confirm filters (`status`, `source`, `since`, `cursor`) still behave deterministically.
+- [ ] Task: Conductor - User Manual Verification 'Phase 4: End-to-End Verification (SQLite + MySQL + PostgreSQL)' (Protocol in workflow.md; script: `tests/manual/verify_feed_010_phase_4_end_to_end_verification.php`)
+    - [ ] Sub-task: Add manual verification script `tests/manual/verify_feed_010_phase_4_end_to_end_verification.php`.
+    - [ ] Sub-task: Confirm `/api/feed` responds without errors on pgsql for all filter combinations (`status`, `source`, `since`, `q`); no `QueryException` should be raised.
+    - [ ] Sub-task: Confirm `meta.intel_summary` invariant holds end-to-end (always a JSON array, never `null`) across the full pgsql feed response.
+    - [ ] Sub-task: Confirm `meta.intel_last_updated` is ISO-8601 with offset in the full feed response for fire incidents that have updates.
+    - [ ] Sub-task: Confirm `q` filter reduces the result set on pgsql (at minimum one provider returns fewer rows when a known search term is applied vs. no `q`).
 
 ---
 
@@ -92,3 +110,8 @@ This track removes MySQL-only SQL from the unified feed providers so the app run
     - [ ] Sub-task: Document how to run pgsql verification locally (docker/service + test config).
 - [ ] Task: Close track in registry.
     - [ ] Sub-task: Archive this track folder and update `conductor/tracks.md` when complete.
+- [ ] Task: Conductor - User Manual Verification 'Phase 5: Documentation + Registry Hygiene' (Protocol in workflow.md; script: `tests/manual/verify_feed_010_phase_5_documentation_registry_hygiene.php`)
+    - [ ] Sub-task: Add manual verification script `tests/manual/verify_feed_010_phase_5_documentation_registry_hygiene.php`.
+    - [ ] Sub-task: Verify all documentation files updated in this phase exist and contain a section covering PostgreSQL production support and cross-driver search behaviour.
+    - [ ] Sub-task: Verify `phpunit.pgsql.xml` exists and defines the correct pgsql environment variable keys (DB driver, host, database, credentials).
+    - [ ] Sub-task: Verify `conductor/tracks.md` reflects this track as archived/completed.
