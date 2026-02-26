@@ -73,12 +73,13 @@ This track removes MySQL-only SQL from the unified feed providers so the app run
     - [x] (0e3ced4) Sub-task: Ensure deterministic ordering of the summary items (most recent first) via `ORDER BY` inside the aggregate (or equivalent safe ordering approach).
     - [x] (0e3ced4) Sub-task: Ensure `intel_summary` is always a JSON array (`COALESCE(..., '[]'::json)`), never `null`.
     - [x] (0e3ced4) Sub-task: Format both per-item `timestamp` **and** the overall `intel_last_updated` (from `getLastUpdatedSubquery()`) to ISO-8601 with offset (`...Z` is acceptable) so the frontend Fire schema does not discard alerts.
-- [~] Task: Conductor - User Manual Verification 'Phase 3: Provider Refactors (Search + Scene Intel Meta)' (Protocol in workflow.md; script: `tests/manual/verify_feed_010_phase_3_provider_refactors_search_scene_intel_meta.php`)
+- [x] Task: Conductor - User Manual Verification 'Phase 3: Provider Refactors (Search + Scene Intel Meta)' (Protocol in workflow.md; script: `tests/manual/verify_feed_010_phase_3_provider_refactors_search_scene_intel_meta.php`)
+    - [x] Notes: PASS log `storage/logs/manual_tests/feed_010_phase_3_provider_refactors_search_scene_intel_meta_2026_02_26_173438.log`
     - [x] (0e3ced4) Sub-task: Add manual verification script `tests/manual/verify_feed_010_phase_3_provider_refactors_search_scene_intel_meta.php`.
-    - [ ] Sub-task: Seed known data and verify `q=<term>` returns matching results via pgsql FTS (`to_tsvector @@ plainto_tsquery`), and that results are absent when the term does not match.
-    - [ ] Sub-task: Verify the `ILIKE` substring fallback also matches the same seeded data (confirms combined FTS + `ILIKE` path is functional on pgsql).
-    - [ ] Sub-task: Verify `meta->intel_summary` is always a JSON array (never `null`) for all fire alert rows, including incidents with zero updates.
-    - [ ] Sub-task: Verify `meta->intel_last_updated` is `null` for incidents with no updates, and a valid ISO-8601 timestamp with timezone offset for incidents that have updates.
+    - [x] Sub-task: Seed known data and verify `q=<term>` returns matching results via pgsql FTS (`to_tsvector @@ plainto_tsquery`), and that results are absent when the term does not match.
+    - [x] Sub-task: Verify the `ILIKE` substring fallback also matches the same seeded data (confirms combined FTS + `ILIKE` path is functional on pgsql).
+    - [x] Sub-task: Verify `meta->intel_summary` is always a JSON array (never `null`) for all fire alert rows, including incidents with zero updates.
+    - [x] Sub-task: Verify `meta->intel_last_updated` is `null` for incidents with no updates, and a valid ISO-8601 timestamp with timezone offset for incidents that have updates.
 
 ---
 
