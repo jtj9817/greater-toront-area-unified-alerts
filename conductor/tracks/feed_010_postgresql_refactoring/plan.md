@@ -84,25 +84,26 @@ This track removes MySQL-only SQL from the unified feed providers so the app run
 ---
 
 ## Phase 4: End-to-End Verification (SQLite + MySQL + PostgreSQL)
-- [ ] Task: Keep existing test baselines green.
-    - [ ] Sub-task: Run test suite on SQLite (default `phpunit.xml`).
-    - [ ] Sub-task: Run test suite on MySQL (`phpunit.mysql.xml`) to ensure no regressions.
-- [ ] Task: Add a repeatable Postgres verification path (currently missing).
-    - [ ] Sub-task: Add a Postgres service to `compose.yaml` (or document an external Postgres dev DB) so contributors can actually run pgsql checks locally.
-    - [ ] Sub-task: Add a `phpunit.pgsql.xml` (or equivalent) config and environment variables for a pgsql test database.
-    - [ ] Sub-task: Add/extend a small number of tests to cover pgsql-only invariants:
+- [x] Task: Keep existing test baselines green.
+    - [x] Sub-task: Run test suite on SQLite (default `phpunit.xml`).
+    - [x] Sub-task: Run test suite on MySQL (`phpunit.mysql.xml`) to ensure no regressions.
+- [x] Task: Add a repeatable Postgres verification path (currently missing).
+    - [x] Sub-task: Add a Postgres service to `compose.yaml` (or document an external Postgres dev DB) so contributors can actually run pgsql checks locally.
+    - [x] Sub-task: Add a `phpunit.pgsql.xml` (or equivalent) config and environment variables for a pgsql test database.
+    - [x] Sub-task: Add/extend a small number of tests to cover pgsql-only invariants:
         - `meta.intel_summary` array (never null)
         - `meta.intel_last_updated` ISO-8601 offset formatting when incident updates exist
         - `q` filtering reduces result set on pgsql (at least one provider)
-- [ ] Task: Smoke test on a pgsql environment.
-    - [ ] Sub-task: Load `/` and `/api/feed` with and without `q`, ensure no `QueryException`.
-    - [ ] Sub-task: Confirm filters (`status`, `source`, `since`, `cursor`) still behave deterministically.
-- [ ] Task: Conductor - User Manual Verification 'Phase 4: End-to-End Verification (SQLite + MySQL + PostgreSQL)' (Protocol in workflow.md; script: `tests/manual/verify_feed_010_phase_4_end_to_end_verification.php`)
-    - [ ] Sub-task: Add manual verification script `tests/manual/verify_feed_010_phase_4_end_to_end_verification.php`.
-    - [ ] Sub-task: Confirm `/api/feed` responds without errors on pgsql for all filter combinations (`status`, `source`, `since`, `q`); no `QueryException` should be raised.
-    - [ ] Sub-task: Confirm `meta.intel_summary` invariant holds end-to-end (always a JSON array, never `null`) across the full pgsql feed response.
-    - [ ] Sub-task: Confirm `meta.intel_last_updated` is ISO-8601 with offset in the full feed response for fire incidents that have updates.
-    - [ ] Sub-task: Confirm `q` filter reduces the result set on pgsql (at minimum one provider returns fewer rows when a known search term is applied vs. no `q`).
+- [x] Task: Smoke test on a pgsql environment.
+    - [x] Sub-task: Load `/` and `/api/feed` with and without `q`, ensure no `QueryException`.
+    - [x] Sub-task: Confirm filters (`status`, `source`, `since`, `cursor`) still behave deterministically.
+- [x] Task: Conductor - User Manual Verification 'Phase 4: End-to-End Verification (SQLite + MySQL + PostgreSQL)' (Protocol in workflow.md; script: `tests/manual/verify_feed_010_phase_4_end_to_end_verification.php`)
+    - [x] Notes: PASS log `storage/logs/manual_tests/feed_010_phase_4_end_to_end_verification_2026_02_27_033422.log`
+    - [x] Sub-task: Add manual verification script `tests/manual/verify_feed_010_phase_4_end_to_end_verification.php`.
+    - [x] Sub-task: Confirm `/api/feed` responds without errors on pgsql for all filter combinations (`status`, `source`, `since`, `q`); no `QueryException` should be raised.
+    - [x] Sub-task: Confirm `meta.intel_summary` invariant holds end-to-end (always a JSON array, never `null`) across the full pgsql feed response.
+    - [x] Sub-task: Confirm `meta.intel_last_updated` is ISO-8601 with offset in the full feed response for fire incidents that have updates.
+    - [x] Sub-task: Confirm `q` filter reduces the result set on pgsql (at minimum one provider returns fewer rows when a known search term is applied vs. no `q`).
 
 ---
 
