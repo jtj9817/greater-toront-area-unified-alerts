@@ -284,7 +284,9 @@ test('db export sql fails when output path points to an existing directory in gz
 });
 
 test('db export sql fails when target table is missing from schema', function () {
+    Schema::disableForeignKeyConstraints();
     Schema::drop('fire_incidents');
+    Schema::enableForeignKeyConstraints();
 
     $outputPath = makeSqlExportPath();
 
@@ -328,16 +330,23 @@ test('db export sql fails when table does not expose required id column', functi
 
 test('db export sql normalizes boolean literals for numeric and string variants', function () {
     $now = now();
+    $isMySqlFamily = in_array(DB::getDriverName(), ['mysql', 'mariadb'], true);
 
     $rows = [
         ['event_num' => 'BOOL_ZERO', 'is_active' => 0],
         ['event_num' => 'BOOL_ONE', 'is_active' => 1],
-        ['event_num' => 'BOOL_NO', 'is_active' => 'no'],
-        ['event_num' => 'BOOL_OFF', 'is_active' => 'off'],
-        ['event_num' => 'BOOL_YES', 'is_active' => 'yes'],
-        ['event_num' => 'BOOL_ON', 'is_active' => 'on'],
-        ['event_num' => 'BOOL_UNKNOWN', 'is_active' => 'maybe'],
     ];
+
+    if (! $isMySqlFamily) {
+        $rows = [
+            ...$rows,
+            ['event_num' => 'BOOL_NO', 'is_active' => 'no'],
+            ['event_num' => 'BOOL_OFF', 'is_active' => 'off'],
+            ['event_num' => 'BOOL_YES', 'is_active' => 'yes'],
+            ['event_num' => 'BOOL_ON', 'is_active' => 'on'],
+            ['event_num' => 'BOOL_UNKNOWN', 'is_active' => 'maybe'],
+        ];
+    }
 
     foreach ($rows as $index => $row) {
         DB::table('fire_incidents')->insert([
@@ -383,11 +392,14 @@ test('db export sql normalizes boolean literals for numeric and string variants'
 
         expect($lineFor('BOOL_ZERO'))->toContain('FALSE');
         expect($lineFor('BOOL_ONE'))->toContain('TRUE');
-        expect($lineFor('BOOL_NO'))->toContain('FALSE');
-        expect($lineFor('BOOL_OFF'))->toContain('FALSE');
-        expect($lineFor('BOOL_YES'))->toContain('TRUE');
-        expect($lineFor('BOOL_ON'))->toContain('TRUE');
-        expect($lineFor('BOOL_UNKNOWN'))->toContain('TRUE');
+
+        if (! $isMySqlFamily) {
+            expect($lineFor('BOOL_NO'))->toContain('FALSE');
+            expect($lineFor('BOOL_OFF'))->toContain('FALSE');
+            expect($lineFor('BOOL_YES'))->toContain('TRUE');
+            expect($lineFor('BOOL_ON'))->toContain('TRUE');
+            expect($lineFor('BOOL_UNKNOWN'))->toContain('TRUE');
+        }
     } finally {
         @unlink($outputPath);
     }
