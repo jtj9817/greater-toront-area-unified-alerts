@@ -108,14 +108,14 @@ This track removes MySQL-only SQL from the unified feed providers so the app run
 ---
 
 ## Phase 5: Documentation + Registry Hygiene
-- [x] Task: Update docs that currently state “MySQL production”.
-    - [x] Sub-task: Update `README.md` (root), `conductor/tech-stack.md`, `docs/backend/unified-alerts-system.md`, and `docs/plans/hetzner-forge-deployment-preflight.md` to reflect PostgreSQL production support (and the cross-driver search behavior).
-    - [x] Sub-task: Document how to run pgsql verification locally (docker/service + test config).
-- [x] Task: Close track in registry.
-    - [x] Sub-task: Archive this track folder and update `conductor/tracks.md` when complete.
+- [x] (0957872) Task: Update docs that currently state “MySQL production”.
+    - [x] (0957872) Sub-task: Update `README.md` (root), `conductor/tech-stack.md`, `docs/backend/unified-alerts-system.md`, and `docs/plans/hetzner-forge-deployment-preflight.md` to reflect PostgreSQL production support (and the cross-driver search behavior).
+    - [x] (0957872) Sub-task: Document how to run pgsql verification locally (docker/service + test config).
+- [x] (0957872) Task: Close track in registry.
+    - [x] (0957872) Sub-task: Archive this track folder and update `conductor/tracks.md` when complete.
 - [x] Task: Conductor - User Manual Verification 'Phase 5: Documentation + Registry Hygiene' (Protocol in workflow.md; script: `tests/manual/verify_feed_010_phase_5_documentation_registry_hygiene.php`)
     - [x] Notes: PASS log `storage/logs/manual_tests/feed_010_phase_5_documentation_registry_hygiene_2026_02_28_023227.log`
-    - [x] Sub-task: Add manual verification script `tests/manual/verify_feed_010_phase_5_documentation_registry_hygiene.php`.
+    - [x] (0957872) Sub-task: Add manual verification script `tests/manual/verify_feed_010_phase_5_documentation_registry_hygiene.php`.
     - [x] Sub-task: Verify all documentation files updated in this phase exist and contain a section covering PostgreSQL production support and cross-driver search behaviour.
     - [x] Sub-task: Verify `phpunit.pgsql.xml` exists and defines the correct pgsql environment variable keys (DB driver, host, database, credentials).
     - [x] Sub-task: Verify `conductor/tracks.md` reflects this track as archived/completed.
