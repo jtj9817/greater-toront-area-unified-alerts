@@ -6,10 +6,12 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ## Active Tracks
 
-- [ ] **Track: Abstract Database-Specific SQL Functions for PostgreSQL Compatibility**
-*Link: [./tracks/feed_010_postgresql_refactoring/](./tracks/feed_010_postgresql_refactoring/)*
+*(none)*
 
 ## Archived Tracks
+
+- [x] **Track: Abstract Database-Specific SQL Functions for PostgreSQL Compatibility**
+*Link: [./archive/feed_010_postgresql_refactoring_20260227/](./archive/feed_010_postgresql_refactoring_20260227/)*
 
 - [x] **Track: Replace PHP Seeder Export with SQL Dump Pipeline (Postgres)**
 *Link: [./archive/sql_export_pipeline_20260224/](./archive/sql_export_pipeline_20260224/)*

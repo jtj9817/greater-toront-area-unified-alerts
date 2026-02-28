@@ -53,14 +53,24 @@ Both the Inertia feed page (`/`) and JSON feed endpoint (`/api/feed`) support:
   - `next_cursor`: next cursor string or `null` when there are no more results
 - Changing `status`, `source`, `q`, or `since` must reset the list and cursor on the client.
 
-## Search Performance: MySQL FULLTEXT + SQLite Fallback
+## Search Performance: Cross-Driver Full-Text Search
 
-- MySQL providers use `MATCH (...) AGAINST (... IN NATURAL LANGUAGE MODE)` for `q`.
-- FULLTEXT indexes are created by migration:
-  - `database/migrations/2026_02_19_120000_add_fulltext_indexes_to_alert_tables.php`
-- SQLite (local/dev/tests) uses compatibility fallback in the unified outer query:
-  - case-insensitive `LIKE` over `title` and `location_name`
-- Provider-level fallback `LIKE` predicates are also present in MySQL paths to preserve expected substring matching behavior alongside FULLTEXT ranking behavior.
+The `q` parameter is handled at the provider layer and behaves differently per database driver:
+
+### PostgreSQL (production)
+- Provider-level FTS using `to_tsvector('simple', concat_ws(' ', ...)) @@ plainto_tsquery('simple', ?)`.
+- GIN indexes created by migration: `database/migrations/2026_02_25_000000_add_pgsql_fulltext_indexes_to_alert_tables.php`
+  - Index names: `fire_incidents_fulltext`, `police_calls_fulltext`, `transit_alerts_fulltext`, `go_transit_alerts_fulltext`
+- A substring fallback using `ILIKE` is applied **in addition** to FTS to preserve partial-match UX.
+
+### MySQL (local/dev)
+- Provider-level `MATCH (...) AGAINST (... IN NATURAL LANGUAGE MODE)`.
+- FULLTEXT indexes created by migration: `database/migrations/2026_02_19_120000_add_fulltext_indexes_to_alert_tables.php`
+- Provider-level `LIKE` fallback predicates are applied alongside FULLTEXT for substring matching.
+
+### SQLite (tests/dev fallback)
+- No provider-level full-text search.
+- Outer query in `UnifiedAlertsQuery` applies a case-insensitive `LIKE` over `title` and `location_name`.
 
 ## Core Components
 
