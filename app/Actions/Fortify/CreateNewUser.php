@@ -21,7 +21,7 @@ class CreateNewUser implements CreatesNewUsers
     {
         // Sentinel: Sanitize name to prevent Stored XSS
         if (isset($input['name'])) {
-            $input['name'] = strip_tags(trim($input['name']));
+            $input['name'] = is_string($input['name']) ? strip_tags(trim($input['name'])) : '';
         }
 
         Validator::make($input, [
