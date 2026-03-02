@@ -19,3 +19,8 @@
 **Vulnerability:** The `StoreSceneIntelEntryRequest` allowed raw HTML/Script tags to be stored in the `metadata` JSON field. While `content` was sanitized, the flexible `metadata` array was not, and `IncidentUpdateResource` exposed it raw.
 **Learning:** Flexible JSON/Array fields (like `metadata`) in FormRequests are often overlooked by simple scalar validation/sanitization rules. `prepareForValidation` needs recursive logic to handle these structures safely.
 **Prevention:** Use a recursive `sanitizeArray` helper in `prepareForValidation` for any `array` input that accepts free-text values.
+
+## 2025-03-02 - DoS via TypeError in Input Sanitization
+**Vulnerability:** The Fortify `CreateNewUser` action blindly called `trim()` and `strip_tags()` on the `name` input if it was set. If an attacker sent an array (e.g., `name[]=value`), this caused a fatal `TypeError`, leading to a 500 Server Error and potential Denial of Service (DoS) instead of graceful validation failure.
+**Learning:** When manually sanitizing input outside of FormRequests (where Laravel handles some type casting), you must explicitly verify the input type (e.g., `is_string()`) before applying string-only functions to prevent crashes from malformed payloads.
+**Prevention:** Always wrap manual string sanitization logic in an `is_string($input)` check.

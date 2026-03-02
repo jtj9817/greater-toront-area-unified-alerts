@@ -20,7 +20,7 @@ class CreateNewUser implements CreatesNewUsers
     public function create(array $input): User
     {
         // Sentinel: Sanitize name to prevent Stored XSS
-        if (isset($input['name'])) {
+        if (isset($input['name']) && is_string($input['name'])) {
             $input['name'] = strip_tags(trim($input['name']));
         }
 
