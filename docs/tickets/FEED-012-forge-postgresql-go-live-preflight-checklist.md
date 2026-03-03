@@ -134,11 +134,11 @@ In Forge UI, verify these values before first deploy:
 2. Ensure Forge DB backup job is configured and tested.
 3. Export production seed SQL artifact from current source environment if needed:
    ```bash
-   php artisan alert-data:export-sql --path=storage/app/private/preflight-export.sql --compress
+   php artisan db:export-sql --output=storage/app/private/preflight-export.sql --compress
    ```
 4. Verify import command is available and documented:
    ```bash
-   php artisan list | rg "alert-data:import-sql|alert-data:export-sql"
+   php artisan list | rg "db:import-sql|db:export-sql"
    ```
 5. Confirm rollback plan:
    - previous release hash recorded
@@ -242,6 +242,50 @@ In Forge UI, verify these values before first deploy:
 - Backups/snapshots and rollback drill are in place before cutover.
 - Staging dry-run is completed with the same runtime profile as production.
 - Post-deploy observability (logs, failed jobs, scheduler status) is actively monitored.
+
+## Verification Log (Local, 2026-03-02)
+
+The following checks were executed locally in CLI mode without using
+`./vendor/bin/sail` (no direct interaction with the running Sail containers).
+
+### Executed Successfully (Assistant)
+
+- `php -v`
+- `php -m | rg -n "pgsql|pdo_pgsql|redis|mbstring|openssl|tokenizer|xml|ctype|json|bcmath"`
+- `node -v`
+- `pnpm -v`
+- `pnpm run quality:check`
+- `pnpm run build`
+- `php artisan about`
+- `php artisan route:list | rg "gta-alerts|login|dashboard"`
+- `CACHE_STORE=array php artisan schedule:list`
+- `php artisan db:export-sql --help`
+- `php artisan db:import-sql --help`
+- `php artisan list | rg "db:import-sql|db:export-sql"`
+
+### Executed with Failures / Blockers (Assistant)
+
+- `composer test` failed due a Pint style issue:
+  `tests/manual/verify_feed_010_phase_5_documentation_registry_hygiene.php`.
+- `php artisan test --env=testing --configuration=phpunit.pgsql.xml` did not run
+  as intended because `phpunit.pgsql.xml` already sets config and the command
+  emitted `Option --configuration cannot be used more than once`.
+- `php artisan schedule:list` failed under default local env because cache uses
+  database driver and local host `mysql` was not resolvable.
+- `php artisan tinker --execute="DB::connection()->getPdo(); ..."` failed due
+  local MySQL host resolution (`mysql` not reachable in non-Sail context).
+- `php artisan tinker --execute="cache()->put(...)"` failed for the same reason.
+- `ls -la public/storage` failed because symlink is currently missing locally.
+
+### Documentation Correction Identified
+
+This ticket previously used command names:
+- `alert-data:export-sql`
+- `alert-data:import-sql`
+
+Actual command names in current codebase:
+- `db:export-sql`
+- `db:import-sql`
 
 ## Acceptance Criteria
 
