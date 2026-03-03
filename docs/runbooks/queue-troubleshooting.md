@@ -4,6 +4,9 @@
 
 This runbook covers queue backlog diagnosis, failed job recovery, and pruning behavior for scheduled ingestion jobs.
 
+For full Forge go-live steps, see:
+`docs/runbooks/forge-go-live-checklist.md`.
+
 ## Signals & Thresholds
 
 - **Queue depth alert:** Logged as an error when depth exceeds 100 (checked every 5 minutes).
@@ -28,6 +31,14 @@ This runbook covers queue backlog diagnosis, failed job recovery, and pruning be
 2. Resolve upstream or database failures.
 3. Retry failed jobs once the root cause is fixed.
 4. Monitor queue depth and logs to confirm recovery.
+
+## Forge Production Checks
+
+- Confirm Forge daemon status is `active` for queue workers.
+- Expected daemon command:
+  `php artisan queue:work --sleep=1 --tries=3 --timeout=90 --max-time=3600`
+- Restart workers after deploy:
+  `php artisan queue:restart`
 
 ## Failed Job Pruning
 

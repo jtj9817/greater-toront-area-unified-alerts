@@ -4,6 +4,9 @@
 
 This runbook covers scheduled ingestion failures, overlap lock behavior, empty feed protection, and circuit breaker behavior for the GTA Alerts scheduler.
 
+For full Forge go-live steps, see:
+`docs/runbooks/forge-go-live-checklist.md`.
+
 ## Quick Triage
 
 - Check scheduler heartbeat: `php artisan scheduler:status --max-age=5`
@@ -22,6 +25,8 @@ This runbook covers scheduled ingestion failures, overlap lock behavior, empty f
 **Recovery**
 - Ensure cron is running in the scheduler container (`cron -f`)
 - Confirm the cache store is writable (heartbeat stored in cache)
+- In Forge production, confirm scheduler cron entry exists:
+  `* * * * * cd /home/forge/<site> && php artisan schedule:run >> /dev/null 2>&1`
 
 ### Fetch jobs failing or retrying
 
