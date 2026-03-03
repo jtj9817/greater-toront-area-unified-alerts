@@ -87,8 +87,9 @@ test('it fetches and normalizes TTC alerts from live API, SXA, and static source
     expect($apiAlert)->not->toBeNull();
     expect($apiAlert['source_feed'])->toBe('live-api');
     expect($apiAlert['route_type'])->toBe('Subway');
-    expect($apiAlert['description'])->toBe('alert(1)Shuttle buses will operate.');
+    expect($apiAlert['description'])->toBe('Shuttle buses will operate.');
     expect($apiAlert['description'])->not->toContain('<script>');
+    expect($apiAlert['description'])->not->toContain('alert(1)');
     expect($apiAlert['active_period_end'])->toBeNull();
     expect($apiAlert['active_period_start'])->toBeInstanceOf(CarbonInterface::class);
 

@@ -465,6 +465,30 @@ class TtcAlertsFeedService
         }
     }
 
+    /**
+     * Convert HTML to clean plaintext by stripping style/script blocks,
+     * tags, entities, and normalizing whitespace.
+     */
+    private function stripHtmlToText(string $html): ?string
+    {
+        // Decode HTML entities (&nbsp; → space, &amp; → &, etc.) first
+        // Because if <script> is encoded as &lt;script&gt;, we want to decode it
+        // before running the regex to strip it out.
+        $text = html_entity_decode($html, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+
+        // Remove <style> and <script> blocks (content + tags)
+        $text = preg_replace('/<style\b[^>]*>.*?<\/style>/si', '', $text);
+        $text = preg_replace('/<script\b[^>]*>.*?<\/script>/si', '', (string) $text);
+
+        // Remove remaining HTML tags
+        $text = strip_tags((string) $text);
+
+        // Collapse whitespace runs (including non-breaking spaces) into single space and trim
+        $text = trim((string) preg_replace('/[\s\x{00A0}]+/u', ' ', $text));
+
+        return $text !== '' ? $text : null;
+    }
+
     protected function sanitizeDescription(mixed $value): ?string
     {
         $raw = $this->stringValue($value);
@@ -472,11 +496,7 @@ class TtcAlertsFeedService
             return null;
         }
 
-        $decoded = html_entity_decode($raw, ENT_QUOTES | ENT_HTML5, 'UTF-8');
-        $stripped = strip_tags($decoded);
-        $collapsed = preg_replace('/\s+/', ' ', trim($stripped));
-
-        return $collapsed === '' ? null : $collapsed;
+        return $this->stripHtmlToText($raw);
     }
 
     protected function normalizeRouteValue(mixed $value): ?string

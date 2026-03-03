@@ -19,3 +19,8 @@
 **Vulnerability:** The `StoreSceneIntelEntryRequest` allowed raw HTML/Script tags to be stored in the `metadata` JSON field. While `content` was sanitized, the flexible `metadata` array was not, and `IncidentUpdateResource` exposed it raw.
 **Learning:** Flexible JSON/Array fields (like `metadata`) in FormRequests are often overlooked by simple scalar validation/sanitization rules. `prepareForValidation` needs recursive logic to handle these structures safely.
 **Prevention:** Use a recursive `sanitizeArray` helper in `prepareForValidation` for any `array` input that accepts free-text values.
+
+## 2025-02-24 - Stored Script/CSS Text in TTC Alerts Descriptions
+**Vulnerability:** TTC Live API descriptions containing `<script>` or `<style>` blocks were parsed using only `strip_tags()`, which removes the HTML delimiters but leaves the script/CSS content intact in the stored alert description (e.g. `alert(1)`). While `strip_tags()` neutralized the active tags, storing raw JS/CSS text is a defense-in-depth gap and ruins data formatting.
+**Learning:** `strip_tags()` is insufficient for sanitizing fields that may contain non-visible structural HTML tags like `<script>` or `<style>`. It preserves their text content.
+**Prevention:** Always use regex (`preg_replace`) to completely remove `<script>` and `<style>` elements (tags AND their internal content) *before* applying `strip_tags()` when sanitizing raw HTML responses from third-party APIs. Be sure to call `html_entity_decode` before regex so that encoded tags (e.g., `&lt;script&gt;`) are not missed.
