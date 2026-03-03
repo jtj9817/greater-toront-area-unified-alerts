@@ -13,9 +13,9 @@
  *   APP_ENV=testing ./vendor/bin/sail php tests/manual/verify_feed_010_phase_5_documentation_registry_hygiene.php
  */
 
-require __DIR__ . '/../../vendor/autoload.php';
+require __DIR__.'/../../vendor/autoload.php';
 
-$app = require_once __DIR__ . '/../../bootstrap/app.php';
+$app = require_once __DIR__.'/../../bootstrap/app.php';
 $kernel = $app->make(Illuminate\Contracts\Console\Kernel::class);
 $kernel->bootstrap();
 
@@ -26,7 +26,7 @@ if (app()->environment('production')) {
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
 
-$testRunId = 'feed_010_phase_5_documentation_registry_hygiene_' . Carbon::now()->format('Y_m_d_His');
+$testRunId = 'feed_010_phase_5_documentation_registry_hygiene_'.Carbon::now()->format('Y_m_d_His');
 $logFile = storage_path("logs/manual_tests/{$testRunId}.log");
 
 if (! is_dir(dirname($logFile))) {
@@ -68,8 +68,8 @@ function check(string $label, bool $result, string $detail = ''): void
         $symbol = '✗';
         $status = 'FAIL';
     }
-    $line = "  [{$status}] {$symbol} {$label}" . ($detail ? " — {$detail}" : '');
-    echo $line . "\n";
+    $line = "  [{$status}] {$symbol} {$label}".($detail ? " — {$detail}" : '');
+    echo $line."\n";
     Log::channel('manual_test')->info($line);
 }
 
@@ -88,7 +88,7 @@ function fileContains(string $filePath, string $needle, bool $caseInsensitive = 
 
 // ─── Script Start ─────────────────────────────────────────────────────────────
 
-logInfo("=== FEED-010 Phase 5: Documentation + Registry Hygiene Verification ===");
+logInfo('=== FEED-010 Phase 5: Documentation + Registry Hygiene Verification ===');
 logInfo("Run ID: {$testRunId}");
 logInfo('');
 
@@ -188,7 +188,7 @@ check('Archive contains spec.md', file_exists("{$archiveDir}/spec.md"));
 
 $total = $passed + $failed;
 logInfo('');
-logInfo("=== Summary ===");
+logInfo('=== Summary ===');
 echo "\n";
 echo "  Results: {$passed}/{$total} checks passed";
 if ($failed > 0) {
