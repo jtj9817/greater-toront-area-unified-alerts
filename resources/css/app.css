@@ -30,6 +30,12 @@
 
     --color-primary: var(--primary);
     --color-primary-foreground: var(--primary-foreground);
+
+    --color-brand-dark: #1a1a1a;
+    --color-warning: #ffff00;
+    --color-hazard: #ff7f00;
+    --color-critical: #cc0000;
+    --color-panel-light: #ffffff;
     --color-background-dark: #0f1419;
     --color-surface-dark: #1a2028;
     --color-input-dark: #242d38;
@@ -154,8 +160,77 @@
 }
 
 .gta-alerts-theme {
-    --primary: #3b82f6;
+    --font-sans:
+        'Public Sans', ui-sans-serif, system-ui, sans-serif,
+        'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
+        'Noto Color Emoji';
+    --font-display:
+        'Public Sans', ui-sans-serif, system-ui, sans-serif,
+        'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
+        'Noto Color Emoji';
+
+    --primary: #ff7f00;
     --primary-foreground: #ffffff;
+
+    --color-brand-dark: #1a1a1a;
+    --color-warning: #ffff00;
+    --color-hazard: #ff7f00;
+    --color-critical: #cc0000;
+    --color-panel-light: #ffffff;
+    --color-background-dark: #1a1a1a;
+    --color-surface-dark: #242424;
+    --color-input-dark: #2f2f2f;
+}
+
+@layer utilities {
+    .custom-scrollbar::-webkit-scrollbar {
+        width: 10px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-track {
+        background: #1a1a1a;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: #ff7f00;
+    }
+
+    .brutalist-border {
+        border: 3px solid #000000;
+    }
+
+    .panel-shadow {
+        box-shadow: 8px 8px 0 #000000;
+    }
+
+    .scrollbar-hide::-webkit-scrollbar {
+        display: none;
+    }
+
+    .scrollbar-hide {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+    }
+
+    .incident-table th {
+        @apply border-b-2 border-white bg-black px-4 py-3 text-left text-[10px] font-black tracking-widest text-white uppercase;
+    }
+
+    .incident-table td {
+        @apply border-b border-white/10 px-4 py-4 text-sm font-bold;
+    }
+
+    .expandable-row {
+        @apply cursor-pointer transition-colors;
+    }
+
+    .expandable-row:hover {
+        @apply bg-white text-black;
+    }
+
+    tr.active-row {
+        @apply bg-white text-black;
+    }
 }
 
 .no-scrollbar::-webkit-scrollbar {
