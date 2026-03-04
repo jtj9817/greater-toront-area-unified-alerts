@@ -151,7 +151,7 @@ AlertPresentation (frontend view model)
 Event-driven notification pipeline for user-targeted alerts:
 
 ```
-AlertCreated event → DispatchAlertNotifications listener → DeliverAlertNotificationJob → NotificationLog + AlertNotificationSent broadcast
+AlertCreated event → DispatchAlertNotifications listener → FanOutAlertNotificationsJob → DispatchAlertNotificationChunkJob (chunks of 250) → DeliverAlertNotificationJob → NotificationLog + AlertNotificationSent broadcast
 ```
 
 - **Matching Engine:** `NotificationMatcher` evaluates alert type, severity threshold, geofence (Haversine), and route subscriptions against `NotificationPreference` records
