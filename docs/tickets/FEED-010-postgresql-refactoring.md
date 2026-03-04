@@ -1,7 +1,7 @@
 ---
 ticket_id: FEED-010
 title: "[Refactor] Abstract Database-Specific SQL Functions for PostgreSQL Compatibility"
-status: Open
+status: Closed
 priority: High
 assignee: Unassigned
 created_at: 2026-02-24
@@ -86,11 +86,17 @@ Review `2026_02_19_120000_add_fulltext_indexes_to_alert_tables.php`. Laravel's `
 
 ## Acceptance Criteria
 
-- [ ] `DB::getDriverName() === 'pgsql'` is explicitly handled in all four `AlertSelectProvider` classes.
-- [ ] `DATE_FORMAT` is replaced with `TO_CHAR` for Postgres connections.
-- [ ] `JSON_OBJECT` is replaced with `json_build_object` for Postgres connections.
-- [ ] `JSON_ARRAYAGG` is replaced with `json_agg` for Postgres connections.
-- [ ] Full-text search gracefully falls back to Postgres `to_tsvector` / `to_tsquery` or `ILIKE` if GIN indexes are not fully utilized.
-- [ ] The dashboard loads successfully without SQL errors on a PostgreSQL database.
-- [ ] Local development on SQLite and MySQL remains fully functional.
-- [ ] Existing PHPUnit/Pest tests pass across all supported database drivers.
+- [x] ~~`DB::getDriverName() === 'pgsql'` is explicitly handled in all four `AlertSelectProvider` classes.~~
+- [x] ~~`DATE_FORMAT` is replaced with `TO_CHAR` for Postgres connections.~~
+- [x] ~~`JSON_OBJECT` is replaced with `json_build_object` for Postgres connections.~~
+- [x] ~~`JSON_ARRAYAGG` is replaced with `json_agg` for Postgres connections.~~
+- [x] ~~Full-text search gracefully falls back to Postgres `to_tsvector` / `to_tsquery` or `ILIKE` if GIN indexes are not fully utilized.~~
+- [x] ~~The dashboard loads successfully without SQL errors on a PostgreSQL database.~~
+- [x] ~~Local development on SQLite and MySQL remains fully functional.~~
+- [x] ~~Existing PHPUnit/Pest tests pass across all supported database drivers.~~
+
+## Closure Notes (2026-03-04)
+
+- Provider query branches now implement explicit PostgreSQL SQL generation (`json_build_object`, `json_agg`, `to_char`, `to_tsvector`/`plainto_tsquery`, `ILIKE`) across all four alert providers.
+- Cross-driver coverage exists in provider/unit/feature tests, including dedicated PostgreSQL driver tests and migration coverage.
+- Local PostgreSQL cutover and data import completed successfully with populated alert tables and no PostgreSQL function compatibility errors observed.

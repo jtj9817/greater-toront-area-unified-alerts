@@ -1,7 +1,7 @@
 ---
 ticket_id: FEED-009
 title: "[Feature] Replace PHP Seeder Export with SQL Dump Pipeline — Add `db:export-sql` and `db:import-sql` Commands"
-status: Open
+status: Closed
 priority: High
 assignee: Unassigned
 created_at: 2026-02-24
@@ -293,19 +293,25 @@ The `db:import-sql` command does not support `.gz` files. If a compressed file i
 
 ## Acceptance Criteria
 
-- [ ] `php artisan db:export-sql` produces a valid `.sql` file containing `INSERT INTO ... ON CONFLICT (id) DO NOTHING` statements for all four alert tables
-- [ ] Exported SQL file is written to `storage/app/alert-export.sql` by default and is absent from git tracking
-- [ ] `php artisan db:export-sql --tables=fire_incidents` exports only the specified table
-- [ ] `php artisan db:export-sql --compress` produces a `.sql.gz` file
-- [ ] `php artisan db:import-sql --file=alert-export.sql` imports the file into the active database
-- [ ] `php artisan db:import-sql --dry-run --file=alert-export.sql` validates the file without executing any SQL
-- [ ] `db:import-sql` rejects files containing `DROP TABLE`, `CREATE TABLE`, `ALTER TABLE`, or `TRUNCATE` statements
-- [ ] `db:import-sql` prompts for confirmation when `--force` is not provided
-- [ ] Importing the same file twice does not duplicate rows (`ON CONFLICT` is idempotent)
-- [ ] Importing into a database that already has live records preserves the live records (no row is overwritten by the import)
-- [ ] `NULL` values in nullable columns are correctly emitted as the SQL literal `NULL` (not `''` or `'NULL'`)
-- [ ] `scripts/export-alert-data.sh --sail` runs the export inside the Sail container and prints transfer instructions
-- [ ] `scripts/generate-production-seed.sh` emits a deprecation notice directing users to `scripts/export-alert-data.sh`
-- [ ] `ExportProductionData` and `VerifyProductionSeed` classes carry `@deprecated` docblocks
-- [ ] Feature tests cover: export produces valid SQL, import dry-run rejects DDL, import dry-run accepts valid export, null column handling
-- [ ] `composer test` passes clean
+- [x] ~~`php artisan db:export-sql` produces a valid `.sql` file containing `INSERT INTO ... ON CONFLICT (id) DO NOTHING` statements for all four alert tables~~
+- [x] ~~Exported SQL file is written to `storage/app/alert-export.sql` by default and is absent from git tracking~~
+- [x] ~~`php artisan db:export-sql --tables=fire_incidents` exports only the specified table~~
+- [x] ~~`php artisan db:export-sql --compress` produces a `.sql.gz` file~~
+- [x] ~~`php artisan db:import-sql --file=alert-export.sql` imports the file into the active database~~
+- [x] ~~`php artisan db:import-sql --dry-run --file=alert-export.sql` validates the file without executing any SQL~~
+- [x] ~~`db:import-sql` rejects files containing `DROP TABLE`, `CREATE TABLE`, `ALTER TABLE`, or `TRUNCATE` statements~~
+- [x] ~~`db:import-sql` prompts for confirmation when `--force` is not provided~~
+- [x] ~~Importing the same file twice does not duplicate rows (`ON CONFLICT` is idempotent)~~
+- [x] ~~Importing into a database that already has live records preserves the live records (no row is overwritten by the import)~~
+- [x] ~~`NULL` values in nullable columns are correctly emitted as the SQL literal `NULL` (not `''` or `'NULL'`)~~
+- [x] ~~`scripts/export-alert-data.sh --sail` runs the export inside the Sail container and prints transfer instructions~~
+- [x] ~~`scripts/generate-production-seed.sh` emits a deprecation notice directing users to `scripts/export-alert-data.sh`~~
+- [x] ~~`ExportProductionData` and `VerifyProductionSeed` classes carry `@deprecated` docblocks~~
+- [x] ~~Feature tests cover: export produces valid SQL, import dry-run rejects DDL, import dry-run accepts valid export, null column handling~~
+- [x] ~~`composer test` passes clean~~
+
+## Closure Notes (2026-03-04)
+
+- SQL pipeline verified in local Sail flow with successful export/import and expected aggregate row totals.
+- `db:export-sql`/`db:import-sql` command inventory, safety rails, and feature tests are present and passing.
+- Seeder-based workflow is retained but explicitly marked deprecated in commands and scripts.
