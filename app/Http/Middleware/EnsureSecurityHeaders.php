@@ -22,6 +22,15 @@ class EnsureSecurityHeaders
         $response->headers->set('Referrer-Policy', 'strict-origin-when-cross-origin');
         $response->headers->set('Permissions-Policy', 'camera=(), microphone=(), geolocation=(self)');
 
+        // Sentinel: Added X-XSS-Protection for defense in depth (legacy browsers)
+        $response->headers->set('X-XSS-Protection', '1; mode=block');
+
+        // Sentinel: Added Content-Security-Policy to mitigate XSS and injection attacks
+        // 'unsafe-inline' and 'unsafe-eval' are currently required for Vite/React dev mode compatibility.
+        // In a strict production environment, these should be tightened with nonces or hashes.
+        $csp = "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' wss:; frame-ancestors 'self'; form-action 'self';";
+        $response->headers->set('Content-Security-Policy', $csp);
+
         if ($this->shouldAddHsts($request)) {
             $response->headers->set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
         }
