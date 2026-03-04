@@ -18,40 +18,57 @@ docs/
 ├── deployment/
 │   └── production-seeding.md
 ├── backend/
+│   ├── architecture-walkthrough.md
 │   ├── database-schema.md
 │   ├── dtos.md
 │   ├── enums.md
 │   ├── fire-incidents.md
 │   ├── maintenance.md
 │   ├── mappers.md
-│   ├── production-scheduler.md
 │   ├── notification-system.md
+│   ├── production-scheduler.md
 │   ├── scene-intel.md
 │   ├── unified-alerts-qa.md
 │   └── unified-alerts-system.md
 ├── frontend/
 │   ├── alert-service.md
 │   └── types.md
+├── reviews/
+│   └── GTA-NOTIF-BEND-REVIEW.md
 ├── runbooks/
 │   ├── forge-go-live-checklist.md
-│   ├── scheduler-troubleshooting.md
-│   └── queue-troubleshooting.md
+│   ├── queue-troubleshooting.md
+│   └── scheduler-troubleshooting.md
 ├── sources/
+│   ├── go-transit.md
 │   ├── toronto-fire.md
 │   ├── toronto-police.md
 │   ├── toronto-police-architecture.md
-│   ├── ttc-transit.md
-│   └── go-transit.md
+│   └── ttc-transit.md
 ├── plans/
 │   ├── frontend-typed-alert-domain-plan.md
+│   ├── hetzner-forge-deployment-preflight.md
 │   ├── notification-system-feature-plan.md
 │   ├── production-data-migration.md
 │   └── scene-intel-feature-plan.md
 ├── tickets/
 │   ├── FEED-001-server-side-filters-infinite-scroll.md
+│   ├── FEED-001-phase-3-review.md
+│   ├── FEED-002-provider-filter-optimization.md
 │   ├── FEED-002-real-time-push.md
+│   ├── FEED-003-code-review-phase-2.md
 │   ├── FEED-003-saved-filter-presets.md
 │   ├── FEED-004-sort-direction-toggle.md
+│   ├── FEED-005-test-harness-stabilization.md
+│   ├── FEED-006-go-transit-html-sanitization.md
+│   ├── FEED-007-scheduled-jobs-never-processed.md
+│   ├── FEED-008-scheduler-missing-from-dev-script.md
+│   ├── FEED-009-sql-export-import-pipeline.md
+│   ├── FEED-010-postgresql-refactoring.md
+│   ├── FEED-011-coverage-gap-to-90-threshold.md
+│   ├── FEED-012-forge-postgresql-go-live-preflight-checklist.md
+│   ├── FEED-013-arcgis-objectid-sequence-reset.md
+│   ├── FEED-014-queue-worker-137-and-notification-fanout-idempotency.md
 │   └── archive/  (closed tickets)
 ├── archive/
 │   ├── query-refinement-testing.md

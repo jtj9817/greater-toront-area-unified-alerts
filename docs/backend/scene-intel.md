@@ -53,9 +53,9 @@ SceneIntelTimeline renders updates
 
 **Indexes:**
 - Primary key on `id`
-- Foreign key index on `event_num`
 - Composite index on `(event_num, created_at)` for timeline queries
-- Foreign key index on `created_by`
+- Index on `update_type`
+- Index on `created_at`
 
 **Model:** `App\Models\IncidentUpdate`
 

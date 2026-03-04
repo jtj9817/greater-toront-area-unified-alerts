@@ -27,19 +27,19 @@ php artisan test            # Run Pest tests only
 php artisan test --filter=AuthenticationTest  # Run a single test file
 ```
 
-### Manual Testing (MySQL)
+### Manual Testing
 ```bash
-# Manual test scripts require testing environment and MySQL database
-APP_ENV=testing ./vendor/bin/sail php tests/manual/verify_phase_1_foundations.php
-APP_ENV=testing ./vendor/bin/sail php tests/manual/verify_phase_2_mapper_extraction.php
-APP_ENV=testing ./vendor/bin/sail php tests/manual/verify_phase_3_unified_querying.php
-APP_ENV=testing ./vendor/bin/sail php tests/manual/verify_phase_4_frontend_integration.php
-APP_ENV=testing ./vendor/bin/sail php tests/manual/verify_phase_5_quality_gate.php
-APP_ENV=testing ./vendor/bin/sail php tests/manual/verify_feed_001_phase_5_documentation.php
-APP_ENV=testing ./vendor/bin/sail php tests/manual/verify_production_data_migration_phase_3_automation_documentation.php
-APP_ENV=testing ./vendor/bin/sail php tests/manual/verify_scheduler_resilience_phase_1_critical_fixes_foundation.php
-APP_ENV=testing ./vendor/bin/sail php tests/manual/verify_scheduler_resilience_phase_2_resilience_architecture_upgrade.php
-APP_ENV=testing ./vendor/bin/sail php tests/manual/verify_scheduler_resilience_phase_3_data_integrity_maintenance.php
+# Manual test scripts require a running testing database (PostgreSQL). Use the helper script:
+./scripts/run-manual-test.sh tests/manual/verify_phase_1_foundations.php
+./scripts/run-manual-test.sh tests/manual/verify_phase_2_provider_implementations.php
+./scripts/run-manual-test.sh tests/manual/verify_phase_3_unified_querying.php
+./scripts/run-manual-test.sh tests/manual/verify_phase_4_frontend_integration.php
+./scripts/run-manual-test.sh tests/manual/verify_phase_5_quality_gate.php
+./scripts/run-manual-test.sh tests/manual/verify_feed_001_phase_5_documentation.php
+./scripts/run-manual-test.sh tests/manual/verify_production_data_migration_phase_3_automation_documentation.php
+./scripts/run-manual-test.sh tests/manual/verify_scheduler_resilience_phase_1_critical_fixes_foundation.php
+./scripts/run-manual-test.sh tests/manual/verify_scheduler_resilience_phase_2_resilience_architecture_upgrade.php
+./scripts/run-manual-test.sh tests/manual/verify_scheduler_resilience_phase_3_data_integrity_maintenance.php
 ```
 
 ### Linting & Formatting
@@ -206,7 +206,7 @@ Pest PHP with Feature and Unit suites.
 
 **Manual Test Scripts:**
 - `tests/manual/` - Destructive verification scripts
-- Require `APP_ENV=testing` and MySQL database (configured in `.env.testing`)
+- Require a running testing database (configured in `.env.testing`). Run via `./scripts/run-manual-test.sh`.
 
 ### Production Scheduler
 Dedicated scheduler container (`docker/scheduler/`) runs `php artisan scheduler:run-and-log` every minute:
