@@ -11,19 +11,19 @@
 - [x] Task: Conductor - User Manual Verification 'Phase 1: Foundation & Theme Setup' [04ecd01] (Protocol in workflow.md; verified 2026-03-04, script: `tests/manual/verify_design_revamp_phase_1_foundation_theme_setup.php`, log: `storage/logs/manual_tests/design_revamp_phase_1_foundation_theme_setup_2026_03_04_230453.log`)
 
 ## Phase 2: Global Layout Implementation
-- [ ] Task: Implement Prototype Sidebar (GTA Alerts)
-    - [ ] Sub-task: Update `resources/js/features/gta-alerts/components/Sidebar.tsx` to match `prototype-two-design/App.tsx` (black background, hard borders, primary active state, Material Symbols icons).
-    - [ ] Sub-task: Decide how to reconcile existing behaviors not shown in the prototype (mobile drawer + desktop collapse). Keep functionality unless explicitly dropped.
-- [ ] Task: Implement Prototype Header (GTA Alerts)
-    - [ ] Sub-task: Update the header in `resources/js/features/gta-alerts/App.tsx` (or extract to `resources/js/features/gta-alerts/components/Header.tsx`) to match the prototype (search bar styling + notification/person icon affordances).
-    - [ ] Sub-task: Preserve existing behavior: debounced search + navigation to Inbox/Settings.
-- [ ] Task: Implement Prototype Footer (GTA Alerts)
-    - [ ] Sub-task: Add a footer component (new `resources/js/features/gta-alerts/components/Footer.tsx`) matching the prototype’s environment stats + links.
-    - [ ] Sub-task: Ensure this coexists with the existing mobile-only `BottomNav` (`resources/js/features/gta-alerts/components/BottomNav.tsx`).
-- [ ] Task: Update GTA Alerts Layout Wrapper
-    - [ ] Sub-task: Update the root wrapper in `resources/js/features/gta-alerts/App.tsx` to match the prototype layout classes (`relative flex h-screen w-full overflow-hidden bg-background-dark text-white font-sans`), while keeping `.gta-alerts-theme` as the scoping root.
-- [ ] Task: Implement Prototype Floating Action Button (Refresh)
-    - [ ] Sub-task: Add a floating refresh button (prototype bottom-right) that triggers a safe feed refresh without breaking scroll/state (likely via Inertia reload for the feed view).
+- [x] Task: Implement Prototype Sidebar (GTA Alerts) [e55cd96]
+    - [x] Sub-task: Update `resources/js/features/gta-alerts/components/Sidebar.tsx` to match `prototype-two-design/App.tsx` (black background, hard borders, primary active state, Material Symbols icons).
+    - [x] Sub-task: Decide how to reconcile existing behaviors not shown in the prototype (mobile drawer + desktop collapse). Keep functionality unless explicitly dropped.
+- [x] Task: Implement Prototype Header (GTA Alerts) [e55cd96]
+    - [x] Sub-task: Update the header in `resources/js/features/gta-alerts/App.tsx` (or extract to `resources/js/features/gta-alerts/components/Header.tsx`) to match the prototype (search bar styling + notification/person icon affordances).
+    - [x] Sub-task: Preserve existing behavior: debounced search + navigation to Inbox/Settings.
+- [x] Task: Implement Prototype Footer (GTA Alerts) [e55cd96]
+    - [x] Sub-task: Add a footer component (new `resources/js/features/gta-alerts/components/Footer.tsx`) matching the prototype’s environment stats + links.
+    - [x] Sub-task: Ensure this coexists with the existing mobile-only `BottomNav` (`resources/js/features/gta-alerts/components/BottomNav.tsx`).
+- [x] Task: Update GTA Alerts Layout Wrapper [e55cd96]
+    - [x] Sub-task: Update the root wrapper in `resources/js/features/gta-alerts/App.tsx` to match the prototype layout classes (`relative flex h-screen w-full overflow-hidden bg-background-dark text-white font-sans`), while keeping `.gta-alerts-theme` as the scoping root.
+- [x] Task: Implement Prototype Floating Action Button (Refresh) [e55cd96]
+    - [x] Sub-task: Add a floating refresh button (prototype bottom-right) that triggers a safe feed refresh without breaking scroll/state (likely via Inertia reload for the feed view).
 - [ ] Task: Conductor - User Manual Verification 'Phase 2: Global Layout Implementation' (Protocol in workflow.md)
 
 ## Phase 3: Alert Feed & Table Views
