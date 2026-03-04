@@ -8,7 +8,7 @@
     - [x] Sub-task: Migrate prototype utilities into `resources/css/app.css` (from `prototype-two-design/index.css`):
         - [x] `.brutalist-border`, `.panel-shadow`, `.custom-scrollbar`/`.scrollbar-hide`
         - [x] Table helpers: `.incident-table th/td`, `.expandable-row`, `.active-row`
-- [ ] Task: Conductor - User Manual Verification 'Phase 1: Foundation & Theme Setup' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 1: Foundation & Theme Setup' [04ecd01] (Protocol in workflow.md; verified 2026-03-04, script: `tests/manual/verify_design_revamp_phase_1_foundation_theme_setup.php`, log: `storage/logs/manual_tests/design_revamp_phase_1_foundation_theme_setup_2026_03_04_230453.log`)
 
 ## Phase 2: Global Layout Implementation
 - [ ] Task: Implement Prototype Sidebar (GTA Alerts)
