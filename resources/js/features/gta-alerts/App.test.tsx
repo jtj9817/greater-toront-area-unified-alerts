@@ -320,7 +320,6 @@ describe('GTA Alerts App (typed domain enforcement boundary)', () => {
             })[0],
         );
 
-        expect(screen.getByText('Notification Center')).toBeInTheDocument();
         expect(
             screen.getByText('Sign in to view your notification inbox'),
         ).toBeInTheDocument();

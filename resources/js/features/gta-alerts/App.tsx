@@ -3,6 +3,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { home } from '@/routes';
 import { AlertDetailsView } from './components/AlertDetailsView';
 import { BottomNav } from './components/BottomNav';
+import { Footer } from './components/Footer';
 import { FeedView } from './components/FeedView';
 import { Icon } from './components/Icon';
 import { NotificationInboxView } from './components/NotificationInboxView';
@@ -54,6 +55,7 @@ const App: React.FC<AppProps> = ({
     const [currentView, setCurrentView] = useState('feed');
     const [searchQuery, setSearchQuery] = useState(filters.q || '');
     const [activeAlertId, setActiveAlertId] = useState<string | null>(null);
+    const [isRefreshingFeed, setIsRefreshingFeed] = useState(false);
 
     // Sync local search query with URL state (e.g., back button, Reset All Filters).
     const syncSearchQueryFromUrl = useCallback(() => {
@@ -139,6 +141,31 @@ const App: React.FC<AppProps> = ({
         setIsMobileMenuOpen(false); // Close mobile drawer on navigation
     };
 
+    const handleRefreshFeed = () => {
+        if (currentView !== 'feed' || isRefreshingFeed) {
+            return;
+        }
+
+        if (typeof window === 'undefined') {
+            return;
+        }
+
+        setIsRefreshingFeed(true);
+        router.get(
+            `${window.location.pathname}${window.location.search}`,
+            {},
+            {
+                preserveState: true,
+                preserveScroll: true,
+                replace: true,
+                only: ['alerts', 'filters', 'latestFeedUpdatedAt'],
+                onFinish: () => {
+                    setIsRefreshingFeed(false);
+                },
+            },
+        );
+    };
+
     const renderView = () => {
         if (activeAlertId && activeAlert) {
             return (
@@ -190,38 +217,8 @@ const App: React.FC<AppProps> = ({
         }
     };
 
-    const getBreadcrumbTitle = () => {
-        switch (currentView) {
-            case 'saved':
-                return 'Saved Alerts';
-            case 'zones':
-                return 'Active Zones';
-            case 'settings':
-                return 'Settings';
-            case 'inbox':
-                return 'Notification Center';
-            default:
-                return 'Live Feed';
-        }
-    };
-
-    const getBreadcrumbIcon = () => {
-        switch (currentView) {
-            case 'saved':
-                return 'bookmark';
-            case 'zones':
-                return 'map';
-            case 'settings':
-                return 'settings';
-            case 'inbox':
-                return 'notifications';
-            default:
-                return 'dashboard';
-        }
-    };
-
     return (
-        <div className="gta-alerts-theme relative flex h-screen w-full overflow-hidden bg-background-dark font-display text-white">
+        <div className="gta-alerts-theme relative flex h-screen w-full overflow-hidden bg-background-dark font-sans text-white">
             {/* Mobile Sidebar Overlay/Backdrop */}
             {isMobileMenuOpen && (
                 <div
@@ -243,75 +240,59 @@ const App: React.FC<AppProps> = ({
             />
 
             <div className="relative flex h-full min-w-0 flex-1 flex-col">
-                <header className="glass-header z-50 flex-none border-b border-white/5 md:bg-background-dark/95 md:backdrop-blur-md">
-                    <div className="w-full md:mx-auto md:max-w-7xl">
-                        <div className="flex items-center justify-between px-4 pt-6 pb-2 md:hidden">
-                            <div className="flex items-center gap-3">
+                <header className="z-50 flex-none border-b border-[#333333] bg-black">
+                    <div className="w-full">
+                        <div className="flex items-center justify-between border-b border-[#333333] px-4 py-3 md:hidden">
+                            <div className="flex items-center gap-2">
                                 <button
                                     onClick={() => setIsMobileMenuOpen(true)}
-                                    className="flex h-10 w-10 items-center justify-center rounded-lg bg-white/5 text-white/80 transition-colors hover:text-primary"
+                                    className="flex h-10 w-10 items-center justify-center border border-[#333333] bg-[#1a1a1a] text-white transition-colors hover:bg-primary hover:text-black"
                                     aria-label="Open menu"
                                 >
                                     <Icon
                                         name="menu"
-                                        style={{ fontSize: '24px' }}
+                                        style={{ fontSize: '22px' }}
                                     />
                                 </button>
-                                <h2 className="text-xl leading-tight font-bold tracking-tight text-white">
+                                <h2 className="text-lg leading-tight font-black tracking-tight text-white uppercase">
                                     GTA Alerts
                                 </h2>
                             </div>
                             <div className="flex gap-3">
                                 <button
                                     onClick={() => handleNavigate('inbox')}
-                                    className="text-white/80 transition-colors hover:text-primary"
+                                    className="relative border border-[#333333] bg-[#1a1a1a] p-2 text-white transition-colors hover:bg-primary hover:text-black"
                                     aria-label="Open notification center"
                                 >
                                     <Icon
                                         name="notifications"
-                                        style={{ fontSize: '24px' }}
+                                        style={{ fontSize: '22px' }}
                                     />
+                                    <span className="absolute top-1.5 right-1.5 h-2 w-2 border border-black bg-critical"></span>
                                 </button>
                                 <button
                                     onClick={() => handleNavigate('settings')}
-                                    className="text-white/80 transition-colors hover:text-primary"
+                                    className="border border-[#333333] bg-[#1a1a1a] p-2 text-white transition-colors hover:bg-primary hover:text-black"
                                     aria-label="Open settings"
                                 >
                                     <Icon
-                                        name="settings"
-                                        style={{ fontSize: '24px' }}
+                                        name="person"
+                                        style={{ fontSize: '22px' }}
                                     />
                                 </button>
                             </div>
                         </div>
 
-                        <div className="flex items-center gap-4 px-4 pt-1 pb-4 md:py-4">
-                            <div className="mr-4 hidden min-w-max items-center text-sm text-text-secondary md:flex">
-                                <Icon
-                                    name={getBreadcrumbIcon()}
-                                    className="mr-2 text-primary"
-                                />
-                                <span className="font-medium text-white">
-                                    {getBreadcrumbTitle()}
-                                </span>
-                                <Icon
-                                    name="chevron_right"
-                                    className="mx-2 text-lg text-white/20"
-                                />
-                                <span className="opacity-60">
-                                    Greater Toronto Area
-                                </span>
-                            </div>
-
-                            <label className="flex w-full max-w-2xl flex-col">
-                                <div className="group relative flex h-10 w-full flex-1 items-stretch rounded-lg transition-all md:h-11">
-                                    <div className="pointer-events-none absolute top-0 left-0 z-10 flex h-full items-center pl-4">
-                                        <span className="text-text-secondary transition-colors group-focus-within:text-primary">
+                        <div className="flex items-center gap-3 px-4 py-3 md:h-16 md:justify-between md:px-8">
+                            <label className="flex w-full md:max-w-xl">
+                                <div className="group relative flex h-10 w-full items-stretch md:h-11">
+                                    <div className="pointer-events-none absolute top-0 left-0 z-10 flex h-full items-center pl-3">
+                                        <span className="text-primary transition-colors">
                                             <Icon name="search" />
                                         </span>
                                     </div>
                                     <input
-                                        className="flex h-full w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg border border-transparent bg-input-dark px-4 pl-12 text-sm leading-normal font-normal text-white shadow-inner transition-all placeholder:text-text-secondary focus:border-primary/50 focus:ring-2 focus:ring-primary/50 focus:outline-none md:text-base"
+                                        className="flex h-full w-full min-w-0 resize-none overflow-hidden border border-[#333333] bg-[#1a1a1a] px-4 pl-10 text-sm leading-normal font-bold text-white uppercase placeholder:text-gray-500 focus:border-primary focus:outline-none"
                                         placeholder="Search alerts, streets, or categories..."
                                         value={searchQuery}
                                         onChange={(e) =>
@@ -321,15 +302,21 @@ const App: React.FC<AppProps> = ({
                                 </div>
                             </label>
 
-                            <div className="ml-auto hidden items-center gap-3 md:flex">
-                                <div className="mx-1 h-6 w-px bg-white/10"></div>
+                            <div className="hidden items-center gap-3 pl-4 md:flex">
                                 <button
-                                    className="relative flex h-10 w-10 items-center justify-center rounded-full border border-white/5 bg-surface-dark text-text-secondary transition-all hover:border-primary/30 hover:bg-white/5 hover:text-white"
+                                    className="relative border border-[#333333] bg-[#1a1a1a] p-2 text-white transition-colors hover:bg-primary hover:text-black"
                                     onClick={() => handleNavigate('inbox')}
                                     aria-label="Open notification center"
                                 >
                                     <Icon name="notifications" />
-                                    <span className="absolute top-2 right-2.5 h-2 w-2 rounded-full border-2 border-surface-dark bg-amber"></span>
+                                    <span className="absolute top-1.5 right-1.5 h-2 w-2 border border-black bg-critical"></span>
+                                </button>
+                                <button
+                                    className="border border-[#333333] bg-[#1a1a1a] p-2 text-white transition-colors hover:bg-primary hover:text-black"
+                                    onClick={() => handleNavigate('settings')}
+                                    aria-label="Open settings"
+                                >
+                                    <Icon name="person" />
                                 </button>
                             </div>
                         </div>
@@ -342,11 +329,26 @@ const App: React.FC<AppProps> = ({
                     </div>
                 </main>
 
+                <Footer />
                 <BottomNav
                     currentView={currentView}
                     onNavigate={handleNavigate}
                 />
             </div>
+
+            {currentView === 'feed' && (
+                <button
+                    onClick={handleRefreshFeed}
+                    disabled={isRefreshingFeed}
+                    aria-label="Refresh feed"
+                    className="fixed right-5 bottom-24 z-[95] flex h-12 w-12 items-center justify-center border-2 border-black bg-primary text-black shadow-[5px_5px_0_#000] transition-all hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-none disabled:cursor-not-allowed disabled:opacity-60 md:right-8 md:bottom-8"
+                >
+                    <Icon
+                        name={isRefreshingFeed ? 'sync' : 'refresh'}
+                        className={isRefreshingFeed ? 'animate-spin' : ''}
+                    />
+                </button>
+            )}
             <NotificationToastLayer authUserId={authUserId} />
         </div>
     );
