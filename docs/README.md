@@ -18,6 +18,7 @@ docs/
 ├── deployment/
 │   └── production-seeding.md
 ├── backend/
+│   ├── database-schema.md
 │   ├── dtos.md
 │   ├── enums.md
 │   ├── fire-incidents.md
@@ -71,13 +72,14 @@ The unified feed currently aggregates four source types:
 
 1. **[backend/unified-alerts-system.md](backend/unified-alerts-system.md)**
 2. **[architecture/provider-adapter-pattern.md](architecture/provider-adapter-pattern.md)**
-3. **[backend/enums.md](backend/enums.md)**
-4. **[backend/dtos.md](backend/dtos.md)**
-5. **[frontend/types.md](frontend/types.md)**
-6. **[frontend/alert-service.md](frontend/alert-service.md)**
-7. **[backend/notification-system.md](backend/notification-system.md)**
-8. **[backend/scene-intel.md](backend/scene-intel.md)**
-9. **[backend/maintenance.md](backend/maintenance.md)**
+3. **[backend/database-schema.md](backend/database-schema.md)**
+4. **[backend/enums.md](backend/enums.md)**
+5. **[backend/dtos.md](backend/dtos.md)**
+6. **[frontend/types.md](frontend/types.md)**
+7. **[frontend/alert-service.md](frontend/alert-service.md)**
+8. **[backend/notification-system.md](backend/notification-system.md)**
+9. **[backend/scene-intel.md](backend/scene-intel.md)**
+10. **[backend/maintenance.md](backend/maintenance.md)**
 
 ## Source Integration Docs
 
@@ -106,6 +108,7 @@ Active work items and feature proposals:
 - **[tickets/FEED-002-real-time-push.md](tickets/FEED-002-real-time-push.md)** - Real-time push updates for the alert feed (depends on FEED-001)
 - **[tickets/FEED-003-saved-filter-presets.md](tickets/FEED-003-saved-filter-presets.md)** - Saved filter presets for quick-access filter combinations (depends on FEED-001)
 - **[tickets/FEED-004-sort-direction-toggle.md](tickets/FEED-004-sort-direction-toggle.md)** - Sort direction toggle in the feed (depends on FEED-001)
+- **[tickets/FEED-014-queue-worker-137-and-notification-fanout-idempotency.md](tickets/FEED-014-queue-worker-137-and-notification-fanout-idempotency.md)** - Stabilize queue worker exit 137 and harden notification fan-out idempotency (critical)
 
 ## Historical Docs Notes
 
