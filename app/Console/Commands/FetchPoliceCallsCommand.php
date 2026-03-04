@@ -9,6 +9,7 @@ use App\Services\TorontoPoliceFeedService;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
 use Illuminate\Database\QueryException;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Throwable;
 
@@ -56,6 +57,8 @@ class FetchPoliceCallsCommand extends Command
             $objectIdsInFeed = [];
             $feedUpdatedAt = Carbon::now();
             $partialFetch = $service->lastFetchWasPartial();
+            $resetDetected = false;
+            $alertsToDispatch = [];
 
             if ($partialFetch) {
                 Log::warning('Toronto Police feed fetch was partial; skipping deactivation to prevent false negatives', [
@@ -87,12 +90,11 @@ class FetchPoliceCallsCommand extends Command
                     ]);
 
                     $this->warn("ArcGIS OBJECTID sequence reset detected (feed max: {$feedMaxId}, DB max: {$dbMaxId}). Clearing stale rows.");
-
-                    PoliceCall::query()->delete();
+                    $resetDetected = true;
                 }
             }
 
-            foreach ($calls as $callData) {
+            $persistCall = function (array $callData) use (&$objectIdsInFeed, &$alertsToDispatch, $feedUpdatedAt, $notificationAlertFactory, $resetDetected): void {
                 $objectIdsInFeed[] = $callData['object_id'];
 
                 try {
@@ -105,9 +107,13 @@ class FetchPoliceCallsCommand extends Command
                     );
 
                     if ($policeCall->wasRecentlyCreated || ($policeCall->wasChanged('is_active') && $policeCall->is_active)) {
-                        event(new AlertCreated(
-                            $notificationAlertFactory->fromPoliceCall($policeCall),
-                        ));
+                        $alert = $notificationAlertFactory->fromPoliceCall($policeCall);
+
+                        if ($resetDetected) {
+                            $alertsToDispatch[] = $alert;
+                        } else {
+                            event(new AlertCreated($alert));
+                        }
                     }
                 } catch (Throwable $exception) {
                     if ($exception instanceof QueryException) {
@@ -121,6 +127,24 @@ class FetchPoliceCallsCommand extends Command
                     ]);
 
                     $this->warn("Skipping police call {$callData['object_id']} due to persistence failure: {$exception->getMessage()}");
+                }
+            };
+
+            if ($resetDetected) {
+                DB::transaction(function () use ($calls, $persistCall): void {
+                    PoliceCall::query()->delete();
+
+                    foreach ($calls as $callData) {
+                        $persistCall($callData);
+                    }
+                });
+
+                foreach ($alertsToDispatch as $alert) {
+                    event(new AlertCreated($alert));
+                }
+            } else {
+                foreach ($calls as $callData) {
+                    $persistCall($callData);
                 }
             }
 

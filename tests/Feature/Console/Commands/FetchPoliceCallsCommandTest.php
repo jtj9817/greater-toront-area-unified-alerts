@@ -202,6 +202,48 @@ test('it detects OBJECTID sequence reset, clears stale rows, and fires AlertCrea
     );
 });
 
+test('it rolls back reset clear when reseed hits QueryException and preserves pre-reset rows', function () {
+    Event::fake([AlertCreated::class]);
+    Log::spy();
+
+    PoliceCall::factory()->create(['object_id' => 2000, 'is_active' => true]);
+    PoliceCall::factory()->create(['object_id' => 1800, 'is_active' => false]);
+
+    $this->mock(TorontoPoliceFeedService::class, function (MockInterface $mock) {
+        $mock->shouldReceive('fetch')->once()->andReturn([
+            [
+                'object_id' => 1,
+                'call_type_code' => 'BREPR',
+                'call_type' => 'BREAK & ENTER IN PROGRESS',
+                'division' => 'D42',
+                'cross_streets' => 'BAY ST - YORK ST',
+                'latitude' => 43.65,
+                'longitude' => -79.38,
+                'occurrence_time' => Carbon::parse('2026-03-04 09:30:00', 'UTC'),
+            ],
+            [
+                'object_id' => null,
+                'call_type_code' => 'BREPR',
+                'call_type' => 'BREAK & ENTER IN PROGRESS',
+                'division' => 'D42',
+                'cross_streets' => 'BAY ST - YORK ST',
+                'latitude' => 43.65,
+                'longitude' => -79.38,
+                'occurrence_time' => Carbon::parse('2026-03-04 09:31:00', 'UTC'),
+            ],
+        ]);
+        $mock->shouldReceive('lastFetchWasPartial')->once()->andReturnFalse();
+    });
+
+    $this->artisan('police:fetch-calls')->assertExitCode(1);
+
+    expect(PoliceCall::query()->count())->toBe(2);
+    expect(PoliceCall::where('object_id', 1)->exists())->toBeFalse();
+    $this->assertDatabaseHas('police_calls', ['object_id' => 1800]);
+    $this->assertDatabaseHas('police_calls', ['object_id' => 2000]);
+    Event::assertNotDispatched(AlertCreated::class);
+});
+
 test('it does not trigger reset detection when feed OBJECTIDs are consistent with DB history', function () {
     Event::fake([AlertCreated::class]);
 
