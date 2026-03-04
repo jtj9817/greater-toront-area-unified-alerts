@@ -58,10 +58,11 @@ Both the Inertia feed page (`/`) and JSON feed endpoint (`/api/feed`) support:
 The `q` parameter is handled at the provider layer and behaves differently per database driver:
 
 ### PostgreSQL (production)
-- Provider-level FTS using `to_tsvector('simple', concat_ws(' ', ...)) @@ plainto_tsquery('simple', ?)`.
-- GIN indexes created by migration: `database/migrations/2026_02_25_000000_add_pgsql_fulltext_indexes_to_alert_tables.php`
+- Provider-level FTS using `to_tsvector('simple', coalesce(col1, '') || ' ' || coalesce(col2, '')) @@ plainto_tsquery('simple', ?)`.
+- A substring fallback using `ILIKE` is applied **in addition** to FTS (via `OR`) to preserve partial-match UX.
+- GIN indexes created by migration: `database/migrations/2026_02_26_000001_add_pgsql_fulltext_indexes_to_alert_tables.php`
   - Index names: `fire_incidents_fulltext`, `police_calls_fulltext`, `transit_alerts_fulltext`, `go_transit_alerts_fulltext`
-- A substring fallback using `ILIKE` is applied **in addition** to FTS to preserve partial-match UX.
+  - Indexes use `CREATE INDEX CONCURRENTLY` and are skipped on non-PostgreSQL connections.
 
 ### MySQL (local/dev)
 - Provider-level `MATCH (...) AGAINST (... IN NATURAL LANGUAGE MODE)`.

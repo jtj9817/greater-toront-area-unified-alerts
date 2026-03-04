@@ -243,26 +243,34 @@ To reduce blank state before first poll, `FireAlertSelectProvider` embeds latest
 
 **Implementation:**
 - Efficient subquery fetches latest 3 updates per incident
-- Dual driver support (SQLite `||` concat, MySQL `CONCAT()`)
+- Tri-driver support: SQLite uses `json_group_array`/`json_object`, PostgreSQL uses `json_agg`/`json_build_object`, MySQL uses `JSON_ARRAYAGG`/`JSON_OBJECT`
 - Police/Transit providers include `NULL` placeholders for `UNION` compatibility
 
-**Query Pattern:**
+**Query Pattern (PostgreSQL):**
 ```sql
 SELECT
   -- ... standard columns ...
   (
-    SELECT JSON_ARRAYAGG(JSON_OBJECT(...))
-    FROM incident_updates
-    WHERE event_num = fire_incidents.event_num
-    ORDER BY created_at DESC
-    LIMIT 3
+    SELECT COALESCE(json_agg(
+      json_build_object('id', t.id, 'type', t.update_type, ...)
+      ORDER BY t.created_at DESC, t.id DESC
+    ), '[]'::json)
+    FROM (
+      SELECT id, update_type, content, created_at, metadata
+      FROM incident_updates
+      WHERE incident_updates.event_num = fire_incidents.event_num
+      ORDER BY created_at DESC
+      LIMIT 3
+    ) as t
   ) as intel_summary,
   (
-    SELECT MAX(created_at)
+    SELECT to_char(MAX(created_at), 'YYYY-MM-DD"T"HH24:MI:SS"Z"')
     FROM incident_updates
-    WHERE event_num = fire_incidents.event_num
+    WHERE incident_updates.event_num = fire_incidents.event_num
   ) as intel_last_updated
 ```
+
+See `app/Services/Alerts/Providers/FireAlertSelectProvider.php` for the SQLite and MySQL equivalents.
 
 ### Frontend Integration
 

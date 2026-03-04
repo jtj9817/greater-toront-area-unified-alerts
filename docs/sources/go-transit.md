@@ -6,22 +6,22 @@ Implemented. GO Transit alerts are ingested into `go_transit_alerts` and exposed
 
 ## Runtime Components
 
-- Feed service: `app/Services/GoTransitFeedService.php`
+- Feed service: `app/Services/GoTransitFeedService.php` (depends on `FeedCircuitBreaker`)
 - Sync command: `app/Console/Commands/FetchGoTransitAlertsCommand.php`
 - Queue job: `app/Jobs/FetchGoTransitAlertsJob.php`
 - Model: `app/Models/GoTransitAlert.php`
 - Unified provider: `app/Services/Alerts/Providers/GoTransitAlertSelectProvider.php`
-- Schedule: `routes/console.php` -> `go-transit:fetch-alerts` every 5 minutes (`withoutOverlapping()`)
+- Schedule: `routes/console.php` -> `go-transit:fetch-alerts` every 5 minutes (`withoutOverlapping(10)`)
 
 ## Upstream Endpoint
 
 - `https://api.metrolinx.com/external/go/serviceupdate/en/all`
 
 `GoTransitFeedService` parses:
-- Train notifications
-- Bus notifications
-- Station notifications
-- Train SAAG notifications (delay-oriented records)
+- Train notifications (from `Trains.Train[].Notifications`)
+- Train SAAG notifications (from `Trains.Train[].SaagNotifications` — delay-oriented, Train-only)
+- Bus notifications (from `Buses.Bus[].Notifications`)
+- Station notifications (from `Stations.Station[].Notifications`)
 
 ## Normalized Alert Shape
 
