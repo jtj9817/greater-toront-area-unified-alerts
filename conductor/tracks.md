@@ -6,7 +6,8 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ## Active Tracks
 
-*(none)*
+- [ ] **Track: UI Design Revamp (Prototype Two)**
+*Link: [./tracks/design_revamp_20260303/](./tracks/design_revamp_20260303/)*
 
 ## Archived Tracks
 
