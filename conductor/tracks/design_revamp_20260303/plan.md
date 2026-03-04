@@ -1,13 +1,13 @@
 # Implementation Plan: UI Design Revamp (Prototype Two)
 
 ## Phase 1: Foundation & Theme Setup
-- [ ] Task: Update Theme Tokens, Fonts, and Utilities (GTA Alerts Scoped)
-    - [ ] Sub-task: Load **Public Sans** in `resources/views/app.blade.php` (Material Symbols is already loaded there).
-    - [ ] Sub-task: Extend `resources/css/app.css` `@theme` with the **prototype tokens** needed by the new UI (e.g., `--color-warning`, `--color-critical`, `--color-panel-light`, `--color-brand-dark`).
-    - [ ] Sub-task: Override theme tokens under `.gta-alerts-theme { ... }` so the revamp does **not** unintentionally restyle non-GTA pages (e.g., set `--primary`, `--primary-foreground`, and any `--color-*` overrides used by `bg-background-dark`, etc.).
-    - [ ] Sub-task: Migrate prototype utilities into `resources/css/app.css` (from `prototype-two-design/index.css`):
-        - [ ] `.brutalist-border`, `.panel-shadow`, `.custom-scrollbar`/`.scrollbar-hide`
-        - [ ] Table helpers: `.incident-table th/td`, `.expandable-row`, `.active-row`
+- [x] Task: Update Theme Tokens, Fonts, and Utilities (GTA Alerts Scoped) [2615efb]
+    - [x] Sub-task: Load **Public Sans** in `resources/views/app.blade.php` (Material Symbols is already loaded there).
+    - [x] Sub-task: Extend `resources/css/app.css` `@theme` with the **prototype tokens** needed by the new UI (e.g., `--color-warning`, `--color-critical`, `--color-panel-light`, `--color-brand-dark`).
+    - [x] Sub-task: Override theme tokens under `.gta-alerts-theme { ... }` so the revamp does **not** unintentionally restyle non-GTA pages (e.g., set `--primary`, `--primary-foreground`, and any `--color-*` overrides used by `bg-background-dark`, etc.).
+    - [x] Sub-task: Migrate prototype utilities into `resources/css/app.css` (from `prototype-two-design/index.css`):
+        - [x] `.brutalist-border`, `.panel-shadow`, `.custom-scrollbar`/`.scrollbar-hide`
+        - [x] Table helpers: `.incident-table th/td`, `.expandable-row`, `.active-row`
 - [ ] Task: Conductor - User Manual Verification 'Phase 1: Foundation & Theme Setup' (Protocol in workflow.md)
 
 ## Phase 2: Global Layout Implementation
