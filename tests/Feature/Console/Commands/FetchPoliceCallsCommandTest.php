@@ -162,6 +162,77 @@ test('it does not dispatch an alert when an existing active call remains active'
     Event::assertNotDispatched(AlertCreated::class);
 });
 
+test('it detects OBJECTID sequence reset, clears stale rows, and fires AlertCreated for repopulated calls', function () {
+    Event::fake([AlertCreated::class]);
+    Log::spy();
+
+    // Simulate pre-reset DB state: high object_id values
+    PoliceCall::factory()->create(['object_id' => 2000, 'is_active' => true]);
+    PoliceCall::factory()->create(['object_id' => 1800, 'is_active' => false]);
+
+    // Feed returns low object_ids typical of a sequence reset (1/2000 = 0.0005 < 0.1 threshold)
+    $this->mock(TorontoPoliceFeedService::class, function (MockInterface $mock) {
+        $mock->shouldReceive('fetch')->once()->andReturn([
+            [
+                'object_id' => 1,
+                'call_type_code' => 'BREPR',
+                'call_type' => 'BREAK & ENTER IN PROGRESS',
+                'division' => 'D42',
+                'cross_streets' => 'BAY ST - YORK ST',
+                'latitude' => 43.65,
+                'longitude' => -79.38,
+                'occurrence_time' => Carbon::parse('2026-03-04 09:30:00', 'UTC'),
+            ],
+        ]);
+        $mock->shouldReceive('lastFetchWasPartial')->once()->andReturnFalse();
+    });
+
+    $this->artisan('police:fetch-calls')->assertExitCode(0);
+
+    // Stale rows cleared; only the single post-reset call remains
+    expect(PoliceCall::count())->toBe(1);
+    expect(PoliceCall::value('object_id'))->toBe(1);
+
+    Log::shouldHaveReceived('warning')
+        ->withArgs(fn (string $message, array $context): bool => str_contains($message, 'OBJECTID sequence reset detected'))
+        ->once();
+
+    // AlertCreated must fire because the row was freshly inserted (wasRecentlyCreated = true)
+    Event::assertDispatched(AlertCreated::class, fn (AlertCreated $event): bool => $event->alert->alertId === 'police:1'
+    );
+});
+
+test('it does not trigger reset detection when feed OBJECTIDs are consistent with DB history', function () {
+    Event::fake([AlertCreated::class]);
+
+    // Seed a single inactive call with object_id 100
+    PoliceCall::factory()->create(['object_id' => 100, 'is_active' => false]);
+
+    // Feed returns object_id 101 — ratio 101/100 = 1.01, well above the 0.1 threshold
+    $this->mock(TorontoPoliceFeedService::class, function (MockInterface $mock) {
+        $mock->shouldReceive('fetch')->once()->andReturn([
+            [
+                'object_id' => 101,
+                'call_type_code' => 'BREPR',
+                'call_type' => 'BREAK & ENTER IN PROGRESS',
+                'division' => 'D42',
+                'cross_streets' => 'BAY ST - YORK ST',
+                'latitude' => 43.65,
+                'longitude' => -79.38,
+                'occurrence_time' => Carbon::parse('2026-03-04 09:30:00', 'UTC'),
+            ],
+        ]);
+        $mock->shouldReceive('lastFetchWasPartial')->once()->andReturnFalse();
+    });
+
+    $this->artisan('police:fetch-calls')->assertExitCode(0);
+
+    // Both rows must be present — old one deactivated (already was), new one active
+    expect(PoliceCall::count())->toBe(2);
+    expect(PoliceCall::where('object_id', 100)->value('is_active'))->toBeFalse();
+    expect(PoliceCall::where('object_id', 101)->value('is_active'))->toBeTrue();
+});
+
 test('it handles duplicate object ids without creating duplicate records or notifications', function () {
     Event::fake([AlertCreated::class]);
 

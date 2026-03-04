@@ -66,6 +66,32 @@ class FetchPoliceCallsCommand extends Command
                 $this->warn('Police feed pagination was partial; stale call deactivation will be skipped for this run.');
             }
 
+            // Detect an ArcGIS OBJECTID sequence reset (layer rebuild).
+            // When TPS recreates the FeatureServer layer the OBJECTID counter restarts
+            // from 1, making incoming IDs far smaller than the DB's historic maximum.
+            // In that case the existing rows are stale artefacts of the old sequence and
+            // must be cleared so that every incoming call is treated as genuinely new
+            // (wasRecentlyCreated = true → AlertCreated fires correctly).
+            if (! $partialFetch && $calls !== []) {
+                $feedMaxId = max(array_column($calls, 'object_id'));
+                $dbMaxId = PoliceCall::max('object_id') ?? 0;
+                $threshold = (float) config('feeds.police.reset_detection_threshold', 0.1);
+
+                if ($dbMaxId > 0 && ($feedMaxId / $dbMaxId) < $threshold) {
+                    Log::warning('Toronto Police ArcGIS OBJECTID sequence reset detected; clearing stale rows', [
+                        'db_max_object_id' => $dbMaxId,
+                        'feed_max_object_id' => $feedMaxId,
+                        'reset_ratio' => $feedMaxId / $dbMaxId,
+                        'threshold' => $threshold,
+                        'command' => $this->getName(),
+                    ]);
+
+                    $this->warn("ArcGIS OBJECTID sequence reset detected (feed max: {$feedMaxId}, DB max: {$dbMaxId}). Clearing stale rows.");
+
+                    PoliceCall::query()->delete();
+                }
+            }
+
             foreach ($calls as $callData) {
                 $objectIdsInFeed[] = $callData['object_id'];
 

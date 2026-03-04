@@ -21,6 +21,11 @@ return [
 
     'police' => [
         'max_records' => 100000,
+        // If the feed's max OBJECTID divided by the DB's historic max falls below this
+        // ratio, an ArcGIS layer rebuild / sequence reset is assumed and stale rows are
+        // cleared before re-seeding.  Keep the value low (e.g. 0.1) to avoid false
+        // positives on legitimately quiet days.
+        'reset_detection_threshold' => 0.1,
     ],
 
     'sanity' => [
