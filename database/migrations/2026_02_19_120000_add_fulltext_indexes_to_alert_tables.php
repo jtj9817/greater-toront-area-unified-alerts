@@ -8,7 +8,9 @@ return new class extends Migration
 {
     public function up(): void
     {
-        if (Schema::getConnection()->getDriverName() !== 'mysql') {
+        $driver = Schema::getConnection()->getDriverName();
+
+        if (! in_array($driver, ['mysql', 'mariadb'], true)) {
             return;
         }
 
@@ -31,7 +33,9 @@ return new class extends Migration
 
     public function down(): void
     {
-        if (Schema::getConnection()->getDriverName() !== 'mysql') {
+        $driver = Schema::getConnection()->getDriverName();
+
+        if (! in_array($driver, ['mysql', 'mariadb'], true)) {
             return;
         }
 

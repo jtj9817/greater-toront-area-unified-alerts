@@ -20,23 +20,32 @@ class PoliceAlertSelectProvider implements AlertSelectProvider
     public function select(UnifiedAlertsCriteria $criteria): Builder
     {
         $driver = DB::getDriverName();
+        $isMySqlFamily = in_array($driver, ['mysql', 'mariadb'], true);
         $source = $this->source();
 
-        $idExpression = $driver === 'sqlite'
-            ? "('{$source}:' || object_id)"
-            : "CONCAT('{$source}:', object_id)";
-
-        $externalIdExpression = $driver === 'sqlite'
-            ? 'CAST(object_id AS TEXT)'
-            : 'CAST(object_id AS CHAR)';
-
-        $metaExpression = $driver === 'sqlite'
-            ? "json_object('division', division, 'call_type_code', call_type_code, 'object_id', object_id)"
-            : "JSON_OBJECT('division', division, 'call_type_code', call_type_code, 'object_id', object_id)";
+        if ($driver === 'sqlite') {
+            $idExpression = "('{$source}:' || object_id)";
+            $externalIdExpression = 'CAST(object_id AS TEXT)';
+            $latExpression = 'latitude';
+            $lngExpression = 'longitude';
+            $metaExpression = "json_object('division', division, 'call_type_code', call_type_code, 'object_id', object_id)";
+        } elseif ($driver === 'pgsql') {
+            $idExpression = "('{$source}:' || CAST(object_id AS text))";
+            $externalIdExpression = 'CAST(object_id AS text)';
+            $latExpression = 'CAST(latitude AS double precision)';
+            $lngExpression = 'CAST(longitude AS double precision)';
+            $metaExpression = "json_build_object('division', division, 'call_type_code', call_type_code, 'object_id', object_id)::jsonb";
+        } else {
+            $idExpression = "CONCAT('{$source}:', object_id)";
+            $externalIdExpression = 'CAST(object_id AS CHAR)';
+            $latExpression = 'latitude';
+            $lngExpression = 'longitude';
+            $metaExpression = "JSON_OBJECT('division', division, 'call_type_code', call_type_code, 'object_id', object_id)";
+        }
 
         $query = PoliceCall::query()
             ->selectRaw(
-                "{$idExpression} as id,\n                '{$source}' as source,\n                {$externalIdExpression} as external_id,\n                is_active,\n                occurrence_time as timestamp,\n                call_type as title,\n                cross_streets as location_name,\n                latitude as lat,\n                longitude as lng,\n                {$metaExpression} as meta"
+                "{$idExpression} as id,\n                '{$source}' as source,\n                {$externalIdExpression} as external_id,\n                is_active,\n                occurrence_time as timestamp,\n                call_type as title,\n                cross_streets as location_name,\n                {$latExpression} as lat,\n                {$lngExpression} as lng,\n                {$metaExpression} as meta"
             );
 
         if ($criteria->source !== null && $criteria->source !== $source) {
@@ -53,16 +62,26 @@ class PoliceAlertSelectProvider implements AlertSelectProvider
             $query->where('occurrence_time', '>=', $criteria->sinceCutoff->toDateTimeString());
         }
 
-        if ($criteria->query !== null && $driver === 'mysql') {
+        if ($criteria->query !== null) {
             $needle = '%'.mb_strtolower($criteria->query).'%';
 
-            $query->where(function ($where) use ($criteria, $needle) {
-                $where->whereRaw(
-                    'MATCH(call_type, cross_streets) AGAINST (? IN NATURAL LANGUAGE MODE)',
-                    [$criteria->query],
-                )->orWhereRaw('LOWER(call_type) LIKE ?', [$needle])
-                    ->orWhereRaw('LOWER(cross_streets) LIKE ?', [$needle]);
-            });
+            if ($isMySqlFamily) {
+                $query->where(function ($where) use ($criteria, $needle) {
+                    $where->whereRaw(
+                        'MATCH(call_type, cross_streets) AGAINST (? IN NATURAL LANGUAGE MODE)',
+                        [$criteria->query],
+                    )->orWhereRaw('LOWER(call_type) LIKE ?', [$needle])
+                        ->orWhereRaw('LOWER(cross_streets) LIKE ?', [$needle]);
+                });
+            } elseif ($driver === 'pgsql') {
+                $query->where(function ($where) use ($criteria, $needle) {
+                    $where->whereRaw(
+                        "to_tsvector('simple', coalesce(call_type, '') || ' ' || coalesce(cross_streets, '')) @@ plainto_tsquery('simple', ?)",
+                        [$criteria->query],
+                    )->orWhereRaw("coalesce(call_type, '') ILIKE ?", [$needle])
+                        ->orWhereRaw("coalesce(cross_streets, '') ILIKE ?", [$needle]);
+                });
+            }
         }
 
         return $query->toBase();

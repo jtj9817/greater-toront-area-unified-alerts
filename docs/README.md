@@ -32,6 +32,7 @@ docs/
 │   ├── alert-service.md
 │   └── types.md
 ├── runbooks/
+│   ├── forge-go-live-checklist.md
 │   ├── scheduler-troubleshooting.md
 │   └── queue-troubleshooting.md
 ├── sources/
@@ -131,5 +132,6 @@ Active work items and feature proposals:
 
 ## Runbooks
 
+- **[runbooks/forge-go-live-checklist.md](runbooks/forge-go-live-checklist.md)** - Production go-live sequence for Laravel Forge on Hetzner (PostgreSQL)
 - **[runbooks/scheduler-troubleshooting.md](runbooks/scheduler-troubleshooting.md)** - Scheduler failures, overlap locks, empty feed protection
 - **[runbooks/queue-troubleshooting.md](runbooks/queue-troubleshooting.md)** - Queue backlog and failed job recovery

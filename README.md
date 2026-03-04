@@ -22,7 +22,7 @@ GTA Alerts is built as a data aggregator and API using Laravel, with a high-perf
 
 - **Backend:** PHP 8.2+, Laravel 12, Inertia.js, Laravel Fortify (Authentication).
 - **Frontend:** React 19, TypeScript, Vite, Tailwind CSS 4.0, Radix UI.
-- **Database:** SQLite (local/dev), MySQL (production).
+- **Database:** SQLite (tests/dev fallback), MySQL (local/dev), PostgreSQL (production).
 - **Automation:** Playwright (for complex web scraping).
 - **Testing:** Pest PHP.
 
@@ -150,11 +150,20 @@ Forge deployment runbook:
 The project uses Pest PHP for feature and unit testing.
 
 ```bash
-# Run all tests
+# Run all tests (SQLite — default)
 composer run test
 
-# Run tests with coverage (Sail)
-php artisan sail --args=pest --args=--coverage
+# Run tests against MySQL
+./vendor/bin/sail artisan test -c phpunit.mysql.xml
+
+# Run tests against PostgreSQL
+./vendor/bin/sail artisan test -c phpunit.pgsql.xml
+```
+
+The `phpunit.pgsql.xml` config targets the `pgsql-testing` service defined in `compose.yaml`. Start it with:
+
+```bash
+./vendor/bin/sail up -d pgsql-testing
 ```
 
 Manual test scripts under `tests/manual` are destructive and only run

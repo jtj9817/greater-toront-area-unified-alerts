@@ -70,6 +70,23 @@ test('transit alert select provider uses non-sqlite expressions when driver is n
     expect($sql)->toContain("JSON_OBJECT('route_type'");
 });
 
+test('transit alert select provider uses pgsql-safe expressions when driver is pgsql', function () {
+    DB::partialMock()
+        ->shouldReceive('getDriverName')
+        ->andReturn('pgsql');
+
+    $sql = (new TransitAlertSelectProvider)->select(new UnifiedAlertsCriteria)->toSql();
+
+    expect($sql)->toContain("('transit:' || CAST(external_id AS text))");
+    expect($sql)->toContain('CAST(external_id AS text) as external_id');
+    expect($sql)->toContain('coalesce(CASE WHEN route IS NOT NULL THEN');
+    expect($sql)->toContain('CAST(NULL AS double precision) as lat');
+    expect($sql)->toContain('CAST(NULL AS double precision) as lng');
+    expect($sql)->toContain('json_build_object(');
+    expect($sql)->toContain('::jsonb');
+    expect($sql)->not->toContain('JSON_OBJECT(');
+});
+
 test('transit alert select provider pushes down status and since filters', function () {
     CarbonImmutable::setTestNow(CarbonImmutable::parse('2026-02-02 12:00:00'));
 
@@ -136,6 +153,32 @@ test('transit alert select provider mysql query path includes fulltext and like 
     expect($sql)->toContain('LOWER(stop_end) LIKE ?');
     expect($query->getBindings())->toBe([
         'Finch',
+        '%finch%',
+        '%finch%',
+        '%finch%',
+        '%finch%',
+        '%finch%',
+    ]);
+});
+
+test('transit alert select provider pgsql query path includes fulltext and ilike fallback', function () {
+    DB::partialMock()
+        ->shouldReceive('getDriverName')
+        ->andReturn('pgsql');
+
+    $query = (new TransitAlertSelectProvider)->select(new UnifiedAlertsCriteria(query: 'Finch'));
+    $sql = $query->toSql();
+
+    expect($sql)->toContain("to_tsvector('simple', coalesce(title, '') || ' ' || coalesce(description, '') || ' ' || coalesce(stop_start, '') || ' ' || coalesce(stop_end, '') || ' ' || coalesce(route, '') || ' ' || coalesce(route_type, '')) @@ plainto_tsquery('simple', ?)");
+    expect($sql)->toContain("coalesce(title, '') ILIKE ?");
+    expect($sql)->toContain("coalesce(description, '') ILIKE ?");
+    expect($sql)->toContain("coalesce(stop_start, '') ILIKE ?");
+    expect($sql)->toContain("coalesce(stop_end, '') ILIKE ?");
+    expect($sql)->toContain("coalesce(route, '') ILIKE ?");
+    expect($sql)->toContain("coalesce(route_type, '') ILIKE ?");
+    expect($query->getBindings())->toBe([
+        'Finch',
+        '%finch%',
         '%finch%',
         '%finch%',
         '%finch%',

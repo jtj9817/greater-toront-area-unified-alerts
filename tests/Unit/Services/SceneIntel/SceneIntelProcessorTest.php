@@ -44,14 +44,14 @@ test('it generates alarm and resource updates from an incident snapshot diff', f
 
     expect($updates[1]->update_type)->toBe(IncidentUpdateType::RESOURCE_STATUS);
     expect($updates[1]->content)->toBe('Unit R200 dispatched');
-    expect($updates[1]->metadata)->toBe([
+    expect($updates[1]->metadata)->toEqualCanonicalizing([
         'unit_code' => 'R200',
         'status' => 'dispatched',
     ]);
 
     expect($updates[2]->update_type)->toBe(IncidentUpdateType::RESOURCE_STATUS);
     expect($updates[2]->content)->toBe('Unit R300 cleared');
-    expect($updates[2]->metadata)->toBe([
+    expect($updates[2]->metadata)->toEqualCanonicalizing([
         'unit_code' => 'R300',
         'status' => 'cleared',
     ]);
