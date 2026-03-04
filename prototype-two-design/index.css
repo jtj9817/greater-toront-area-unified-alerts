@@ -1,0 +1,64 @@
+@import url('https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --color-primary: #FF7F00;
+  --color-brand-dark: #1A1A1A;
+  --color-warning: #FFFF00;
+  --color-hazard: #FF7F00;
+  --color-critical: #CC0000;
+  --color-background-dark: #1A1A1A;
+  --color-panel-light: #FFFFFF;
+
+  --font-display: "Public Sans", sans-serif;
+  --font-sans: "Public Sans", sans-serif;
+}
+
+@layer utilities {
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 10px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: #1A1A1A;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: #FF7F00;
+  }
+  .brutalist-border {
+    border: 3px solid #000000;
+  }
+  .panel-shadow {
+    box-shadow: 8px 8px 0px #000000;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}
+
+body {
+  font-family: "Public Sans", sans-serif;
+  background-color: #1A1A1A;
+  color: #FFFFFF;
+}
+
+tr.active-row {
+  background-color: #FFFFFF;
+  color: #000000;
+}
+.incident-table th {
+  @apply px-4 py-3 text-left text-[10px] font-black uppercase tracking-widest border-b-2 border-white bg-black text-white;
+}
+.incident-table td {
+  @apply px-4 py-4 text-sm font-bold border-b border-white/10;
+}
+.expandable-row {
+  @apply transition-colors cursor-pointer;
+}
+.expandable-row:hover {
+  @apply bg-white text-black;
+}
