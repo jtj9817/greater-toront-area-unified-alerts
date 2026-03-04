@@ -287,6 +287,32 @@ Actual command names in current codebase:
 - `db:export-sql`
 - `db:import-sql`
 
+## Verification Log Addendum (Local, 2026-03-03)
+
+Additional pre-switch checks were executed before local PostgreSQL cutover:
+
+### Executed Successfully (Assistant)
+
+- `pnpm run build` completed successfully.
+- `/bin/bash -lc "./vendor/bin/sail composer test"` completed successfully
+  (597 passed, 7 skipped).
+
+### Executed with Failures / Blockers (Assistant)
+
+- `pnpm run quality:check` failed during `eslint` with:
+  `TypeError: Cannot set properties of undefined (setting 'defaultMeta')`.
+- `/bin/bash -lc "./vendor/bin/sail artisan db:export-sql ..."` failed with:
+  `Docker is not running.` after the initial test run.
+- `php artisan db:export-sql --output=... --compress` failed outside Sail because
+  local MySQL hostname `mysql` is not resolvable in non-container context.
+
+### Pre-Switch Infrastructure Prep Completed
+
+- `compose.yaml` now includes a first-class `pgsql` service for local dev
+  runtime and a persistent `sail-pgsql` volume.
+- `laravel.test` now depends on `pgsql` (alongside existing services), so
+  switching `.env` to PostgreSQL will be supported once Docker is available.
+
 ## Acceptance Criteria
 
 - [ ] All 7 phases complete with no failed go/no-go gate.
