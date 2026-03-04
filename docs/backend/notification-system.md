@@ -47,6 +47,24 @@ The delivery pipeline uses a three-stage fan-out to scale across large user base
 
 This prevents a single large listener from blocking the queue and bounds per-job user counts.
 
+### Fan-Out Frequency — Expected Behavior
+
+Multiple `FanOutAlertNotificationsJob` runs in a single scheduler cycle are **expected and normal**. The scheduler fires several feed-fetch jobs concurrently (fire/transit/GO every 5 minutes, police every 10 minutes). Each job emits one `AlertCreated` event per new or re-activated alert, which produces one fan-out job. N new alerts in a cycle → N fan-out job dispatches.
+
+This is not a bug or duplicate-listener issue. `php artisan event:list` will confirm there is exactly one listener registered for `AlertCreated`.
+
+### Fan-Out Idempotency (Dedupe)
+
+`FanOutAlertNotificationsJob` enforces a dedupe contract at the fan-out boundary to prevent duplicate end-user notifications when the same alert state is seen multiple times:
+
+- **State fingerprint:** `md5("{severity}:{summary}")` — changes only when the alert materially escalates or its description updates.
+- **Dedupe key:** `fanout_dedupe:{source}:{alertId}:{stateFingerprint}` — unique per alert identity and state.
+- **Mechanism:** `Cache::add()` (atomic) stores the key with a 10-minute TTL (aligned to the slowest feed cadence — police). Concurrent workers cannot both claim the same key.
+- **Effect:** A second fan-out for the same alert state within the TTL window is suppressed and logged at `DEBUG` level with `'FanOutAlertNotificationsJob: suppressed duplicate fan-out for same alert state'`.
+- **State transitions:** When severity or summary changes (e.g., a fire escalates from `major` to `critical`), the fingerprint differs, and the new fan-out proceeds normally.
+
+Downstream, `DeliverAlertNotificationJob` provides a second layer of idempotency via `firstOrCreate` on `(user_id, alert_id, delivery_method)` and an optimistic `sent → processing` state claim, so late-arriving duplicate delivery jobs are also safe.
+
 ## Database Schema
 
 ### `notification_preferences`

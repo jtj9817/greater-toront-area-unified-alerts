@@ -1,7 +1,7 @@
 ---
 ticket_id: FEED-014
 title: "[Reliability] Stabilize Queue Worker Exit 137 and Refactor Alert Notification Fan-Out Idempotency"
-status: Open
+status: Done
 priority: Critical
 assignee: Unassigned
 created_at: 2026-03-03
