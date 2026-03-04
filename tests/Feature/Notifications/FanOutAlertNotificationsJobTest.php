@@ -49,6 +49,65 @@ test('fan-out job splits high-volume recipients into chunk jobs', function () {
     expect($chunkJobs->sum(fn (DispatchAlertNotificationChunkJob $chunk): int => count($chunk->userIds)))->toBe(520);
 });
 
+test('fan-out job suppresses a second run for the same alert state within the dedupe window', function () {
+    NotificationPreference::factory()->create([
+        'alert_type' => 'emergency',
+        'severity_threshold' => 'minor',
+        'subscriptions' => [],
+        'push_enabled' => true,
+    ]);
+
+    Queue::fake();
+
+    $payload = (new NotificationAlert(
+        alertId: 'police:dedupe-001',
+        source: 'police',
+        severity: 'major',
+        summary: 'Active police response',
+        occurredAt: CarbonImmutable::parse('2026-02-13T10:00:00Z'),
+    ))->toPayload();
+
+    // First fan-out: should process and enqueue a chunk job
+    (new FanOutAlertNotificationsJob(payload: $payload))->handle(app(NotificationMatcher::class));
+
+    expect(Queue::pushed(DispatchAlertNotificationChunkJob::class))->toHaveCount(1);
+
+    // Second fan-out with identical payload within dedupe window: suppressed
+    (new FanOutAlertNotificationsJob(payload: $payload))->handle(app(NotificationMatcher::class));
+
+    expect(Queue::pushed(DispatchAlertNotificationChunkJob::class))->toHaveCount(1);
+});
+
+test('fan-out job re-fans-out when alert state fingerprint changes', function () {
+    NotificationPreference::factory()->create([
+        'alert_type' => 'emergency',
+        'severity_threshold' => 'minor',
+        'subscriptions' => [],
+        'push_enabled' => true,
+    ]);
+
+    Queue::fake();
+
+    $basePayload = (new NotificationAlert(
+        alertId: 'police:escalate-001',
+        source: 'police',
+        severity: 'major',
+        summary: 'Active police response',
+        occurredAt: CarbonImmutable::parse('2026-02-13T10:00:00Z'),
+    ))->toPayload();
+
+    // First fan-out at severity=major
+    (new FanOutAlertNotificationsJob(payload: $basePayload))->handle(app(NotificationMatcher::class));
+
+    expect(Queue::pushed(DispatchAlertNotificationChunkJob::class))->toHaveCount(1);
+
+    // Same alert id but severity escalated to critical — different state fingerprint, NOT suppressed
+    $escalatedPayload = array_replace($basePayload, ['severity' => 'critical']);
+    (new FanOutAlertNotificationsJob(payload: $escalatedPayload))->handle(app(NotificationMatcher::class));
+
+    expect(Queue::pushed(DispatchAlertNotificationChunkJob::class))->toHaveCount(2);
+});
+
 test('chunk job queues one delivery job per unique valid user id', function () {
     Queue::fake();
 

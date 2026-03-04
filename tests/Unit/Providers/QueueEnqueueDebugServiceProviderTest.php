@@ -40,6 +40,8 @@ test('queue enqueue debug provider uses default matchers when env matcher is emp
         \App\Jobs\FetchTransitAlertsJob::class,
         \App\Jobs\FetchGoTransitAlertsJob::class,
         \App\Jobs\GenerateDailyDigestJob::class,
+        \App\Jobs\FanOutAlertNotificationsJob::class,
+        \App\Jobs\DispatchAlertNotificationChunkJob::class,
     ]);
 });
 
