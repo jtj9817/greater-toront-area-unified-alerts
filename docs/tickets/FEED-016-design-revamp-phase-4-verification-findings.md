@@ -51,6 +51,12 @@ Phase 4 Playwright verification against `http://localhost:8080/` surfaced multip
 - `pnpm run quality:check` fails at `vitest run` under `CI=true` due Laravel Vite env guard requiring `LARAVEL_BYPASS_ENV_CHECK=1`.
 - Backend gate command `./vendor/bin/sail artisan test` did not run because Docker was not running in the verification environment.
 
+### 5) Visual parity and content width are still not aligned
+
+- Frontend color aesthetics in runtime still do not match the expected revamp visual treatment.
+- The element with class `relative flex-1 overflow-y-auto p-4 md:p-6 opacity-100 transition-opacity duration-200` is not expanding to the full available width of its parent layout.
+- Expected behavior: this content region should span full parent width (with responsive padding only), without additional width constraint artifacts.
+
 ## Reproduction Notes
 
 - Verified using Playwright MCP on `http://localhost:8080/`.
@@ -59,12 +65,14 @@ Phase 4 Playwright verification against `http://localhost:8080/` surfaced multip
 
 ## Acceptance Criteria
 
-- [x] Runtime UI at `http://localhost:8080/` matches Phase 3 contract (`Feed/Table` labels, expandable table summary behavior, details pathway contract).
+- [ ] Runtime UI at `http://localhost:8080/` matches Phase 3 contract and visual design parity (labels/interaction plus approved color aesthetics).
 - [x] Mobile drawer defaults to closed and reliably toggles open/closed.
 - [x] CSP/font strategy supports required typography/icon assets (or design/spec updated to match local-only assets).
 - [ ] `pnpm run quality:check` is CI-safe and passes in the expected Phase 4 environment.
 - [x] Backend verification gate is runnable in documented local setup (`sail`/Docker available) with pass/fail evidence recorded.
+- [ ] Main content container (`relative flex-1 overflow-y-auto p-4 md:p-6 opacity-100 transition-opacity duration-200`) expands to full parent width.
 
 ## Notes
 
 - This ticket records findings only; no debugging/fixes were performed in this phase execution.
+- Updated to reflect latest UI review: frontend aesthetics and full-width content layout still require fixes.
