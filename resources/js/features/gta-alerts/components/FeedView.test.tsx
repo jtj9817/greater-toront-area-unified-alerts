@@ -126,9 +126,13 @@ describe('FeedView', () => {
             />,
         );
 
-        expect(screen.getByText('All')).toBeInTheDocument();
-        expect(screen.getByText('Active')).toBeInTheDocument();
-        expect(screen.getByText('Cleared')).toBeInTheDocument();
+        expect(screen.getByText('All', { selector: 'a' })).toBeInTheDocument();
+        expect(
+            screen.getByText('Active', { selector: 'a' }),
+        ).toBeInTheDocument();
+        expect(
+            screen.getByText('Cleared', { selector: 'a' }),
+        ).toBeInTheDocument();
     });
 
     it('renders source category filters', () => {
@@ -233,7 +237,7 @@ describe('FeedView', () => {
         expect(screen.queryByText('Reset')).not.toBeInTheDocument();
     });
 
-    it('renders view mode toggle (Cards/Table)', () => {
+    it('renders view mode toggle (Feed/Table)', () => {
         render(
             <FeedView
                 searchQuery=""
@@ -245,7 +249,7 @@ describe('FeedView', () => {
             />,
         );
 
-        expect(screen.getByText('Cards')).toBeInTheDocument();
+        expect(screen.getByText('Feed')).toBeInTheDocument();
         expect(screen.getByText('Table')).toBeInTheDocument();
     });
 
@@ -263,8 +267,8 @@ describe('FeedView', () => {
 
         const callsBeforeToggle = inertiaRouterMocks.get.mock.calls.length;
 
-        fireEvent.click(screen.getByRole('button', { name: /Table/ }));
-        fireEvent.click(screen.getByRole('button', { name: /Cards/ }));
+        fireEvent.click(screen.getByRole('button', { name: 'Table view' }));
+        fireEvent.click(screen.getByRole('button', { name: 'Feed view' }));
 
         expect(inertiaRouterMocks.get).toHaveBeenCalledTimes(callsBeforeToggle);
     });

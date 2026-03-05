@@ -32,7 +32,7 @@ describe('AlertCard', () => {
         expect(screen.getByText('STRUCTURE FIRE')).toBeInTheDocument();
         expect(screen.getByText(/Main St/)).toBeInTheDocument();
         expect(screen.getByText(/Just now|ago/)).toBeInTheDocument();
-        expect(screen.getByText(/Event #E1/)).toBeInTheDocument();
+        expect(screen.getAllByText(/Event #E1/).length).toBeGreaterThan(0);
     });
 
     it('calls onViewDetails when clicked', () => {
