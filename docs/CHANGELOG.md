@@ -2,6 +2,18 @@
 
 All notable documentation-relevant changes are tracked here.
 
+## [March 5, 2026] - FEED-019 Dev Queue Worker Supervision
+
+### Added
+
+- Added `scripts/dev-queue-worker.sh` to supervise the bounded development queue worker and restart clean `queue:work` exits automatically.
+- Added `App\Providers\QueueExecutionDebugServiceProvider` and `storage/logs/queue_execution.log` for local queue execution visibility on scheduled ingestion jobs.
+
+### Changed
+
+- Updated `composer dev` and `composer dev:ssr` to use the dev queue-worker wrapper instead of running a one-shot bounded worker directly.
+- Updated the queue troubleshooting runbook and root README to reflect the supervised dev worker lifecycle and the new execution log channel.
+
 ## [March 5, 2026] - FEED-018 Design Revamp Review Closure
 
 ### Added

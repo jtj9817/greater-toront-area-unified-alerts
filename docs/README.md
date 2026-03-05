@@ -131,6 +131,8 @@ Active work items and feature proposals:
 - **[tickets/FEED-004-sort-direction-toggle.md](tickets/FEED-004-sort-direction-toggle.md)** - Sort direction toggle in the feed (depends on FEED-001)
 - **[tickets/FEED-014-queue-worker-137-and-notification-fanout-idempotency.md](tickets/FEED-014-queue-worker-137-and-notification-fanout-idempotency.md)** - Stabilize queue worker exit 137 and harden notification fan-out idempotency (critical)
 - **[tickets/FEED-015-footer-weather-stats-hardcoded-placeholder.md](tickets/FEED-015-footer-weather-stats-hardcoded-placeholder.md)** - Replace hardcoded footer weather placeholder with real data source or remove weather panel (design revamp tech debt)
+- **[tickets/FEED-019-queue-worker-max-jobs-backlog.md](tickets/FEED-019-queue-worker-max-jobs-backlog.md)** - Keep the dev queue worker alive so scheduled fetch jobs do not accumulate indefinitely
+- **[tickets/FEED-020-dedupe-scheduled-fetch-jobs-before-enqueue.md](tickets/FEED-020-dedupe-scheduled-fetch-jobs-before-enqueue.md)** - Deduplicate scheduled fetch jobs before enqueue so full-snapshot backlog does not balloon
 - **[tickets/FEED-017-design-revamp-phase-4-quality-gate-failures.md](tickets/FEED-017-design-revamp-phase-4-quality-gate-failures.md)** - Resolve remaining design revamp quality-gate failures before track archival
 
 ## Historical Docs Notes

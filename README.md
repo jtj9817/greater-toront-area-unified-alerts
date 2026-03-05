@@ -82,6 +82,9 @@ php artisan migrate
 # Start the development environment
 ./vendor/bin/sail up -d
 
+# Run the full local stack (web, supervised queue worker, scheduler, logs, Vite)
+composer run dev
+
 # Run the frontend dev server
 ./vendor/bin/sail pnpm run dev
 

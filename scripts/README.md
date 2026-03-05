@@ -39,6 +39,9 @@ Automated commit auditing and analysis tools.
 
 ## Main Scripts
 
+### dev-queue-worker.sh
+Runs the development queue worker through Sail and restarts it after clean bounded exits such as `--max-jobs`, while still surfacing non-zero failures.
+
 ### phase-audit.sh
 The main audit script that generates and maintains PHASE_AUDIT.md
 

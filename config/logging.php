@@ -134,6 +134,13 @@ return [
             'replace_placeholders' => true,
         ],
 
+        'queue_execution' => [
+            'driver' => 'single',
+            'path' => storage_path('logs/queue_execution.log'),
+            'level' => env('LOG_LEVEL', 'debug'),
+            'replace_placeholders' => true,
+        ],
+
     ],
 
 ];

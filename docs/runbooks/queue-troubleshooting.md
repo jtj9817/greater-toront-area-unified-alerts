@@ -18,7 +18,13 @@ Exit code `137` is SIGKILL — typically the host or container OOM killer termin
 
 **Mitigation (dev):**
 
-The dev script (`composer dev`) now uses `queue:work` with bounded recycling flags instead of `queue:listen`:
+The dev script (`composer dev`) now runs a small restart wrapper:
+
+```
+./scripts/dev-queue-worker.sh
+```
+
+That wrapper launches the bounded worker inside Sail:
 
 ```
 ./vendor/bin/sail artisan queue:work --tries=3 --max-jobs=1000 --sleep=3
@@ -27,7 +33,8 @@ The dev script (`composer dev`) now uses `queue:work` with bounded recycling fla
 - `--max-jobs=1000`: worker exits cleanly after 1000 jobs, preventing unbounded memory growth.
 - `--sleep=3`: poll interval when the queue is empty.
 - `--tries=3`: retry limit per job.
-- The process supervisor (Sail / Docker) restarts the worker automatically on clean exit.
+- `scripts/dev-queue-worker.sh` immediately restarts clean `queue:work` exits, so the worker does not disappear mid-session.
+- Non-zero exits still fail fast so real worker crashes remain visible.
 
 **Mitigation (production / Forge):**
 
@@ -39,7 +46,7 @@ php artisan queue:work --sleep=1 --tries=3 --timeout=90 --max-time=3600
 
 **Dev orchestration:**
 
-`composer dev` uses `concurrently --kill-others-on-fail` (not `--kill-others`), so a queue worker crash does **not** tear down the web server, Vite, or the scheduler. Each process is an independent failure domain during development. If you need strict fail-fast behaviour (e.g., to catch worker crashes immediately), run:
+`composer dev` uses `concurrently --kill-others-on-fail` (not `--kill-others`). Clean queue-worker recycling no longer tears down the stack because the wrapper restarts it in place. A non-zero worker exit still tears down the rest of the dev session, which is desirable for surfacing actual crashes. If you need strict fail-fast behaviour for every queue stop, including clean bounded exits, run:
 
 ```
 npx concurrently --kill-others ...
@@ -67,6 +74,12 @@ Each scheduler cycle can enqueue several feed-fetch jobs (fire/transit/GO every 
 - `failed_jobs` fills with `FanOutAlertNotificationsJob` entries — the dedupe cache may be unavailable.
 
 Dedupe suppression is logged at `DEBUG` level. Set `LOG_LEVEL=debug` or watch the `queue_enqueues` log channel (requires `QUEUE_DEBUG_ENQUEUES=true`) to observe fan-out and chunk job dispatch rates per cycle.
+
+For scheduled ingestion visibility, local development also logs actual fetch-job execution to `storage/logs/queue_execution.log`. This makes it easier to distinguish:
+
+- scheduler dispatch / enqueue activity
+- actual queue worker execution
+- queue-job failures
 
 ## Inspect the Queue
 
