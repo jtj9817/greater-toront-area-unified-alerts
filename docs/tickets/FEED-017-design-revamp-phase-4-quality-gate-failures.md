@@ -5,10 +5,12 @@ status: Open
 priority: High
 assignee: Unassigned
 created_at: 2026-03-05
+updated_at: 2026-03-05
 tags: [frontend, qa, quality-gates, design-revamp]
 related_files:
   - conductor/tracks/design_revamp_20260303/plan.md
   - tests/e2e/design-revamp-phase-4.spec.ts
+  - docs/runbooks/design-revamp-phase-4-verification.md
 artifacts:
   - artifacts/playwright/design-revamp-phase4-20260305-gates-detailed.log
   - artifacts/playwright/design-revamp-phase4-20260305-quality-check.log
@@ -20,36 +22,38 @@ artifacts:
 
 ## Summary
 
-Phase 4 Playwright verification rerun on `http://localhost:8080/` passed core UI interaction checks, but quality gates remain blocked by formatting drift and an unavailable Docker runtime for the Sail backend gate.
+Phase 4 browser interaction checks are stable, and backend Sail regression tests are now passing in the current local environment. Remaining blockers are frontend format/type gates that prevent Phase 4 and track archival signoff.
 
-## Findings
+## Latest Verification Snapshot (2026-03-05)
 
-### 1) `pnpm run quality:check` fails at formatting gate
+### Passing gates
 
-- Command: `pnpm run quality:check`
-- Failure point: `pnpm run format:check`
-- Result: Prettier reports style drift in 22 files under `resources/` and exits non-zero.
-- Evidence: `artifacts/playwright/design-revamp-phase4-20260305-quality-check.log`
+- `pnpm run lint:check` -> PASS
+- `pnpm run test` -> PASS
+- `./vendor/bin/sail artisan test` -> PASS
 
-### 2) Backend regression gate could not execute in Sail runtime
+### Failing gates
 
-- Command: `./vendor/bin/sail artisan test`
-- Result: command exits immediately with `Docker is not running.`
-- Impact: Phase 4 backend regression confidence is incomplete in the documented Sail path.
-- Evidence: `artifacts/playwright/design-revamp-phase4-20260305-sail-artisan-test.log`
+1) `pnpm run format:check` fails
+- Result: Prettier reports style drift in 22 files under `resources/`.
+- Impact: `pnpm run quality:check` fails immediately at the first step.
 
-## Verification Notes
+2) `pnpm run types` fails
+- Result: `TS2307` in `resources/js/pages/settings/password.tsx`.
+- Error: Cannot find module `@/actions/App/Http/Controllers/Settings/PasswordController` or corresponding type declarations.
+- Impact: Type gate remains red even if formatting is fixed.
 
-- Frontend gates executed individually:
-  - `pnpm run lint:check` ✅
-  - `pnpm run types` ✅
-  - `pnpm run test` ✅
-- Core Playwright UI contract checks passed (desktop/mobile shell, client-side Feed/Table toggle, table expand/collapse contract, details CTA path, cleared-card muted treatment).
-- Detailed evidence: `artifacts/playwright/design-revamp-phase4-20260305-gates-detailed.log` and screenshot set `artifacts/playwright/design-revamp-phase4-20260305-*.png`.
+3) `pnpm run quality:check` fails
+- Result: aggregate quality script exits non-zero because `format:check` fails.
+
+## Scope Clarification
+
+- Previous note about Sail backend gate being blocked by Docker is no longer current for this environment.
+- This ticket is now narrowly scoped to frontend quality gate remediation (format + types) and rerun confirmation.
 
 ## Acceptance Criteria
 
 - [ ] `pnpm run format:check` passes with no formatting drift.
+- [ ] `pnpm run types` passes with no unresolved module errors.
 - [ ] `pnpm run quality:check` completes successfully end-to-end.
-- [ ] `./vendor/bin/sail artisan test` executes in a running Docker/Sail environment with pass/fail evidence recorded.
-
+- [ ] Phase 4 plan item can be marked fully complete with updated evidence references.
