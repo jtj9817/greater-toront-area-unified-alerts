@@ -63,7 +63,7 @@
     - [ ] Sub-task: Run `pnpm run format:check`, `pnpm run lint:check`, `pnpm run types`, and `pnpm run test` (or `pnpm run quality:check`).
     - [ ] Sub-task: Run backend suite when shared assets/layout integration might affect server-rendered behavior: `./vendor/bin/sail artisan test`.
     - [ ] Sub-task: If any gate fails, document failure mode, fix, and rerun evidence in the phase verification log.
-- [ ] Task: Conductor - User Manual Verification 'Phase 4: Testing & Verification' (Protocol in workflow.md; include Playwright MCP/Playwright execution details and artifact references)
+- [ ] Task: Conductor - User Manual Verification 'Phase 4: Testing & Verification' (Protocol in workflow.md; include Playwright MCP/Playwright execution details and artifact references; attempted 2026-03-05 via Playwright MCP with artifacts in `artifacts/playwright/`; findings tracked in `docs/tickets/FEED-016-design-revamp-phase-4-verification-findings.md`)
 
 ## Phase 5: Final Comprehensive Documentation & Track Closeout
 - [ ] Task: Update Track Artifacts (Plan/Spec/Audit) With Final Implementation State

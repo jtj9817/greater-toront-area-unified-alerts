@@ -1,0 +1,39 @@
+
+> @ quality:check /mnt/0B8533211952FCF2/greater-toronto-area-alerts
+> npm run format:check && npm run lint:check && npm run types && npm run test
+
+
+> format:check
+> prettier --check resources/
+
+Checking formatting...
+All matched files use Prettier code style!
+
+> lint:check
+> eslint . --config eslint.config.js --no-config-lookup --max-warnings 0
+
+
+> types
+> tsc --noEmit
+
+
+> test
+> vitest run
+
+
+⎯⎯⎯⎯⎯⎯⎯ Startup Error ⎯⎯⎯⎯⎯⎯⎯⎯
+Error: You should not run the Vite HMR server in CI environments. You should build your assets for production instead. To disable this ENV check you may set LARAVEL_BYPASS_ENV_CHECK=1
+    at ensureCommandShouldRunInEnvironment (file:///mnt/0B8533211952FCF2/greater-toronto-area-alerts/node_modules/.pnpm/laravel-vite-plugin@2.1.0_vite@7.3.1_@types+node@22.19.13_jiti@2.6.1_lightningcss@1.31.1_/node_modules/laravel-vite-plugin/dist/index.js:177:11)
+    at BasicMinimalPluginContext.config (file:///mnt/0B8533211952FCF2/greater-toronto-area-alerts/node_modules/.pnpm/laravel-vite-plugin@2.1.0_vite@7.3.1_@types+node@22.19.13_jiti@2.6.1_lightningcss@1.31.1_/node_modules/laravel-vite-plugin/dist/index.js:43:7)
+    at runConfigHook (file:///mnt/0B8533211952FCF2/greater-toronto-area-alerts/node_modules/.pnpm/vite@7.3.1_@types+node@22.19.13_jiti@2.6.1_lightningcss@1.31.1/node_modules/vite/dist/node/chunks/config.js:35936:42)
+    at async resolveConfig (file:///mnt/0B8533211952FCF2/greater-toronto-area-alerts/node_modules/.pnpm/vite@7.3.1_@types+node@22.19.13_jiti@2.6.1_lightningcss@1.31.1/node_modules/vite/dist/node/chunks/config.js:35438:13)
+    at async _createServer (file:///mnt/0B8533211952FCF2/greater-toronto-area-alerts/node_modules/.pnpm/vite@7.3.1_@types+node@22.19.13_jiti@2.6.1_lightningcss@1.31.1/node_modules/vite/dist/node/chunks/config.js:25362:67)
+    at async createViteServer (file:///mnt/0B8533211952FCF2/greater-toronto-area-alerts/node_modules/.pnpm/vitest@4.0.18_@types+node@22.19.13_jiti@2.6.1_jsdom@27.4.0_lightningcss@1.31.1/node_modules/vitest/dist/chunks/cli-api.B7PN_QUv.js:9870:17)
+    at async createVitest (file:///mnt/0B8533211952FCF2/greater-toronto-area-alerts/node_modules/.pnpm/vitest@4.0.18_@types+node@22.19.13_jiti@2.6.1_jsdom@27.4.0_lightningcss@1.31.1/node_modules/vitest/dist/chunks/cli-api.B7PN_QUv.js:13186:17)
+    at async prepareVitest (file:///mnt/0B8533211952FCF2/greater-toronto-area-alerts/node_modules/.pnpm/vitest@4.0.18_@types+node@22.19.13_jiti@2.6.1_jsdom@27.4.0_lightningcss@1.31.1/node_modules/vitest/dist/chunks/cli-api.B7PN_QUv.js:13548:14)
+    at async startVitest (file:///mnt/0B8533211952FCF2/greater-toronto-area-alerts/node_modules/.pnpm/vitest@4.0.18_@types+node@22.19.13_jiti@2.6.1_jsdom@27.4.0_lightningcss@1.31.1/node_modules/vitest/dist/chunks/cli-api.B7PN_QUv.js:13494:14)
+    at async start (file:///mnt/0B8533211952FCF2/greater-toronto-area-alerts/node_modules/.pnpm/vitest@4.0.18_@types+node@22.19.13_jiti@2.6.1_jsdom@27.4.0_lightningcss@1.31.1/node_modules/vitest/dist/chunks/cac.DVeoLl0M.js:1360:15)
+
+
+
+ ELIFECYCLE  Command failed with exit code 1.
