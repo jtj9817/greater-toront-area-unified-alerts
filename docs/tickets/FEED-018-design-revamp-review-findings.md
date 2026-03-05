@@ -31,6 +31,15 @@ The track changes successfully implement the prototype design and tests are pass
 + Run pnpm exec prettier --write resources/
 ```
 
+#### [Medium] Incomplete Manual Verification Tasks
+- **File**: `conductor/tracks/design_revamp_20260303/plan.md`
+- **Context**: Several phases have unchecked manual verification tasks which are required before the track can be considered fully verified and completed. Specifically, Phase 2, Phase 4, and Phase 5 verification tasks are pending.
+- **Suggestion**:
+Execute and document the missing manual verification tasks according to `conductor/workflow.md`, then check them off in `plan.md`:
+- `[ ] Task: Conductor - User Manual Verification 'Phase 2: Global Layout Implementation'`
+- `[ ] Task: Conductor - User Manual Verification 'Phase 4: Testing & Verification'`
+- `[ ] Task: Conductor - User Manual Verification 'Phase 5: Final Comprehensive Documentation & Track Closeout'`
+
 #### [Low] React `act(...)` Warnings in Test Suite
 - **File**: `resources/js/features/gta-alerts/components/AlertDetailsView.test.tsx` & `App.test.tsx`
 - **Context**: The test output logs multiple warnings: "An update to SceneIntelTimeline inside a test was not wrapped in act(...)".
