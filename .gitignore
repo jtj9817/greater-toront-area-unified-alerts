@@ -39,3 +39,10 @@ pest_suite_results.log
 
 # Phase commit audit artifacts (e.g. 20260224_sql_export_pipeline_20260224.md)
 /[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]_*_*.md
+
+# Playwright MCP image artifacts
+/artifacts/playwright/*.png
+/artifacts/playwright/*.jpg
+/artifacts/playwright/*.jpeg
+/artifacts/playwright/*.webp
+/artifacts/playwright/*.log
