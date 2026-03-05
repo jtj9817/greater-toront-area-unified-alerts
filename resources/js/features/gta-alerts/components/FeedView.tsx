@@ -134,9 +134,9 @@ export const FeedView: React.FC<FeedViewProps> = ({
     return (
         <div className="flex h-full flex-col">
             {/* Sticky Header: Filters */}
-            <div className="sticky top-0 z-30 border-b border-white/5 bg-background-dark/95 shadow-lg backdrop-blur-md">
+            <div className="sticky top-0 z-30 border-b border-[#333333] bg-black">
                 {/* Row 0: Status */}
-                <div className="border-b border-white/5 bg-surface-dark/20 px-4 py-2 md:px-6">
+                <div className="border-b border-[#333333] bg-[#1a1a1a] px-4 py-2 md:px-6">
                     <div className="flex items-center gap-2">
                         <span className="mr-1 text-[10px] font-bold tracking-widest text-text-secondary/70 uppercase">
                             Status
@@ -164,8 +164,8 @@ export const FeedView: React.FC<FeedViewProps> = ({
                                     disabled={isFilterLoading}
                                     className={`flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[11px] font-bold whitespace-nowrap transition-all ${
                                         status === opt.id
-                                            ? 'border-white/20 bg-white/10 text-white'
-                                            : 'border-white/10 bg-transparent text-text-secondary hover:border-white/20 hover:bg-white/5 hover:text-white'
+                                            ? 'border-black bg-primary text-black'
+                                            : 'border-[#333333] bg-black text-text-secondary hover:border-primary hover:bg-[#202020] hover:text-white'
                                     } ${isFilterLoading ? 'pointer-events-none opacity-50' : ''}`}
                                 >
                                     <Icon name={opt.icon} className="text-sm" />
@@ -173,14 +173,14 @@ export const FeedView: React.FC<FeedViewProps> = ({
                                 </Link>
                             ))}
                         </div>
-                        <span className="ml-auto rounded-full border border-white/5 bg-white/5 px-2.5 py-1 text-[10px] text-text-secondary">
+                        <span className="ml-auto rounded-full border border-[#333333] bg-black px-2.5 py-1 text-[10px] text-text-secondary">
                             {totalCount} loaded
                         </span>
                     </div>
                 </div>
 
                 {/* Row 1: Categories */}
-                <div className="border-b border-white/5 px-4 py-3 md:px-6">
+                <div className="border-b border-[#333333] bg-[#1a1a1a] px-4 py-3 md:px-6">
                     <div className="no-scrollbar mask-linear-fade flex w-full justify-start gap-2 overflow-x-auto pb-1">
                         {categories.map((cat) => {
                             const isSelected = activeCategory === cat.id;
@@ -212,8 +212,8 @@ export const FeedView: React.FC<FeedViewProps> = ({
                                     disabled={isFilterLoading}
                                     className={`flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-medium whitespace-nowrap transition-all md:px-4 md:py-2 ${
                                         isSelected
-                                            ? 'border-white/20 bg-white/10 text-white shadow-lg'
-                                            : 'border-white/5 bg-surface-dark text-text-secondary hover:border-white/20 hover:bg-white/5 hover:text-white'
+                                            ? 'border-black bg-primary text-black'
+                                            : 'border-[#333333] bg-black text-text-secondary hover:border-primary hover:bg-[#202020] hover:text-white'
                                     } ${isFilterLoading ? 'pointer-events-none opacity-50' : ''}`}
                                 >
                                     <Icon name={cat.icon} className="text-lg" />
@@ -226,7 +226,7 @@ export const FeedView: React.FC<FeedViewProps> = ({
 
                 {/* Loading Indicator Row */}
                 {isFilterLoading && (
-                    <div className="flex items-center gap-2 border-b border-white/5 bg-primary/10 px-4 py-1.5 md:px-6">
+                    <div className="flex items-center gap-2 border-b border-[#333333] bg-primary/15 px-4 py-1.5 md:px-6">
                         <span className="flex h-3 w-3 animate-pulse rounded-full bg-primary"></span>
                         <span className="text-[11px] font-medium text-primary">
                             Updating feed...
@@ -235,7 +235,7 @@ export const FeedView: React.FC<FeedViewProps> = ({
                 )}
 
                 {/* Row 2: Time Window + View Toggle */}
-                <div className="flex flex-wrap items-center gap-3 bg-surface-dark/30 px-4 py-2 md:px-6">
+                <div className="flex flex-wrap items-center gap-3 border-b border-[#333333] bg-[#1a1a1a] px-4 py-2 md:px-6">
                     <div className="flex items-center gap-3">
                         {/* Time Window Selector */}
                         <div className="group relative">
@@ -270,7 +270,7 @@ export const FeedView: React.FC<FeedViewProps> = ({
                                         },
                                     )
                                 }
-                                className="w-36 cursor-pointer appearance-none rounded-lg border border-white/10 bg-surface-dark py-1.5 pr-8 pl-8 text-xs text-white transition-colors outline-none hover:border-white/20 focus:border-primary focus:ring-1 focus:ring-primary disabled:cursor-not-allowed disabled:opacity-50"
+                                className="w-36 cursor-pointer appearance-none rounded-lg border border-[#333333] bg-black py-1.5 pr-8 pl-8 text-xs text-white transition-colors outline-none hover:border-primary focus:border-primary focus:ring-1 focus:ring-primary disabled:cursor-not-allowed disabled:opacity-50"
                             >
                                 {sinceOptions.map((opt) => (
                                     <option
@@ -293,7 +293,7 @@ export const FeedView: React.FC<FeedViewProps> = ({
                             <button
                                 onClick={handleReset}
                                 disabled={isFilterLoading}
-                                className="flex items-center gap-1 rounded px-2 py-1 text-xs font-medium text-coral transition-colors hover:bg-coral/10 hover:text-amber disabled:cursor-not-allowed disabled:opacity-50"
+                                className="flex items-center gap-1 rounded px-2 py-1 text-xs font-medium text-primary transition-colors hover:bg-primary hover:text-black disabled:cursor-not-allowed disabled:opacity-50"
                             >
                                 <Icon name="restart_alt" className="text-sm" />
                                 Reset
@@ -336,7 +336,7 @@ export const FeedView: React.FC<FeedViewProps> = ({
 
             {/* List Container */}
             <div
-                className={`relative flex-1 overflow-y-auto p-4 md:p-6 ${isFilterLoading ? 'opacity-50' : 'opacity-100'} transition-opacity duration-200`}
+                className={`relative w-full flex-1 overflow-y-auto p-4 md:p-6 ${isFilterLoading ? 'opacity-50' : 'opacity-100'} transition-opacity duration-200`}
             >
                 {/* Loading Overlay */}
                 {isFilterLoading && (
@@ -349,7 +349,7 @@ export const FeedView: React.FC<FeedViewProps> = ({
                         </div>
                     </div>
                 )}
-                <div className="mx-auto flex w-full max-w-5xl flex-col gap-4 md:gap-5">
+                <div className="flex w-full flex-col gap-4 md:gap-5">
                     {latestFeedUpdatedAt && (
                         <div className="mb-2 flex items-center justify-between px-1">
                             <div className="flex items-center gap-2 text-[10px] font-bold tracking-widest text-text-secondary uppercase">

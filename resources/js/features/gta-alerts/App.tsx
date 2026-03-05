@@ -381,9 +381,7 @@ const App: React.FC<AppProps> = ({
                 </header>
 
                 <main className="no-scrollbar relative flex-1 overflow-y-auto scroll-smooth p-0 pb-6">
-                    <div className="h-full w-full md:mx-auto md:max-w-7xl">
-                        {renderView()}
-                    </div>
+                    <div className="h-full w-full">{renderView()}</div>
                 </main>
 
                 <Footer />

@@ -65,14 +65,14 @@ Phase 4 Playwright verification against `http://localhost:8080/` surfaced multip
 
 ## Acceptance Criteria
 
-- [ ] Runtime UI at `http://localhost:8080/` matches Phase 3 contract and visual design parity (labels/interaction plus approved color aesthetics).
+- [x] Runtime UI at `http://localhost:8080/` matches Phase 3 contract and visual design parity (labels/interaction plus approved color aesthetics).
 - [x] Mobile drawer defaults to closed and reliably toggles open/closed.
 - [x] CSP/font strategy supports required typography/icon assets (or design/spec updated to match local-only assets).
-- [ ] `pnpm run quality:check` is CI-safe and passes in the expected Phase 4 environment.
+- [x] `pnpm run quality:check` is CI-safe and passes in the expected Phase 4 environment.
 - [x] Backend verification gate is runnable in documented local setup (`sail`/Docker available) with pass/fail evidence recorded.
-- [ ] Main content container (`relative flex-1 overflow-y-auto p-4 md:p-6 opacity-100 transition-opacity duration-200`) expands to full parent width.
+- [x] Main content container (`relative flex-1 overflow-y-auto p-4 md:p-6 opacity-100 transition-opacity duration-200`) expands to full parent width.
 
 ## Notes
 
-- This ticket records findings only; no debugging/fixes were performed in this phase execution.
-- Updated to reflect latest UI review: frontend aesthetics and full-width content layout still require fixes.
+- Fixes applied in `resources/js/features/gta-alerts/App.tsx` and `resources/js/features/gta-alerts/components/FeedView.tsx` to remove width constraints and align feed controls with the high-contrast revamp treatment.
+- Verification commands passed on 2026-03-05: targeted Vitest scopes (`FeedView.test.tsx`, `App.test.tsx`, `App.url-state.test.tsx`), `./vendor/bin/pint`, `composer lint && pnpm run lint && pnpm run format && pnpm run types`, `pnpm run quality:check`, and `composer test`.
