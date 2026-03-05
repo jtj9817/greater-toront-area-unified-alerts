@@ -27,18 +27,18 @@
 - [ ] Task: Conductor - User Manual Verification 'Phase 2: Global Layout Implementation' (Protocol in workflow.md)
 
 ## Phase 3: Alert Feed & Table Views
-- [ ] Task: Align View Toggle With Prototype (Feed/Table)
-    - [ ] Sub-task: Update `resources/js/features/gta-alerts/components/FeedView.tsx` view toggle to match prototype labeling/styling ("Feed" vs "Table") and keep it client-side.
-    - [ ] Sub-task: Update affected tests (`resources/js/features/gta-alerts/components/FeedView.test.tsx`) if UI labels change.
-- [ ] Task: Implement Prototype-Style Alert Table (Expandable Rows)
-    - [ ] Sub-task: Update `resources/js/features/gta-alerts/components/AlertTableView.tsx` to use the prototype table styling (`incident-table`) and implement expandable summary rows (state: expanded row id).
-    - [ ] Sub-task: Preserve a clear interaction contract:
-        - [ ] Clicking the expand affordance expands/collapses.
-        - [ ] Selecting an incident still routes to/opens `AlertDetailsView` (if retained) or is replaced by the in-table summary behavior.
-- [ ] Task: Implement Prototype-Style Feed Cards
-    - [ ] Sub-task: Update `resources/js/features/gta-alerts/components/AlertCard.tsx` (or introduce a new card component and swap usage in `FeedView.tsx`) to match prototype brutalist styling.
-    - [ ] Sub-task: Ensure visual distinction for different alert statuses (Active vs Cleared/Grayscale) without losing readability.
-- [ ] Task: Conductor - User Manual Verification 'Phase 3: Alert Feed & Table Views' (Protocol in workflow.md)
+- [x] Task: Align View Toggle With Prototype (Feed/Table) [7c578d7]
+    - [x] Sub-task: Update `resources/js/features/gta-alerts/components/FeedView.tsx` view toggle to match prototype labeling/styling ("Feed" vs "Table") and keep it client-side.
+    - [x] Sub-task: Update affected tests (`resources/js/features/gta-alerts/components/FeedView.test.tsx`) if UI labels change.
+- [x] Task: Implement Prototype-Style Alert Table (Expandable Rows) [7c578d7]
+    - [x] Sub-task: Update `resources/js/features/gta-alerts/components/AlertTableView.tsx` to use the prototype table styling (`incident-table`) and implement expandable summary rows (state: expanded row id).
+    - [x] Sub-task: Preserve a clear interaction contract:
+        - [x] Clicking the expand affordance expands/collapses.
+        - [x] Selecting an incident still routes to/opens `AlertDetailsView` (if retained) or is replaced by the in-table summary behavior.
+- [x] Task: Implement Prototype-Style Feed Cards [7c578d7]
+    - [x] Sub-task: Update `resources/js/features/gta-alerts/components/AlertCard.tsx` (or introduce a new card component and swap usage in `FeedView.tsx`) to match prototype brutalist styling.
+    - [x] Sub-task: Ensure visual distinction for different alert statuses (Active vs Cleared/Grayscale) without losing readability.
+- [x] Task: Conductor - User Manual Verification 'Phase 3: Alert Feed & Table Views' [a1c835a] (Protocol in workflow.md; verified 2026-03-05, script: `tests/manual/verify_design_revamp_phase_3_alert_feed_table_views.php`, log: `storage/logs/manual_tests/design_revamp_phase_3_alert_feed_table_views_2026_03_05_005030.log`)
 
 ## Phase 4: Testing & Verification (Playwright + Quality Gates)
 - [ ] Task: Prepare Local E2E Verification Environment (`http://localhost:8080/`)
