@@ -113,7 +113,13 @@
         },
         "jsx": "react-jsx"
     },
-    "include": ["resources/js/**/*.ts", "resources/js/**/*.d.ts", "resources/js/**/*.tsx"],
+    "include": [
+        "resources/js/**/*.ts",
+        "resources/js/**/*.d.ts",
+        "resources/js/**/*.tsx",
+        "tests/e2e/**/*.ts",
+        "tests/e2e/**/*.tsx"
+    ],
     "exclude": [
         "resources/js/actions/**",
         "resources/js/routes/**",
