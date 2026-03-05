@@ -59,11 +59,11 @@ Phase 4 Playwright verification against `http://localhost:8080/` surfaced multip
 
 ## Acceptance Criteria
 
-- [ ] Runtime UI at `http://localhost:8080/` matches Phase 3 contract (`Feed/Table` labels, expandable table summary behavior, details pathway contract).
-- [ ] Mobile drawer defaults to closed and reliably toggles open/closed.
-- [ ] CSP/font strategy supports required typography/icon assets (or design/spec updated to match local-only assets).
+- [x] Runtime UI at `http://localhost:8080/` matches Phase 3 contract (`Feed/Table` labels, expandable table summary behavior, details pathway contract).
+- [x] Mobile drawer defaults to closed and reliably toggles open/closed.
+- [x] CSP/font strategy supports required typography/icon assets (or design/spec updated to match local-only assets).
 - [ ] `pnpm run quality:check` is CI-safe and passes in the expected Phase 4 environment.
-- [ ] Backend verification gate is runnable in documented local setup (`sail`/Docker available) with pass/fail evidence recorded.
+- [x] Backend verification gate is runnable in documented local setup (`sail`/Docker available) with pass/fail evidence recorded.
 
 ## Notes
 
