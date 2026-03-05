@@ -72,6 +72,21 @@ Phase 4 Playwright verification against `http://localhost:8080/` surfaced multip
 - [x] Backend verification gate is runnable in documented local setup (`sail`/Docker available) with pass/fail evidence recorded.
 - [x] Main content container (`relative flex-1 overflow-y-auto p-4 md:p-6 opacity-100 transition-opacity duration-200`) expands to full parent width.
 
+## New Task
+
+- [ ] Shift the color palette to the following:
+  - Core Palette
+    - Primary / Hazard (`#FF7F00`): A vibrant safety orange used for active navigation states, key icons, and primary action buttons.
+    - Background / Brand Dark (`#1A1A1A`): A deep charcoal used for the main background, sidebar, and header, providing a dark, focused environment.
+    - Panel Light (`#FFFFFF`): Pure white used for content panels, table rows, and high-contrast text.
+  - Status & Severity Colors
+    - Critical (`#CC0000`): A deep red used for high-severity alerts and critical status indicators.
+    - Warning (`#FFFF00`): A bright yellow used for medium-priority alerts and live monitoring status bars.
+    - Pure Black (`#000000`): Used for heavy brutalist borders, thick shadows, and text on light backgrounds.
+  - UI Accents
+    - Border/Divider (`#333333`): A dark gray used for subtle structural borders within the dark theme.
+    - Muted Text (`#9CA3AF` / `gray-400`): Used for secondary information and timestamps to maintain visual hierarchy.
+
 ## Notes
 
 - Fixes applied in `resources/js/features/gta-alerts/App.tsx` and `resources/js/features/gta-alerts/components/FeedView.tsx` to remove width constraints and align feed controls with the high-contrast revamp treatment.
