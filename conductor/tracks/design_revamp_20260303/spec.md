@@ -55,6 +55,11 @@ This track focuses on revamping the current GTA Alerts user interface based on t
   - Remaining technical debt and follow-up ticket references.
 - Complete track registry/archive maintenance per conductor workflow.
 
+## Accepted Implementation Deltas (2026-03-05)
+- **Verification execution path:** Phase 4 validation includes both Playwright MCP artifact capture and an executable Vitest/jsdom verification spec at `tests/e2e/design-revamp-phase-4.spec.ts` that codifies the interaction contract in CI-friendly form.
+- **Typography/icon delivery:** External runtime font stylesheet dependencies were replaced with self-hosted font assets and `@font-face` declarations in `resources/css/app.css`, and external links were removed from `resources/views/app.blade.php`.
+- **Closeout gating status:** As of 2026-03-05, `pnpm run lint:check`, `pnpm run test`, and `./vendor/bin/sail artisan test` pass; `pnpm run format:check` (22 files) and `pnpm run types` (TS2307 at `resources/js/pages/settings/password.tsx`) remain open and block registry archival.
+
 ## Acceptance Criteria
 - **Layout parity:** The GTA Alerts layout matches the structural and visual intent of `prototype-two-design/App.tsx` (sidebar, header search affordance, footer, and the prototype’s high-contrast styling), while preserving existing navigation behavior (Feed/Inbox/Saved/Zones/Settings).
 - **View toggle parity:** The user can toggle between **"Feed"** and **"Table"** views for alerts, matching the prototype’s toggle styling/placement. The toggle is client-side and does not trigger navigation.
