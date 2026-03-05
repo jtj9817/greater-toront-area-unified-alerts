@@ -66,6 +66,9 @@
 - [ ] Task: Conductor - User Manual Verification 'Phase 4: Testing & Verification' (Protocol in workflow.md; include Playwright MCP/Playwright execution details and artifact references; attempted 2026-03-05 via Playwright MCP with artifacts in `artifacts/playwright/`; findings tracked in `docs/tickets/FEED-016-design-revamp-phase-4-verification-findings.md`)
 
 ## Phase 5: Final Comprehensive Documentation & Track Closeout
+- [ ] Task: Document FEED-016 Palette Delta (Panel Light -> Hazard Orange)
+    - [ ] Sub-task: Update `conductor/tracks/design_revamp_20260303/spec.md` to define `panel-light`/white-background treatment as `rgb(255, 127, 0)` for the revamp runtime.
+    - [ ] Sub-task: Record implementation note that components using white panel backgrounds must render with `rgb(255, 127, 0)` under `.gta-alerts-theme`.
 - [ ] Task: Update Track Artifacts (Plan/Spec/Audit) With Final Implementation State
     - [ ] Sub-task: Update this `plan.md` with completed task checkboxes and commit SHAs for Phase 3 and Phase 4 deliverables.
     - [ ] Sub-task: Update `conductor/tracks/design_revamp_20260303/spec.md` if implemented behavior deviates from original wording (explicitly note accepted deltas or confirm no deltas).
