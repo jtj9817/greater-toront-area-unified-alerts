@@ -132,18 +132,22 @@ export const FeedView: React.FC<FeedViewProps> = ({
     const totalCount = allAlerts.length;
 
     return (
-        <div className="flex h-full flex-col">
+        <section id="gta-alerts-feed-view" className="flex h-full flex-col">
             {/* Sticky Header: Filters */}
-            <div className="sticky top-0 z-30 border-b border-[#333333] bg-background-dark">
+            <div
+                id="gta-alerts-feed-controls"
+                className="sticky top-0 z-30 border-b border-[#333333] bg-background-dark"
+            >
                 {/* Row 0: Status */}
-                <div className="border-b border-[#333333] bg-background-dark px-4 py-2 md:px-6">
-                    <div className="flex items-center gap-2">
+                <div id="gta-alerts-feed-status-row" className="border-b border-[#333333] bg-background-dark px-4 py-2 md:px-6">
+                    <div id="gta-alerts-feed-status-row-content" className="flex items-center gap-2">
                         <span className="mr-1 text-[10px] font-bold tracking-widest text-text-secondary/70 uppercase">
                             Status
                         </span>
-                        <div className="flex gap-2">
+                        <div id="gta-alerts-feed-status-links" className="flex gap-2">
                             {statusOptions.map((opt) => (
                                 <Link
+                                    id={`gta-alerts-feed-status-link-${opt.id}`}
                                     key={opt.id}
                                     href={
                                         home({
@@ -180,8 +184,8 @@ export const FeedView: React.FC<FeedViewProps> = ({
                 </div>
 
                 {/* Row 1: Categories */}
-                <div className="border-b border-[#333333] bg-background-dark px-4 py-3 md:px-6">
-                    <div className="no-scrollbar mask-linear-fade flex w-full justify-start gap-2 overflow-x-auto pb-1">
+                <div id="gta-alerts-feed-category-row" className="border-b border-[#333333] bg-background-dark px-4 py-3 md:px-6">
+                    <div id="gta-alerts-feed-category-links" className="no-scrollbar mask-linear-fade flex w-full justify-start gap-2 overflow-x-auto pb-1">
                         {categories.map((cat) => {
                             const isSelected = activeCategory === cat.id;
                             const nextSource = isSelected
@@ -192,6 +196,7 @@ export const FeedView: React.FC<FeedViewProps> = ({
 
                             return (
                                 <Link
+                                    id={`gta-alerts-feed-category-link-${cat.id}`}
                                     key={cat.id}
                                     href={
                                         home({
@@ -226,7 +231,7 @@ export const FeedView: React.FC<FeedViewProps> = ({
 
                 {/* Loading Indicator Row */}
                 {isFilterLoading && (
-                    <div className="flex items-center gap-2 border-b border-[#333333] bg-primary/15 px-4 py-1.5 md:px-6">
+                    <div id="gta-alerts-feed-loading-row" className="flex items-center gap-2 border-b border-[#333333] bg-primary/15 px-4 py-1.5 md:px-6">
                         <span className="flex h-3 w-3 animate-pulse rounded-full bg-primary"></span>
                         <span className="text-[11px] font-medium text-primary">
                             Updating feed...
@@ -235,14 +240,15 @@ export const FeedView: React.FC<FeedViewProps> = ({
                 )}
 
                 {/* Row 2: Time Window + View Toggle */}
-                <div className="flex flex-wrap items-center gap-3 border-b border-[#333333] bg-background-dark px-4 py-2 md:px-6">
-                    <div className="flex items-center gap-3">
+                <div id="gta-alerts-feed-filter-row" className="flex flex-wrap items-center gap-3 border-b border-[#333333] bg-background-dark px-4 py-2 md:px-6">
+                    <div id="gta-alerts-feed-filter-row-content" className="flex items-center gap-3">
                         {/* Time Window Selector */}
-                        <div className="group relative">
+                        <div id="gta-alerts-feed-since-filter" className="group relative">
                             <div className="pointer-events-none absolute inset-y-0 left-2 flex items-center text-text-secondary">
                                 <Icon name="schedule" className="text-sm" />
                             </div>
                             <select
+                                id="gta-alerts-feed-since-select"
                                 value={since ?? 'all'}
                                 disabled={isFilterLoading}
                                 onChange={(e) =>
@@ -291,6 +297,7 @@ export const FeedView: React.FC<FeedViewProps> = ({
                         {/* Reset Button (Only shows if filters are active) */}
                         {(since !== null || activeCategory !== 'all') && (
                             <button
+                                id="gta-alerts-feed-reset-btn"
                                 onClick={handleReset}
                                 disabled={isFilterLoading}
                                 className="flex items-center gap-1 rounded px-2 py-1 text-xs font-medium text-primary transition-colors hover:bg-primary hover:text-black disabled:cursor-not-allowed disabled:opacity-50"
@@ -301,8 +308,9 @@ export const FeedView: React.FC<FeedViewProps> = ({
                         )}
 
                         {/* View Mode Toggle */}
-                        <div className="flex border-2 border-black bg-background-dark p-1">
+                        <div id="gta-alerts-feed-view-toggle" className="flex border-2 border-black bg-background-dark p-1">
                             <button
+                                id="gta-alerts-feed-view-mode-feed-btn"
                                 onClick={() => setViewMode('feed')}
                                 aria-label="Feed view"
                                 className={`flex items-center gap-2 px-4 py-2 text-xs font-black tracking-wide uppercase transition-colors ${
@@ -318,6 +326,7 @@ export const FeedView: React.FC<FeedViewProps> = ({
                                 Feed
                             </button>
                             <button
+                                id="gta-alerts-feed-view-mode-table-btn"
                                 onClick={() => setViewMode('table')}
                                 aria-label="Table view"
                                 className={`flex items-center gap-2 px-4 py-2 text-xs font-black tracking-wide uppercase transition-colors ${
@@ -336,11 +345,12 @@ export const FeedView: React.FC<FeedViewProps> = ({
 
             {/* List Container */}
             <div
+                id="gta-alerts-feed-list-wrap"
                 className={`relative w-full flex-1 overflow-y-auto p-4 md:p-6 ${isFilterLoading ? 'opacity-50' : 'opacity-100'} transition-opacity duration-200`}
             >
                 {/* Loading Overlay */}
                 {isFilterLoading && (
-                    <div className="absolute inset-0 z-10 flex items-start justify-center pt-20">
+                    <div id="gta-alerts-feed-loading-overlay" className="absolute inset-0 z-10 flex items-start justify-center pt-20">
                         <div className="flex items-center gap-2 rounded-lg border border-[#333333] bg-background-dark px-4 py-3 shadow-lg backdrop-blur-sm">
                             <span className="flex h-4 w-4 animate-spin rounded-full border-2 border-[#333333] border-t-primary"></span>
                             <span className="text-sm font-medium text-white">
@@ -349,9 +359,9 @@ export const FeedView: React.FC<FeedViewProps> = ({
                         </div>
                     </div>
                 )}
-                <div className="flex w-full flex-col gap-4 md:gap-5">
+                <div id="gta-alerts-feed-list" className="flex w-full flex-col gap-4 md:gap-5">
                     {latestFeedUpdatedAt && (
-                        <div className="mb-2 flex items-center justify-between px-1">
+                        <div id="gta-alerts-feed-updated-bar" className="mb-2 flex items-center justify-between px-1">
                             <div className="flex items-center gap-2 text-[10px] font-bold tracking-widest text-primary uppercase">
                                 <span className="flex h-1.5 w-1.5 animate-pulse rounded-full bg-primary"></span>
                                 Live Feed Active
@@ -386,6 +396,7 @@ export const FeedView: React.FC<FeedViewProps> = ({
                     {/* Infinite Scroll Sentinel */}
                     {allAlerts.length > 0 && (
                         <div
+                            id="gta-alerts-feed-sentinel"
                             ref={sentinelRef}
                             className="flex h-20 items-center justify-center"
                         >
@@ -408,6 +419,7 @@ export const FeedView: React.FC<FeedViewProps> = ({
                                         {loadMoreError}
                                     </span>
                                     <button
+                                        id="gta-alerts-feed-reload-btn"
                                         onClick={() => window.location.reload()}
                                         className="text-xs text-primary hover:underline"
                                     >
@@ -436,6 +448,7 @@ export const FeedView: React.FC<FeedViewProps> = ({
                             see more results.
                         </p>
                         <button
+                            id="gta-alerts-feed-reset-all-btn"
                             onClick={() =>
                                 router.get(
                                     home({
@@ -461,6 +474,6 @@ export const FeedView: React.FC<FeedViewProps> = ({
                     </div>
                 )}
             </div>
-        </div>
+        </section>
     );
 };

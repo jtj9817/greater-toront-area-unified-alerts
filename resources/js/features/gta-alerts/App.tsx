@@ -269,10 +269,14 @@ const App: React.FC<AppProps> = ({
     };
 
     return (
-        <div className="gta-alerts-theme relative flex h-screen w-full overflow-hidden bg-background-dark font-sans text-white">
+        <div
+            id="gta-alerts-app"
+            className="gta-alerts-theme relative flex h-screen w-full overflow-hidden bg-background-dark font-sans text-white"
+        >
             {/* Mobile Sidebar Overlay/Backdrop */}
             {isMobileMenuOpen && (
                 <div
+                    id="gta-alerts-mobile-overlay"
                     className="fixed inset-0 z-[90] bg-black/60 backdrop-blur-sm transition-opacity duration-300 md:hidden"
                     onClick={closeMobileMenu}
                 />
@@ -290,12 +294,19 @@ const App: React.FC<AppProps> = ({
                 onCloseMobile={closeMobileMenu}
             />
 
-            <div className="relative flex h-full min-w-0 flex-1 flex-col">
-                <header className="z-50 flex-none border-b border-[#333333] bg-background-dark">
-                    <div className="w-full">
-                        <div className="flex items-center justify-between border-b border-[#333333] px-4 py-3 md:hidden">
-                            <div className="flex items-center gap-2">
+            <div id="gta-alerts-main-wrap" className="relative flex h-full min-w-0 flex-1 flex-col">
+                <header
+                    id="gta-alerts-header"
+                    className="z-50 flex-none border-b border-[#333333] bg-background-dark"
+                >
+                    <div id="gta-alerts-header-content" className="w-full">
+                        <div
+                            id="gta-alerts-header-mobile-row"
+                            className="flex items-center justify-between border-b border-[#333333] px-4 py-3 md:hidden"
+                        >
+                            <div id="gta-alerts-header-mobile-title" className="flex items-center gap-2">
                                 <button
+                                    id="gta-alerts-header-mobile-menu-btn"
                                     onClick={() =>
                                         setIsMobileMenuOpen(
                                             (current) => !current,
@@ -315,8 +326,9 @@ const App: React.FC<AppProps> = ({
                                     GTA Alerts
                                 </h2>
                             </div>
-                            <div className="flex gap-3">
+                            <div id="gta-alerts-header-mobile-actions" className="flex gap-3">
                                 <button
+                                    id="gta-alerts-header-mobile-inbox-btn"
                                     onClick={() => handleNavigate('inbox')}
                                     className="relative border border-[#333333] bg-[#1a1a1a] p-2 text-white transition-colors hover:bg-primary hover:text-black"
                                     aria-label="Open notification center"
@@ -328,6 +340,7 @@ const App: React.FC<AppProps> = ({
                                     <span className="absolute top-1.5 right-1.5 h-2 w-2 border border-black bg-critical"></span>
                                 </button>
                                 <button
+                                    id="gta-alerts-header-mobile-settings-btn"
                                     onClick={() => handleNavigate('settings')}
                                     className="border border-[#333333] bg-[#1a1a1a] p-2 text-white transition-colors hover:bg-primary hover:text-black"
                                     aria-label="Open settings"
@@ -340,15 +353,25 @@ const App: React.FC<AppProps> = ({
                             </div>
                         </div>
 
-                        <div className="flex items-center gap-3 px-4 py-3 md:h-16 md:justify-between md:px-8">
-                            <label className="flex w-full md:max-w-xl">
-                                <div className="group relative flex h-10 w-full items-stretch md:h-11">
-                                    <div className="pointer-events-none absolute top-0 left-0 z-10 flex h-full items-center pl-3">
+                        <div
+                            id="gta-alerts-header-search-row"
+                            className="flex items-center gap-3 px-4 py-3 md:h-16 md:justify-between md:px-8"
+                        >
+                            <label id="gta-alerts-search-label" className="flex w-full md:max-w-xl">
+                                <div
+                                    id="gta-alerts-search-wrap"
+                                    className="group relative flex h-10 w-full items-stretch md:h-11"
+                                >
+                                    <div
+                                        id="gta-alerts-search-icon-wrap"
+                                        className="pointer-events-none absolute top-0 left-0 z-10 flex h-full items-center pl-3"
+                                    >
                                         <span className="text-primary transition-colors">
                                             <Icon name="search" />
                                         </span>
                                     </div>
                                     <input
+                                        id="gta-alerts-search-input"
                                         className="flex h-full w-full min-w-0 resize-none overflow-hidden border border-[#333333] bg-[#1a1a1a] px-4 pl-10 text-sm leading-normal font-bold text-white uppercase placeholder:text-text-secondary/70 focus:border-primary focus:outline-none"
                                         placeholder="Search alerts, streets, or categories..."
                                         value={searchQuery}
@@ -359,8 +382,9 @@ const App: React.FC<AppProps> = ({
                                 </div>
                             </label>
 
-                            <div className="hidden items-center gap-3 pl-4 md:flex">
+                            <div id="gta-alerts-header-desktop-actions" className="hidden items-center gap-3 pl-4 md:flex">
                                 <button
+                                    id="gta-alerts-header-desktop-inbox-btn"
                                     className="relative border border-[#333333] bg-[#1a1a1a] p-2 text-white transition-colors hover:bg-primary hover:text-black"
                                     onClick={() => handleNavigate('inbox')}
                                     aria-label="Open notification center"
@@ -369,6 +393,7 @@ const App: React.FC<AppProps> = ({
                                     <span className="absolute top-1.5 right-1.5 h-2 w-2 border border-black bg-critical"></span>
                                 </button>
                                 <button
+                                    id="gta-alerts-header-desktop-settings-btn"
                                     className="border border-[#333333] bg-[#1a1a1a] p-2 text-white transition-colors hover:bg-primary hover:text-black"
                                     onClick={() => handleNavigate('settings')}
                                     aria-label="Open settings"
@@ -380,8 +405,13 @@ const App: React.FC<AppProps> = ({
                     </div>
                 </header>
 
-                <main className="no-scrollbar relative flex-1 overflow-y-auto scroll-smooth p-0 pb-6">
-                    <div className="h-full w-full">{renderView()}</div>
+                <main
+                    id="gta-alerts-main-content"
+                    className="no-scrollbar relative flex-1 overflow-y-auto scroll-smooth p-0 pb-6"
+                >
+                    <div id="gta-alerts-main-view" className="h-full w-full">
+                        {renderView()}
+                    </div>
                 </main>
 
                 <Footer />
@@ -393,6 +423,7 @@ const App: React.FC<AppProps> = ({
 
             {currentView === 'feed' && (
                 <button
+                    id="gta-alerts-feed-refresh-btn"
                     onClick={handleRefreshFeed}
                     disabled={isRefreshingFeed}
                     aria-label="Refresh feed"

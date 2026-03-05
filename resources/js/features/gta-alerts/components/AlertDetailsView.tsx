@@ -34,29 +34,30 @@ const AlertDetailsLayout: React.FC<DetailLayoutProps> = ({
     const isSaved = false;
 
     return (
-        <div className="flex h-full animate-in flex-col bg-background-dark duration-500 fade-in slide-in-from-bottom-4">
-            <div className="sticky top-0 z-10 flex items-center gap-4 border-b border-white/5 bg-background-dark/50 p-4 backdrop-blur-md">
+        <section id={`gta-alerts-alert-details-${alert.id}`} className="flex h-full animate-in flex-col bg-background-dark duration-500 fade-in slide-in-from-bottom-4">
+            <header id={`gta-alerts-alert-details-${alert.id}-header`} className="sticky top-0 z-10 flex items-center gap-4 border-b border-white/5 bg-background-dark/50 p-4 backdrop-blur-md">
                 <button
+                    id={`gta-alerts-alert-details-${alert.id}-back-btn`}
                     onClick={onBack}
                     className="flex h-10 w-10 items-center justify-center rounded-full bg-white/5 text-white transition-all hover:bg-primary hover:text-white"
                 >
                     <Icon name="arrow_back" />
                 </button>
                 <div>
-                    <h2 className="leading-none font-bold text-white">
+                    <h2 id={`gta-alerts-alert-details-${alert.id}-title`} className="leading-none font-bold text-white">
                         Incident Details
                     </h2>
                     <p className="mt-1 text-xs text-text-secondary">
                         {alert.id.toUpperCase()} • {alert.location}
                     </p>
                 </div>
-            </div>
+            </header>
 
-            <div className="flex-1 overflow-y-auto p-4 md:p-8">
-                <div className="mx-auto max-w-4xl space-y-8">
+            <div id={`gta-alerts-alert-details-${alert.id}-content`} className="flex-1 overflow-y-auto p-4 md:p-8">
+                <div id={`gta-alerts-alert-details-${alert.id}-sections`} className="mx-auto max-w-4xl space-y-8">
                     {sections.header}
 
-                    <section className="rounded-2xl border border-white/5 bg-surface-dark p-6 shadow-xl md:p-8">
+                    <section id={`gta-alerts-alert-details-${alert.id}-briefing-section`} className="rounded-2xl border border-white/5 bg-surface-dark p-6 shadow-xl md:p-8">
                         <div className="flex flex-col gap-8 md:flex-row">
                             <div className="flex-1">
                                 <h3 className="mb-4 text-xs font-bold tracking-widest text-primary uppercase">
@@ -96,12 +97,13 @@ const AlertDetailsLayout: React.FC<DetailLayoutProps> = ({
 
                     {sections.specializedContent}
 
-                    <div className="flex gap-4 pt-4">
-                        <button className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-white/10 py-4 font-bold text-white shadow-lg transition-all hover:bg-white/20">
+                    <div id={`gta-alerts-alert-details-${alert.id}-actions`} className="flex gap-4 pt-4">
+                        <button id={`gta-alerts-alert-details-${alert.id}-broadcast-btn`} className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-white/10 py-4 font-bold text-white shadow-lg transition-all hover:bg-white/20">
                             <Icon name="share" />
                             Broadcast Alert
                         </button>
                         <button
+                            id={`gta-alerts-alert-details-${alert.id}-save-btn`}
                             className={`flex items-center justify-center gap-2 rounded-xl border px-6 transition-all ${
                                 isSaved
                                     ? 'border-white/20 bg-white/10 text-white shadow-lg'
@@ -121,7 +123,7 @@ const AlertDetailsLayout: React.FC<DetailLayoutProps> = ({
                     </div>
                 </div>
             </div>
-        </div>
+        </section>
     );
 };
 

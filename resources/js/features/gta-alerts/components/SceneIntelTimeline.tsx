@@ -43,13 +43,14 @@ export const SceneIntelTimeline: React.FC<SceneIntelTimelineProps> = ({
 
     return (
         <div
+            id={`gta-alerts-scene-intel-timeline-${eventNum || 'unknown'}`}
             className={cn(
                 'rounded-2xl border border-white/5 bg-surface-dark p-6',
                 className,
             )}
         >
             <div className="mb-4 flex items-center justify-between">
-                <h4 className="flex items-center gap-2 text-xs font-bold tracking-wider text-primary uppercase">
+                <h4 id={`gta-alerts-scene-intel-title-${eventNum || 'unknown'}`} className="flex items-center gap-2 text-xs font-bold tracking-wider text-primary uppercase">
                     <Icon name="list_alt" className="text-sm" /> Scene Intel
                 </h4>
                 {loading && (
@@ -70,6 +71,7 @@ export const SceneIntelTimeline: React.FC<SceneIntelTimelineProps> = ({
                         Unable to load updates
                     </p>
                     <button
+                        id={`gta-alerts-scene-intel-retry-btn-${eventNum || 'unknown'}`}
                         onClick={() => refresh()}
                         className="mt-2 text-xs text-white/50 underline decoration-dashed hover:text-white"
                     >

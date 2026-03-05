@@ -51,6 +51,7 @@ export const AlertCard: React.FC<AlertCardProps> = ({
 
     return (
         <article
+            id={`gta-alerts-alert-card-${item.id}`}
             onClick={onViewDetails}
             className={`group panel-shadow cursor-pointer border-4 border-black bg-panel-light p-5 text-black transition-all duration-150 hover:-translate-x-[1px] hover:-translate-y-[1px] hover:shadow-[9px_9px_0_#000] ${isActive ? '' : 'opacity-80 grayscale'} ${isSaved ? 'ring-2 ring-primary' : ''}`}
         >
@@ -72,7 +73,7 @@ export const AlertCard: React.FC<AlertCardProps> = ({
                 <div className="flex-1">
                     <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
                         <div className="flex flex-wrap items-center gap-2">
-                            <h4 className="text-xl leading-tight font-black tracking-tight uppercase md:text-2xl">
+                            <h4 id={`gta-alerts-alert-card-${item.id}-title`} className="text-xl leading-tight font-black tracking-tight uppercase md:text-2xl">
                                 {item.title}
                             </h4>
                             <span

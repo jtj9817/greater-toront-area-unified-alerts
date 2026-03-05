@@ -339,9 +339,9 @@ export const NotificationInboxView: React.FC<NotificationInboxViewProps> = ({
 
     if (authUserId === null) {
         return (
-            <div className="mx-auto w-full max-w-4xl p-4 md:p-6">
-                <div className="rounded-2xl border border-white/10 bg-surface-dark p-6 md:p-8">
-                    <h2 className="mb-3 flex items-center gap-3 text-2xl font-bold text-white">
+            <section id="gta-alerts-inbox-auth-required" className="mx-auto w-full max-w-4xl p-4 md:p-6">
+                <div id="gta-alerts-inbox-auth-required-card" className="rounded-2xl border border-white/10 bg-surface-dark p-6 md:p-8">
+                    <h2 id="gta-alerts-inbox-auth-required-title" className="mb-3 flex items-center gap-3 text-2xl font-bold text-white">
                         <Icon name="lock" className="text-primary" />
                         Sign in to view your notification inbox
                     </h2>
@@ -351,6 +351,7 @@ export const NotificationInboxView: React.FC<NotificationInboxViewProps> = ({
                     </p>
                     <div className="flex flex-wrap gap-3">
                         <Link
+                            id="gta-alerts-inbox-auth-required-signin-link"
                             href={login().url}
                             className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white transition hover:bg-primary/90"
                         >
@@ -358,6 +359,7 @@ export const NotificationInboxView: React.FC<NotificationInboxViewProps> = ({
                             Sign in
                         </Link>
                         <Link
+                            id="gta-alerts-inbox-auth-required-register-link"
                             href={register().url}
                             className="inline-flex items-center gap-2 rounded-lg border border-white/15 bg-white/5 px-4 py-2 text-sm font-medium text-white transition hover:bg-white/10"
                         >
@@ -366,15 +368,15 @@ export const NotificationInboxView: React.FC<NotificationInboxViewProps> = ({
                         </Link>
                     </div>
                 </div>
-            </div>
+            </section>
         );
     }
 
     return (
-        <div className="mx-auto w-full max-w-5xl p-4 md:p-6">
-            <div className="mb-6 flex flex-wrap items-center justify-between gap-3 border-b border-white/10 pb-5">
+        <section id="gta-alerts-inbox-view" className="mx-auto w-full max-w-5xl p-4 md:p-6">
+            <div id="gta-alerts-inbox-header" className="mb-6 flex flex-wrap items-center justify-between gap-3 border-b border-white/10 pb-5">
                 <div>
-                    <h2 className="mb-1 flex items-center gap-3 text-2xl font-bold text-white">
+                    <h2 id="gta-alerts-inbox-title" className="mb-1 flex items-center gap-3 text-2xl font-bold text-white">
                         <Icon
                             name="notifications_active"
                             className="text-primary"
@@ -390,6 +392,7 @@ export const NotificationInboxView: React.FC<NotificationInboxViewProps> = ({
                         Unread: {unreadCount}
                     </span>
                     <button
+                        id="gta-alerts-inbox-mark-all-read-btn"
                         type="button"
                         className="inline-flex items-center gap-2 rounded-lg border border-white/15 bg-white/5 px-3 py-2 text-sm font-medium text-white transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-60"
                         onClick={() => {
@@ -407,6 +410,7 @@ export const NotificationInboxView: React.FC<NotificationInboxViewProps> = ({
                         {isMarkingAllRead ? 'Marking...' : 'Mark all read'}
                     </button>
                     <button
+                        id="gta-alerts-inbox-clear-all-btn"
                         type="button"
                         className="inline-flex items-center gap-2 rounded-lg border border-white/15 bg-white/5 px-3 py-2 text-sm font-medium text-white transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-60"
                         onClick={() => {
@@ -450,7 +454,7 @@ export const NotificationInboxView: React.FC<NotificationInboxViewProps> = ({
             )}
 
             {!isLoading && hasItems && (
-                <div className="space-y-3">
+                <div id="gta-alerts-inbox-list" className="space-y-3">
                     {sortedItems.map((item) => {
                         const isDigest = item.type === 'digest';
                         const itemSource = sourceLabel(
@@ -472,6 +476,7 @@ export const NotificationInboxView: React.FC<NotificationInboxViewProps> = ({
 
                         return (
                             <article
+                                id={`gta-alerts-inbox-item-${item.id}`}
                                 key={item.id}
                                 className={`rounded-xl border bg-surface-dark p-4 ${
                                     isUnread
@@ -506,6 +511,7 @@ export const NotificationInboxView: React.FC<NotificationInboxViewProps> = ({
                                 <p className="mb-3 text-sm leading-snug font-medium text-white">
                                     {canOpenAlert ? (
                                         <button
+                                            id={`gta-alerts-inbox-item-${item.id}-open-alert-btn`}
                                             type="button"
                                             className="text-left hover:text-primary hover:underline"
                                             onClick={() => {
@@ -524,6 +530,7 @@ export const NotificationInboxView: React.FC<NotificationInboxViewProps> = ({
                                 <div className="flex flex-wrap gap-2">
                                     {isUnread && (
                                         <button
+                                            id={`gta-alerts-inbox-item-${item.id}-mark-read-btn`}
                                             type="button"
                                             className="inline-flex items-center gap-1 rounded-md border border-white/20 px-2.5 py-1.5 text-xs text-white transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-60"
                                             onClick={() => {
@@ -537,6 +544,7 @@ export const NotificationInboxView: React.FC<NotificationInboxViewProps> = ({
                                         </button>
                                     )}
                                     <button
+                                        id={`gta-alerts-inbox-item-${item.id}-dismiss-btn`}
                                         type="button"
                                         className="inline-flex items-center gap-1 rounded-md border border-coral/40 px-2.5 py-1.5 text-xs text-coral transition hover:bg-coral/10 disabled:cursor-not-allowed disabled:opacity-60"
                                         onClick={() => {
@@ -555,6 +563,7 @@ export const NotificationInboxView: React.FC<NotificationInboxViewProps> = ({
                     {hasMoreItems && (
                         <div className="pt-2">
                             <button
+                                id="gta-alerts-inbox-load-more-btn"
                                 type="button"
                                 className="inline-flex items-center gap-2 rounded-lg border border-white/20 bg-white/5 px-3 py-2 text-sm font-medium text-white transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-60"
                                 onClick={() => {
@@ -576,6 +585,6 @@ export const NotificationInboxView: React.FC<NotificationInboxViewProps> = ({
                     )}
                 </div>
             )}
-        </div>
+        </section>
     );
 };

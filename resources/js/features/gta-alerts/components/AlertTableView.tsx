@@ -57,8 +57,8 @@ export const AlertTableView: React.FC<AlertTableViewProps> = ({
     );
 
     return (
-        <div className="panel-shadow w-full overflow-x-auto border-4 border-black">
-            <table className="incident-table w-full min-w-[780px] border-collapse">
+        <div id="gta-alerts-alert-table-wrap" className="panel-shadow w-full overflow-x-auto border-4 border-black">
+            <table id="gta-alerts-alert-table" className="incident-table w-full min-w-[780px] border-collapse">
                 <thead>
                     <tr>
                         <th>Timestamp</th>
@@ -81,6 +81,7 @@ export const AlertTableView: React.FC<AlertTableViewProps> = ({
                         return (
                             <React.Fragment key={presentation.id}>
                                 <tr
+                                    id={`gta-alerts-alert-table-row-${presentation.id}`}
                                     onClick={() =>
                                         toggleExpandedRow(presentation.id)
                                     }
@@ -127,6 +128,7 @@ export const AlertTableView: React.FC<AlertTableViewProps> = ({
                                     </td>
                                     <td>
                                         <button
+                                            id={`gta-alerts-alert-table-row-${presentation.id}-expand-btn`}
                                             type="button"
                                             onClick={(event) => {
                                                 event.stopPropagation();
@@ -186,6 +188,7 @@ export const AlertTableView: React.FC<AlertTableViewProps> = ({
                                                         </span>
                                                     )}
                                                     <button
+                                                        id={`gta-alerts-alert-table-row-${presentation.id}-details-btn`}
                                                         type="button"
                                                         onClick={(event) => {
                                                             event.stopPropagation();

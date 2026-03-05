@@ -60,26 +60,27 @@ const ZONES = [
 
 export const ZonesView: React.FC = () => {
     return (
-        <div className="p-4 md:p-6">
-            <div className="mb-6 flex items-end justify-between">
-                <div>
-                    <h2 className="mb-2 flex items-center gap-3 text-2xl font-bold text-white">
+        <section id="gta-alerts-zones-view" className="p-4 md:p-6">
+            <div id="gta-alerts-zones-header" className="mb-6 flex items-end justify-between">
+                <div id="gta-alerts-zones-header-content">
+                    <h2 id="gta-alerts-zones-title" className="mb-2 flex items-center gap-3 text-2xl font-bold text-white">
                         <Icon name="map" className="text-primary" />
                         Active Zones
                     </h2>
-                    <p className="text-sm text-text-secondary">
+                    <p id="gta-alerts-zones-description" className="text-sm text-text-secondary">
                         Real-time status by geographic region.
                     </p>
                 </div>
-                <button className="hidden items-center gap-2 text-sm font-medium text-primary transition-colors hover:text-white md:flex">
+                <button id="gta-alerts-zones-manage-btn" className="hidden items-center gap-2 text-sm font-medium text-primary transition-colors hover:text-white md:flex">
                     <Icon name="add_location_alt" />
                     Manage Zones
                 </button>
             </div>
 
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <div id="gta-alerts-zones-grid" className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 {ZONES.map((zone) => (
                     <div
+                        id={`gta-alerts-zones-card-${zone.id}`}
                         key={zone.id}
                         className="group cursor-pointer rounded-xl border border-white/5 bg-surface-dark p-5 transition-all hover:border-white/20"
                     >
@@ -94,7 +95,7 @@ export const ZonesView: React.FC = () => {
                             </span>
                         </div>
 
-                        <h3 className="mb-1 text-lg font-bold text-white transition-colors group-hover:text-primary">
+                        <h3 id={`gta-alerts-zones-card-${zone.id}-name`} className="mb-1 text-lg font-bold text-white transition-colors group-hover:text-primary">
                             {zone.name}
                         </h3>
 
@@ -111,6 +112,6 @@ export const ZonesView: React.FC = () => {
                     </div>
                 ))}
             </div>
-        </div>
+        </section>
     );
 };

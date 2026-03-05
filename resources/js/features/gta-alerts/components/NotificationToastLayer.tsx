@@ -152,9 +152,10 @@ export const NotificationToastLayer: React.FC<NotificationToastLayerProps> = ({
     }
 
     return (
-        <div className="pointer-events-none fixed top-4 right-4 z-[120] flex w-[min(92vw,360px)] flex-col gap-3">
+        <div id="gta-alerts-toast-layer" className="pointer-events-none fixed top-4 right-4 z-[120] flex w-[min(92vw,360px)] flex-col gap-3">
             {toasts.map((toast) => (
                 <article
+                    id={`gta-alerts-toast-${toast.id}`}
                     key={toast.id}
                     className={`pointer-events-auto rounded-xl border p-3 shadow-xl backdrop-blur ${severityStyle(
                         toast.severity,
@@ -172,6 +173,7 @@ export const NotificationToastLayer: React.FC<NotificationToastLayerProps> = ({
                             </span>
                         </div>
                         <button
+                            id={`gta-alerts-toast-${toast.id}-dismiss-btn`}
                             type="button"
                             onClick={() => dismissToast(toast.id)}
                             className="rounded px-1 py-0.5 text-xs text-text-secondary transition hover:text-white"

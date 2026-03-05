@@ -209,10 +209,10 @@ export const SavedPlacesManager: React.FC<SavedPlacesManagerProps> = ({
     }
 
     return (
-        <section className="rounded-xl border border-white/10 bg-surface-dark p-4 md:p-5">
-            <div className="flex flex-wrap items-center justify-between gap-3">
+        <section id="gta-alerts-saved-places-manager" className="rounded-xl border border-white/10 bg-surface-dark p-4 md:p-5">
+            <div id="gta-alerts-saved-places-manager-header" className="flex flex-wrap items-center justify-between gap-3">
                 <div>
-                    <h3 className="text-sm font-semibold tracking-wide text-primary uppercase">
+                    <h3 id="gta-alerts-saved-places-manager-title" className="text-sm font-semibold tracking-wide text-primary uppercase">
                         Saved Places
                     </h3>
                     <p className="mt-1 text-xs text-text-secondary">
@@ -221,6 +221,7 @@ export const SavedPlacesManager: React.FC<SavedPlacesManagerProps> = ({
                     </p>
                 </div>
                 <button
+                    id="gta-alerts-saved-places-toggle-btn"
                     type="button"
                     onClick={toggleExpanded}
                     className="rounded-lg border border-white/15 bg-background-dark px-3 py-2 text-xs font-medium text-white transition hover:border-primary/40"
@@ -245,6 +246,7 @@ export const SavedPlacesManager: React.FC<SavedPlacesManagerProps> = ({
                     <div className="grid gap-3 md:grid-cols-[1.6fr_0.6fr_auto]">
                         <div>
                             <input
+                                id="gta-alerts-saved-places-search-input"
                                 type="text"
                                 value={searchQuery}
                                 onChange={(event) =>
@@ -254,13 +256,14 @@ export const SavedPlacesManager: React.FC<SavedPlacesManagerProps> = ({
                                 className="w-full rounded-lg border border-white/15 bg-background-dark px-3 py-2 text-sm text-white focus:border-primary/60 focus:outline-none"
                             />
                             {searchResults.length > 0 && (
-                                <div className="mt-2 max-h-48 overflow-y-auto rounded-lg border border-white/15 bg-background-dark">
+                                <div id="gta-alerts-saved-places-search-results" className="mt-2 max-h-48 overflow-y-auto rounded-lg border border-white/15 bg-background-dark">
                                     {searchResults.map((result) => {
                                         const isSelected =
                                             selectedResult?.id === result.id;
 
                                         return (
                                             <button
+                                                id={`gta-alerts-saved-places-search-result-${result.id}`}
                                                 key={result.id}
                                                 type="button"
                                                 onClick={() =>
@@ -286,6 +289,7 @@ export const SavedPlacesManager: React.FC<SavedPlacesManagerProps> = ({
                         </div>
 
                         <select
+                            id="gta-alerts-saved-places-radius-select"
                             value={selectedRadius}
                             onChange={(event) =>
                                 setSelectedRadius(Number(event.target.value))
@@ -304,6 +308,7 @@ export const SavedPlacesManager: React.FC<SavedPlacesManagerProps> = ({
                         </select>
 
                         <button
+                            id="gta-alerts-saved-places-save-btn"
                             type="button"
                             onClick={() => {
                                 void handleSavePlace();
@@ -330,9 +335,10 @@ export const SavedPlacesManager: React.FC<SavedPlacesManagerProps> = ({
                             No saved places configured.
                         </p>
                     ) : (
-                        <div className="space-y-2">
+                        <div id="gta-alerts-saved-places-list" className="space-y-2">
                             {savedPlaces.map((place) => (
                                 <div
+                                    id={`gta-alerts-saved-places-item-${place.id}`}
                                     key={place.id}
                                     className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-white/15 bg-background-dark/60 px-3 py-2"
                                 >
@@ -347,6 +353,7 @@ export const SavedPlacesManager: React.FC<SavedPlacesManagerProps> = ({
                                         </div>
                                     </div>
                                     <button
+                                        id={`gta-alerts-saved-places-remove-btn-${place.id}`}
                                         type="button"
                                         onClick={() => {
                                             void handleDeletePlace(place.id);

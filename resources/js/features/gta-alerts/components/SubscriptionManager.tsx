@@ -39,6 +39,9 @@ const normalizeSubscriptions = (subscriptions: string[]): string[] =>
         ),
     );
 
+const toIdToken = (value: string): string =>
+    value.trim().toLowerCase().replace(/[^a-z0-9-]+/g, '-');
+
 export const SubscriptionManager: React.FC<SubscriptionManagerProps> = ({
     authUserId,
     selectedSubscriptions,
@@ -216,9 +219,9 @@ export const SubscriptionManager: React.FC<SubscriptionManagerProps> = ({
     };
 
     return (
-        <section className="rounded-xl border border-white/10 bg-surface-dark p-4 md:p-5">
-            <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
-                <h3 className="text-sm font-semibold tracking-wide text-primary uppercase">
+        <section id="gta-alerts-subscription-manager" className="rounded-xl border border-white/10 bg-surface-dark p-4 md:p-5">
+            <div id="gta-alerts-subscription-manager-header" className="mb-4 flex flex-wrap items-center justify-between gap-2">
+                <h3 id="gta-alerts-subscription-manager-title" className="text-sm font-semibold tracking-wide text-primary uppercase">
                     My Subscriptions
                 </h3>
                 <span className="text-xs text-text-secondary">
@@ -232,10 +235,11 @@ export const SubscriptionManager: React.FC<SubscriptionManagerProps> = ({
                 </div>
             )}
 
-            <div className="mb-3 grid grid-cols-3 gap-2">
+            <div id="gta-alerts-subscription-tab-list" className="mb-3 grid grid-cols-3 gap-2">
                 {(['routes', 'stations', 'lines'] as SubscriptionTab[]).map(
                     (tab) => (
                         <button
+                            id={`gta-alerts-subscription-tab-${tab}-btn`}
                             key={tab}
                             type="button"
                             onClick={() => setActiveTab(tab)}
@@ -251,9 +255,10 @@ export const SubscriptionManager: React.FC<SubscriptionManagerProps> = ({
                 )}
             </div>
 
-            <label className="mb-3 block">
+            <label htmlFor="gta-alerts-subscription-search-input" className="mb-3 block">
                 <span className="sr-only">Search subscriptions</span>
                 <input
+                    id="gta-alerts-subscription-search-input"
                     type="search"
                     value={searchQuery}
                     onChange={(event) => setSearchQuery(event.target.value)}
@@ -262,7 +267,7 @@ export const SubscriptionManager: React.FC<SubscriptionManagerProps> = ({
                 />
             </label>
 
-            <div className="max-h-64 space-y-2 overflow-auto pr-1">
+            <div id="gta-alerts-subscription-options" className="max-h-64 space-y-2 overflow-auto pr-1">
                 {isLoading ? (
                     <p className="text-sm text-text-secondary">
                         Loading subscription options...
@@ -274,6 +279,7 @@ export const SubscriptionManager: React.FC<SubscriptionManagerProps> = ({
                 ) : (
                     visibleOptions.map((option) => (
                         <label
+                            htmlFor={`gta-alerts-subscription-option-${toIdToken(option.urn)}`}
                             key={option.urn}
                             className="flex items-center justify-between gap-3 rounded-lg border border-white/15 bg-background-dark/60 px-3 py-2 text-sm text-white hover:border-primary/40"
                         >
@@ -281,6 +287,7 @@ export const SubscriptionManager: React.FC<SubscriptionManagerProps> = ({
                                 {option.name}
                             </span>
                             <input
+                                id={`gta-alerts-subscription-option-${toIdToken(option.urn)}`}
                                 type="checkbox"
                                 aria-label={`Subscription ${option.urn}`}
                                 checked={selectedSet.has(option.urn)}
@@ -292,7 +299,7 @@ export const SubscriptionManager: React.FC<SubscriptionManagerProps> = ({
                 )}
             </div>
 
-            <div className="mt-4 flex flex-wrap gap-2">
+            <div id="gta-alerts-subscription-selected-chips" className="mt-4 flex flex-wrap gap-2">
                 {selectedChips.length === 0 ? (
                     <p className="text-xs text-text-secondary">
                         No subscriptions selected yet.
@@ -300,6 +307,7 @@ export const SubscriptionManager: React.FC<SubscriptionManagerProps> = ({
                 ) : (
                     selectedChips.map((chip) => (
                         <button
+                            id={`gta-alerts-subscription-chip-remove-${toIdToken(chip.urn)}`}
                             key={chip.urn}
                             type="button"
                             onClick={() => removeSubscription(chip.urn)}

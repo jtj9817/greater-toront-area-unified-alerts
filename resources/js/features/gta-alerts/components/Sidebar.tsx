@@ -37,6 +37,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             className={`fixed inset-y-0 left-0 z-[100] flex w-[75%] max-w-[280px] flex-none flex-col border-r border-[#333333] bg-background-dark pt-4 pb-4 shadow-2xl transition-all duration-300 ease-in-out md:pointer-events-auto md:relative md:translate-x-0 md:shadow-none ${mobileTranslate} ${sidebarWidth} `}
         >
             <button
+                id="gta-alerts-sidebar-close-btn"
                 onClick={onCloseMobile}
                 className="absolute top-4 right-4 border border-[#333333] bg-[#1a1a1a] p-1 text-white transition-colors hover:bg-primary hover:text-black md:hidden"
                 aria-label="Close menu"
@@ -45,9 +46,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
             </button>
 
             <div
+                id="gta-alerts-sidebar-brand"
                 className={`flex items-center gap-3 overflow-hidden border-b border-[#333333] px-4 py-4 md:px-6 ${isCollapsed ? 'justify-center md:px-4' : ''}`}
             >
-                <div className="bg-primary p-2 text-black">
+                <div id="gta-alerts-sidebar-brand-icon" className="bg-primary p-2 text-black">
                     <Icon
                         name="local_fire_department"
                         className="block text-2xl"
@@ -61,9 +63,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 )}
             </div>
 
-            <nav className="no-scrollbar flex-1 space-y-2 overflow-y-auto p-3 md:p-4">
+            <nav id="gta-alerts-sidebar-nav" className="no-scrollbar flex-1 space-y-2 overflow-y-auto p-3 md:p-4">
                 {navItems.map((item) => (
                     <button
+                        id={`gta-alerts-sidebar-nav-${item.id}-btn`}
                         key={item.id}
                         onClick={() => onNavigate(item.id)}
                         className={`group relative flex w-full items-center gap-3 px-3 py-3 text-xs font-black tracking-wide uppercase transition-colors ${
@@ -94,6 +97,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
             <div className="mt-auto border-t border-[#333333] px-3 pt-3 md:px-4">
                 <button
+                    id="gta-alerts-sidebar-collapse-btn"
                     onClick={onToggleCollapse}
                     className={`hidden w-full items-center justify-center border border-[#333333] bg-[#1a1a1a] py-2.5 text-white transition-colors hover:bg-primary hover:text-black md:flex ${isCollapsed ? '' : 'gap-2'}`}
                     title={isCollapsed ? 'Expand Sidebar' : 'Collapse Sidebar'}
