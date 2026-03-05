@@ -36,46 +36,15 @@ export function deriveAccentColor(
     type: AlertPresentation['type'],
     severity: AlertPresentation['severity'],
 ): string {
-    if (severity === 'high') return 'bg-[#e05560]';
-
-    switch (type) {
-        case 'fire':
-            return 'bg-[#e07830]';
-        case 'police':
-            return 'bg-[#6890ff]';
-        case 'hazard':
-            return 'bg-[#f0b040]';
-        case 'transit':
-            return 'bg-[#a78bfa]';
-        case 'go_transit':
-            return 'bg-[#3b9a4f]';
-        case 'medical':
-            return 'bg-[#f472b6]';
-        default:
-            return 'bg-gray-500';
-    }
+    void type;
+    return severity === 'high' ? 'bg-critical' : 'bg-primary';
 }
 
 export function deriveIconColor(
     type: AlertPresentation['type'],
     severity: AlertPresentation['severity'],
 ): string {
-    if (severity === 'high') return 'text-[#e05560]';
-
-    switch (type) {
-        case 'fire':
-            return 'text-[#e07830]';
-        case 'police':
-            return 'text-[#6890ff]';
-        case 'hazard':
-            return 'text-[#f0b040]';
-        case 'transit':
-            return 'text-[#a78bfa]';
-        case 'go_transit':
-            return 'text-[#3b9a4f]';
-        case 'medical':
-            return 'text-[#f472b6]';
-        default:
-            return 'text-gray-500';
-    }
+    void type;
+    void severity;
+    return 'text-primary';
 }

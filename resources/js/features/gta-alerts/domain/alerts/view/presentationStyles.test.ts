@@ -119,28 +119,24 @@ describe('presentationStyles', () => {
     });
 
     it('derives accent color for all severities and categories', () => {
-        expect(deriveAccentColor('fire', 'high')).toBe('bg-[#e05560]');
-        expect(deriveAccentColor('fire', 'medium')).toBe('bg-[#e07830]');
-        expect(deriveAccentColor('police', 'medium')).toBe('bg-[#6890ff]');
-        expect(deriveAccentColor('hazard', 'medium')).toBe('bg-[#f0b040]');
-        expect(deriveAccentColor('transit', 'medium')).toBe('bg-[#a78bfa]');
-        expect(deriveAccentColor('go_transit', 'medium')).toBe('bg-[#3b9a4f]');
-        expect(deriveAccentColor('medical', 'medium')).toBe('bg-[#f472b6]');
-        expect(deriveAccentColor('unknown' as never, 'low')).toBe(
-            'bg-gray-500',
-        );
+        expect(deriveAccentColor('fire', 'high')).toBe('bg-critical');
+        expect(deriveAccentColor('fire', 'medium')).toBe('bg-primary');
+        expect(deriveAccentColor('police', 'medium')).toBe('bg-primary');
+        expect(deriveAccentColor('hazard', 'medium')).toBe('bg-primary');
+        expect(deriveAccentColor('transit', 'medium')).toBe('bg-primary');
+        expect(deriveAccentColor('go_transit', 'medium')).toBe('bg-primary');
+        expect(deriveAccentColor('medical', 'medium')).toBe('bg-primary');
+        expect(deriveAccentColor('unknown' as never, 'low')).toBe('bg-primary');
     });
 
     it('derives icon color for all severities and categories', () => {
-        expect(deriveIconColor('fire', 'high')).toBe('text-[#e05560]');
-        expect(deriveIconColor('fire', 'medium')).toBe('text-[#e07830]');
-        expect(deriveIconColor('police', 'medium')).toBe('text-[#6890ff]');
-        expect(deriveIconColor('hazard', 'medium')).toBe('text-[#f0b040]');
-        expect(deriveIconColor('transit', 'medium')).toBe('text-[#a78bfa]');
-        expect(deriveIconColor('go_transit', 'medium')).toBe('text-[#3b9a4f]');
-        expect(deriveIconColor('medical', 'medium')).toBe('text-[#f472b6]');
-        expect(deriveIconColor('unknown' as never, 'low')).toBe(
-            'text-gray-500',
-        );
+        expect(deriveIconColor('fire', 'high')).toBe('text-primary');
+        expect(deriveIconColor('fire', 'medium')).toBe('text-primary');
+        expect(deriveIconColor('police', 'medium')).toBe('text-primary');
+        expect(deriveIconColor('hazard', 'medium')).toBe('text-primary');
+        expect(deriveIconColor('transit', 'medium')).toBe('text-primary');
+        expect(deriveIconColor('go_transit', 'medium')).toBe('text-primary');
+        expect(deriveIconColor('medical', 'medium')).toBe('text-primary');
+        expect(deriveIconColor('unknown' as never, 'low')).toBe('text-primary');
     });
 });

@@ -352,8 +352,8 @@ export const FeedView: React.FC<FeedViewProps> = ({
                 <div className="flex w-full flex-col gap-4 md:gap-5">
                     {latestFeedUpdatedAt && (
                         <div className="mb-2 flex items-center justify-between px-1">
-                            <div className="flex items-center gap-2 text-[10px] font-bold tracking-widest text-warning uppercase">
-                                <span className="flex h-1.5 w-1.5 animate-pulse rounded-full bg-warning"></span>
+                            <div className="flex items-center gap-2 text-[10px] font-bold tracking-widest text-primary uppercase">
+                                <span className="flex h-1.5 w-1.5 animate-pulse rounded-full bg-primary"></span>
                                 Live Feed Active
                             </div>
                             <div className="flex items-center gap-1.5 rounded-full border border-[#333333] bg-black px-2.5 py-1 text-[10px] text-text-secondary">

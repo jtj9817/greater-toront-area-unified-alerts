@@ -10,7 +10,6 @@ This track focuses on revamping the current GTA Alerts user interface based on t
   - Feed cards with strong status/severity affordances.
   - Table with expandable rows for incident summaries.
 - **Theme & CSS Variables:** Integrate the prototype color palette (e.g., `primary`, `critical`, `warning`, `background-dark`, `panel-light`), typography (Public Sans), and utilities (e.g., `.brutalist-border`, `.panel-shadow`, `incident-table` helpers) from the prototype.
-  - **FEED-016 delta:** For the current revamp runtime, white panel backgrounds (`panel-light` and equivalent `bg-white` treatment within GTA Alerts) must resolve to `rgb(255, 127, 0)` instead of pure white.
 
 ## Non-Functional Requirements
 - **Integration Strategy:** Components will be replaced and updated on a component-by-component basis to ensure application stability and maintainability during the transition.
@@ -61,7 +60,6 @@ This track focuses on revamping the current GTA Alerts user interface based on t
 - **View toggle parity:** The user can toggle between **"Feed"** and **"Table"** views for alerts, matching the prototype’s toggle styling/placement. The toggle is client-side and does not trigger navigation.
 - **Table behavior parity:** The Table view supports expandable rows for summaries as shown in the prototype (an expanded detail row beneath the selected incident row).
 - **Theme integration:** Public Sans is available, and required prototype tokens/utilities are integrated so Tailwind classes render correctly (no missing `bg-*`/`text-*` utilities used by the new UI).
-  - Includes FEED-016 palette delta where white panel backgrounds render as `rgb(255, 127, 0)` within `.gta-alerts-theme`.
 - **No functional regressions:** Existing GTA Alerts behavior remains intact: debounced search, filter links (Inertia), infinite scroll, details view (unless explicitly replaced by in-table expansion), and routing.
 - **Automated quality:** `pnpm run quality:check` passes for the updated UI. (If shared layout assets are modified, PHP/Laravel tests should remain green as well.)
 - **Phase 4 verification complete:** Playwright MCP or Playwright CLI validation against `http://localhost:8080/` passes for required desktop/mobile and interaction scenarios, with artifact references recorded.

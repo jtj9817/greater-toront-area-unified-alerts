@@ -87,7 +87,7 @@
     --color-warning: #ffff00;
     --color-hazard: #ff7f00;
     --color-critical: #cc0000;
-    --color-panel-light: rgb(255, 127, 0);
+    --color-panel-light: #ffffff;
     --color-background-dark: #1a1a1a;
     --color-surface-dark: #1a1a1a;
     --color-input-dark: #1a1a1a;
@@ -230,7 +230,7 @@
     --color-warning: #ffff00;
     --color-hazard: #ff7f00;
     --color-critical: #cc0000;
-    --color-panel-light: rgb(255, 127, 0);
+    --color-panel-light: #ffffff;
     --color-background-dark: #1a1a1a;
     --color-surface-dark: #1a1a1a;
     --color-input-dark: #1a1a1a;
