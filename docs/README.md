@@ -36,6 +36,7 @@ docs/
 ├── reviews/
 │   └── GTA-NOTIF-BEND-REVIEW.md
 ├── runbooks/
+│   ├── design-revamp-phase-4-verification.md
 │   ├── forge-go-live-checklist.md
 │   ├── queue-troubleshooting.md
 │   └── scheduler-troubleshooting.md
@@ -69,6 +70,9 @@ docs/
 │   ├── FEED-012-forge-postgresql-go-live-preflight-checklist.md
 │   ├── FEED-013-arcgis-objectid-sequence-reset.md
 │   ├── FEED-014-queue-worker-137-and-notification-fanout-idempotency.md
+│   ├── FEED-015-footer-weather-stats-hardcoded-placeholder.md
+│   ├── FEED-016-design-revamp-phase-4-verification-findings.md
+│   ├── FEED-017-design-revamp-phase-4-quality-gate-failures.md
 │   └── archive/  (closed tickets)
 ├── archive/
 │   ├── query-refinement-testing.md
@@ -126,6 +130,8 @@ Active work items and feature proposals:
 - **[tickets/FEED-003-saved-filter-presets.md](tickets/FEED-003-saved-filter-presets.md)** - Saved filter presets for quick-access filter combinations (depends on FEED-001)
 - **[tickets/FEED-004-sort-direction-toggle.md](tickets/FEED-004-sort-direction-toggle.md)** - Sort direction toggle in the feed (depends on FEED-001)
 - **[tickets/FEED-014-queue-worker-137-and-notification-fanout-idempotency.md](tickets/FEED-014-queue-worker-137-and-notification-fanout-idempotency.md)** - Stabilize queue worker exit 137 and harden notification fan-out idempotency (critical)
+- **[tickets/FEED-015-footer-weather-stats-hardcoded-placeholder.md](tickets/FEED-015-footer-weather-stats-hardcoded-placeholder.md)** - Replace hardcoded footer weather placeholder with real data source or remove weather panel (design revamp tech debt)
+- **[tickets/FEED-017-design-revamp-phase-4-quality-gate-failures.md](tickets/FEED-017-design-revamp-phase-4-quality-gate-failures.md)** - Resolve remaining design revamp quality-gate failures before track archival
 
 ## Historical Docs Notes
 
@@ -153,5 +159,6 @@ Active work items and feature proposals:
 ## Runbooks
 
 - **[runbooks/forge-go-live-checklist.md](runbooks/forge-go-live-checklist.md)** - Production go-live sequence for Laravel Forge on Hetzner (PostgreSQL)
+- **[runbooks/design-revamp-phase-4-verification.md](runbooks/design-revamp-phase-4-verification.md)** - Local verification workflow for UI Design Revamp Phase 4/5 gates and troubleshooting
 - **[runbooks/scheduler-troubleshooting.md](runbooks/scheduler-troubleshooting.md)** - Scheduler failures, overlap locks, empty feed protection
 - **[runbooks/queue-troubleshooting.md](runbooks/queue-troubleshooting.md)** - Queue backlog and failed job recovery

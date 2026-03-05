@@ -208,6 +208,13 @@ Pest PHP with Feature and Unit suites.
 - `tests/manual/` - Destructive verification scripts
 - Require a running testing database (configured in `.env.testing`). Run via `./scripts/run-manual-test.sh`.
 
+### UI Design Revamp (Prototype Two) Notes
+- The revamp is scoped to GTA Alerts components under `resources/js/features/gta-alerts/` and `.gta-alerts-theme` token overrides in `resources/css/app.css`.
+- Current shell/view contract includes prototype sidebar/header/footer, refresh FAB, Feed/Table toggle, and expandable table summaries.
+- Verification reference spec: `tests/e2e/design-revamp-phase-4.spec.ts`.
+- Verification runbook: `docs/runbooks/design-revamp-phase-4-verification.md`.
+- Open quality-gate debt is tracked in `docs/tickets/FEED-017-design-revamp-phase-4-quality-gate-failures.md`.
+
 ### Production Scheduler
 Dedicated scheduler container (`docker/scheduler/`) runs `php artisan scheduler:run-and-log` every minute:
 - Logs all scheduler output to Laravel logs

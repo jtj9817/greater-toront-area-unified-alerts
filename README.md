@@ -15,6 +15,7 @@ GTA Alerts is built as a data aggregator and API using Laravel, with a high-perf
 - **GO Transit Integration:** Real-time service updates from the Metrolinx JSON API (trains, buses, stations, and delay notifications).
 - **Inertia.js SPA:** A seamless single-page application experience with React 19 and Radix UI.
 - **Production-Ready Scheduler:** Built-in observability for background scraping tasks with heartbeat monitoring and health checks.
+- **Prototype-Two GTA Alerts UI Revamp:** Brutalist high-contrast shell (sidebar/header/footer/FAB), Feed/Table toggle, and expandable incident table summaries for the GTA Alerts surface.
 
 ---
 
@@ -174,6 +175,15 @@ example:
 ```bash
 APP_ENV=testing ./vendor/bin/sail php tests/manual/verify_phase_1_foundations.php
 ```
+
+### UI Revamp Verification (Phase 4/5)
+
+UI Design Revamp verification targets `http://localhost:8080/` and combines:
+- Playwright MCP (or Playwright CLI fallback) artifact capture for browser behavior checks.
+- CI-friendly interaction contract assertions in `tests/e2e/design-revamp-phase-4.spec.ts`.
+
+Primary verification runbook:
+- **[docs/runbooks/design-revamp-phase-4-verification.md](docs/runbooks/design-revamp-phase-4-verification.md)**
 
 ## Feed Query Parameters
 
