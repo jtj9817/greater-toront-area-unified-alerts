@@ -188,14 +188,14 @@ try {
     $sidebarTsx = readFileContents('resources/js/features/gta-alerts/components/Sidebar.tsx');
 
     foreach ([
-        "const navItems = [",
+        'const navItems = [',
         "{ id: 'feed', name: 'Feed', icon: 'feed' }",
         'bg-black',
         'border-[#333333]',
-        "const mobileTranslate = isMobileOpen",
+        'const mobileTranslate = isMobileOpen',
         'onToggleCollapse',
         'onCloseMobile',
-        "currentView === item.id",
+        'currentView === item.id',
         "title={isCollapsed ? 'Expand Sidebar' : 'Collapse Sidebar'}",
     ] as $needle) {
         assertContainsText($needle, $sidebarTsx, "Sidebar.tsx contains expected Phase 2 artifact: {$needle}");

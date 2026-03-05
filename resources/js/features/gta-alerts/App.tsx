@@ -113,6 +113,57 @@ const App: React.FC<AppProps> = ({
     // Sidebar states
     const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+    const closeMobileMenu = useCallback(() => {
+        setIsMobileMenuOpen(false);
+    }, []);
+
+    useEffect(() => {
+        if (typeof window === 'undefined') {
+            return;
+        }
+
+        const handleEscape = (event: KeyboardEvent) => {
+            if (event.key === 'Escape') {
+                closeMobileMenu();
+            }
+        };
+
+        if (isMobileMenuOpen) {
+            window.addEventListener('keydown', handleEscape);
+        }
+
+        return () => {
+            window.removeEventListener('keydown', handleEscape);
+        };
+    }, [closeMobileMenu, isMobileMenuOpen]);
+
+    useEffect(() => {
+        if (
+            typeof window === 'undefined' ||
+            typeof window.matchMedia !== 'function'
+        ) {
+            return;
+        }
+
+        const mediaQuery = window.matchMedia('(min-width: 768px)');
+        const handleViewportChange = (event: MediaQueryListEvent) => {
+            if (event.matches) {
+                closeMobileMenu();
+            }
+        };
+
+        if (typeof mediaQuery.addEventListener === 'function') {
+            mediaQuery.addEventListener('change', handleViewportChange);
+            return () => {
+                mediaQuery.removeEventListener('change', handleViewportChange);
+            };
+        }
+
+        mediaQuery.addListener(handleViewportChange);
+        return () => {
+            mediaQuery.removeListener(handleViewportChange);
+        };
+    }, [closeMobileMenu]);
 
     const routeOptions = useMemo(
         () => normalizeRouteOptions(subscriptionRouteOptions),
@@ -138,7 +189,7 @@ const App: React.FC<AppProps> = ({
     const handleNavigate = (view: string) => {
         setCurrentView(view);
         setActiveAlertId(null);
-        setIsMobileMenuOpen(false); // Close mobile drawer on navigation
+        closeMobileMenu(); // Close mobile drawer on navigation
     };
 
     const handleRefreshFeed = () => {
@@ -223,7 +274,7 @@ const App: React.FC<AppProps> = ({
             {isMobileMenuOpen && (
                 <div
                     className="fixed inset-0 z-[90] bg-black/60 backdrop-blur-sm transition-opacity duration-300 md:hidden"
-                    onClick={() => setIsMobileMenuOpen(false)}
+                    onClick={closeMobileMenu}
                 />
             )}
 
@@ -236,7 +287,7 @@ const App: React.FC<AppProps> = ({
                     setIsSidebarCollapsed(!isSidebarCollapsed)
                 }
                 isMobileOpen={isMobileMenuOpen}
-                onCloseMobile={() => setIsMobileMenuOpen(false)}
+                onCloseMobile={closeMobileMenu}
             />
 
             <div className="relative flex h-full min-w-0 flex-1 flex-col">
@@ -245,9 +296,15 @@ const App: React.FC<AppProps> = ({
                         <div className="flex items-center justify-between border-b border-[#333333] px-4 py-3 md:hidden">
                             <div className="flex items-center gap-2">
                                 <button
-                                    onClick={() => setIsMobileMenuOpen(true)}
+                                    onClick={() =>
+                                        setIsMobileMenuOpen(
+                                            (current) => !current,
+                                        )
+                                    }
                                     className="flex h-10 w-10 items-center justify-center border border-[#333333] bg-[#1a1a1a] text-white transition-colors hover:bg-primary hover:text-black"
                                     aria-label="Open menu"
+                                    aria-controls="gta-alerts-sidebar"
+                                    aria-expanded={isMobileMenuOpen}
                                 >
                                     <Icon
                                         name="menu"

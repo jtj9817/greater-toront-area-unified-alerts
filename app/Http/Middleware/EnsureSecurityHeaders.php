@@ -28,7 +28,7 @@ class EnsureSecurityHeaders
         // Sentinel: Added Content-Security-Policy to mitigate XSS and injection attacks
         // 'unsafe-inline' and 'unsafe-eval' are currently required for Vite/React dev mode compatibility.
         // In a strict production environment, these should be tightened with nonces or hashes.
-        $csp = "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' wss:; frame-ancestors 'self'; form-action 'self';";
+        $csp = "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://fonts.bunny.net; img-src 'self' data: https:; font-src 'self' data: https://fonts.gstatic.com https://fonts.bunny.net; connect-src 'self' wss:; frame-ancestors 'self'; form-action 'self';";
         $response->headers->set('Content-Security-Policy', $csp);
 
         if ($this->shouldAddHsts($request)) {

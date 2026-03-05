@@ -43,6 +43,9 @@ export const AlertTableView: React.FC<AlertTableViewProps> = ({
     savedIds,
 }) => {
     const [expandedRowId, setExpandedRowId] = useState<string | null>(null);
+    const toggleExpandedRow = (rowId: string) => {
+        setExpandedRowId((current) => (current === rowId ? null : rowId));
+    };
 
     const rows = useMemo(
         () =>
@@ -79,7 +82,7 @@ export const AlertTableView: React.FC<AlertTableViewProps> = ({
                             <React.Fragment key={presentation.id}>
                                 <tr
                                     onClick={() =>
-                                        onSelectAlert(presentation.id)
+                                        toggleExpandedRow(presentation.id)
                                     }
                                     className={`expandable-row ${isExpanded ? 'active-row' : ''} ${!isActive ? 'opacity-80 grayscale-[0.35]' : ''}`}
                                 >
@@ -127,10 +130,8 @@ export const AlertTableView: React.FC<AlertTableViewProps> = ({
                                             type="button"
                                             onClick={(event) => {
                                                 event.stopPropagation();
-                                                setExpandedRowId((current) =>
-                                                    current === presentation.id
-                                                        ? null
-                                                        : presentation.id,
+                                                toggleExpandedRow(
+                                                    presentation.id,
                                                 );
                                             }}
                                             aria-label={`${isExpanded ? 'Collapse' : 'Expand'} summary for ${presentation.title}`}

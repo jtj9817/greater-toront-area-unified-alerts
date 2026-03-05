@@ -325,6 +325,56 @@ describe('GTA Alerts App (typed domain enforcement boundary)', () => {
         ).toBeInTheDocument();
     });
 
+    it('keeps the mobile drawer closed by default and toggles open/closed from menu controls', () => {
+        render(<AlertsApp {...buildBaseProps([fireResource()])} />);
+
+        const openMenuButton = screen.getByRole('button', {
+            name: 'Open menu',
+        });
+        const closeMenuButton = screen.getByRole('button', {
+            name: 'Close menu',
+        });
+        const sidebar = closeMenuButton.closest('aside');
+
+        expect(sidebar).not.toBeNull();
+        expect(sidebar).toHaveClass('-translate-x-full');
+        expect(sidebar).toHaveClass('pointer-events-none');
+        expect(openMenuButton).toHaveAttribute('aria-expanded', 'false');
+
+        fireEvent.click(openMenuButton);
+
+        expect(sidebar).toHaveClass('translate-x-0');
+        expect(sidebar).toHaveClass('pointer-events-auto');
+        expect(openMenuButton).toHaveAttribute('aria-expanded', 'true');
+
+        fireEvent.click(closeMenuButton);
+
+        expect(sidebar).toHaveClass('-translate-x-full');
+        expect(sidebar).toHaveClass('pointer-events-none');
+        expect(openMenuButton).toHaveAttribute('aria-expanded', 'false');
+    });
+
+    it('closes the mobile drawer when Escape is pressed', () => {
+        render(<AlertsApp {...buildBaseProps([fireResource()])} />);
+
+        const openMenuButton = screen.getByRole('button', {
+            name: 'Open menu',
+        });
+        const closeMenuButton = screen.getByRole('button', {
+            name: 'Close menu',
+        });
+        const sidebar = closeMenuButton.closest('aside');
+
+        expect(sidebar).not.toBeNull();
+
+        fireEvent.click(openMenuButton);
+        expect(sidebar).toHaveClass('translate-x-0');
+
+        fireEvent.keyDown(window, { key: 'Escape' });
+
+        expect(sidebar).toHaveClass('-translate-x-full');
+    });
+
     it('opens alert details when selecting an inbox alert summary', async () => {
         const fetchMock = vi.fn();
 

@@ -90,7 +90,7 @@ describe('AlertTableView', () => {
         expect(screen.queryByText('Incident Summary')).not.toBeInTheDocument();
     });
 
-    it('keeps incident selection for details on row click', () => {
+    it('expands summary on row click without selecting details', () => {
         const onSelectAlert = vi.fn();
 
         render(
@@ -103,7 +103,8 @@ describe('AlertTableView', () => {
 
         fireEvent.click(screen.getByText('STRUCTURE FIRE'));
 
-        expect(onSelectAlert).toHaveBeenCalledWith('fire:E1');
+        expect(screen.getByText('Incident Summary')).toBeInTheDocument();
+        expect(onSelectAlert).not.toHaveBeenCalled();
     });
 
     it('allows selecting details from the expanded summary action', () => {

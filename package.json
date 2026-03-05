@@ -14,9 +14,10 @@
         "lint:check": "eslint . --config eslint.config.js --no-config-lookup --max-warnings 0",
         "types": "tsc --noEmit",
         "test": "vitest run",
+        "test:ci": "LARAVEL_BYPASS_ENV_CHECK=1 vitest run",
         "test:watch": "vitest",
         "coverage": "vitest run --coverage",
-        "quality:check": "npm run format:check && npm run lint:check && npm run types && npm run test"
+        "quality:check": "npm run format:check && npm run lint:check && npm run types && npm run test:ci"
     },
     "devDependencies": {
         "@eslint/js": "^9.39.3",

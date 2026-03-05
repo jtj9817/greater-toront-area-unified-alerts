@@ -20,7 +20,11 @@ test('security headers are present in response', function () {
         ->and($csp)->toContain("default-src 'self'")
         ->and($csp)->toContain("script-src 'self' 'unsafe-inline' 'unsafe-eval'")
         ->and($csp)->toContain("style-src 'self' 'unsafe-inline'")
+        ->and($csp)->toContain('https://fonts.googleapis.com')
+        ->and($csp)->toContain('https://fonts.bunny.net')
         ->and($csp)->toContain("img-src 'self' data: https:")
+        ->and($csp)->toContain("font-src 'self' data:")
+        ->and($csp)->toContain('https://fonts.gstatic.com')
         ->and($csp)->toContain("frame-ancestors 'self'")
         ->and($csp)->toContain("form-action 'self'");
 });
