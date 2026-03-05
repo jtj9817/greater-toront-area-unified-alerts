@@ -3,7 +3,7 @@ import { Icon } from './Icon';
 
 export const Footer: React.FC = () => {
     return (
-        <footer className="hidden h-12 flex-none items-center justify-between border-t-4 border-primary bg-black px-8 text-[11px] font-black tracking-widest text-white uppercase md:flex">
+        <footer className="hidden h-12 flex-none items-center justify-between border-t-4 border-primary bg-background-dark px-8 text-[11px] font-black tracking-widest text-white uppercase md:flex">
             <div className="flex gap-8">
                 <span className="flex items-center gap-2">
                     <Icon name="thermostat" className="text-xs" />

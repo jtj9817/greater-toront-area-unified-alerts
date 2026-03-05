@@ -291,7 +291,7 @@ const App: React.FC<AppProps> = ({
             />
 
             <div className="relative flex h-full min-w-0 flex-1 flex-col">
-                <header className="z-50 flex-none border-b border-[#333333] bg-black">
+                <header className="z-50 flex-none border-b border-[#333333] bg-background-dark">
                     <div className="w-full">
                         <div className="flex items-center justify-between border-b border-[#333333] px-4 py-3 md:hidden">
                             <div className="flex items-center gap-2">
@@ -349,7 +349,7 @@ const App: React.FC<AppProps> = ({
                                         </span>
                                     </div>
                                     <input
-                                        className="flex h-full w-full min-w-0 resize-none overflow-hidden border border-[#333333] bg-[#1a1a1a] px-4 pl-10 text-sm leading-normal font-bold text-white uppercase placeholder:text-gray-500 focus:border-primary focus:outline-none"
+                                        className="flex h-full w-full min-w-0 resize-none overflow-hidden border border-[#333333] bg-[#1a1a1a] px-4 pl-10 text-sm leading-normal font-bold text-white uppercase placeholder:text-text-secondary/70 focus:border-primary focus:outline-none"
                                         placeholder="Search alerts, streets, or categories..."
                                         value={searchQuery}
                                         onChange={(e) =>

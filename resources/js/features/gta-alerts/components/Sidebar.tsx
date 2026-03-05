@@ -34,7 +34,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
     return (
         <aside
             id="gta-alerts-sidebar"
-            className={`fixed inset-y-0 left-0 z-[100] flex w-[75%] max-w-[280px] flex-none flex-col border-r border-[#333333] bg-black pt-4 pb-4 shadow-2xl transition-all duration-300 ease-in-out md:pointer-events-auto md:relative md:translate-x-0 md:shadow-none ${mobileTranslate} ${sidebarWidth} `}
+            className={`fixed inset-y-0 left-0 z-[100] flex w-[75%] max-w-[280px] flex-none flex-col border-r border-[#333333] bg-background-dark pt-4 pb-4 shadow-2xl transition-all duration-300 ease-in-out md:pointer-events-auto md:relative md:translate-x-0 md:shadow-none ${mobileTranslate} ${sidebarWidth} `}
         >
             <button
                 onClick={onCloseMobile}

@@ -15,7 +15,7 @@ interface AlertTableViewProps {
 const severityStyles: Record<'high' | 'medium' | 'low', string> = {
     high: 'border border-black bg-critical px-3 py-1 text-[10px] text-white',
     medium: 'border border-black bg-warning px-3 py-1 text-[10px] text-black',
-    low: 'border border-black bg-[#d9d9d9] px-3 py-1 text-[10px] text-black',
+    low: 'border border-black bg-panel-light px-3 py-1 text-[10px] text-black',
 };
 
 function getSourceLabel(alert: DomainAlert): string {
@@ -72,7 +72,7 @@ export const AlertTableView: React.FC<AlertTableViewProps> = ({
                         </th>
                     </tr>
                 </thead>
-                <tbody className="bg-black">
+                <tbody className="bg-background-dark">
                     {rows.map(({ alert, presentation }) => {
                         const isExpanded = expandedRowId === presentation.id;
                         const isActive = alert.isActive;
@@ -102,7 +102,7 @@ export const AlertTableView: React.FC<AlertTableViewProps> = ({
                                             className={`px-2 py-1 text-[10px] font-black uppercase ${
                                                 isActive
                                                     ? 'bg-black text-primary'
-                                                    : 'bg-gray-600 text-white'
+                                                    : 'bg-[#333333] text-text-secondary'
                                             }`}
                                         >
                                             {isActive ? 'Active' : 'Cleared'}
@@ -154,7 +154,7 @@ export const AlertTableView: React.FC<AlertTableViewProps> = ({
                                             className="border-b-4 border-black p-0"
                                         >
                                             <div
-                                                className={`m-4 border-l-[12px] bg-[#f0f0f0] p-6 ${presentation.severity === 'high' ? 'border-critical' : 'border-warning'}`}
+                                                className={`m-4 border-l-[12px] bg-white p-6 ${presentation.severity === 'high' ? 'border-critical' : 'border-warning'}`}
                                             >
                                                 <p className="mb-3 text-xs font-black tracking-widest text-critical uppercase">
                                                     Incident Summary

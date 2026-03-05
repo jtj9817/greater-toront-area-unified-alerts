@@ -134,9 +134,9 @@ export const FeedView: React.FC<FeedViewProps> = ({
     return (
         <div className="flex h-full flex-col">
             {/* Sticky Header: Filters */}
-            <div className="sticky top-0 z-30 border-b border-[#333333] bg-black">
+            <div className="sticky top-0 z-30 border-b border-[#333333] bg-background-dark">
                 {/* Row 0: Status */}
-                <div className="border-b border-[#333333] bg-[#1a1a1a] px-4 py-2 md:px-6">
+                <div className="border-b border-[#333333] bg-background-dark px-4 py-2 md:px-6">
                     <div className="flex items-center gap-2">
                         <span className="mr-1 text-[10px] font-bold tracking-widest text-text-secondary/70 uppercase">
                             Status
@@ -165,7 +165,7 @@ export const FeedView: React.FC<FeedViewProps> = ({
                                     className={`flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[11px] font-bold whitespace-nowrap transition-all ${
                                         status === opt.id
                                             ? 'border-black bg-primary text-black'
-                                            : 'border-[#333333] bg-black text-text-secondary hover:border-primary hover:bg-[#202020] hover:text-white'
+                                            : 'border-[#333333] bg-background-dark text-text-secondary hover:border-primary hover:bg-[#333333] hover:text-white'
                                     } ${isFilterLoading ? 'pointer-events-none opacity-50' : ''}`}
                                 >
                                     <Icon name={opt.icon} className="text-sm" />
@@ -173,14 +173,14 @@ export const FeedView: React.FC<FeedViewProps> = ({
                                 </Link>
                             ))}
                         </div>
-                        <span className="ml-auto rounded-full border border-[#333333] bg-black px-2.5 py-1 text-[10px] text-text-secondary">
+                        <span className="ml-auto rounded-full border border-[#333333] bg-background-dark px-2.5 py-1 text-[10px] text-text-secondary">
                             {totalCount} loaded
                         </span>
                     </div>
                 </div>
 
                 {/* Row 1: Categories */}
-                <div className="border-b border-[#333333] bg-[#1a1a1a] px-4 py-3 md:px-6">
+                <div className="border-b border-[#333333] bg-background-dark px-4 py-3 md:px-6">
                     <div className="no-scrollbar mask-linear-fade flex w-full justify-start gap-2 overflow-x-auto pb-1">
                         {categories.map((cat) => {
                             const isSelected = activeCategory === cat.id;
@@ -213,7 +213,7 @@ export const FeedView: React.FC<FeedViewProps> = ({
                                     className={`flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-medium whitespace-nowrap transition-all md:px-4 md:py-2 ${
                                         isSelected
                                             ? 'border-black bg-primary text-black'
-                                            : 'border-[#333333] bg-black text-text-secondary hover:border-primary hover:bg-[#202020] hover:text-white'
+                                            : 'border-[#333333] bg-background-dark text-text-secondary hover:border-primary hover:bg-[#333333] hover:text-white'
                                     } ${isFilterLoading ? 'pointer-events-none opacity-50' : ''}`}
                                 >
                                     <Icon name={cat.icon} className="text-lg" />
@@ -235,7 +235,7 @@ export const FeedView: React.FC<FeedViewProps> = ({
                 )}
 
                 {/* Row 2: Time Window + View Toggle */}
-                <div className="flex flex-wrap items-center gap-3 border-b border-[#333333] bg-[#1a1a1a] px-4 py-2 md:px-6">
+                <div className="flex flex-wrap items-center gap-3 border-b border-[#333333] bg-background-dark px-4 py-2 md:px-6">
                     <div className="flex items-center gap-3">
                         {/* Time Window Selector */}
                         <div className="group relative">
@@ -270,7 +270,7 @@ export const FeedView: React.FC<FeedViewProps> = ({
                                         },
                                     )
                                 }
-                                className="w-36 cursor-pointer appearance-none rounded-lg border border-[#333333] bg-black py-1.5 pr-8 pl-8 text-xs text-white transition-colors outline-none hover:border-primary focus:border-primary focus:ring-1 focus:ring-primary disabled:cursor-not-allowed disabled:opacity-50"
+                                className="w-36 cursor-pointer appearance-none rounded-lg border border-[#333333] bg-background-dark py-1.5 pr-8 pl-8 text-xs text-white transition-colors outline-none hover:border-primary focus:border-primary focus:ring-1 focus:ring-primary disabled:cursor-not-allowed disabled:opacity-50"
                             >
                                 {sinceOptions.map((opt) => (
                                     <option
@@ -301,7 +301,7 @@ export const FeedView: React.FC<FeedViewProps> = ({
                         )}
 
                         {/* View Mode Toggle */}
-                        <div className="flex border-2 border-black bg-[#1a1a1a] p-1">
+                        <div className="flex border-2 border-black bg-background-dark p-1">
                             <button
                                 onClick={() => setViewMode('feed')}
                                 aria-label="Feed view"
@@ -341,8 +341,8 @@ export const FeedView: React.FC<FeedViewProps> = ({
                 {/* Loading Overlay */}
                 {isFilterLoading && (
                     <div className="absolute inset-0 z-10 flex items-start justify-center pt-20">
-                        <div className="flex items-center gap-2 rounded-lg border border-white/10 bg-surface-dark/90 px-4 py-3 shadow-lg backdrop-blur-sm">
-                            <span className="flex h-4 w-4 animate-spin rounded-full border-2 border-white/20 border-t-primary"></span>
+                        <div className="flex items-center gap-2 rounded-lg border border-[#333333] bg-background-dark px-4 py-3 shadow-lg backdrop-blur-sm">
+                            <span className="flex h-4 w-4 animate-spin rounded-full border-2 border-[#333333] border-t-primary"></span>
                             <span className="text-sm font-medium text-white">
                                 Loading alerts...
                             </span>
@@ -352,11 +352,11 @@ export const FeedView: React.FC<FeedViewProps> = ({
                 <div className="flex w-full flex-col gap-4 md:gap-5">
                     {latestFeedUpdatedAt && (
                         <div className="mb-2 flex items-center justify-between px-1">
-                            <div className="flex items-center gap-2 text-[10px] font-bold tracking-widest text-text-secondary uppercase">
-                                <span className="flex h-1.5 w-1.5 animate-pulse rounded-full bg-forest"></span>
+                            <div className="flex items-center gap-2 text-[10px] font-bold tracking-widest text-warning uppercase">
+                                <span className="flex h-1.5 w-1.5 animate-pulse rounded-full bg-warning"></span>
                                 Live Feed Active
                             </div>
-                            <div className="flex items-center gap-1.5 rounded-full border border-white/5 bg-white/5 px-2.5 py-1 text-[10px] text-text-secondary">
+                            <div className="flex items-center gap-1.5 rounded-full border border-[#333333] bg-black px-2.5 py-1 text-[10px] text-text-secondary">
                                 <Icon
                                     name="history"
                                     className="text-sm opacity-50"
@@ -391,7 +391,7 @@ export const FeedView: React.FC<FeedViewProps> = ({
                         >
                             {isLoadingMore && (
                                 <div className="flex items-center gap-2 text-text-secondary">
-                                    <span className="flex h-4 w-4 animate-spin rounded-full border-2 border-white/20 border-t-primary"></span>
+                                    <span className="flex h-4 w-4 animate-spin rounded-full border-2 border-[#333333] border-t-primary"></span>
                                     <span className="text-sm">
                                         Loading more...
                                     </span>
@@ -404,7 +404,7 @@ export const FeedView: React.FC<FeedViewProps> = ({
                             )}
                             {loadMoreError && (
                                 <div className="flex flex-col items-center gap-2">
-                                    <span className="text-sm text-coral">
+                                    <span className="text-sm text-critical">
                                         {loadMoreError}
                                     </span>
                                     <button
@@ -422,7 +422,7 @@ export const FeedView: React.FC<FeedViewProps> = ({
                 {/* Empty State */}
                 {allAlerts.length === 0 && !isFilterLoading && (
                     <div className="flex animate-in flex-col items-center justify-center py-20 text-center duration-300 fade-in zoom-in">
-                        <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-white/5">
+                        <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-[#333333]/30">
                             <Icon
                                 name="filter_list_off"
                                 className="text-3xl text-text-secondary opacity-30"
@@ -454,7 +454,7 @@ export const FeedView: React.FC<FeedViewProps> = ({
                                     },
                                 )
                             }
-                            className="rounded-lg bg-primary px-6 py-2 text-sm font-bold text-white shadow-lg shadow-primary/20 transition-colors hover:bg-primary/90"
+                            className="rounded-lg bg-primary px-6 py-2 text-sm font-bold text-black shadow-lg shadow-primary/20 transition-colors hover:bg-primary/90"
                         >
                             Reset All Filters
                         </button>

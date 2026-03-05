@@ -74,7 +74,7 @@ Phase 4 Playwright verification against `http://localhost:8080/` surfaced multip
 
 ## New Task
 
-- [ ] Shift the color palette to the following:
+- [x] Shift the color palette to the following:
   - Core Palette
     - Primary / Hazard (`#FF7F00`): A vibrant safety orange used for active navigation states, key icons, and primary action buttons.
     - Background / Brand Dark (`#1A1A1A`): A deep charcoal used for the main background, sidebar, and header, providing a dark, focused environment.
@@ -91,3 +91,8 @@ Phase 4 Playwright verification against `http://localhost:8080/` surfaced multip
 
 - Fixes applied in `resources/js/features/gta-alerts/App.tsx` and `resources/js/features/gta-alerts/components/FeedView.tsx` to remove width constraints and align feed controls with the high-contrast revamp treatment.
 - Verification commands passed on 2026-03-05: targeted Vitest scopes (`FeedView.test.tsx`, `App.test.tsx`, `App.url-state.test.tsx`), `./vendor/bin/pint`, `composer lint && pnpm run lint && pnpm run format && pnpm run types`, `pnpm run quality:check`, and `composer test`.
+- Palette shift applied on 2026-03-05 across `resources/css/app.css`, `resources/js/features/gta-alerts/components/FeedView.tsx`, `resources/js/features/gta-alerts/components/AlertCard.tsx`, `resources/js/features/gta-alerts/components/AlertTableView.tsx`, `resources/js/features/gta-alerts/components/Sidebar.tsx`, `resources/js/features/gta-alerts/components/Footer.tsx`, and `resources/js/features/gta-alerts/App.tsx`.
+- Verification evidence for this task on 2026-03-05:
+  - `pnpm test resources/js/features/gta-alerts/components/FeedView.test.tsx resources/js/features/gta-alerts/components/AlertCard.test.tsx resources/js/features/gta-alerts/components/AlertTableView.test.tsx resources/js/features/gta-alerts/App.test.tsx resources/js/features/gta-alerts/App.url-state.test.tsx` (pass)
+  - `pnpm run lint:check` (pass)
+  - `pnpm run types` (fails on unrelated existing import resolution issue in `resources/js/pages/settings/password.tsx`: TS2307 for `@/actions/App/Http/Controllers/Settings/PasswordController`)

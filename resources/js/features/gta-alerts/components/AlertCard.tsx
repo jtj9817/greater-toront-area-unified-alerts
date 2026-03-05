@@ -45,7 +45,7 @@ export const AlertCard: React.FC<AlertCardProps> = ({
             ? 'border-2 border-black bg-critical text-white'
             : item.severity === 'medium'
               ? 'border-2 border-black bg-warning text-black'
-              : 'border-2 border-black bg-[#d9d9d9] text-black';
+              : 'border-2 border-black bg-panel-light text-black';
     const summaryBorderClass =
         item.severity === 'high' ? 'border-critical' : 'border-warning';
 
@@ -57,13 +57,13 @@ export const AlertCard: React.FC<AlertCardProps> = ({
             <div className="flex flex-col gap-5 md:flex-row">
                 <div className="flex items-center justify-between gap-3 border-b-2 border-black pb-3 md:w-28 md:flex-col md:items-center md:justify-start md:border-r-2 md:border-b-0 md:pr-4 md:pb-0">
                     <span
-                        className={`text-sm font-black uppercase ${isActive ? 'text-black' : 'text-gray-500'}`}
+                        className={`text-sm font-black uppercase ${isActive ? 'text-black' : 'text-text-secondary'}`}
                     >
                         {formatTimestampEST(item.timestamp)}
                     </span>
                     <div className="h-1 w-full bg-black md:my-2"></div>
                     <span
-                        className={`px-2 py-1 text-[10px] font-black tracking-widest uppercase ${isActive ? 'bg-black text-primary' : 'bg-gray-600 text-white'}`}
+                        className={`px-2 py-1 text-[10px] font-black tracking-widest uppercase ${isActive ? 'bg-black text-primary' : 'bg-[#333333] text-text-secondary'}`}
                     >
                         {isActive ? 'Active' : 'Cleared'}
                     </span>
@@ -110,7 +110,7 @@ export const AlertCard: React.FC<AlertCardProps> = ({
                     </p>
 
                     <div
-                        className={`border-l-[12px] bg-[#f0f0f0] p-4 ${summaryBorderClass}`}
+                        className={`border-l-[12px] bg-white p-4 ${summaryBorderClass}`}
                     >
                         <p className="mb-2 text-[11px] font-black tracking-widest text-critical uppercase">
                             Incident Summary
