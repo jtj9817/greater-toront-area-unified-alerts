@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { formatTimestampEST } from '@/lib/utils';
 import {
     mapDomainAlertToPresentation,
@@ -13,92 +13,197 @@ interface AlertTableViewProps {
 }
 
 const severityStyles: Record<'high' | 'medium' | 'low', string> = {
-    high: 'bg-[#e05560]/15 text-[#e05560] border-[#e05560]/20',
-    medium: 'bg-[#f0b040]/15 text-[#f0b040] border-[#f0b040]/20',
-    low: 'bg-white/10 text-[#8b95a5] border-white/10',
+    high: 'border border-black bg-critical px-3 py-1 text-[10px] text-white',
+    medium: 'border border-black bg-warning px-3 py-1 text-[10px] text-black',
+    low: 'border border-black bg-[#d9d9d9] px-3 py-1 text-[10px] text-black',
 };
+
+function getSourceLabel(alert: DomainAlert): string {
+    switch (alert.kind) {
+        case 'fire':
+            return 'Toronto Fire';
+        case 'police':
+            return 'Toronto Police';
+        case 'transit':
+            return 'TTC';
+        case 'go_transit':
+            return 'GO Transit';
+    }
+}
+
+function formatSeverityLabel(severity: 'high' | 'medium' | 'low'): string {
+    if (severity === 'high') return 'Critical Severity';
+    if (severity === 'medium') return 'Medium Priority';
+    return 'Low Priority';
+}
 
 export const AlertTableView: React.FC<AlertTableViewProps> = ({
     items,
     onSelectAlert,
     savedIds,
 }) => {
+    const [expandedRowId, setExpandedRowId] = useState<string | null>(null);
+
     const rows = useMemo(
-        () => items.map((item) => mapDomainAlertToPresentation(item)),
+        () =>
+            items.map((alert) => ({
+                alert,
+                presentation: mapDomainAlertToPresentation(alert),
+            })),
         [items],
     );
 
     return (
-        <div className="w-full overflow-x-auto rounded-lg border border-white/5">
-            <table className="w-full min-w-[700px]">
+        <div className="panel-shadow w-full overflow-x-auto border-4 border-black">
+            <table className="incident-table w-full min-w-[780px] border-collapse">
                 <thead>
-                    <tr className="border-b border-white/10 bg-surface-dark">
-                        <th className="px-4 py-3 text-left text-[10px] font-bold tracking-widest text-text-secondary uppercase">
-                            Type
+                    <tr>
+                        <th>Timestamp</th>
+                        <th>Incident Type</th>
+                        <th>Location</th>
+                        <th>Status</th>
+                        <th>Severity</th>
+                        <th>Source</th>
+                        <th className="w-10">
+                            <span className="sr-only">Expand</span>
                         </th>
-                        <th className="px-4 py-3 text-left text-[10px] font-bold tracking-widest text-text-secondary uppercase">
-                            Severity
-                        </th>
-                        <th className="px-4 py-3 text-left text-[10px] font-bold tracking-widest text-text-secondary uppercase">
-                            Title
-                        </th>
-                        <th className="px-4 py-3 text-left text-[10px] font-bold tracking-widest text-text-secondary uppercase">
-                            Location
-                        </th>
-                        <th className="px-4 py-3 text-left text-[10px] font-bold tracking-widest text-text-secondary uppercase">
-                            Time
-                        </th>
-                        <th className="w-10 px-2 py-3"></th>
                     </tr>
                 </thead>
-                <tbody>
-                    {rows.map((item) => (
-                        <tr
-                            key={item.id}
-                            onClick={() => onSelectAlert(item.id)}
-                            className={`cursor-pointer border-b border-white/5 transition-colors hover:bg-white/5 ${
-                                savedIds.has(item.id) ? 'bg-primary/5' : ''
-                            }`}
-                        >
-                            <td className="px-4 py-3">
-                                <div className="flex items-center gap-2">
-                                    <span
-                                        className={`h-2 w-2 rounded-full ${item.accentColor}`}
-                                    />
-                                    <span className="text-xs font-medium text-white capitalize">
-                                        {item.type}
-                                    </span>
-                                </div>
-                            </td>
-                            <td className="px-4 py-3">
-                                <span
-                                    className={`inline-flex rounded-full border px-2 py-0.5 text-[10px] font-bold uppercase ${severityStyles[item.severity]}`}
+                <tbody className="bg-black">
+                    {rows.map(({ alert, presentation }) => {
+                        const isExpanded = expandedRowId === presentation.id;
+                        const isActive = alert.isActive;
+                        const sourceLabel = getSourceLabel(alert);
+
+                        return (
+                            <React.Fragment key={presentation.id}>
+                                <tr
+                                    onClick={() =>
+                                        onSelectAlert(presentation.id)
+                                    }
+                                    className={`expandable-row ${isExpanded ? 'active-row' : ''} ${!isActive ? 'opacity-80 grayscale-[0.35]' : ''}`}
                                 >
-                                    {item.severity}
-                                </span>
-                            </td>
-                            <td className="max-w-[300px] truncate px-4 py-3 text-sm font-medium text-white">
-                                {item.title}
-                            </td>
-                            <td className="max-w-[200px] truncate px-4 py-3 text-xs text-text-secondary">
-                                {item.location}
-                            </td>
-                            <td className="px-4 py-3">
-                                <div className="text-xs text-white">
-                                    {formatTimestampEST(item.timestamp)}
-                                </div>
-                                <div className="text-[10px] text-text-secondary">
-                                    {item.timeAgo}
-                                </div>
-                            </td>
-                            <td className="px-2 py-3">
-                                <Icon
-                                    name="chevron_right"
-                                    className="text-sm text-white/30"
-                                />
-                            </td>
-                        </tr>
-                    ))}
+                                    <td className="font-black">
+                                        {formatTimestampEST(
+                                            presentation.timestamp,
+                                        )}
+                                    </td>
+                                    <td className="tracking-tight uppercase">
+                                        {presentation.title}
+                                    </td>
+                                    <td className="underline decoration-primary decoration-2">
+                                        {presentation.location}
+                                    </td>
+                                    <td>
+                                        <span
+                                            className={`px-2 py-1 text-[10px] font-black uppercase ${
+                                                isActive
+                                                    ? 'bg-black text-primary'
+                                                    : 'bg-gray-600 text-white'
+                                            }`}
+                                        >
+                                            {isActive ? 'Active' : 'Cleared'}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span
+                                            className={`font-black uppercase ${severityStyles[presentation.severity]}`}
+                                        >
+                                            {formatSeverityLabel(
+                                                presentation.severity,
+                                            )}
+                                        </span>
+                                    </td>
+                                    <td className="text-xs tracking-wide uppercase">
+                                        {sourceLabel}
+                                        {savedIds.has(presentation.id) && (
+                                            <span className="ml-2 bg-primary px-2 py-1 text-[10px] font-black text-black uppercase">
+                                                Saved
+                                            </span>
+                                        )}
+                                    </td>
+                                    <td>
+                                        <button
+                                            type="button"
+                                            onClick={(event) => {
+                                                event.stopPropagation();
+                                                setExpandedRowId((current) =>
+                                                    current === presentation.id
+                                                        ? null
+                                                        : presentation.id,
+                                                );
+                                            }}
+                                            aria-label={`${isExpanded ? 'Collapse' : 'Expand'} summary for ${presentation.title}`}
+                                            className="flex h-8 w-8 items-center justify-center transition-colors hover:bg-black hover:text-primary"
+                                        >
+                                            <Icon
+                                                name={
+                                                    isExpanded
+                                                        ? 'expand_less'
+                                                        : 'expand_more'
+                                                }
+                                            />
+                                        </button>
+                                    </td>
+                                </tr>
+                                {isExpanded && (
+                                    <tr className="bg-panel-light text-black">
+                                        <td
+                                            colSpan={7}
+                                            className="border-b-4 border-black p-0"
+                                        >
+                                            <div
+                                                className={`m-4 border-l-[12px] bg-[#f0f0f0] p-6 ${presentation.severity === 'high' ? 'border-critical' : 'border-warning'}`}
+                                            >
+                                                <p className="mb-3 text-xs font-black tracking-widest text-critical uppercase">
+                                                    Incident Summary
+                                                </p>
+                                                <p className="text-base leading-relaxed font-bold">
+                                                    {presentation.description}
+                                                </p>
+                                                <div className="mt-4 flex flex-wrap gap-3 text-[10px] font-black uppercase">
+                                                    <span className="border-2 border-black bg-white px-3 py-1">
+                                                        Event #
+                                                        {
+                                                            presentation
+                                                                .metadata
+                                                                ?.eventNum
+                                                        }
+                                                    </span>
+                                                    {presentation.metadata
+                                                        ?.unitsDispatched && (
+                                                        <span className="flex items-center gap-1 border-2 border-black bg-white px-3 py-1">
+                                                            <Icon
+                                                                name="fire_truck"
+                                                                className="text-sm"
+                                                            />
+                                                            {
+                                                                presentation
+                                                                    .metadata
+                                                                    .unitsDispatched
+                                                            }
+                                                        </span>
+                                                    )}
+                                                    <button
+                                                        type="button"
+                                                        onClick={(event) => {
+                                                            event.stopPropagation();
+                                                            onSelectAlert(
+                                                                presentation.id,
+                                                            );
+                                                        }}
+                                                        className="border-2 border-black bg-primary px-3 py-1 text-black transition-colors hover:bg-black hover:text-primary"
+                                                    >
+                                                        View Details
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                )}
+                            </React.Fragment>
+                        );
+                    })}
                 </tbody>
             </table>
         </div>

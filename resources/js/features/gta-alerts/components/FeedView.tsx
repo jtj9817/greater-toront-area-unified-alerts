@@ -30,7 +30,7 @@ export const FeedView: React.FC<FeedViewProps> = ({
     since = null,
 }) => {
     // State for Filters
-    const [viewMode, setViewMode] = useState<'cards' | 'table'>('cards');
+    const [viewMode, setViewMode] = useState<'feed' | 'table'>('feed');
 
     // Loading state detection from Inertia router events
     const [isFilterLoading, setIsFilterLoading] = useState(false);
@@ -301,27 +301,32 @@ export const FeedView: React.FC<FeedViewProps> = ({
                         )}
 
                         {/* View Mode Toggle */}
-                        <div className="flex items-center rounded-lg border border-white/10 bg-surface-dark">
+                        <div className="flex border-2 border-black bg-[#1a1a1a] p-1">
                             <button
-                                onClick={() => setViewMode('cards')}
-                                className={`flex items-center gap-1.5 rounded-l-lg px-3 py-1.5 text-xs font-medium transition-all ${
-                                    viewMode === 'cards'
-                                        ? 'bg-white/10 text-white'
-                                        : 'text-text-secondary hover:text-white'
+                                onClick={() => setViewMode('feed')}
+                                aria-label="Feed view"
+                                className={`flex items-center gap-2 px-4 py-2 text-xs font-black tracking-wide uppercase transition-colors ${
+                                    viewMode === 'feed'
+                                        ? 'bg-primary text-black'
+                                        : 'text-white hover:text-primary'
                                 }`}
                             >
-                                <Icon name="grid_view" className="text-sm" />
-                                Cards
+                                <Icon
+                                    name="view_agenda"
+                                    className="text-base"
+                                />
+                                Feed
                             </button>
                             <button
                                 onClick={() => setViewMode('table')}
-                                className={`flex items-center gap-1.5 rounded-r-lg px-3 py-1.5 text-xs font-medium transition-all ${
+                                aria-label="Table view"
+                                className={`flex items-center gap-2 px-4 py-2 text-xs font-black tracking-wide uppercase transition-colors ${
                                     viewMode === 'table'
-                                        ? 'bg-white/10 text-white'
-                                        : 'text-text-secondary hover:text-white'
+                                        ? 'bg-primary text-black'
+                                        : 'text-white hover:text-primary'
                                 }`}
                             >
-                                <Icon name="table_rows" className="text-sm" />
+                                <Icon name="table_rows" className="text-base" />
                                 Table
                             </button>
                         </div>
@@ -361,7 +366,7 @@ export const FeedView: React.FC<FeedViewProps> = ({
                         </div>
                     )}
 
-                    {viewMode === 'cards' ? (
+                    {viewMode === 'feed' ? (
                         allAlerts.map((item) => (
                             <AlertCard
                                 key={item.id}

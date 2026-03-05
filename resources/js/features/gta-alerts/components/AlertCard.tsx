@@ -32,85 +32,116 @@ export const AlertCard: React.FC<AlertCardProps> = ({
 }) => {
     const item = useMemo(() => mapDomainAlertToPresentation(alert), [alert]);
     const sourceLabel = getSourceLabel(alert);
+    const isActive = alert.isActive;
+    const eventReference = item.metadata?.eventNum ?? alert.externalId;
+    const severityLabel =
+        item.severity === 'high'
+            ? 'Critical Severity'
+            : item.severity === 'medium'
+              ? 'Medium Priority'
+              : 'Low Priority';
+    const severityClasses =
+        item.severity === 'high'
+            ? 'border-2 border-black bg-critical text-white'
+            : item.severity === 'medium'
+              ? 'border-2 border-black bg-warning text-black'
+              : 'border-2 border-black bg-[#d9d9d9] text-black';
+    const summaryBorderClass =
+        item.severity === 'high' ? 'border-critical' : 'border-warning';
 
     return (
         <article
             onClick={onViewDetails}
-            className={`group relative h-full cursor-pointer overflow-hidden rounded-lg bg-surface-dark p-4 transition-all duration-200 ${
-                isSaved
-                    ? 'border border-primary/50 shadow-[0_0_15px_rgba(59,130,246,0.15)]'
-                    : 'border border-white/5 shadow-lg shadow-black/20 hover:border-white/10 hover:shadow-[0_0_15px_rgba(59,130,246,0.06)]'
-            } `}
+            className={`group panel-shadow cursor-pointer border-4 border-black bg-panel-light p-5 text-black transition-all duration-150 hover:-translate-x-[1px] hover:-translate-y-[1px] hover:shadow-[9px_9px_0_#000] ${isActive ? '' : 'opacity-80 grayscale'} ${isSaved ? 'ring-2 ring-primary' : ''}`}
         >
-            <div
-                className={`absolute top-0 bottom-0 left-0 w-1 ${item.accentColor} ${isSaved ? 'opacity-100' : 'opacity-80 group-hover:w-1.5 group-hover:opacity-100'} transition-all`}
-            ></div>
+            <div className="flex flex-col gap-5 md:flex-row">
+                <div className="flex items-center justify-between gap-3 border-b-2 border-black pb-3 md:w-28 md:flex-col md:items-center md:justify-start md:border-r-2 md:border-b-0 md:pr-4 md:pb-0">
+                    <span
+                        className={`text-sm font-black uppercase ${isActive ? 'text-black' : 'text-gray-500'}`}
+                    >
+                        {formatTimestampEST(item.timestamp)}
+                    </span>
+                    <div className="h-1 w-full bg-black md:my-2"></div>
+                    <span
+                        className={`px-2 py-1 text-[10px] font-black tracking-widest uppercase ${isActive ? 'bg-black text-primary' : 'bg-gray-600 text-white'}`}
+                    >
+                        {isActive ? 'Active' : 'Cleared'}
+                    </span>
+                </div>
 
-            {/* Saved Background Highlight */}
-            {isSaved && (
-                <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-transparent" />
-            )}
-
-            <div className="relative z-10 flex h-full flex-col pl-3">
-                <div className="mb-2 flex items-start justify-between">
-                    <div className="pr-8">
-                        <div className="mb-1 flex items-center gap-2">
+                <div className="flex-1">
+                    <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+                        <div className="flex flex-wrap items-center gap-2">
+                            <h4 className="text-xl leading-tight font-black tracking-tight uppercase md:text-2xl">
+                                {item.title}
+                            </h4>
                             <span
-                                className={`h-2 w-2 rounded-full ${item.severity === 'high' ? 'animate-pulse bg-coral' : 'bg-gray-500'}`}
-                            ></span>
-                            <span className="text-[10px] font-bold tracking-wider text-primary uppercase">
-                                {item.type}
+                                className={`px-3 py-1 text-[10px] font-black tracking-wider uppercase ${severityClasses}`}
+                            >
+                                {severityLabel}
                             </span>
-                            <span className="text-[10px] font-semibold tracking-wide text-white/50 uppercase">
+                        </div>
+                        <div className="flex items-center gap-2 text-[10px] font-black tracking-wider uppercase">
+                            <span className="border-2 border-black bg-white px-2 py-1">
                                 {sourceLabel}
                             </span>
                             {isSaved && (
-                                <span className="ml-1 animate-in rounded bg-primary px-1.5 py-0.5 text-[9px] font-bold text-white fade-in slide-in-from-left-2">
+                                <span className="border-2 border-black bg-primary px-2 py-1 text-black">
                                     SAVED
                                 </span>
                             )}
                         </div>
-                        <h4 className="text-lg leading-tight font-medium text-white">
-                            {item.title}
-                        </h4>
                     </div>
 
-                    <div className="flex gap-2">
-                        {isSaved ? (
-                            <span className="animate-in rounded-lg border border-primary/20 bg-primary/10 p-2 text-primary duration-300 zoom-in">
-                                <Icon name="bookmark" fill={true} />
-                            </span>
-                        ) : (
-                            <span
-                                className={`rounded-lg bg-white/5 p-2 ${item.iconColor} opacity-70 transition-opacity group-hover:opacity-100`}
-                            >
-                                <Icon name={item.iconName} />
+                    <p className="mb-4 flex flex-wrap items-center gap-2 text-sm font-bold">
+                        <Icon
+                            name="location_on"
+                            className={`text-base ${item.iconColor}`}
+                        />
+                        <span className="underline decoration-primary decoration-2">
+                            {item.location}
+                        </span>
+                        <span className="text-black/60">|</span>
+                        <Icon
+                            name="schedule"
+                            className={`text-base ${item.iconColor}`}
+                        />
+                        <span>{item.timeAgo}</span>
+                    </p>
+
+                    <div
+                        className={`border-l-[12px] bg-[#f0f0f0] p-4 ${summaryBorderClass}`}
+                    >
+                        <p className="mb-2 text-[11px] font-black tracking-widest text-critical uppercase">
+                            Incident Summary
+                        </p>
+                        <p className="text-sm leading-relaxed font-bold">
+                            {item.description}
+                        </p>
+                    </div>
+
+                    <div className="mt-4 flex flex-wrap items-center gap-3 text-[10px] font-black tracking-wider uppercase">
+                        <span className="flex items-center gap-1 border-2 border-black bg-white px-2 py-1">
+                            <Icon
+                                name={item.iconName}
+                                className={item.iconColor}
+                            />
+                            Event #{eventReference}
+                        </span>
+                        {item.metadata?.unitsDispatched && (
+                            <span className="flex items-center gap-1 border-2 border-black bg-white px-2 py-1">
+                                <Icon name="fire_truck" className="text-sm" />
+                                {item.metadata.unitsDispatched}
                             </span>
                         )}
+                        <span className="ml-auto flex items-center gap-1 text-primary">
+                            View Details
+                            <Icon
+                                name="arrow_forward"
+                                className="text-sm transition-transform group-hover:translate-x-1"
+                            />
+                        </span>
                     </div>
-                </div>
-
-                <p className="mb-3 flex items-center gap-1.5 text-xs font-medium text-text-secondary opacity-80">
-                    <Icon name="location_on" className="text-[14px]" />
-                    {item.location}
-                    <span className="mx-1 h-1 w-1 rounded-full bg-white/20"></span>
-                    <Icon name="schedule" className="text-[14px]" />
-                    {formatTimestampEST(item.timestamp)}
-                    <span className="text-white/30">({item.timeAgo})</span>
-                </p>
-
-                <p className="mb-4 line-clamp-3 flex-1 text-sm leading-relaxed font-normal text-gray-300">
-                    {item.description}
-                </p>
-
-                <div className="mt-auto flex items-center justify-between border-t border-white/5 pt-3">
-                    <span className="text-xs font-medium text-primary group-hover:underline">
-                        View Details
-                    </span>
-                    <Icon
-                        name="arrow_forward"
-                        className="-ml-2 text-sm text-primary opacity-0 transition-all group-hover:translate-x-2 group-hover:opacity-100"
-                    />
                 </div>
             </div>
         </article>
