@@ -175,7 +175,7 @@ function TwoFactorVerificationStep({
                     >
                         <div className="flex w-full flex-col items-center space-y-3 py-2">
                             <InputOTP
-                                id="otp"
+                                id="two-factor-setup-verification-otp-input"
                                 name="code"
                                 maxLength={OTP_MAX_LENGTH}
                                 onChange={setCode}

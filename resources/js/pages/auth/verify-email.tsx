@@ -16,21 +16,33 @@ export default function VerifyEmail({ status }: { status?: string }) {
             <Head title="Email verification" />
 
             {status === 'verification-link-sent' && (
-                <div className="mb-4 text-center text-sm font-medium text-green-600">
+                <div
+                    id="auth-verify-email-status-message"
+                    className="mb-4 text-center text-sm font-medium text-green-600"
+                >
                     A new verification link has been sent to the email address
                     you provided during registration.
                 </div>
             )}
 
-            <Form {...send.form()} className="space-y-6 text-center">
+            <Form
+                id="auth-verify-email-form"
+                {...send.form()}
+                className="space-y-6 text-center"
+            >
                 {({ processing }) => (
                     <>
-                        <Button disabled={processing} variant="secondary">
+                        <Button
+                            id="auth-verify-email-resend-btn"
+                            disabled={processing}
+                            variant="secondary"
+                        >
                             {processing && <Spinner />}
                             Resend verification email
                         </Button>
 
                         <TextLink
+                            id="auth-verify-email-logout-link"
                             href={logout()}
                             className="mx-auto block text-sm"
                         >

@@ -52,8 +52,9 @@ export default function TwoFactorChallenge() {
         >
             <Head title="Two-Factor Authentication" />
 
-            <div className="space-y-6">
+            <div id="auth-two-factor-challenge-content" className="space-y-6">
                 <Form
+                    id="auth-two-factor-challenge-form"
                     {...store.form()}
                     className="space-y-4"
                     resetOnError
@@ -64,6 +65,7 @@ export default function TwoFactorChallenge() {
                             {showRecoveryInput ? (
                                 <>
                                     <Input
+                                        id="auth-two-factor-recovery-code-input"
                                         name="recovery_code"
                                         type="text"
                                         placeholder="Enter recovery code"
@@ -71,6 +73,7 @@ export default function TwoFactorChallenge() {
                                         required
                                     />
                                     <InputError
+                                        id="auth-two-factor-recovery-code-error"
                                         message={errors.recovery_code}
                                     />
                                 </>
@@ -78,6 +81,7 @@ export default function TwoFactorChallenge() {
                                 <div className="flex flex-col items-center justify-center space-y-3 text-center">
                                     <div className="flex w-full items-center justify-center">
                                         <InputOTP
+                                            id="auth-two-factor-otp-input"
                                             name="code"
                                             maxLength={OTP_MAX_LENGTH}
                                             value={code}
@@ -103,6 +107,7 @@ export default function TwoFactorChallenge() {
                             )}
 
                             <Button
+                                id="auth-two-factor-submit-btn"
                                 type="submit"
                                 className="w-full"
                                 disabled={processing}
@@ -113,6 +118,7 @@ export default function TwoFactorChallenge() {
                             <div className="text-center text-sm text-muted-foreground">
                                 <span>or you can </span>
                                 <button
+                                    id="auth-two-factor-toggle-mode-btn"
                                     type="button"
                                     className="cursor-pointer text-foreground underline decoration-neutral-300 underline-offset-4 transition-colors duration-300 ease-out hover:decoration-current! dark:decoration-neutral-500"
                                     onClick={() =>

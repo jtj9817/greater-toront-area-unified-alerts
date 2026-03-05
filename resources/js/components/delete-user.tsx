@@ -81,14 +81,14 @@ export default function DeleteUser() {
                                     >
                                         <Label
                                             id="delete-user-password-label"
-                                            htmlFor="password"
+                                            htmlFor="delete-user-password-input"
                                             className="sr-only"
                                         >
                                             Password
                                         </Label>
 
                                         <Input
-                                            id="password"
+                                            id="delete-user-password-input"
                                             type="password"
                                             name="password"
                                             ref={passwordInput}

@@ -39,11 +39,14 @@ export default function Login({
                     <>
                         <div id="login-form-fields" className="grid gap-6">
                             <div id="login-email-group" className="grid gap-2">
-                                <Label id="login-email-label" htmlFor="email">
+                                <Label
+                                    id="login-email-label"
+                                    htmlFor="auth-login-email-input"
+                                >
                                     Email address
                                 </Label>
                                 <Input
-                                    id="email"
+                                    id="auth-login-email-input"
                                     type="email"
                                     name="email"
                                     required
@@ -68,7 +71,7 @@ export default function Login({
                                 >
                                     <Label
                                         id="login-password-label"
-                                        htmlFor="password"
+                                        htmlFor="auth-login-password-input"
                                     >
                                         Password
                                     </Label>
@@ -84,7 +87,7 @@ export default function Login({
                                     )}
                                 </div>
                                 <Input
-                                    id="password"
+                                    id="auth-login-password-input"
                                     type="password"
                                     name="password"
                                     required

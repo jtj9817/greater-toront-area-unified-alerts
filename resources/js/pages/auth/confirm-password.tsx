@@ -15,13 +15,22 @@ export default function ConfirmPassword() {
         >
             <Head title="Confirm password" />
 
-            <Form {...store.form()} resetOnSuccess={['password']}>
+            <Form
+                id="auth-confirm-password-form"
+                {...store.form()}
+                resetOnSuccess={['password']}
+            >
                 {({ processing, errors }) => (
-                    <div className="space-y-6">
-                        <div className="grid gap-2">
-                            <Label htmlFor="password">Password</Label>
+                    <div id="auth-confirm-password-content" className="space-y-6">
+                        <div id="auth-confirm-password-input-group" className="grid gap-2">
+                            <Label
+                                id="auth-confirm-password-label"
+                                htmlFor="auth-confirm-password-input"
+                            >
+                                Password
+                            </Label>
                             <Input
-                                id="password"
+                                id="auth-confirm-password-input"
                                 type="password"
                                 name="password"
                                 placeholder="Password"
@@ -29,11 +38,15 @@ export default function ConfirmPassword() {
                                 autoFocus
                             />
 
-                            <InputError message={errors.password} />
+                            <InputError
+                                id="auth-confirm-password-error"
+                                message={errors.password}
+                            />
                         </div>
 
                         <div className="flex items-center">
                             <Button
+                                id="auth-confirm-password-submit-btn"
                                 className="w-full"
                                 disabled={processing}
                                 data-test="confirm-password-button"

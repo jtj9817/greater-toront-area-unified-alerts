@@ -21,16 +21,22 @@ export default function ResetPassword({ token, email }: Props) {
             <Head title="Reset password" />
 
             <Form
+                id="auth-reset-password-form"
                 {...update.form()}
                 transform={(data) => ({ ...data, token, email })}
                 resetOnSuccess={['password', 'password_confirmation']}
             >
                 {({ processing, errors }) => (
-                    <div className="grid gap-6">
-                        <div className="grid gap-2">
-                            <Label htmlFor="email">Email</Label>
+                    <div id="auth-reset-password-fields" className="grid gap-6">
+                        <div id="auth-reset-password-email-group" className="grid gap-2">
+                            <Label
+                                id="auth-reset-password-email-label"
+                                htmlFor="auth-reset-password-email-input"
+                            >
+                                Email
+                            </Label>
                             <Input
-                                id="email"
+                                id="auth-reset-password-email-input"
                                 type="email"
                                 name="email"
                                 autoComplete="email"
@@ -39,15 +45,21 @@ export default function ResetPassword({ token, email }: Props) {
                                 readOnly
                             />
                             <InputError
+                                id="auth-reset-password-email-error"
                                 message={errors.email}
                                 className="mt-2"
                             />
                         </div>
 
-                        <div className="grid gap-2">
-                            <Label htmlFor="password">Password</Label>
+                        <div id="auth-reset-password-password-group" className="grid gap-2">
+                            <Label
+                                id="auth-reset-password-password-label"
+                                htmlFor="auth-reset-password-password-input"
+                            >
+                                Password
+                            </Label>
                             <Input
-                                id="password"
+                                id="auth-reset-password-password-input"
                                 type="password"
                                 name="password"
                                 autoComplete="new-password"
@@ -55,15 +67,24 @@ export default function ResetPassword({ token, email }: Props) {
                                 autoFocus
                                 placeholder="Password"
                             />
-                            <InputError message={errors.password} />
+                            <InputError
+                                id="auth-reset-password-password-error"
+                                message={errors.password}
+                            />
                         </div>
 
-                        <div className="grid gap-2">
-                            <Label htmlFor="password_confirmation">
+                        <div
+                            id="auth-reset-password-confirmation-group"
+                            className="grid gap-2"
+                        >
+                            <Label
+                                id="auth-reset-password-confirmation-label"
+                                htmlFor="auth-reset-password-confirmation-input"
+                            >
                                 Confirm password
                             </Label>
                             <Input
-                                id="password_confirmation"
+                                id="auth-reset-password-confirmation-input"
                                 type="password"
                                 name="password_confirmation"
                                 autoComplete="new-password"
@@ -71,12 +92,14 @@ export default function ResetPassword({ token, email }: Props) {
                                 placeholder="Confirm password"
                             />
                             <InputError
+                                id="auth-reset-password-confirmation-error"
                                 message={errors.password_confirmation}
                                 className="mt-2"
                             />
                         </div>
 
                         <Button
+                            id="auth-reset-password-submit-btn"
                             type="submit"
                             className="mt-4 w-full"
                             disabled={processing}
