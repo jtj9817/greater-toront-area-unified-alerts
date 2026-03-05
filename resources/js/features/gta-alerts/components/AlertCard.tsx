@@ -73,7 +73,10 @@ export const AlertCard: React.FC<AlertCardProps> = ({
                 <div className="flex-1">
                     <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
                         <div className="flex flex-wrap items-center gap-2">
-                            <h4 id={`gta-alerts-alert-card-${item.id}-title`} className="text-xl leading-tight font-black tracking-tight uppercase md:text-2xl">
+                            <h4
+                                id={`gta-alerts-alert-card-${item.id}-title`}
+                                className="text-xl leading-tight font-black tracking-tight uppercase md:text-2xl"
+                            >
                                 {item.title}
                             </h4>
                             <span

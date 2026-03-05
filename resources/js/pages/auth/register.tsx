@@ -26,7 +26,10 @@ export default function Register() {
                 {({ processing, errors }) => (
                     <>
                         <div id="auth-register-fields" className="grid gap-6">
-                            <div id="auth-register-name-group" className="grid gap-2">
+                            <div
+                                id="auth-register-name-group"
+                                className="grid gap-2"
+                            >
                                 <Label
                                     id="auth-register-name-label"
                                     htmlFor="auth-register-name-input"
@@ -50,7 +53,10 @@ export default function Register() {
                                 />
                             </div>
 
-                            <div id="auth-register-email-group" className="grid gap-2">
+                            <div
+                                id="auth-register-email-group"
+                                className="grid gap-2"
+                            >
                                 <Label
                                     id="auth-register-email-label"
                                     htmlFor="auth-register-email-input"
@@ -72,7 +78,10 @@ export default function Register() {
                                 />
                             </div>
 
-                            <div id="auth-register-password-group" className="grid gap-2">
+                            <div
+                                id="auth-register-password-group"
+                                className="grid gap-2"
+                            >
                                 <Label
                                     id="auth-register-password-label"
                                     htmlFor="auth-register-password-input"
@@ -136,7 +145,11 @@ export default function Register() {
                             className="text-center text-sm text-muted-foreground"
                         >
                             Already have an account?{' '}
-                            <TextLink id="auth-register-login-link" href={login()} tabIndex={6}>
+                            <TextLink
+                                id="auth-register-login-link"
+                                href={login()}
+                                tabIndex={6}
+                            >
                                 Log in
                             </TextLink>
                         </div>

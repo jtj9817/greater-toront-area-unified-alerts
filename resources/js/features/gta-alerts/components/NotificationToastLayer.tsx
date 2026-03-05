@@ -152,7 +152,10 @@ export const NotificationToastLayer: React.FC<NotificationToastLayerProps> = ({
     }
 
     return (
-        <div id="gta-alerts-toast-layer" className="pointer-events-none fixed top-4 right-4 z-[120] flex w-[min(92vw,360px)] flex-col gap-3">
+        <div
+            id="gta-alerts-toast-layer"
+            className="pointer-events-none fixed top-4 right-4 z-[120] flex w-[min(92vw,360px)] flex-col gap-3"
+        >
             {toasts.map((toast) => (
                 <article
                     id={`gta-alerts-toast-${toast.id}`}

@@ -6,7 +6,7 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ## Active Tracks
 
-- [ ] **Track: UI Design Revamp (Prototype Two)** (Phase 5 docs complete; archival blocked by FEED-017 quality gates and pending manual verification tasks)
+- [ ] **Track: UI Design Revamp (Prototype Two)** (Phase 5 docs complete; archival blocked by pending manual verification tasks)
 *Link: [./tracks/design_revamp_20260303/](./tracks/design_revamp_20260303/)*
 
 ## Archived Tracks

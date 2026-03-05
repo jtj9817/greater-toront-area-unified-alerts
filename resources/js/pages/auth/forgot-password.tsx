@@ -31,7 +31,10 @@ export default function ForgotPassword({ status }: { status?: string }) {
                 <Form id="auth-forgot-password-form" {...email.form()}>
                     {({ processing, errors }) => (
                         <>
-                            <div id="auth-forgot-password-email-group" className="grid gap-2">
+                            <div
+                                id="auth-forgot-password-email-group"
+                                className="grid gap-2"
+                            >
                                 <Label
                                     id="auth-forgot-password-email-label"
                                     htmlFor="auth-forgot-password-email-input"
@@ -75,7 +78,10 @@ export default function ForgotPassword({ status }: { status?: string }) {
                     className="space-x-1 text-center text-sm text-muted-foreground"
                 >
                     <span>Or, return to</span>
-                    <TextLink id="auth-forgot-password-login-link" href={login()}>
+                    <TextLink
+                        id="auth-forgot-password-login-link"
+                        href={login()}
+                    >
                         log in
                     </TextLink>
                 </div>

@@ -50,7 +50,10 @@ export const SceneIntelTimeline: React.FC<SceneIntelTimelineProps> = ({
             )}
         >
             <div className="mb-4 flex items-center justify-between">
-                <h4 id={`gta-alerts-scene-intel-title-${eventNum || 'unknown'}`} className="flex items-center gap-2 text-xs font-bold tracking-wider text-primary uppercase">
+                <h4
+                    id={`gta-alerts-scene-intel-title-${eventNum || 'unknown'}`}
+                    className="flex items-center gap-2 text-xs font-bold tracking-wider text-primary uppercase"
+                >
                     <Icon name="list_alt" className="text-sm" /> Scene Intel
                 </h4>
                 {loading && (

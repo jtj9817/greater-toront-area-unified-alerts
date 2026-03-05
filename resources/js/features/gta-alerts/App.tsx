@@ -294,7 +294,10 @@ const App: React.FC<AppProps> = ({
                 onCloseMobile={closeMobileMenu}
             />
 
-            <div id="gta-alerts-main-wrap" className="relative flex h-full min-w-0 flex-1 flex-col">
+            <div
+                id="gta-alerts-main-wrap"
+                className="relative flex h-full min-w-0 flex-1 flex-col"
+            >
                 <header
                     id="gta-alerts-header"
                     className="z-50 flex-none border-b border-[#333333] bg-background-dark"
@@ -304,7 +307,10 @@ const App: React.FC<AppProps> = ({
                             id="gta-alerts-header-mobile-row"
                             className="flex items-center justify-between border-b border-[#333333] px-4 py-3 md:hidden"
                         >
-                            <div id="gta-alerts-header-mobile-title" className="flex items-center gap-2">
+                            <div
+                                id="gta-alerts-header-mobile-title"
+                                className="flex items-center gap-2"
+                            >
                                 <button
                                     id="gta-alerts-header-mobile-menu-btn"
                                     onClick={() =>
@@ -326,7 +332,10 @@ const App: React.FC<AppProps> = ({
                                     GTA Alerts
                                 </h2>
                             </div>
-                            <div id="gta-alerts-header-mobile-actions" className="flex gap-3">
+                            <div
+                                id="gta-alerts-header-mobile-actions"
+                                className="flex gap-3"
+                            >
                                 <button
                                     id="gta-alerts-header-mobile-inbox-btn"
                                     onClick={() => handleNavigate('inbox')}
@@ -357,7 +366,10 @@ const App: React.FC<AppProps> = ({
                             id="gta-alerts-header-search-row"
                             className="flex items-center gap-3 px-4 py-3 md:h-16 md:justify-between md:px-8"
                         >
-                            <label id="gta-alerts-search-label" className="flex w-full md:max-w-xl">
+                            <label
+                                id="gta-alerts-search-label"
+                                className="flex w-full md:max-w-xl"
+                            >
                                 <div
                                     id="gta-alerts-search-wrap"
                                     className="group relative flex h-10 w-full items-stretch md:h-11"
@@ -382,7 +394,10 @@ const App: React.FC<AppProps> = ({
                                 </div>
                             </label>
 
-                            <div id="gta-alerts-header-desktop-actions" className="hidden items-center gap-3 pl-4 md:flex">
+                            <div
+                                id="gta-alerts-header-desktop-actions"
+                                className="hidden items-center gap-3 pl-4 md:flex"
+                            >
                                 <button
                                     id="gta-alerts-header-desktop-inbox-btn"
                                     className="relative border border-[#333333] bg-[#1a1a1a] p-2 text-white transition-colors hover:bg-primary hover:text-black"

@@ -339,9 +339,18 @@ export const NotificationInboxView: React.FC<NotificationInboxViewProps> = ({
 
     if (authUserId === null) {
         return (
-            <section id="gta-alerts-inbox-auth-required" className="mx-auto w-full max-w-4xl p-4 md:p-6">
-                <div id="gta-alerts-inbox-auth-required-card" className="rounded-2xl border border-white/10 bg-surface-dark p-6 md:p-8">
-                    <h2 id="gta-alerts-inbox-auth-required-title" className="mb-3 flex items-center gap-3 text-2xl font-bold text-white">
+            <section
+                id="gta-alerts-inbox-auth-required"
+                className="mx-auto w-full max-w-4xl p-4 md:p-6"
+            >
+                <div
+                    id="gta-alerts-inbox-auth-required-card"
+                    className="rounded-2xl border border-white/10 bg-surface-dark p-6 md:p-8"
+                >
+                    <h2
+                        id="gta-alerts-inbox-auth-required-title"
+                        className="mb-3 flex items-center gap-3 text-2xl font-bold text-white"
+                    >
                         <Icon name="lock" className="text-primary" />
                         Sign in to view your notification inbox
                     </h2>
@@ -373,10 +382,19 @@ export const NotificationInboxView: React.FC<NotificationInboxViewProps> = ({
     }
 
     return (
-        <section id="gta-alerts-inbox-view" className="mx-auto w-full max-w-5xl p-4 md:p-6">
-            <div id="gta-alerts-inbox-header" className="mb-6 flex flex-wrap items-center justify-between gap-3 border-b border-white/10 pb-5">
+        <section
+            id="gta-alerts-inbox-view"
+            className="mx-auto w-full max-w-5xl p-4 md:p-6"
+        >
+            <div
+                id="gta-alerts-inbox-header"
+                className="mb-6 flex flex-wrap items-center justify-between gap-3 border-b border-white/10 pb-5"
+            >
                 <div>
-                    <h2 id="gta-alerts-inbox-title" className="mb-1 flex items-center gap-3 text-2xl font-bold text-white">
+                    <h2
+                        id="gta-alerts-inbox-title"
+                        className="mb-1 flex items-center gap-3 text-2xl font-bold text-white"
+                    >
                         <Icon
                             name="notifications_active"
                             className="text-primary"

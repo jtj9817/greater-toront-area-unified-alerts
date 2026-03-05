@@ -21,8 +21,14 @@ export default function ConfirmPassword() {
                 resetOnSuccess={['password']}
             >
                 {({ processing, errors }) => (
-                    <div id="auth-confirm-password-content" className="space-y-6">
-                        <div id="auth-confirm-password-input-group" className="grid gap-2">
+                    <div
+                        id="auth-confirm-password-content"
+                        className="space-y-6"
+                    >
+                        <div
+                            id="auth-confirm-password-input-group"
+                            className="grid gap-2"
+                        >
                             <Label
                                 id="auth-confirm-password-label"
                                 htmlFor="auth-confirm-password-input"

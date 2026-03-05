@@ -28,7 +28,10 @@ export default function ResetPassword({ token, email }: Props) {
             >
                 {({ processing, errors }) => (
                     <div id="auth-reset-password-fields" className="grid gap-6">
-                        <div id="auth-reset-password-email-group" className="grid gap-2">
+                        <div
+                            id="auth-reset-password-email-group"
+                            className="grid gap-2"
+                        >
                             <Label
                                 id="auth-reset-password-email-label"
                                 htmlFor="auth-reset-password-email-input"
@@ -51,7 +54,10 @@ export default function ResetPassword({ token, email }: Props) {
                             />
                         </div>
 
-                        <div id="auth-reset-password-password-group" className="grid gap-2">
+                        <div
+                            id="auth-reset-password-password-group"
+                            className="grid gap-2"
+                        >
                             <Label
                                 id="auth-reset-password-password-label"
                                 htmlFor="auth-reset-password-password-input"

@@ -222,9 +222,18 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
 
     if (authUserId === null) {
         return (
-            <section id="gta-alerts-settings-auth-required" className="mx-auto w-full max-w-4xl p-4 md:p-6">
-                <div id="gta-alerts-settings-auth-required-card" className="rounded-2xl border border-white/10 bg-surface-dark p-6 md:p-8">
-                    <h2 id="gta-alerts-settings-auth-required-title" className="mb-3 flex items-center gap-3 text-2xl font-bold text-white">
+            <section
+                id="gta-alerts-settings-auth-required"
+                className="mx-auto w-full max-w-4xl p-4 md:p-6"
+            >
+                <div
+                    id="gta-alerts-settings-auth-required-card"
+                    className="rounded-2xl border border-white/10 bg-surface-dark p-6 md:p-8"
+                >
+                    <h2
+                        id="gta-alerts-settings-auth-required-title"
+                        className="mb-3 flex items-center gap-3 text-2xl font-bold text-white"
+                    >
                         <Icon name="lock" className="text-primary" />
                         Sign in to configure notification preferences
                     </h2>
@@ -258,8 +267,14 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
 
     if (isLoading) {
         return (
-            <section id="gta-alerts-settings-loading" className="mx-auto w-full max-w-4xl p-4 md:p-6">
-                <div id="gta-alerts-settings-loading-card" className="rounded-2xl border border-white/10 bg-surface-dark p-6 text-sm text-text-secondary">
+            <section
+                id="gta-alerts-settings-loading"
+                className="mx-auto w-full max-w-4xl p-4 md:p-6"
+            >
+                <div
+                    id="gta-alerts-settings-loading-card"
+                    className="rounded-2xl border border-white/10 bg-surface-dark p-6 text-sm text-text-secondary"
+                >
                     Loading notification preferences...
                 </div>
             </section>
@@ -267,9 +282,18 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
     }
 
     return (
-        <section id="gta-alerts-settings-view" className="mx-auto w-full max-w-5xl p-4 md:p-6">
-            <div id="gta-alerts-settings-header" className="mb-6 flex flex-col gap-2 border-b border-white/10 pb-5">
-                <h2 id="gta-alerts-settings-title" className="flex items-center gap-3 text-2xl font-bold text-white">
+        <section
+            id="gta-alerts-settings-view"
+            className="mx-auto w-full max-w-5xl p-4 md:p-6"
+        >
+            <div
+                id="gta-alerts-settings-header"
+                className="mb-6 flex flex-col gap-2 border-b border-white/10 pb-5"
+            >
+                <h2
+                    id="gta-alerts-settings-title"
+                    className="flex items-center gap-3 text-2xl font-bold text-white"
+                >
                     <Icon
                         name="notifications_active"
                         className="text-primary"
@@ -295,11 +319,20 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
             )}
 
             <div id="gta-alerts-settings-sections" className="space-y-5">
-                <section id="gta-alerts-settings-source-section" className="rounded-xl border border-white/10 bg-surface-dark p-4 md:p-5">
-                    <h3 id="gta-alerts-settings-source-title" className="mb-4 text-sm font-semibold tracking-wide text-primary uppercase">
+                <section
+                    id="gta-alerts-settings-source-section"
+                    className="rounded-xl border border-white/10 bg-surface-dark p-4 md:p-5"
+                >
+                    <h3
+                        id="gta-alerts-settings-source-title"
+                        className="mb-4 text-sm font-semibold tracking-wide text-primary uppercase"
+                    >
                         Source Filters
                     </h3>
-                    <label htmlFor="gta-alerts-settings-alert-type-select" className="mb-2 block text-xs text-text-secondary">
+                    <label
+                        htmlFor="gta-alerts-settings-alert-type-select"
+                        className="mb-2 block text-xs text-text-secondary"
+                    >
                         Alert source
                     </label>
                     <select
@@ -323,7 +356,10 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                             </option>
                         ))}
                     </select>
-                    <label htmlFor="gta-alerts-settings-accessibility-only-checkbox" className="mt-3 flex items-center justify-between gap-3 rounded-lg border border-white/15 bg-background-dark/60 px-3 py-2 text-sm text-white">
+                    <label
+                        htmlFor="gta-alerts-settings-accessibility-only-checkbox"
+                        className="mt-3 flex items-center justify-between gap-3 rounded-lg border border-white/15 bg-background-dark/60 px-3 py-2 text-sm text-white"
+                    >
                         Accessibility alerts only
                         <input
                             id="gta-alerts-settings-accessibility-only-checkbox"
@@ -342,8 +378,14 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                     </label>
                 </section>
 
-                <section id="gta-alerts-settings-severity-section" className="rounded-xl border border-white/10 bg-surface-dark p-4 md:p-5">
-                    <h3 id="gta-alerts-settings-severity-title" className="mb-4 text-sm font-semibold tracking-wide text-primary uppercase">
+                <section
+                    id="gta-alerts-settings-severity-section"
+                    className="rounded-xl border border-white/10 bg-surface-dark p-4 md:p-5"
+                >
+                    <h3
+                        id="gta-alerts-settings-severity-title"
+                        className="mb-4 text-sm font-semibold tracking-wide text-primary uppercase"
+                    >
                         Severity Filter
                     </h3>
                     <label
@@ -385,8 +427,14 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                     fallbackRoutes={availableRoutes}
                 />
 
-                <section id="gta-alerts-settings-geofence-section" className="rounded-xl border border-white/10 bg-surface-dark p-4 md:p-5">
-                    <h3 id="gta-alerts-settings-geofence-title" className="mb-4 text-sm font-semibold tracking-wide text-primary uppercase">
+                <section
+                    id="gta-alerts-settings-geofence-section"
+                    className="rounded-xl border border-white/10 bg-surface-dark p-4 md:p-5"
+                >
+                    <h3
+                        id="gta-alerts-settings-geofence-title"
+                        className="mb-4 text-sm font-semibold tracking-wide text-primary uppercase"
+                    >
                         Geofence Zones
                     </h3>
                     <div className="mb-4 grid gap-3 md:grid-cols-[1.3fr_0.7fr_auto]">
@@ -472,12 +520,21 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
 
                 <SavedPlacesManager authUserId={authUserId} />
 
-                <section id="gta-alerts-settings-delivery-section" className="rounded-xl border border-white/10 bg-surface-dark p-4 md:p-5">
-                    <h3 id="gta-alerts-settings-delivery-title" className="mb-4 text-sm font-semibold tracking-wide text-primary uppercase">
+                <section
+                    id="gta-alerts-settings-delivery-section"
+                    className="rounded-xl border border-white/10 bg-surface-dark p-4 md:p-5"
+                >
+                    <h3
+                        id="gta-alerts-settings-delivery-title"
+                        className="mb-4 text-sm font-semibold tracking-wide text-primary uppercase"
+                    >
                         Delivery
                     </h3>
                     <div className="space-y-3">
-                        <label htmlFor="gta-alerts-settings-push-enabled-checkbox" className="flex items-center justify-between gap-3 rounded-lg border border-white/15 bg-background-dark/60 px-3 py-2 text-sm text-white">
+                        <label
+                            htmlFor="gta-alerts-settings-push-enabled-checkbox"
+                            className="flex items-center justify-between gap-3 rounded-lg border border-white/15 bg-background-dark/60 px-3 py-2 text-sm text-white"
+                        >
                             Enable real-time push toasts
                             <input
                                 id="gta-alerts-settings-push-enabled-checkbox"
@@ -492,7 +549,10 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                                 className="h-4 w-4 accent-primary"
                             />
                         </label>
-                        <label htmlFor="gta-alerts-settings-digest-mode-checkbox" className="flex items-center justify-between gap-3 rounded-lg border border-white/15 bg-background-dark/60 px-3 py-2 text-sm text-white">
+                        <label
+                            htmlFor="gta-alerts-settings-digest-mode-checkbox"
+                            className="flex items-center justify-between gap-3 rounded-lg border border-white/15 bg-background-dark/60 px-3 py-2 text-sm text-white"
+                        >
                             Enable daily digest mode
                             <input
                                 id="gta-alerts-settings-digest-mode-checkbox"

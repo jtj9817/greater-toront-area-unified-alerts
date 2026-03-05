@@ -59,10 +59,10 @@
         - [x] Cleared alerts render muted/grayscale treatment while preserving legibility.
     - [x] Sub-task: Validate responsive behavior at minimum desktop and mobile breakpoints (mobile drawer, bottom nav coexistence, and FAB non-overlap with critical actions).
     - [x] Sub-task: Capture verification artifacts (screenshots and, if enabled, Playwright trace/video) for key states and attach artifact paths in phase notes.
-- [ ] Task: Run Code Quality and Regression Gates
+- [x] Task: Run Code Quality and Regression Gates (verified 2026-03-05; see `docs/tickets/FEED-017-design-revamp-phase-4-quality-gate-failures.md`)
     - [x] Sub-task: Run `pnpm run format:check`, `pnpm run lint:check`, `pnpm run types`, and `pnpm run test` (or `pnpm run quality:check`).
     - [x] Sub-task: Run backend suite when shared assets/layout integration might affect server-rendered behavior: `./vendor/bin/sail artisan test`.
-    - [x] Sub-task: If any gate fails, document failure mode, fix, and rerun evidence in the phase verification log. (Tracked in `docs/tickets/FEED-017-design-revamp-phase-4-quality-gate-failures.md`; rerun evidence includes `pnpm run format:check` fail, `pnpm run quality:check` fail, `pnpm run lint:check` pass, `pnpm run test` pass, `./vendor/bin/sail artisan test` pass, `pnpm run types` fail on `resources/js/pages/settings/password.tsx` TS2307, verified 2026-03-05.)
+    - [x] Sub-task: If any gate fails, document failure mode, fix, and rerun evidence in the phase verification log. (Tracked in `docs/tickets/FEED-017-design-revamp-phase-4-quality-gate-failures.md`; failure was remediated and rerun evidence on 2026-03-05 includes `pnpm run format:check` pass, `pnpm run types` pass, `pnpm run quality:check` pass, and `composer test` pass.)
 - [ ] Task: Conductor - User Manual Verification 'Phase 4: Testing & Verification' (Protocol in workflow.md; include Playwright MCP/Playwright execution details and artifact references; attempted 2026-03-05 via Playwright MCP with artifacts `artifacts/playwright/design-revamp-phase4-20260305-*`; runtime assumptions recorded in `tests/e2e/design-revamp-phase-4.spec.ts`; latest findings tracked in `docs/tickets/FEED-017-design-revamp-phase-4-quality-gate-failures.md`; historical findings in `docs/tickets/FEED-016-design-revamp-phase-4-verification-findings.md`; backend rerun on 2026-03-05 confirms `./vendor/bin/sail artisan test` now passes.)
 
 ## Phase 5: Final Comprehensive Documentation & Track Closeout
@@ -76,6 +76,6 @@
     - [x] Sub-task: Document any unresolved technical debt discovered during Phase 4 validation as explicit tickets linked from track notes. (Linked: `docs/tickets/FEED-015-footer-weather-stats-hardcoded-placeholder.md`, `docs/tickets/FEED-017-design-revamp-phase-4-quality-gate-failures.md`)
 - [ ] Task: Final Verification Report & Registry Maintenance
     - [x] Sub-task: Produce a concise phase closeout report summarizing commands run, pass/fail status, and artifact/log paths. (See `conductor/tracks/design_revamp_20260303/phase_5_closeout_report_20260305.md`)
-    - [ ] Sub-task: Update `conductor/tracks.md` registry status and move the track to archive when all gates and documentation requirements are complete. (Blocked by open FEED-017 quality gates and pending Phase 2/Phase 4 manual verification tasks.)
+    - [ ] Sub-task: Update `conductor/tracks.md` registry status and move the track to archive when all gates and documentation requirements are complete. (Blocked by pending Phase 2/Phase 4/Phase 5 manual verification tasks.)
     - [x] Sub-task: Ensure final checkpoint/notes references include the Phase 4 testing evidence and Phase 5 documentation evidence. (See `20260304_design_revamp_20260303_audit.md`, `docs/tickets/FEED-016-design-revamp-phase-4-verification-findings.md`, `docs/tickets/FEED-017-design-revamp-phase-4-quality-gate-failures.md`, `conductor/tracks/design_revamp_20260303/phase_5_closeout_report_20260305.md`)
 - [ ] Task: Conductor - User Manual Verification 'Phase 5: Final Comprehensive Documentation & Track Closeout' (Protocol in workflow.md)

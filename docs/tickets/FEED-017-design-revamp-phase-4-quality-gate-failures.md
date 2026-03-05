@@ -1,11 +1,12 @@
 ---
 ticket_id: FEED-017
 title: "[Phase 4] Design revamp quality gates failing after Playwright verification rerun"
-status: Open
+status: Closed
 priority: High
 assignee: Unassigned
 created_at: 2026-03-05
 updated_at: 2026-03-05
+closed_at: 2026-03-05
 tags: [frontend, qa, quality-gates, design-revamp]
 related_files:
   - conductor/tracks/design_revamp_20260303/plan.md
@@ -22,38 +23,36 @@ artifacts:
 
 ## Summary
 
-Phase 4 browser interaction checks are stable, and backend Sail regression tests are now passing in the current local environment. Remaining blockers are frontend format/type gates that prevent Phase 4 and track archival signoff.
+Phase 4 browser interaction checks remain stable, and the frontend quality gates that were blocking signoff have been remediated. Formatting, TypeScript, frontend quality checks, and the full Laravel suite all pass in the current local environment.
 
 ## Latest Verification Snapshot (2026-03-05)
 
 ### Passing gates
 
+- `pnpm run format:check` -> PASS
 - `pnpm run lint:check` -> PASS
-- `pnpm run test` -> PASS
-- `./vendor/bin/sail artisan test` -> PASS
-
-### Failing gates
-
-1) `pnpm run format:check` fails
-- Result: Prettier reports style drift in 22 files under `resources/`.
-- Impact: `pnpm run quality:check` fails immediately at the first step.
-
-2) `pnpm run types` fails
-- Result: `TS2307` in `resources/js/pages/settings/password.tsx`.
-- Error: Cannot find module `@/actions/App/Http/Controllers/Settings/PasswordController` or corresponding type declarations.
-- Impact: Type gate remains red even if formatting is fixed.
-
-3) `pnpm run quality:check` fails
-- Result: aggregate quality script exits non-zero because `format:check` fails.
+- `pnpm run types` -> PASS
+- `pnpm run test:ci` -> PASS
+- `pnpm run quality:check` -> PASS
+- `composer test` -> PASS
 
 ## Scope Clarification
 
 - Previous note about Sail backend gate being blocked by Docker is no longer current for this environment.
-- This ticket is now narrowly scoped to frontend quality gate remediation (format + types) and rerun confirmation.
+- This ticket remained narrowly scoped to frontend quality gate remediation (format + types) and rerun confirmation.
 
 ## Acceptance Criteria
 
-- [ ] `pnpm run format:check` passes with no formatting drift.
-- [ ] `pnpm run types` passes with no unresolved module errors.
-- [ ] `pnpm run quality:check` completes successfully end-to-end.
-- [ ] Phase 4 plan item can be marked fully complete with updated evidence references.
+- [x] `pnpm run format:check` passes with no formatting drift.
+- [x] `pnpm run types` passes with no unresolved module errors.
+- [x] `pnpm run quality:check` completes successfully end-to-end.
+- [x] Phase 4 plan item can be marked fully complete with updated evidence references.
+
+## Resolution Notes
+
+- `resources/js/pages/settings/password.tsx` now uses the generated `@/routes/user-password` `update.form()` helper instead of the unresolved generated action import, which clears the `TS2307` type failure without changing the form payload shape.
+- `resources/js/features/gta-alerts/App.test.tsx` and `resources/js/features/gta-alerts/components/AlertDetailsView.test.tsx` now mock `SceneIntelTimeline`, removing unrelated async state updates and eliminating the noisy `act(...)` warnings from the parent tests.
+- Prettier drift under `resources/` was normalized with `pnpm run format`.
+- Verification on 2026-03-05:
+  - Narrow checks: `pnpm run types`, `LARAVEL_BYPASS_ENV_CHECK=1 pnpm exec vitest run resources/js/features/gta-alerts/App.test.tsx resources/js/features/gta-alerts/components/AlertDetailsView.test.tsx`, `pnpm exec prettier --check ...`
+  - Full gates: `composer test`, `./vendor/bin/pint`, `composer lint`, `pnpm run lint`, `pnpm run format`, `pnpm run types`, `pnpm run quality:check`

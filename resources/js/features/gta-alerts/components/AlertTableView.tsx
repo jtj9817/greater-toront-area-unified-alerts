@@ -57,8 +57,14 @@ export const AlertTableView: React.FC<AlertTableViewProps> = ({
     );
 
     return (
-        <div id="gta-alerts-alert-table-wrap" className="panel-shadow w-full overflow-x-auto border-4 border-black">
-            <table id="gta-alerts-alert-table" className="incident-table w-full min-w-[780px] border-collapse">
+        <div
+            id="gta-alerts-alert-table-wrap"
+            className="panel-shadow w-full overflow-x-auto border-4 border-black"
+        >
+            <table
+                id="gta-alerts-alert-table"
+                className="incident-table w-full min-w-[780px] border-collapse"
+            >
                 <thead>
                     <tr>
                         <th>Timestamp</th>

@@ -5,6 +5,10 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import AlertsApp from './App';
 import type { UnifiedAlertResource } from './domain/alerts';
 
+vi.mock('./components/SceneIntelTimeline', () => ({
+    SceneIntelTimeline: () => <div data-testid="scene-intel-timeline" />,
+}));
+
 type ToastHandler = (payload: Record<string, unknown>) => void;
 
 function mockJsonResponse(payload: unknown, ok = true, status = 200): Response {

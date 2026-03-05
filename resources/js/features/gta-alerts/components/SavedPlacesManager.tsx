@@ -209,10 +209,19 @@ export const SavedPlacesManager: React.FC<SavedPlacesManagerProps> = ({
     }
 
     return (
-        <section id="gta-alerts-saved-places-manager" className="rounded-xl border border-white/10 bg-surface-dark p-4 md:p-5">
-            <div id="gta-alerts-saved-places-manager-header" className="flex flex-wrap items-center justify-between gap-3">
+        <section
+            id="gta-alerts-saved-places-manager"
+            className="rounded-xl border border-white/10 bg-surface-dark p-4 md:p-5"
+        >
+            <div
+                id="gta-alerts-saved-places-manager-header"
+                className="flex flex-wrap items-center justify-between gap-3"
+            >
                 <div>
-                    <h3 id="gta-alerts-saved-places-manager-title" className="text-sm font-semibold tracking-wide text-primary uppercase">
+                    <h3
+                        id="gta-alerts-saved-places-manager-title"
+                        className="text-sm font-semibold tracking-wide text-primary uppercase"
+                    >
                         Saved Places
                     </h3>
                     <p className="mt-1 text-xs text-text-secondary">
@@ -256,7 +265,10 @@ export const SavedPlacesManager: React.FC<SavedPlacesManagerProps> = ({
                                 className="w-full rounded-lg border border-white/15 bg-background-dark px-3 py-2 text-sm text-white focus:border-primary/60 focus:outline-none"
                             />
                             {searchResults.length > 0 && (
-                                <div id="gta-alerts-saved-places-search-results" className="mt-2 max-h-48 overflow-y-auto rounded-lg border border-white/15 bg-background-dark">
+                                <div
+                                    id="gta-alerts-saved-places-search-results"
+                                    className="mt-2 max-h-48 overflow-y-auto rounded-lg border border-white/15 bg-background-dark"
+                                >
                                     {searchResults.map((result) => {
                                         const isSelected =
                                             selectedResult?.id === result.id;
@@ -335,7 +347,10 @@ export const SavedPlacesManager: React.FC<SavedPlacesManagerProps> = ({
                             No saved places configured.
                         </p>
                     ) : (
-                        <div id="gta-alerts-saved-places-list" className="space-y-2">
+                        <div
+                            id="gta-alerts-saved-places-list"
+                            className="space-y-2"
+                        >
                             {savedPlaces.map((place) => (
                                 <div
                                     id={`gta-alerts-saved-places-item-${place.id}`}

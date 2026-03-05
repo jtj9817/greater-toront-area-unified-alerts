@@ -40,7 +40,10 @@ const normalizeSubscriptions = (subscriptions: string[]): string[] =>
     );
 
 const toIdToken = (value: string): string =>
-    value.trim().toLowerCase().replace(/[^a-z0-9-]+/g, '-');
+    value
+        .trim()
+        .toLowerCase()
+        .replace(/[^a-z0-9-]+/g, '-');
 
 export const SubscriptionManager: React.FC<SubscriptionManagerProps> = ({
     authUserId,
@@ -219,9 +222,18 @@ export const SubscriptionManager: React.FC<SubscriptionManagerProps> = ({
     };
 
     return (
-        <section id="gta-alerts-subscription-manager" className="rounded-xl border border-white/10 bg-surface-dark p-4 md:p-5">
-            <div id="gta-alerts-subscription-manager-header" className="mb-4 flex flex-wrap items-center justify-between gap-2">
-                <h3 id="gta-alerts-subscription-manager-title" className="text-sm font-semibold tracking-wide text-primary uppercase">
+        <section
+            id="gta-alerts-subscription-manager"
+            className="rounded-xl border border-white/10 bg-surface-dark p-4 md:p-5"
+        >
+            <div
+                id="gta-alerts-subscription-manager-header"
+                className="mb-4 flex flex-wrap items-center justify-between gap-2"
+            >
+                <h3
+                    id="gta-alerts-subscription-manager-title"
+                    className="text-sm font-semibold tracking-wide text-primary uppercase"
+                >
                     My Subscriptions
                 </h3>
                 <span className="text-xs text-text-secondary">
@@ -235,7 +247,10 @@ export const SubscriptionManager: React.FC<SubscriptionManagerProps> = ({
                 </div>
             )}
 
-            <div id="gta-alerts-subscription-tab-list" className="mb-3 grid grid-cols-3 gap-2">
+            <div
+                id="gta-alerts-subscription-tab-list"
+                className="mb-3 grid grid-cols-3 gap-2"
+            >
                 {(['routes', 'stations', 'lines'] as SubscriptionTab[]).map(
                     (tab) => (
                         <button
@@ -255,7 +270,10 @@ export const SubscriptionManager: React.FC<SubscriptionManagerProps> = ({
                 )}
             </div>
 
-            <label htmlFor="gta-alerts-subscription-search-input" className="mb-3 block">
+            <label
+                htmlFor="gta-alerts-subscription-search-input"
+                className="mb-3 block"
+            >
                 <span className="sr-only">Search subscriptions</span>
                 <input
                     id="gta-alerts-subscription-search-input"
@@ -267,7 +285,10 @@ export const SubscriptionManager: React.FC<SubscriptionManagerProps> = ({
                 />
             </label>
 
-            <div id="gta-alerts-subscription-options" className="max-h-64 space-y-2 overflow-auto pr-1">
+            <div
+                id="gta-alerts-subscription-options"
+                className="max-h-64 space-y-2 overflow-auto pr-1"
+            >
                 {isLoading ? (
                     <p className="text-sm text-text-secondary">
                         Loading subscription options...
@@ -299,7 +320,10 @@ export const SubscriptionManager: React.FC<SubscriptionManagerProps> = ({
                 )}
             </div>
 
-            <div id="gta-alerts-subscription-selected-chips" className="mt-4 flex flex-wrap gap-2">
+            <div
+                id="gta-alerts-subscription-selected-chips"
+                className="mt-4 flex flex-wrap gap-2"
+            >
                 {selectedChips.length === 0 ? (
                     <p className="text-xs text-text-secondary">
                         No subscriptions selected yet.

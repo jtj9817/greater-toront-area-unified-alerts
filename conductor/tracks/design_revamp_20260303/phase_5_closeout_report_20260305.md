@@ -7,18 +7,19 @@ Track: `design_revamp_20260303`
 
 | Command | Status | Notes |
 |---|---|---|
-| `pnpm run format:check` | FAIL | Prettier drift in 22 files under `resources/`. |
+| `pnpm run format:check` | PASS | Prettier drift under `resources/` was resolved on 2026-03-05. |
 | `pnpm run lint:check` | PASS | ESLint check is green. |
-| `pnpm run types` | FAIL | `TS2307` at `resources/js/pages/settings/password.tsx` (missing `@/actions/.../PasswordController` module). |
+| `pnpm run types` | PASS | `resources/js/pages/settings/password.tsx` now uses the generated route helper form API. |
 | `pnpm run test` | PASS | Vitest suite passes, including `tests/e2e/design-revamp-phase-4.spec.ts`. |
-| `pnpm run quality:check` | FAIL | Fails at `format:check` stage. |
+| `pnpm run quality:check` | PASS | Aggregate frontend quality gate is green end-to-end. |
+| `composer test` | PASS | Full Laravel suite passes, including Pint test mode and PHPUnit/Pest coverage. |
 | `./vendor/bin/sail artisan test` | PASS | Backend regression gate currently passes in Sail runtime. |
 
 ## Phase 4 Evidence References
 
 - Playwright artifact set: `artifacts/playwright/design-revamp-phase4-20260305-*`
 - Findings ticket (resolved): `docs/tickets/FEED-016-design-revamp-phase-4-verification-findings.md`
-- Quality-gate ticket (open): `docs/tickets/FEED-017-design-revamp-phase-4-quality-gate-failures.md`
+- Quality-gate ticket (closed): `docs/tickets/FEED-017-design-revamp-phase-4-quality-gate-failures.md`
 - Executable verification spec: `tests/e2e/design-revamp-phase-4.spec.ts`
 
 ## Documentation Updates Included In Phase 5
@@ -28,7 +29,6 @@ Track: `design_revamp_20260303`
 
 ## Open Blockers Before Registry Archive
 
-- `FEED-017`: formatting and TypeScript gate failures remain open.
 - Pending conductor manual-verification tasks in track plan:
   - `Phase 2: Global Layout Implementation`
   - `Phase 4: Testing & Verification`
@@ -36,4 +36,4 @@ Track: `design_revamp_20260303`
 
 ## Closeout Decision
 
-Phase 5 documentation deliverables are complete, but track archival is deferred until the remaining quality gates and manual verification tasks are closed.
+Phase 5 documentation deliverables and automated quality gates are complete, but track archival is deferred until the remaining manual verification tasks are closed.
