@@ -41,29 +41,29 @@
 - [x] Task: Conductor - User Manual Verification 'Phase 3: Alert Feed & Table Views' [a1c835a] (Protocol in workflow.md; verified 2026-03-05, script: `tests/manual/verify_design_revamp_phase_3_alert_feed_table_views.php`, log: `storage/logs/manual_tests/design_revamp_phase_3_alert_feed_table_views_2026_03_05_005030.log`)
 
 ## Phase 4: Testing & Verification (Playwright + Quality Gates)
-- [ ] Task: Prepare Local E2E Verification Environment (`http://localhost:8080/`)
-    - [ ] Sub-task: Start and verify the local app endpoint at `http://localhost:8080/` (Sail-backed or equivalent local dev runtime), and confirm the GTA Alerts page is reachable before browser automation begins.
-    - [ ] Sub-task: Ensure test data is present to exercise both Feed and Table states (at minimum one active alert and one cleared alert visible in the UI).
-    - [ ] Sub-task: Record runtime assumptions for verification (browser engine, viewport presets, auth state, and whether verification runs through Playwright MCP or standalone Playwright).
-- [ ] Task: Implement Browser E2E Verification (Playwright MCP or Playwright CLI)
-    - [ ] Sub-task: Add/extend E2E specs for the revamp flow (e.g., `tests/e2e/design-revamp-phase-4.spec.ts`) and target `http://localhost:8080/`.
-    - [ ] Sub-task: Validate desktop shell parity (sidebar, header search affordance, footer links/stats, and refresh FAB visibility/positioning).
-    - [ ] Sub-task: Validate Feed/Table toggle contract:
-        - [ ] Toggle remains client-side (`Feed` ↔ `Table`) with no URL navigation side effect.
-        - [ ] Toggle state updates visible content correctly (cards in Feed mode, table in Table mode).
-    - [ ] Sub-task: Validate table interaction contract:
-        - [ ] Expand affordance opens/closes summary row without triggering details navigation.
-        - [ ] Row selection and/or summary CTA still opens alert details (`AlertDetailsView`) as expected.
-    - [ ] Sub-task: Validate feed card state parity:
-        - [ ] Active alerts retain high-visibility styling.
-        - [ ] Cleared alerts render muted/grayscale treatment while preserving legibility.
-    - [ ] Sub-task: Validate responsive behavior at minimum desktop and mobile breakpoints (mobile drawer, bottom nav coexistence, and FAB non-overlap with critical actions).
-    - [ ] Sub-task: Capture verification artifacts (screenshots and, if enabled, Playwright trace/video) for key states and attach artifact paths in phase notes.
+- [x] Task: Prepare Local E2E Verification Environment (`http://localhost:8080/`)
+    - [x] Sub-task: Start and verify the local app endpoint at `http://localhost:8080/` (Sail-backed or equivalent local dev runtime), and confirm the GTA Alerts page is reachable before browser automation begins.
+    - [x] Sub-task: Ensure test data is present to exercise both Feed and Table states (at minimum one active alert and one cleared alert visible in the UI).
+    - [x] Sub-task: Record runtime assumptions for verification (browser engine, viewport presets, auth state, and whether verification runs through Playwright MCP or standalone Playwright).
+- [x] Task: Implement Browser E2E Verification (Playwright MCP or Playwright CLI)
+    - [x] Sub-task: Add/extend E2E specs for the revamp flow (e.g., `tests/e2e/design-revamp-phase-4.spec.ts`) and target `http://localhost:8080/`.
+    - [x] Sub-task: Validate desktop shell parity (sidebar, header search affordance, footer links/stats, and refresh FAB visibility/positioning).
+    - [x] Sub-task: Validate Feed/Table toggle contract:
+        - [x] Toggle remains client-side (`Feed` ↔ `Table`) with no URL navigation side effect.
+        - [x] Toggle state updates visible content correctly (cards in Feed mode, table in Table mode).
+    - [x] Sub-task: Validate table interaction contract:
+        - [x] Expand affordance opens/closes summary row without triggering details navigation.
+        - [x] Row selection and/or summary CTA still opens alert details (`AlertDetailsView`) as expected.
+    - [x] Sub-task: Validate feed card state parity:
+        - [x] Active alerts retain high-visibility styling.
+        - [x] Cleared alerts render muted/grayscale treatment while preserving legibility.
+    - [x] Sub-task: Validate responsive behavior at minimum desktop and mobile breakpoints (mobile drawer, bottom nav coexistence, and FAB non-overlap with critical actions).
+    - [x] Sub-task: Capture verification artifacts (screenshots and, if enabled, Playwright trace/video) for key states and attach artifact paths in phase notes.
 - [ ] Task: Run Code Quality and Regression Gates
-    - [ ] Sub-task: Run `pnpm run format:check`, `pnpm run lint:check`, `pnpm run types`, and `pnpm run test` (or `pnpm run quality:check`).
-    - [ ] Sub-task: Run backend suite when shared assets/layout integration might affect server-rendered behavior: `./vendor/bin/sail artisan test`.
+    - [x] Sub-task: Run `pnpm run format:check`, `pnpm run lint:check`, `pnpm run types`, and `pnpm run test` (or `pnpm run quality:check`).
+    - [x] Sub-task: Run backend suite when shared assets/layout integration might affect server-rendered behavior: `./vendor/bin/sail artisan test`.
     - [ ] Sub-task: If any gate fails, document failure mode, fix, and rerun evidence in the phase verification log.
-- [ ] Task: Conductor - User Manual Verification 'Phase 4: Testing & Verification' (Protocol in workflow.md; include Playwright MCP/Playwright execution details and artifact references; attempted 2026-03-05 via Playwright MCP with artifacts in `artifacts/playwright/`; findings tracked in `docs/tickets/FEED-016-design-revamp-phase-4-verification-findings.md`)
+- [ ] Task: Conductor - User Manual Verification 'Phase 4: Testing & Verification' (Protocol in workflow.md; include Playwright MCP/Playwright execution details and artifact references; attempted 2026-03-05 via Playwright MCP with artifacts `artifacts/playwright/design-revamp-phase4-20260305-*`; runtime assumptions recorded in `tests/e2e/design-revamp-phase-4.spec.ts`; latest findings tracked in `docs/tickets/FEED-017-design-revamp-phase-4-quality-gate-failures.md`; historical findings in `docs/tickets/FEED-016-design-revamp-phase-4-verification-findings.md`)
 
 ## Phase 5: Final Comprehensive Documentation & Track Closeout
 - [ ] Task: Update Track Artifacts (Plan/Spec/Audit) With Final Implementation State
