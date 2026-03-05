@@ -87,7 +87,7 @@ export const AlertCard: React.FC<AlertCardProps> = ({
                                 {sourceLabel}
                             </span>
                             {isSaved && (
-                                <span className="border-2 border-black bg-primary px-2 py-1 text-black">
+                                <span className="border-2 border-black bg-[#FF7F00] px-2 py-1 text-black">
                                     SAVED
                                 </span>
                             )}

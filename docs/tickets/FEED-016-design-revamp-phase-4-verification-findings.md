@@ -1,10 +1,11 @@
 ---
 ticket_id: FEED-016
 title: "[Phase 4] Design Revamp verification failures on localhost:8080"
-status: Open
+status: Closed
 priority: High
 assignee: Unassigned
 created_at: 2026-03-05
+closed_at: 2026-03-05
 tags: [frontend, qa, playwright, design-revamp]
 related_files:
   - conductor/tracks/design_revamp_20260303/plan.md
@@ -76,7 +77,7 @@ Phase 4 Playwright verification against `http://localhost:8080/` surfaced multip
 
 - [x] Shift the color palette to the following:
   - Core Palette
-    - Primary / Hazard (`#FF7F00`): A vibrant safety orange used for active navigation states, key icons, and primary action buttons.
+    - Primary / Hazard (`#FF7F00`): A vibrant safety orange used only for the highlight effect (do not use `bg-primary` for highlights).
     - Background / Brand Dark (`#1A1A1A`): A deep charcoal used for the main background, sidebar, and header, providing a dark, focused environment.
     - Panel Light (`#FFFFFF`): Pure white used for content panels, table rows, and high-contrast text.
   - Status & Severity Colors

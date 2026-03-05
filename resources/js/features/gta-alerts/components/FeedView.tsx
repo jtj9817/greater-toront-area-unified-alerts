@@ -168,7 +168,7 @@ export const FeedView: React.FC<FeedViewProps> = ({
                                     disabled={isFilterLoading}
                                     className={`flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[11px] font-bold whitespace-nowrap transition-all ${
                                         status === opt.id
-                                            ? 'border-black bg-primary text-black'
+                                            ? 'border-black bg-[#FF7F00] text-black'
                                             : 'border-[#333333] bg-background-dark text-text-secondary hover:border-primary hover:bg-[#333333] hover:text-white'
                                     } ${isFilterLoading ? 'pointer-events-none opacity-50' : ''}`}
                                 >
@@ -217,7 +217,7 @@ export const FeedView: React.FC<FeedViewProps> = ({
                                     disabled={isFilterLoading}
                                     className={`flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-medium whitespace-nowrap transition-all md:px-4 md:py-2 ${
                                         isSelected
-                                            ? 'border-black bg-primary text-black'
+                                            ? 'border-black bg-[#FF7F00] text-black'
                                             : 'border-[#333333] bg-background-dark text-text-secondary hover:border-primary hover:bg-[#333333] hover:text-white'
                                     } ${isFilterLoading ? 'pointer-events-none opacity-50' : ''}`}
                                 >
@@ -231,8 +231,8 @@ export const FeedView: React.FC<FeedViewProps> = ({
 
                 {/* Loading Indicator Row */}
                 {isFilterLoading && (
-                    <div id="gta-alerts-feed-loading-row" className="flex items-center gap-2 border-b border-[#333333] bg-primary/15 px-4 py-1.5 md:px-6">
-                        <span className="flex h-3 w-3 animate-pulse rounded-full bg-primary"></span>
+                    <div id="gta-alerts-feed-loading-row" className="flex items-center gap-2 border-b border-[#333333] bg-[#FF7F00]/15 px-4 py-1.5 md:px-6">
+                        <span className="flex h-3 w-3 animate-pulse rounded-full bg-[#FF7F00]"></span>
                         <span className="text-[11px] font-medium text-primary">
                             Updating feed...
                         </span>
@@ -300,7 +300,7 @@ export const FeedView: React.FC<FeedViewProps> = ({
                                 id="gta-alerts-feed-reset-btn"
                                 onClick={handleReset}
                                 disabled={isFilterLoading}
-                                className="flex items-center gap-1 rounded px-2 py-1 text-xs font-medium text-primary transition-colors hover:bg-primary hover:text-black disabled:cursor-not-allowed disabled:opacity-50"
+                                className="flex items-center gap-1 rounded px-2 py-1 text-xs font-medium text-primary transition-colors hover:bg-[#FF7F00] hover:text-black disabled:cursor-not-allowed disabled:opacity-50"
                             >
                                 <Icon name="restart_alt" className="text-sm" />
                                 Reset
@@ -315,7 +315,7 @@ export const FeedView: React.FC<FeedViewProps> = ({
                                 aria-label="Feed view"
                                 className={`flex items-center gap-2 px-4 py-2 text-xs font-black tracking-wide uppercase transition-colors ${
                                     viewMode === 'feed'
-                                        ? 'bg-primary text-black'
+                                        ? 'bg-[#FF7F00] text-black'
                                         : 'text-white hover:text-primary'
                                 }`}
                             >
@@ -331,7 +331,7 @@ export const FeedView: React.FC<FeedViewProps> = ({
                                 aria-label="Table view"
                                 className={`flex items-center gap-2 px-4 py-2 text-xs font-black tracking-wide uppercase transition-colors ${
                                     viewMode === 'table'
-                                        ? 'bg-primary text-black'
+                                        ? 'bg-[#FF7F00] text-black'
                                         : 'text-white hover:text-primary'
                                 }`}
                             >
@@ -363,7 +363,7 @@ export const FeedView: React.FC<FeedViewProps> = ({
                     {latestFeedUpdatedAt && (
                         <div id="gta-alerts-feed-updated-bar" className="mb-2 flex items-center justify-between px-1">
                             <div className="flex items-center gap-2 text-[10px] font-bold tracking-widest text-primary uppercase">
-                                <span className="flex h-1.5 w-1.5 animate-pulse rounded-full bg-primary"></span>
+                                <span className="flex h-1.5 w-1.5 animate-pulse rounded-full bg-[#FF7F00]"></span>
                                 Live Feed Active
                             </div>
                             <div className="flex items-center gap-1.5 rounded-full border border-[#333333] bg-black px-2.5 py-1 text-[10px] text-text-secondary">

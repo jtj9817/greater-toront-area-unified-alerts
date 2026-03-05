@@ -18,7 +18,7 @@ export const SectionHeader: React.FC<SectionHeaderProps> = ({
                 <Icon name={iconName} className="text-lg" />
                 {title}
             </h3>
-            <span id={`gta-alerts-section-header-${iconName}-count`} className="rounded-full bg-primary/20 px-2 py-0.5 text-xs font-medium text-primary">
+            <span id={`gta-alerts-section-header-${iconName}-count`} className="rounded-full bg-[#FF7F00]/20 px-2 py-0.5 text-xs font-medium text-primary">
                 {count} Active
             </span>
         </div>

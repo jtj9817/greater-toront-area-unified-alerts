@@ -121,7 +121,7 @@ export const AlertTableView: React.FC<AlertTableViewProps> = ({
                                     <td className="text-xs tracking-wide uppercase">
                                         {sourceLabel}
                                         {savedIds.has(presentation.id) && (
-                                            <span className="ml-2 bg-primary px-2 py-1 text-[10px] font-black text-black uppercase">
+                                            <span className="ml-2 bg-[#FF7F00] px-2 py-1 text-[10px] font-black text-black uppercase">
                                                 Saved
                                             </span>
                                         )}

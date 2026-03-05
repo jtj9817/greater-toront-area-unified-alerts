@@ -39,7 +39,7 @@ const AlertDetailsLayout: React.FC<DetailLayoutProps> = ({
                 <button
                     id={`gta-alerts-alert-details-${alert.id}-back-btn`}
                     onClick={onBack}
-                    className="flex h-10 w-10 items-center justify-center rounded-full bg-white/5 text-white transition-all hover:bg-primary hover:text-white"
+                    className="flex h-10 w-10 items-center justify-center rounded-full bg-white/5 text-white transition-all hover:bg-[#FF7F00] hover:text-white"
                 >
                     <Icon name="arrow_back" />
                 </button>

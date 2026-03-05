@@ -245,7 +245,7 @@ export const SubscriptionManager: React.FC<SubscriptionManagerProps> = ({
                             onClick={() => setActiveTab(tab)}
                             className={`rounded-lg border px-3 py-2 text-sm transition ${
                                 activeTab === tab
-                                    ? 'border-primary/60 bg-primary/20 text-white'
+                                    ? 'border-[#FF7F00]/60 bg-[#FF7F00]/20 text-white'
                                     : 'border-white/15 bg-background-dark/60 text-text-secondary hover:text-white'
                             }`}
                         >

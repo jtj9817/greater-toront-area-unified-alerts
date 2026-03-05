@@ -388,7 +388,7 @@ export const NotificationInboxView: React.FC<NotificationInboxViewProps> = ({
                     </p>
                 </div>
                 <div className="flex items-center gap-3">
-                    <span className="rounded-full border border-primary/40 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
+                    <span className="rounded-full border border-primary/40 bg-[#FF7F00]/10 px-3 py-1 text-xs font-semibold text-primary">
                         Unread: {unreadCount}
                     </span>
                     <button
@@ -498,7 +498,7 @@ export const NotificationInboxView: React.FC<NotificationInboxViewProps> = ({
                                                 : itemSource}
                                         </span>
                                         {isUnread && (
-                                            <span className="rounded-full bg-primary/20 px-2 py-0.5 text-[11px] font-semibold text-primary uppercase">
+                                            <span className="rounded-full bg-[#FF7F00]/20 px-2 py-0.5 text-[11px] font-semibold text-primary uppercase">
                                                 Unread
                                             </span>
                                         )}

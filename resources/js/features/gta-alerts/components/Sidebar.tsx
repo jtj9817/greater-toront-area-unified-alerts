@@ -39,7 +39,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <button
                 id="gta-alerts-sidebar-close-btn"
                 onClick={onCloseMobile}
-                className="absolute top-4 right-4 border border-[#333333] bg-[#1a1a1a] p-1 text-white transition-colors hover:bg-primary hover:text-black md:hidden"
+                className="absolute top-4 right-4 border border-[#333333] bg-[#1a1a1a] p-1 text-white transition-colors hover:bg-[#FF7F00] hover:text-black md:hidden"
                 aria-label="Close menu"
             >
                 <Icon name="close" />
@@ -71,7 +71,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                         onClick={() => onNavigate(item.id)}
                         className={`group relative flex w-full items-center gap-3 px-3 py-3 text-xs font-black tracking-wide uppercase transition-colors ${
                             currentView === item.id
-                                ? 'bg-primary text-black'
+                                ? 'bg-[#FF7F00] text-black'
                                 : 'text-white hover:bg-[#333333]'
                         } ${isCollapsed ? 'md:justify-center' : ''}`}
                         title={isCollapsed ? item.name : ''}
@@ -87,7 +87,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                             </span>
                         )}
                         {isCollapsed && (
-                            <div className="pointer-events-none absolute left-full z-50 ml-4 border border-black bg-primary px-2 py-1 text-[10px] whitespace-nowrap text-black opacity-0 transition-opacity group-hover:opacity-100">
+                            <div className="pointer-events-none absolute left-full z-50 ml-4 border border-black bg-[#FF7F00] px-2 py-1 text-[10px] whitespace-nowrap text-black opacity-0 transition-opacity group-hover:opacity-100">
                                 {item.name}
                             </div>
                         )}
@@ -99,7 +99,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 <button
                     id="gta-alerts-sidebar-collapse-btn"
                     onClick={onToggleCollapse}
-                    className={`hidden w-full items-center justify-center border border-[#333333] bg-[#1a1a1a] py-2.5 text-white transition-colors hover:bg-primary hover:text-black md:flex ${isCollapsed ? '' : 'gap-2'}`}
+                    className={`hidden w-full items-center justify-center border border-[#333333] bg-[#1a1a1a] py-2.5 text-white transition-colors hover:bg-[#FF7F00] hover:text-black md:flex ${isCollapsed ? '' : 'gap-2'}`}
                     title={isCollapsed ? 'Expand Sidebar' : 'Collapse Sidebar'}
                 >
                     <Icon

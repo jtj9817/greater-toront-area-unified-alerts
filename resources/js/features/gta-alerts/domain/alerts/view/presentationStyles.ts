@@ -37,7 +37,7 @@ export function deriveAccentColor(
     severity: AlertPresentation['severity'],
 ): string {
     void type;
-    return severity === 'high' ? 'bg-critical' : 'bg-primary';
+    return severity === 'high' ? 'bg-critical' : 'bg-[#FF7F00]';
 }
 
 export function deriveIconColor(

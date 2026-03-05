@@ -120,13 +120,15 @@ describe('presentationStyles', () => {
 
     it('derives accent color for all severities and categories', () => {
         expect(deriveAccentColor('fire', 'high')).toBe('bg-critical');
-        expect(deriveAccentColor('fire', 'medium')).toBe('bg-primary');
-        expect(deriveAccentColor('police', 'medium')).toBe('bg-primary');
-        expect(deriveAccentColor('hazard', 'medium')).toBe('bg-primary');
-        expect(deriveAccentColor('transit', 'medium')).toBe('bg-primary');
-        expect(deriveAccentColor('go_transit', 'medium')).toBe('bg-primary');
-        expect(deriveAccentColor('medical', 'medium')).toBe('bg-primary');
-        expect(deriveAccentColor('unknown' as never, 'low')).toBe('bg-primary');
+        expect(deriveAccentColor('fire', 'medium')).toBe('bg-[#FF7F00]');
+        expect(deriveAccentColor('police', 'medium')).toBe('bg-[#FF7F00]');
+        expect(deriveAccentColor('hazard', 'medium')).toBe('bg-[#FF7F00]');
+        expect(deriveAccentColor('transit', 'medium')).toBe('bg-[#FF7F00]');
+        expect(deriveAccentColor('go_transit', 'medium')).toBe('bg-[#FF7F00]');
+        expect(deriveAccentColor('medical', 'medium')).toBe('bg-[#FF7F00]');
+        expect(deriveAccentColor('unknown' as never, 'low')).toBe(
+            'bg-[#FF7F00]',
+        );
     });
 
     it('derives icon color for all severities and categories', () => {

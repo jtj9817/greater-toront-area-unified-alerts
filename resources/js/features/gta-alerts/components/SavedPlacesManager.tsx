@@ -271,7 +271,7 @@ export const SavedPlacesManager: React.FC<SavedPlacesManagerProps> = ({
                                                 }
                                                 className={`flex w-full flex-col items-start px-3 py-2 text-left text-sm transition ${
                                                     isSelected
-                                                        ? 'bg-primary/20 text-white'
+                                                        ? 'bg-[#FF7F00]/20 text-white'
                                                         : 'text-white hover:bg-white/10'
                                                 }`}
                                             >
