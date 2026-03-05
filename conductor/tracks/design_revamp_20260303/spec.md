@@ -17,7 +17,43 @@ This track focuses on revamping the current GTA Alerts user interface based on t
   - Add any missing prototype tokens to `@theme` so Tailwind utilities exist (e.g., `bg-warning`, `bg-panel-light`).
   - Prefer scoping overrides under `.gta-alerts-theme { ... }` to avoid unintended cross-app styling changes.
 - **Responsiveness:** Ensure the new layout remains responsive and usable across different screen sizes.
-- **Testability:** UI changes must keep `vitest` expectations coherent; update tests when labels/structure change.
+- **Automated Unit/Component Testability:** UI changes must keep `vitest` expectations coherent; update tests when labels/structure change.
+- **Browser E2E Verification Requirement (Phase 4):**
+  - Verification must run against the local dev site at **`http://localhost:8080/`**.
+  - Preferred browser automation path is **Playwright MCP**; fallback is standalone **Playwright CLI** if MCP is unavailable.
+  - Verification must include desktop and mobile viewport coverage for layout and interaction parity.
+  - Evidence artifacts (screenshots and optional traces/videos) must be captured and referenced in phase notes.
+- **Final Documentation Requirement (Phase 5):**
+  - After testing passes, final documentation must be completed as a dedicated phase.
+  - The phase must cover track artifacts (`plan.md`, `spec.md`, audit notes) and project-level docs (`README.md`, `CLAUDE.md`, relevant `docs/` pages).
+  - The final closeout must include command evidence, artifact references, and registry/archival updates.
+
+## Phase-Specific Delivery Requirements
+### Phase 4: Testing & Verification
+- Validate the revamp end-to-end at `http://localhost:8080/` using Playwright MCP or Playwright CLI.
+- Verify shell parity across breakpoints:
+  - Sidebar/header/footer render and interaction affordances on desktop.
+  - Mobile drawer and bottom navigation behavior on mobile.
+- Verify feed/table behavior:
+  - `Feed` ↔ `Table` toggle remains client-side and does not trigger navigation.
+  - Feed mode shows prototype-style alert cards with clear active vs cleared visual distinction.
+  - Table mode supports expandable summary rows; expand/collapse control must not unintentionally trigger details navigation.
+  - Incident selection pathways still open alert details where expected.
+- Execute quality gates and record outcomes:
+  - `pnpm run format:check`
+  - `pnpm run lint:check`
+  - `pnpm run types`
+  - `pnpm run test` (or `pnpm run quality:check`)
+  - `./vendor/bin/sail artisan test` when integration scope requires backend regression confidence.
+
+### Phase 5: Final Comprehensive Documentation
+- Update all track artifacts to reflect final implementation and verification outcomes.
+- Document user-facing changes, testing workflow, and troubleshooting notes.
+- Produce a final closeout summary including:
+  - Commands executed and pass/fail status.
+  - Verification artifact/log paths.
+  - Remaining technical debt and follow-up ticket references.
+- Complete track registry/archive maintenance per conductor workflow.
 
 ## Acceptance Criteria
 - **Layout parity:** The GTA Alerts layout matches the structural and visual intent of `prototype-two-design/App.tsx` (sidebar, header search affordance, footer, and the prototype’s high-contrast styling), while preserving existing navigation behavior (Feed/Inbox/Saved/Zones/Settings).
@@ -26,6 +62,8 @@ This track focuses on revamping the current GTA Alerts user interface based on t
 - **Theme integration:** Public Sans is available, and required prototype tokens/utilities are integrated so Tailwind classes render correctly (no missing `bg-*`/`text-*` utilities used by the new UI).
 - **No functional regressions:** Existing GTA Alerts behavior remains intact: debounced search, filter links (Inertia), infinite scroll, details view (unless explicitly replaced by in-table expansion), and routing.
 - **Automated quality:** `pnpm run quality:check` passes for the updated UI. (If shared layout assets are modified, PHP/Laravel tests should remain green as well.)
+- **Phase 4 verification complete:** Playwright MCP or Playwright CLI validation against `http://localhost:8080/` passes for required desktop/mobile and interaction scenarios, with artifact references recorded.
+- **Phase 5 documentation complete:** Final track and project documentation updates are complete, with closeout evidence and registry/archive updates recorded.
 
 ## Out of Scope
 - Adding new data sources or backend features.

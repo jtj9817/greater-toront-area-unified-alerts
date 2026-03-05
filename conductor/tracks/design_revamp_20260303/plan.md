@@ -40,10 +40,42 @@
     - [ ] Sub-task: Ensure visual distinction for different alert statuses (Active vs Cleared/Grayscale) without losing readability.
 - [ ] Task: Conductor - User Manual Verification 'Phase 3: Alert Feed & Table Views' (Protocol in workflow.md)
 
-## Phase 4: Quality & Documentation
-- [ ] Task: Verify Formatting, Types, and Tests
+## Phase 4: Testing & Verification (Playwright + Quality Gates)
+- [ ] Task: Prepare Local E2E Verification Environment (`http://localhost:8080/`)
+    - [ ] Sub-task: Start and verify the local app endpoint at `http://localhost:8080/` (Sail-backed or equivalent local dev runtime), and confirm the GTA Alerts page is reachable before browser automation begins.
+    - [ ] Sub-task: Ensure test data is present to exercise both Feed and Table states (at minimum one active alert and one cleared alert visible in the UI).
+    - [ ] Sub-task: Record runtime assumptions for verification (browser engine, viewport presets, auth state, and whether verification runs through Playwright MCP or standalone Playwright).
+- [ ] Task: Implement Browser E2E Verification (Playwright MCP or Playwright CLI)
+    - [ ] Sub-task: Add/extend E2E specs for the revamp flow (e.g., `tests/e2e/design-revamp-phase-4.spec.ts`) and target `http://localhost:8080/`.
+    - [ ] Sub-task: Validate desktop shell parity (sidebar, header search affordance, footer links/stats, and refresh FAB visibility/positioning).
+    - [ ] Sub-task: Validate Feed/Table toggle contract:
+        - [ ] Toggle remains client-side (`Feed` ↔ `Table`) with no URL navigation side effect.
+        - [ ] Toggle state updates visible content correctly (cards in Feed mode, table in Table mode).
+    - [ ] Sub-task: Validate table interaction contract:
+        - [ ] Expand affordance opens/closes summary row without triggering details navigation.
+        - [ ] Row selection and/or summary CTA still opens alert details (`AlertDetailsView`) as expected.
+    - [ ] Sub-task: Validate feed card state parity:
+        - [ ] Active alerts retain high-visibility styling.
+        - [ ] Cleared alerts render muted/grayscale treatment while preserving legibility.
+    - [ ] Sub-task: Validate responsive behavior at minimum desktop and mobile breakpoints (mobile drawer, bottom nav coexistence, and FAB non-overlap with critical actions).
+    - [ ] Sub-task: Capture verification artifacts (screenshots and, if enabled, Playwright trace/video) for key states and attach artifact paths in phase notes.
+- [ ] Task: Run Code Quality and Regression Gates
     - [ ] Sub-task: Run `pnpm run format:check`, `pnpm run lint:check`, `pnpm run types`, and `pnpm run test` (or `pnpm run quality:check`).
-    - [ ] Sub-task: Run backend test suite if any shared layout assets were touched: `./vendor/bin/sail artisan test`.
-- [ ] Task: Documentation Updates
-    - [ ] Sub-task: Document any new UI components or styling changes.
-- [ ] Task: Conductor - User Manual Verification 'Phase 4: Quality & Documentation' (Protocol in workflow.md)
+    - [ ] Sub-task: Run backend suite when shared assets/layout integration might affect server-rendered behavior: `./vendor/bin/sail artisan test`.
+    - [ ] Sub-task: If any gate fails, document failure mode, fix, and rerun evidence in the phase verification log.
+- [ ] Task: Conductor - User Manual Verification 'Phase 4: Testing & Verification' (Protocol in workflow.md; include Playwright MCP/Playwright execution details and artifact references)
+
+## Phase 5: Final Comprehensive Documentation & Track Closeout
+- [ ] Task: Update Track Artifacts (Plan/Spec/Audit) With Final Implementation State
+    - [ ] Sub-task: Update this `plan.md` with completed task checkboxes and commit SHAs for Phase 3 and Phase 4 deliverables.
+    - [ ] Sub-task: Update `conductor/tracks/design_revamp_20260303/spec.md` if implemented behavior deviates from original wording (explicitly note accepted deltas or confirm no deltas).
+    - [ ] Sub-task: Update or append the phase audit document (e.g., `20260304_design_revamp_20260303_audit.md`) with Phase 3 and Phase 4 commit/test evidence.
+- [ ] Task: Update Project-Level Documentation
+    - [ ] Sub-task: Document revamp behavior and user-facing UI changes in appropriate docs (`README.md`, `CLAUDE.md`, and relevant `docs/` pages).
+    - [ ] Sub-task: Document verification workflow details: local URL (`http://localhost:8080/`), Playwright MCP/Playwright command strategy, and troubleshooting notes (including CI/Vite environment caveats if applicable).
+    - [ ] Sub-task: Document any unresolved technical debt discovered during Phase 4 validation as explicit tickets linked from track notes.
+- [ ] Task: Final Verification Report & Registry Maintenance
+    - [ ] Sub-task: Produce a concise phase closeout report summarizing commands run, pass/fail status, and artifact/log paths.
+    - [ ] Sub-task: Update `conductor/tracks.md` registry status and move the track to archive when all gates and documentation requirements are complete.
+    - [ ] Sub-task: Ensure final checkpoint/notes references include the Phase 4 testing evidence and Phase 5 documentation evidence.
+- [ ] Task: Conductor - User Manual Verification 'Phase 5: Final Comprehensive Documentation & Track Closeout' (Protocol in workflow.md)
