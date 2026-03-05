@@ -1,20 +1,22 @@
 <?php
 
 /**
- * Manual Test: UI Design Revamp - Phase 2 Global Layout Implementation
- * Generated: 2026-03-04
+ * Manual Test: UI Design Revamp - Phase 4 Testing & Verification
+ * Generated: 2026-03-05
+ *
  * Purpose:
- * - Verify Phase 2 global layout deliverables for Prototype Two.
- * - Confirm prototype-style sidebar, header, and footer integration.
- * - Confirm GTA Alerts wrapper and scoped theme root remain intact.
- * - Confirm floating refresh action exists and preserves state/scroll.
- * - Optionally run targeted frontend command gates.
+ * - Verify the executable Phase 4 verification assets exist and remain aligned:
+ *   - `tests/e2e/design-revamp-phase-4.spec.ts`
+ *   - `docs/runbooks/design-revamp-phase-4-verification.md`
+ *   - Phase 4 findings tickets (`FEED-016`, `FEED-017`)
+ *   - Playwright artifact evidence from the 2026-03-05 verification run
+ * - Optionally execute the narrowest automated regression for the Phase 4 spec.
  *
  * Usage:
- *   php tests/manual/verify_design_revamp_phase_2_global_layout_implementation.php
+ *   php tests/manual/verify_design_revamp_phase_4_testing_verification.php
  *
  * Optional env vars:
- *   RUN_COMMAND_GATES=0  Skip command gates.
+ *   RUN_COMMAND_GATES=0  Skip running the targeted Vitest verification spec.
  */
 
 require __DIR__.'/../../vendor/autoload.php';
@@ -54,7 +56,7 @@ if (function_exists('posix_geteuid') && posix_geteuid() === 0 && getenv('ALLOW_R
 
 umask(002);
 
-$testRunId = 'design_revamp_phase_2_global_layout_implementation_'.Carbon::now()->format('Y_m_d_His');
+$testRunId = 'design_revamp_phase_4_testing_verification_'.Carbon::now()->format('Y_m_d_His');
 $logFileRelative = "storage/logs/manual_tests/{$testRunId}.log";
 $logFile = storage_path("logs/manual_tests/{$testRunId}.log");
 $logDir = dirname($logFile);
@@ -111,12 +113,16 @@ function readFileContents(string $relativePath): string
 {
     $absolutePath = base_path($relativePath);
     assertTrue(file_exists($absolutePath), "file exists: {$relativePath}");
+
     $contents = file_get_contents($absolutePath);
     assertTrue(is_string($contents), "file is readable: {$relativePath}");
 
     return $contents;
 }
 
+/**
+ * @return array{exit_code: int|null, output: string}
+ */
 function runCommand(string $command, string $label): array
 {
     logInfo("Running command: {$label}", ['command' => $command]);
@@ -149,99 +155,100 @@ $shouldRunCommandGates = $runCommandGates === false ? true : $runCommandGates !=
 $exitCode = 0;
 
 try {
-    logInfo('=== Starting Manual Test: UI Design Revamp Phase 2 Global Layout Implementation ===');
+    logInfo('=== Starting Manual Test: UI Design Revamp Phase 4 Testing & Verification ===');
     logInfo('Boot context', [
         'app_env' => app()->environment(),
         'run_command_gates' => $shouldRunCommandGates,
     ]);
 
-    logInfo('Phase 1: Verify required Phase 2 files are present');
+    logInfo('Phase 1: Verify executable verification spec and runbook');
 
-    readFileContents('resources/js/features/gta-alerts/App.tsx');
-    readFileContents('resources/js/features/gta-alerts/components/Sidebar.tsx');
-    readFileContents('resources/js/features/gta-alerts/components/Footer.tsx');
-
-    logInfo('Phase 2: Verify App shell wrapper, header, and refresh behavior');
-
-    $appTsx = readFileContents('resources/js/features/gta-alerts/App.tsx');
-
+    $phase4Spec = readFileContents('tests/e2e/design-revamp-phase-4.spec.ts');
     foreach ([
-        'className="gta-alerts-theme relative flex h-screen w-full overflow-hidden bg-background-dark font-sans text-white"',
-        'id="gta-alerts-header"',
-        'className="z-50 flex-none border-b border-[#333333] bg-background-dark"',
-        'placeholder="Search alerts, streets, or categories..."',
-        'aria-label="Open notification center"',
-        'aria-label="Open settings"',
-        '<Icon name="person"',
-        '<Footer />',
-        '<BottomNav',
-        "currentView === 'feed' && (",
-        'aria-label="Refresh feed"',
-        "only: ['alerts', 'filters', 'latestFeedUpdatedAt']",
-        'preserveState: true',
-        'preserveScroll: true',
+        "id: 'shell-desktop-parity'",
+        "id: 'feed-table-toggle-contract'",
+        "id: 'table-interaction-contract'",
+        "id: 'feed-card-status-parity'",
+        "id: 'responsive-mobile-parity'",
+        "engine: 'Vitest + jsdom'",
+        "screen.getByRole('button', { name: 'Refresh feed' })",
     ] as $needle) {
-        assertContainsText($needle, $appTsx, "App.tsx contains expected Phase 2 artifact: {$needle}");
+        assertContainsText($needle, $phase4Spec, "Phase 4 spec contains expected scenario detail: {$needle}");
     }
 
-    logInfo('Phase 3: Verify sidebar styling and behavior retention');
-
-    $sidebarTsx = readFileContents('resources/js/features/gta-alerts/components/Sidebar.tsx');
-
+    $phase4Runbook = readFileContents('docs/runbooks/design-revamp-phase-4-verification.md');
     foreach ([
-        'const navItems = [',
-        "{ id: 'feed', name: 'Feed', icon: 'feed' }",
-        'bg-background-dark',
-        'border-[#333333]',
-        'const mobileTranslate = isMobileOpen',
-        'onToggleCollapse',
-        'onCloseMobile',
-        'currentView === item.id',
-        'bg-[#FF7F00] text-black',
-        "title={isCollapsed ? 'Expand Sidebar' : 'Collapse Sidebar'}",
+        'http://localhost:8080/',
+        'pnpm run format:check',
+        'pnpm run lint:check',
+        'pnpm run types',
+        'pnpm run quality:check',
+        './vendor/bin/sail artisan test',
+        'artifacts/playwright/design-revamp-phase4-20260305-*',
     ] as $needle) {
-        assertContainsText($needle, $sidebarTsx, "Sidebar.tsx contains expected Phase 2 artifact: {$needle}");
+        assertContainsText($needle, $phase4Runbook, "Phase 4 runbook contains expected instruction: {$needle}");
     }
 
-    logInfo('Phase 4: Verify footer content and coexistence intent');
+    logInfo('Phase 2: Verify findings tickets and artifact evidence');
 
-    $footerTsx = readFileContents('resources/js/features/gta-alerts/components/Footer.tsx');
+    $feed016 = readFileContents('docs/tickets/FEED-016-design-revamp-phase-4-verification-findings.md');
     foreach ([
-        'Temp: 24 C | Humidity: 65% | Wind: 15km/h W',
-        'Incident Archives',
-        'Privacy Policy',
-        'System Status',
-        'md:flex',
-        'hidden h-12',
-        'bg-background-dark',
+        'status: Closed',
+        'artifacts/playwright/design-revamp-phase4-desktop-home.png',
+        'artifacts/playwright/design-revamp-phase4-mobile-cleared-view.png',
+        'pnpm run lint:check` (pass)',
     ] as $needle) {
-        assertContainsText($needle, $footerTsx, "Footer.tsx contains expected artifact: {$needle}");
+        assertContainsText($needle, $feed016, "FEED-016 contains expected verification evidence: {$needle}");
+    }
+
+    $feed017 = readFileContents('docs/tickets/FEED-017-design-revamp-phase-4-quality-gate-failures.md');
+    foreach ([
+        'status: Closed',
+        'pnpm run format:check` -> PASS',
+        'pnpm run quality:check` -> PASS',
+        'composer test` -> PASS',
+        'SceneIntelTimeline',
+    ] as $needle) {
+        assertContainsText($needle, $feed017, "FEED-017 contains expected quality-gate evidence: {$needle}");
+    }
+
+    foreach ([
+        'artifacts/playwright/design-revamp-phase4-20260305-desktop-feed-1440.png',
+        'artifacts/playwright/design-revamp-phase4-20260305-desktop-table.png',
+        'artifacts/playwright/design-revamp-phase4-20260305-mobile-drawer-closed.png',
+        'artifacts/playwright/design-revamp-phase4-20260305-quality-check.log',
+        'artifacts/playwright/design-revamp-phase4-20260305-sail-artisan-test.log',
+        'artifacts/playwright/design-revamp-phase4-20260305-gates-detailed.log',
+    ] as $relativePath) {
+        readFileContents($relativePath);
+    }
+
+    logInfo('Phase 3: Verify archived plan evidence pointers remain intact');
+
+    $planDoc = readFileContents('conductor/archive/design_revamp_20260303/plan.md');
+    foreach ([
+        "Task: Conductor - User Manual Verification 'Phase 4: Testing & Verification'",
+        'tests/e2e/design-revamp-phase-4.spec.ts',
+        'docs/tickets/FEED-017-design-revamp-phase-4-quality-gate-failures.md',
+        'artifacts/playwright/design-revamp-phase4-20260305-*',
+    ] as $needle) {
+        assertContainsText($needle, $planDoc, "Plan includes expected Phase 4 evidence reference: {$needle}");
     }
 
     if ($shouldRunCommandGates) {
-        logInfo('Phase 5: Execute targeted frontend command gates');
-
-        $formatResult = runCommand(
-            'CI=true pnpm exec prettier --check resources/js/features/gta-alerts/App.tsx resources/js/features/gta-alerts/App.test.tsx resources/js/features/gta-alerts/components/Sidebar.tsx resources/js/features/gta-alerts/components/Footer.tsx',
-            'phase 2 prettier check'
-        );
-        assertTrue(
-            $formatResult['exit_code'] === 0,
-            'phase 2 prettier check passes',
-            ['exit_code' => $formatResult['exit_code']]
-        );
+        logInfo('Phase 4: Execute the narrowest Phase 4 regression command');
 
         $testResult = runCommand(
-            'CI=true LARAVEL_BYPASS_ENV_CHECK=1 pnpm run test -- resources/js/features/gta-alerts/App.test.tsx resources/js/features/gta-alerts/App.url-state.test.tsx resources/js/features/gta-alerts/components/FeedView.test.tsx',
-            'phase 2 targeted vitest suite'
+            'CI=true LARAVEL_BYPASS_ENV_CHECK=1 pnpm exec vitest run tests/e2e/design-revamp-phase-4.spec.ts',
+            'phase 4 targeted vitest verification spec'
         );
         assertTrue(
             $testResult['exit_code'] === 0,
-            'phase 2 targeted vitest suite passes',
+            'phase 4 targeted vitest verification spec passes',
             ['exit_code' => $testResult['exit_code']]
         );
     } else {
-        logInfo('Phase 5: Command gates skipped via RUN_COMMAND_GATES=0');
+        logInfo('Phase 4: Command gates skipped via RUN_COMMAND_GATES=0');
     }
 
     logInfo('=== Manual Test Completed Successfully ===');

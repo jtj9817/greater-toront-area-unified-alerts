@@ -1,6 +1,6 @@
 ---
 ticket_id: FEED-017
-title: "[Phase 4] Design revamp quality gates failing after Playwright verification rerun"
+title: '[Phase 4] Design revamp quality gates failing after Playwright verification rerun'
 status: Closed
 priority: High
 assignee: Unassigned
@@ -9,16 +9,16 @@ updated_at: 2026-03-05
 closed_at: 2026-03-05
 tags: [frontend, qa, quality-gates, design-revamp]
 related_files:
-  - conductor/tracks/design_revamp_20260303/plan.md
-  - tests/e2e/design-revamp-phase-4.spec.ts
-  - docs/runbooks/design-revamp-phase-4-verification.md
+    - conductor/archive/design_revamp_20260303/plan.md
+    - tests/e2e/design-revamp-phase-4.spec.ts
+    - docs/runbooks/design-revamp-phase-4-verification.md
 artifacts:
-  - artifacts/playwright/design-revamp-phase4-20260305-gates-detailed.log
-  - artifacts/playwright/design-revamp-phase4-20260305-quality-check.log
-  - artifacts/playwright/design-revamp-phase4-20260305-sail-artisan-test.log
-  - artifacts/playwright/design-revamp-phase4-20260305-desktop-feed-1440.png
-  - artifacts/playwright/design-revamp-phase4-20260305-desktop-table.png
-  - artifacts/playwright/design-revamp-phase4-20260305-mobile-drawer-closed.png
+    - artifacts/playwright/design-revamp-phase4-20260305-gates-detailed.log
+    - artifacts/playwright/design-revamp-phase4-20260305-quality-check.log
+    - artifacts/playwright/design-revamp-phase4-20260305-sail-artisan-test.log
+    - artifacts/playwright/design-revamp-phase4-20260305-desktop-feed-1440.png
+    - artifacts/playwright/design-revamp-phase4-20260305-desktop-table.png
+    - artifacts/playwright/design-revamp-phase4-20260305-mobile-drawer-closed.png
 ---
 
 ## Summary
@@ -54,5 +54,5 @@ Phase 4 browser interaction checks remain stable, and the frontend quality gates
 - `resources/js/features/gta-alerts/App.test.tsx` and `resources/js/features/gta-alerts/components/AlertDetailsView.test.tsx` now mock `SceneIntelTimeline`, removing unrelated async state updates and eliminating the noisy `act(...)` warnings from the parent tests.
 - Prettier drift under `resources/` was normalized with `pnpm run format`.
 - Verification on 2026-03-05:
-  - Narrow checks: `pnpm run types`, `LARAVEL_BYPASS_ENV_CHECK=1 pnpm exec vitest run resources/js/features/gta-alerts/App.test.tsx resources/js/features/gta-alerts/components/AlertDetailsView.test.tsx`, `pnpm exec prettier --check ...`
-  - Full gates: `composer test`, `./vendor/bin/pint`, `composer lint`, `pnpm run lint`, `pnpm run format`, `pnpm run types`, `pnpm run quality:check`
+    - Narrow checks: `pnpm run types`, `LARAVEL_BYPASS_ENV_CHECK=1 pnpm exec vitest run resources/js/features/gta-alerts/App.test.tsx resources/js/features/gta-alerts/components/AlertDetailsView.test.tsx`, `pnpm exec prettier --check ...`
+    - Full gates: `composer test`, `./vendor/bin/pint`, `composer lint`, `pnpm run lint`, `pnpm run format`, `pnpm run types`, `pnpm run quality:check`

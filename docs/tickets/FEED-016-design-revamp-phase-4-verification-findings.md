@@ -1,6 +1,6 @@
 ---
 ticket_id: FEED-016
-title: "[Phase 4] Design Revamp verification failures on localhost:8080"
+title: '[Phase 4] Design Revamp verification failures on localhost:8080'
 status: Closed
 priority: High
 assignee: Unassigned
@@ -8,18 +8,18 @@ created_at: 2026-03-05
 closed_at: 2026-03-05
 tags: [frontend, qa, playwright, design-revamp]
 related_files:
-  - conductor/tracks/design_revamp_20260303/plan.md
-  - resources/js/features/gta-alerts/components/FeedView.tsx
-  - resources/js/features/gta-alerts/components/AlertTableView.tsx
-  - resources/js/features/gta-alerts/App.tsx
+    - conductor/archive/design_revamp_20260303/plan.md
+    - resources/js/features/gta-alerts/components/FeedView.tsx
+    - resources/js/features/gta-alerts/components/AlertTableView.tsx
+    - resources/js/features/gta-alerts/App.tsx
 artifacts:
-  - artifacts/playwright/design-revamp-phase4-desktop-home.png
-  - artifacts/playwright/design-revamp-phase4-desktop-table-view.png
-  - artifacts/playwright/design-revamp-phase4-desktop-details-view.png
-  - artifacts/playwright/design-revamp-phase4-desktop-cleared-filter-cards.png
-  - artifacts/playwright/design-revamp-phase4-mobile-cleared-view.png
-  - artifacts/playwright/design-revamp-phase4-quality-check.log
-  - artifacts/playwright/design-revamp-phase4-sail-artisan-test.log
+    - artifacts/playwright/design-revamp-phase4-desktop-home.png
+    - artifacts/playwright/design-revamp-phase4-desktop-table-view.png
+    - artifacts/playwright/design-revamp-phase4-desktop-details-view.png
+    - artifacts/playwright/design-revamp-phase4-desktop-cleared-filter-cards.png
+    - artifacts/playwright/design-revamp-phase4-mobile-cleared-view.png
+    - artifacts/playwright/design-revamp-phase4-quality-check.log
+    - artifacts/playwright/design-revamp-phase4-sail-artisan-test.log
 ---
 
 ## Summary
@@ -43,8 +43,8 @@ Phase 4 Playwright verification against `http://localhost:8080/` surfaced multip
 ### 3) CSP blocks external font/icon stylesheets
 
 - Browser console reports CSP violations for:
-  - `https://fonts.bunny.net/...`
-  - `https://fonts.googleapis.com/...` (Public Sans, Lexend, Material Symbols)
+    - `https://fonts.bunny.net/...`
+    - `https://fonts.googleapis.com/...` (Public Sans, Lexend, Material Symbols)
 - This degrades typography/icon rendering and affects design parity checks.
 
 ### 4) Phase 4 quality gates are not fully green
@@ -76,17 +76,17 @@ Phase 4 Playwright verification against `http://localhost:8080/` surfaced multip
 ## New Task
 
 - [x] Shift the color palette to the following:
-  - Core Palette
-    - Primary / Hazard (`#FF7F00`): A vibrant safety orange used only for the highlight effect (do not use `bg-primary` for highlights).
-    - Background / Brand Dark (`#1A1A1A`): A deep charcoal used for the main background, sidebar, and header, providing a dark, focused environment.
-    - Panel Light (`#FFFFFF`): Pure white used for content panels, table rows, and high-contrast text.
-  - Status & Severity Colors
-    - Critical (`#CC0000`): A deep red used for high-severity alerts and critical status indicators.
-    - Warning (`#FFFF00`): A bright yellow used for medium-priority alerts and live monitoring status bars.
-    - Pure Black (`#000000`): Used for heavy brutalist borders, thick shadows, and text on light backgrounds.
-  - UI Accents
-    - Border/Divider (`#333333`): A dark gray used for subtle structural borders within the dark theme.
-    - Muted Text (`#9CA3AF` / `gray-400`): Used for secondary information and timestamps to maintain visual hierarchy.
+    - Core Palette
+        - Primary / Hazard (`#FF7F00`): A vibrant safety orange used only for the highlight effect (do not use `bg-primary` for highlights).
+        - Background / Brand Dark (`#1A1A1A`): A deep charcoal used for the main background, sidebar, and header, providing a dark, focused environment.
+        - Panel Light (`#FFFFFF`): Pure white used for content panels, table rows, and high-contrast text.
+    - Status & Severity Colors
+        - Critical (`#CC0000`): A deep red used for high-severity alerts and critical status indicators.
+        - Warning (`#FFFF00`): A bright yellow used for medium-priority alerts and live monitoring status bars.
+        - Pure Black (`#000000`): Used for heavy brutalist borders, thick shadows, and text on light backgrounds.
+    - UI Accents
+        - Border/Divider (`#333333`): A dark gray used for subtle structural borders within the dark theme.
+        - Muted Text (`#9CA3AF` / `gray-400`): Used for secondary information and timestamps to maintain visual hierarchy.
 
 ## Notes
 
@@ -94,6 +94,6 @@ Phase 4 Playwright verification against `http://localhost:8080/` surfaced multip
 - Verification commands passed on 2026-03-05: targeted Vitest scopes (`FeedView.test.tsx`, `App.test.tsx`, `App.url-state.test.tsx`), `./vendor/bin/pint`, `composer lint && pnpm run lint && pnpm run format && pnpm run types`, `pnpm run quality:check`, and `composer test`.
 - Palette shift applied on 2026-03-05 across `resources/css/app.css`, `resources/js/features/gta-alerts/components/FeedView.tsx`, `resources/js/features/gta-alerts/components/AlertCard.tsx`, `resources/js/features/gta-alerts/components/AlertTableView.tsx`, `resources/js/features/gta-alerts/components/Sidebar.tsx`, `resources/js/features/gta-alerts/components/Footer.tsx`, and `resources/js/features/gta-alerts/App.tsx`.
 - Verification evidence for this task on 2026-03-05:
-  - `pnpm test resources/js/features/gta-alerts/components/FeedView.test.tsx resources/js/features/gta-alerts/components/AlertCard.test.tsx resources/js/features/gta-alerts/components/AlertTableView.test.tsx resources/js/features/gta-alerts/App.test.tsx resources/js/features/gta-alerts/App.url-state.test.tsx` (pass)
-  - `pnpm run lint:check` (pass)
-  - `pnpm run types` (fails on unrelated existing import resolution issue in `resources/js/pages/settings/password.tsx`: TS2307 for `@/actions/App/Http/Controllers/Settings/PasswordController`)
+    - `pnpm test resources/js/features/gta-alerts/components/FeedView.test.tsx resources/js/features/gta-alerts/components/AlertCard.test.tsx resources/js/features/gta-alerts/components/AlertTableView.test.tsx resources/js/features/gta-alerts/App.test.tsx resources/js/features/gta-alerts/App.url-state.test.tsx` (pass)
+    - `pnpm run lint:check` (pass)
+    - `pnpm run types` (fails on unrelated existing import resolution issue in `resources/js/pages/settings/password.tsx`: TS2307 for `@/actions/App/Http/Controllers/Settings/PasswordController`)

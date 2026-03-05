@@ -6,40 +6,40 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ## Active Tracks
 
-- [ ] **Track: UI Design Revamp (Prototype Two)** (Phase 5 docs complete; archival blocked by pending manual verification tasks)
-*Link: [./tracks/design_revamp_20260303/](./tracks/design_revamp_20260303/)*
-
 ## Archived Tracks
 
+- [x] **Track: UI Design Revamp (Prototype Two)**
+      _Link: [./archive/design_revamp_20260303/](./archive/design_revamp_20260303/)_
+
 - [x] **Track: Abstract Database-Specific SQL Functions for PostgreSQL Compatibility**
-*Link: [./archive/feed_010_postgresql_refactoring_20260227/](./archive/feed_010_postgresql_refactoring_20260227/)*
+      _Link: [./archive/feed_010_postgresql_refactoring_20260227/](./archive/feed_010_postgresql_refactoring_20260227/)_
 
 - [x] **Track: Replace PHP Seeder Export with SQL Dump Pipeline (Postgres)**
-*Link: [./archive/sql_export_pipeline_20260224/](./archive/sql_export_pipeline_20260224/)*
+      _Link: [./archive/sql_export_pipeline_20260224/](./archive/sql_export_pipeline_20260224/)_
 
 - [x] **Track: Server-Side Filtering & Search Refactor**
-*Link: [./archive/server_side_filtering_20260218/](./archive/server_side_filtering_20260218/)*
+      _Link: [./archive/server_side_filtering_20260218/](./archive/server_side_filtering_20260218/)_
 
 - [x] **Track: Scheduler Resilience & Stability Overhaul**
-*Link: [./archive/scheduler_resilience_20260216/](./archive/scheduler_resilience_20260216/)*
+      _Link: [./archive/scheduler_resilience_20260216/](./archive/scheduler_resilience_20260216/)_
 
 - [x] **Track: Scene Intel Feature**
-*Link: [./archive/scene_intel_20260213/](./archive/scene_intel_20260213/)*
+      _Link: [./archive/scene_intel_20260213/](./archive/scene_intel_20260213/)_
 
 - [x] **Track: In-App Notification System (Phase 2): Geofencing, Accessibility, and Maintenance**
-*Link: [./archive/notifications_phase_2_20260211/](./archive/notifications_phase_2_20260211/)*
+      _Link: [./archive/notifications_phase_2_20260211/](./archive/notifications_phase_2_20260211/)_
 
 - [x] **Track: In-App Notification System (Phase 1)**
-*Link: [./archive/notifications_20260209/](./archive/notifications_20260209/)*
+      _Link: [./archive/notifications_20260209/](./archive/notifications_20260209/)_
 
 - [x] **Track: Production Data Migration**
-*Link: [./archive/production_data_migration_20260207/](./archive/production_data_migration_20260207/)*
+      _Link: [./archive/production_data_migration_20260207/](./archive/production_data_migration_20260207/)_
 
 - [x] **Track: Frontend Typed Alert Domain Refactor**
-*Link: [./archive/typed_domain_refactor_20260206/](./archive/typed_domain_refactor_20260206/)*
+      _Link: [./archive/typed_domain_refactor_20260206/](./archive/typed_domain_refactor_20260206/)_
 
 - [x] **Track: TTC Transit Integration**
-*Link: [./archive/ttc_transit_integration_20260206/](./archive/ttc_transit_integration_20260206/)*
+      _Link: [./archive/ttc_transit_integration_20260206/](./archive/ttc_transit_integration_20260206/)_
 
 - [x] **Track: Unified Alerts Query Refinement & Robustness**
-*Link: [./archive/query_refinement_20260203/](./archive/query_refinement_20260203/)*
+      _Link: [./archive/query_refinement_20260203/](./archive/query_refinement_20260203/)_
