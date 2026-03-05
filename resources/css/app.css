@@ -87,7 +87,7 @@
     --color-warning: #ffff00;
     --color-hazard: #ff7f00;
     --color-critical: #cc0000;
-    --color-panel-light: #ffffff;
+    --color-panel-light: rgb(255, 127, 0);
     --color-background-dark: #1a1a1a;
     --color-surface-dark: #1a1a1a;
     --color-input-dark: #1a1a1a;
@@ -230,7 +230,7 @@
     --color-warning: #ffff00;
     --color-hazard: #ff7f00;
     --color-critical: #cc0000;
-    --color-panel-light: #ffffff;
+    --color-panel-light: rgb(255, 127, 0);
     --color-background-dark: #1a1a1a;
     --color-surface-dark: #1a1a1a;
     --color-input-dark: #1a1a1a;
@@ -282,11 +282,11 @@
     }
 
     .expandable-row:hover {
-        @apply bg-white text-black;
+        @apply bg-panel-light text-black;
     }
 
     tr.active-row {
-        @apply bg-white text-black;
+        @apply bg-panel-light text-black;
     }
 }
 

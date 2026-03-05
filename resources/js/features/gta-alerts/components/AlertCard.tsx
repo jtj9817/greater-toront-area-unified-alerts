@@ -82,7 +82,7 @@ export const AlertCard: React.FC<AlertCardProps> = ({
                             </span>
                         </div>
                         <div className="flex items-center gap-2 text-[10px] font-black tracking-wider uppercase">
-                            <span className="border-2 border-black bg-white px-2 py-1">
+                            <span className="border-2 border-black bg-panel-light px-2 py-1">
                                 {sourceLabel}
                             </span>
                             {isSaved && (
@@ -110,7 +110,7 @@ export const AlertCard: React.FC<AlertCardProps> = ({
                     </p>
 
                     <div
-                        className={`border-l-[12px] bg-white p-4 ${summaryBorderClass}`}
+                        className={`border-l-[12px] bg-panel-light p-4 ${summaryBorderClass}`}
                     >
                         <p className="mb-2 text-[11px] font-black tracking-widest text-critical uppercase">
                             Incident Summary
@@ -121,7 +121,7 @@ export const AlertCard: React.FC<AlertCardProps> = ({
                     </div>
 
                     <div className="mt-4 flex flex-wrap items-center gap-3 text-[10px] font-black tracking-wider uppercase">
-                        <span className="flex items-center gap-1 border-2 border-black bg-white px-2 py-1">
+                        <span className="flex items-center gap-1 border-2 border-black bg-panel-light px-2 py-1">
                             <Icon
                                 name={item.iconName}
                                 className={item.iconColor}
@@ -129,7 +129,7 @@ export const AlertCard: React.FC<AlertCardProps> = ({
                             Event #{eventReference}
                         </span>
                         {item.metadata?.unitsDispatched && (
-                            <span className="flex items-center gap-1 border-2 border-black bg-white px-2 py-1">
+                            <span className="flex items-center gap-1 border-2 border-black bg-panel-light px-2 py-1">
                                 <Icon name="fire_truck" className="text-sm" />
                                 {item.metadata.unitsDispatched}
                             </span>

@@ -154,7 +154,7 @@ export const AlertTableView: React.FC<AlertTableViewProps> = ({
                                             className="border-b-4 border-black p-0"
                                         >
                                             <div
-                                                className={`m-4 border-l-[12px] bg-white p-6 ${presentation.severity === 'high' ? 'border-critical' : 'border-warning'}`}
+                                                className={`m-4 border-l-[12px] bg-panel-light p-6 ${presentation.severity === 'high' ? 'border-critical' : 'border-warning'}`}
                                             >
                                                 <p className="mb-3 text-xs font-black tracking-widest text-critical uppercase">
                                                     Incident Summary
@@ -163,7 +163,7 @@ export const AlertTableView: React.FC<AlertTableViewProps> = ({
                                                     {presentation.description}
                                                 </p>
                                                 <div className="mt-4 flex flex-wrap gap-3 text-[10px] font-black uppercase">
-                                                    <span className="border-2 border-black bg-white px-3 py-1">
+                                                    <span className="border-2 border-black bg-panel-light px-3 py-1">
                                                         Event #
                                                         {
                                                             presentation
@@ -173,7 +173,7 @@ export const AlertTableView: React.FC<AlertTableViewProps> = ({
                                                     </span>
                                                     {presentation.metadata
                                                         ?.unitsDispatched && (
-                                                        <span className="flex items-center gap-1 border-2 border-black bg-white px-3 py-1">
+                                                        <span className="flex items-center gap-1 border-2 border-black bg-panel-light px-3 py-1">
                                                             <Icon
                                                                 name="fire_truck"
                                                                 className="text-sm"
