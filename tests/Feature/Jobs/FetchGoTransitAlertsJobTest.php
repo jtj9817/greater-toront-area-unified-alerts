@@ -31,7 +31,7 @@ test('it has correct retry configuration', function () {
     expect($job->tries)->toBe(3);
     expect($job->backoff)->toBe(30);
     expect($job->timeout)->toBe(120);
-    expect($job->uniqueFor)->toBe(3600);
+    expect($job->uniqueFor)->toBe(600);
     expect($job)->toBeInstanceOf(ShouldBeUnique::class);
     expect($job->uniqueId())->toBe('fetch-go-transit-alerts');
 });

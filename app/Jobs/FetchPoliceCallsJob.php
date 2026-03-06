@@ -42,7 +42,7 @@ class FetchPoliceCallsJob implements ShouldBeUnique, ShouldQueue
      *
      * @var int
      */
-    public $uniqueFor = 3600;
+    public $uniqueFor = 600;
 
     /**
      * @return array<int, object>

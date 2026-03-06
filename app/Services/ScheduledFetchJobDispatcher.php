@@ -51,7 +51,7 @@ class ScheduledFetchJobDispatcher
             Log::info('Scheduled fetch job skipped', [
                 'source' => $source,
                 'job_class' => $job::class,
-                'reason' => 'database_queue_row_exists',
+                'reason' => 'outstanding_queue_row_exists',
                 'unique_lock_key' => UniqueLock::getKey($job),
             ]);
 
@@ -61,14 +61,47 @@ class ScheduledFetchJobDispatcher
         $uniqueLock = new UniqueLock($this->cache);
 
         if (! $uniqueLock->acquire($job)) {
-            Log::info('Scheduled fetch job skipped', [
+            if ($this->hasOutstandingDatabaseQueueRow($job)) {
+                Log::info('Scheduled fetch job skipped', [
+                    'source' => $source,
+                    'job_class' => $job::class,
+                    'reason' => 'outstanding_queue_row_exists',
+                    'unique_lock_key' => UniqueLock::getKey($job),
+                ]);
+
+                return false;
+            }
+
+            $uniqueLock->release($job);
+
+            Log::warning('Scheduled fetch job lock recovered', [
                 'source' => $source,
                 'job_class' => $job::class,
-                'reason' => 'unique_lock_held',
+                'reason' => 'stale_unique_lock_released',
                 'unique_lock_key' => UniqueLock::getKey($job),
             ]);
 
-            return false;
+            if (! $uniqueLock->acquire($job)) {
+                if ($this->hasOutstandingDatabaseQueueRow($job)) {
+                    Log::info('Scheduled fetch job skipped', [
+                        'source' => $source,
+                        'job_class' => $job::class,
+                        'reason' => 'outstanding_queue_row_exists',
+                        'unique_lock_key' => UniqueLock::getKey($job),
+                    ]);
+
+                    return false;
+                }
+
+                Log::info('Scheduled fetch job skipped', [
+                    'source' => $source,
+                    'job_class' => $job::class,
+                    'reason' => 'unique_lock_still_held_after_recovery',
+                    'unique_lock_key' => UniqueLock::getKey($job),
+                ]);
+
+                return false;
+            }
         }
 
         try {
@@ -78,7 +111,7 @@ class ScheduledFetchJobDispatcher
                 Log::info('Scheduled fetch job skipped', [
                     'source' => $source,
                     'job_class' => $job::class,
-                    'reason' => 'database_queue_row_exists_after_lock',
+                    'reason' => 'outstanding_queue_row_exists_after_lock',
                     'unique_lock_key' => UniqueLock::getKey($job),
                 ]);
 

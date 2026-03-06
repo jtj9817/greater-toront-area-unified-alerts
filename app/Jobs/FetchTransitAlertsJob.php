@@ -19,7 +19,7 @@ class FetchTransitAlertsJob implements ShouldBeUnique, ShouldQueue
 
     public int $timeout = 120;
 
-    public int $uniqueFor = 3600;
+    public int $uniqueFor = 600;
 
     /**
      * @return array<int, object>

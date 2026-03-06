@@ -56,7 +56,7 @@ test('dispatch skips duplicate enqueue when an equivalent job is already queued'
         ->withArgs(function (string $message, array $context): bool {
             return $message === 'Scheduled fetch job skipped'
                 && ($context['job_class'] ?? null) === FetchFireIncidentsJob::class
-                && ($context['reason'] ?? null) === 'database_queue_row_exists';
+                && ($context['reason'] ?? null) === 'outstanding_queue_row_exists';
         })
         ->once();
 });
@@ -74,7 +74,7 @@ test('dispatch re-enqueues after the prior job has completed and lock is release
     expect(queuedJobCount(FetchFireIncidentsJob::class))->toBe(1);
 });
 
-test('dispatch skips when unique lock is already held', function () {
+test('dispatch recovers a stale unique lock and enqueues the job', function () {
     Log::spy();
 
     $lock = new UniqueLock(app('cache.store'));
@@ -82,14 +82,38 @@ test('dispatch skips when unique lock is already held', function () {
 
     $dispatcher = app(ScheduledFetchJobDispatcher::class);
 
+    expect($dispatcher->dispatchFireIncidents())->toBeTrue();
+    expect(queuedJobCount(FetchFireIncidentsJob::class))->toBe(1);
+
+    Log::shouldHaveReceived('warning')
+        ->withArgs(function (string $message, array $context): bool {
+            return $message === 'Scheduled fetch job lock recovered'
+                && ($context['job_class'] ?? null) === FetchFireIncidentsJob::class
+                && ($context['reason'] ?? null) === 'stale_unique_lock_released';
+        })
+        ->once();
+
+    $lock->release(new FetchFireIncidentsJob);
+});
+
+test('dispatch skips when an equivalent queue row exists even if lock is held', function () {
+    Log::spy();
+
+    app(QueueingDispatcher::class)->dispatchToQueue(new FetchFireIncidentsJob);
+
+    $lock = new UniqueLock(app('cache.store'));
+    expect($lock->acquire(new FetchFireIncidentsJob))->toBeTrue();
+
+    $dispatcher = app(ScheduledFetchJobDispatcher::class);
+
     expect($dispatcher->dispatchFireIncidents())->toBeFalse();
-    expect(queuedJobCount(FetchFireIncidentsJob::class))->toBe(0);
+    expect(queuedJobCount(FetchFireIncidentsJob::class))->toBe(1);
 
     Log::shouldHaveReceived('info')
         ->withArgs(function (string $message, array $context): bool {
             return $message === 'Scheduled fetch job skipped'
                 && ($context['job_class'] ?? null) === FetchFireIncidentsJob::class
-                && ($context['reason'] ?? null) === 'unique_lock_held';
+                && ($context['reason'] ?? null) === 'outstanding_queue_row_exists';
         })
         ->once();
 
