@@ -1,10 +1,12 @@
 ---
 ticket_id: FEED-020
 title: "[Reliability] Deduplicate scheduled fetch jobs before enqueue"
-status: Open
+status: Closed
 priority: High
 assignee: Unassigned
 created_at: 2026-03-05
+updated_at: 2026-03-06
+closed_at: 2026-03-06
 tags: [reliability, backend, queue, scheduler, dev-environment, data-freshness]
 related_files:
   - routes/console.php
@@ -200,17 +202,17 @@ and test-covered, not incidental side effect.
 
 ## Acceptance Criteria
 
-- [ ] Scheduler does not enqueue a second copy of the same fetch job while an
+- [x] Scheduler does not enqueue a second copy of the same fetch job while an
       equivalent fetch job for that source is already pending or running.
-- [ ] Under normal operation, the queue contains at most one outstanding fetch
+- [x] Under normal operation, the queue contains at most one outstanding fetch
       job per source.
-- [ ] After a worker outage, resuming the worker processes one latest-state
+- [x] After a worker outage, resuming the worker processes one latest-state
       fetch per source rather than draining a large redundant backlog.
-- [ ] Existing execution-time overlap protection for the four fetch jobs
+- [x] Existing execution-time overlap protection for the four fetch jobs
       remains in place or is replaced with equivalent safeguards.
-- [ ] Logs distinguish fetch-job enqueue from fetch-job skip due to duplicate
+- [x] Logs distinguish fetch-job enqueue from fetch-job skip due to duplicate
       outstanding work.
-- [ ] Automated tests cover duplicate-skip behavior, post-completion
+- [x] Automated tests cover duplicate-skip behavior, post-completion
       re-dispatch, and failure/retry edge cases for the dedupe path.
 
 ## Testing Expectations
@@ -343,3 +345,18 @@ Fix scheduled-fetch dedupe so it skips cleanly without PostgreSQL
 - No TypeScript, React, or Inertia contract change is required. The
   `units_dispatched` field remains `string | null`; only the storage length is
   changing.
+
+## Closure Notes (2026-03-06)
+
+- Scheduled fetch dedupe now treats held uniqueness locks as a skip condition
+  instead of force-releasing them, which removes the unsafe stale-lock
+  recovery behavior from FEED-020.
+- Fetch-job uniqueness now uses a configurable non-database store via
+  `QUEUE_UNIQUE_LOCK_STORE`, avoiding noisy `cache_locks` duplicate-key errors
+  during normal duplicate-skip behavior.
+- `fire_incidents.units_dispatched` now stores `text`, which resolves the live
+  Toronto Fire feed failure when long unit lists exceed PostgreSQL
+  `varchar(255)`.
+- Regression coverage was added for lock-held skip behavior, configured unique
+  lock store usage, and long `units_dispatched` payload persistence.
+- Implementation commit: `ca13ad2` (`fix(queue): harden fetch dedupe and fire sync`).
