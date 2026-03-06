@@ -3,30 +3,51 @@
 namespace Tests\Feature\Security;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\File;
 
 uses(RefreshDatabase::class);
 
-test('security headers are present in response', function () {
-    $response = $this->get('/');
+test('security headers use strict runtime-aware csp without hot mode', function () {
+    withHotFile(null, function (): void {
+        $response = $this->get('/');
 
-    $response->assertOk();
+        $response->assertOk();
+        $response->assertHeader('X-XSS-Protection', '1; mode=block');
 
-    // Verify X-XSS-Protection
-    $response->assertHeader('X-XSS-Protection', '1; mode=block');
+        $csp = (string) $response->headers->get('Content-Security-Policy');
+        $nonce = extractNonceFromHtml($response->getContent());
 
-    // Verify Content-Security-Policy
-    $csp = $response->headers->get('Content-Security-Policy');
-    expect($csp)->not->toBeNull()
-        ->and($csp)->toContain("default-src 'self'")
-        ->and($csp)->toContain("script-src 'self' 'unsafe-inline' 'unsafe-eval'")
-        ->and($csp)->toContain("style-src 'self' 'unsafe-inline'")
-        ->and($csp)->toContain('https://fonts.googleapis.com')
-        ->and($csp)->toContain('https://fonts.bunny.net')
-        ->and($csp)->toContain("img-src 'self' data: https:")
-        ->and($csp)->toContain("font-src 'self' data:")
-        ->and($csp)->toContain('https://fonts.gstatic.com')
-        ->and($csp)->toContain("frame-ancestors 'self'")
-        ->and($csp)->toContain("form-action 'self'");
+        expect($csp)->toContain("default-src 'self'")
+            ->and($csp)->toContain("script-src 'self' 'nonce-{$nonce}'")
+            ->and($csp)->not->toContain("'unsafe-inline'")
+            ->and($csp)->not->toContain("'unsafe-eval'")
+            ->and($csp)->toContain("style-src 'self' 'nonce-{$nonce}'")
+            ->and($csp)->toContain('https://fonts.googleapis.com')
+            ->and($csp)->toContain('https://fonts.bunny.net')
+            ->and($csp)->toContain("img-src 'self' data: https:")
+            ->and($csp)->toContain("font-src 'self' data:")
+            ->and($csp)->toContain('https://fonts.gstatic.com')
+            ->and($csp)->toContain("connect-src 'self'")
+            ->and($csp)->toContain("frame-ancestors 'self'")
+            ->and($csp)->toContain("form-action 'self'")
+            ->and($csp)->not->toContain('http://[::1]:5174')
+            ->and($csp)->not->toContain('ws://[::1]:5174');
+    });
+});
+
+test('security headers allow vite hot origins only when hot mode is active', function () {
+    withHotFile('http://[::1]:5174', function (): void {
+        $response = $this->get('/');
+
+        $response->assertOk();
+
+        $csp = (string) $response->headers->get('Content-Security-Policy');
+        $nonce = extractNonceFromHtml($response->getContent());
+
+        expect($csp)->toContain("script-src 'self' 'nonce-{$nonce}' 'unsafe-eval' http://[::1]:5174")
+            ->and($csp)->toContain("style-src 'self' 'nonce-{$nonce}' https://fonts.googleapis.com https://fonts.bunny.net 'unsafe-inline'")
+            ->and($csp)->toContain("connect-src 'self' http://[::1]:5174 ws://[::1]:5174");
+    });
 });
 
 test('existing security headers are preserved', function () {
@@ -54,3 +75,36 @@ test('hsts header is present when secure', function () {
     $response->assertOk();
     $response->assertHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
 });
+
+function withHotFile(?string $value, callable $callback): void
+{
+    $hotPath = public_path('hot');
+    $hadExisting = File::exists($hotPath);
+    $existingContent = $hadExisting ? File::get($hotPath) : null;
+
+    try {
+        if ($value === null) {
+            File::delete($hotPath);
+        } else {
+            File::put($hotPath, $value);
+        }
+
+        $callback();
+    } finally {
+        if ($hadExisting) {
+            File::put($hotPath, (string) $existingContent);
+        } else {
+            File::delete($hotPath);
+        }
+    }
+}
+
+function extractNonceFromHtml(string $html): string
+{
+    preg_match('/<script nonce="([^"]+)">/', $html, $matches);
+
+    expect($matches)->toHaveCount(2);
+    expect($html)->toContain('<style nonce="'.$matches[1].'">');
+
+    return $matches[1];
+}
