@@ -169,54 +169,95 @@ Relevant git history:
 
 ### Goal
 
-Make CSP environment-aware so production stays strict while local Vite
-development is allowed to load and connect to the active hot server origin.
+Replace the static CSP string with a production-first, runtime-aware policy
+builder that models the app's real asset-loading architecture. Local Vite hot
+mode should be treated as one runtime variant of that architecture, not as an
+isolated exception.
 
 ### Context
 
 Laravel serves the HTML shell, Inertia mounts the page, React runs through Vite,
-and Vite hot mode always uses a separate origin. The CSP must reflect that
-runtime architecture.
+and Vite hot mode uses a separate dev origin. In production, built assets are
+typically served from the application origin unless the deployment later adopts a
+CDN or separate asset host. The CSP should therefore be derived from runtime
+origins and inline-script strategy rather than from a fixed string.
 
 ### Task
 
-1. Update
+1. Refactor
    [app/Http/Middleware/EnsureSecurityHeaders.php](/mnt/0B8533211952FCF2/greater-toronto-area-alerts/app/Http/Middleware/EnsureSecurityHeaders.php)
-   to build CSP directives dynamically rather than using one static string.
-2. Detect the active Vite hot server by reading `public/hot`.
-3. Parse the hot file URL and append that origin to `script-src` when present.
-4. Append the matching HTTP and WebSocket origin to `connect-src` for HMR.
-5. Keep the existing production policy as the default when `public/hot` is
-   absent.
-6. Update
+   to build CSP directives from structured arrays and then serialize them into
+   the final header.
+2. Define a strict baseline policy for production first:
+   - app origin in `default-src`
+   - minimal allowed script/style/connect/font/image sources
+   - no dev-only Vite origin
+3. Detect runtime asset origins dynamically:
+   - if `public/hot` exists, parse the hot server origin
+   - append that origin to `script-src`
+   - append the matching HTTP/WebSocket origin to `connect-src`
+4. Remove the assumption that `'unsafe-inline'` is an acceptable permanent
+   production setting:
+   - review the inline `<script>` and `<style>` blocks in
+     [resources/views/app.blade.php](/mnt/0B8533211952FCF2/greater-toronto-area-alerts/resources/views/app.blade.php)
+   - either move them out of the document head or protect them with CSP nonces
+5. If nonces are adopted, generate the nonce in Laravel and apply it
+   consistently to:
+   - the CSP header
+   - the inline Blade script
+   - the inline Blade style, if it remains inline
+6. Keep external font hosts explicitly listed only if the deployed frontend
+   still depends on them.
+7. Update
    [tests/Feature/Security/SecurityHeadersTest.php](/mnt/0B8533211952FCF2/greater-toronto-area-alerts/tests/Feature/Security/SecurityHeadersTest.php)
-   so it validates both:
-   - strict non-hot behavior
-   - hot-mode behavior with an allowed dev origin
-7. Add a focused test that writes a temporary `public/hot` value such as
-   `http://[::1]:5174` and asserts that `script-src` and `connect-src` include
-   the derived origin.
-8. Verify the fix with:
+   to validate runtime-aware behavior instead of a single hard-coded CSP string.
+8. Add focused tests for:
+   - production behavior with no hot file
+   - local hot-mode behavior with a temporary `public/hot`
+   - nonce presence and enforcement if inline blocks remain
+9. Verify the result with:
    - `php artisan test --filter=SecurityHeadersTest`
    - a live browser check while Vite is running
+   - a browser check against built production assets
+
+## Long-Term Fix
+
+The long-term fix is not merely "allow Vite in development." The long-term fix
+is a CSP implementation that is correct for deployed production architecture and
+extends cleanly to development:
+
+- Production is the primary policy target.
+- Development inherits the same model and adds only the active hot server
+  origins when present.
+- Inline allowances are reduced or eliminated through nonces or by removing
+  inline code paths.
+- Future deployment changes such as a CDN, separate asset host, or realtime
+  service can be modeled by adding explicit runtime-derived origins rather than
+  editing a monolithic string.
 
 ## Requirements
 
 - Preserve the other security headers already set by the middleware.
-- Avoid weakening production CSP with broad wildcards.
-- Read the active dev origin from `public/hot`.
+- Avoid weakening production CSP with broad wildcards such as `*` or `http:`.
+- Build the policy from runtime facts instead of a fixed string.
+- Read the active dev origin from `public/hot` when hot mode is enabled.
 - Cover both script loading and HMR connectivity.
+- Provide a path to remove or tightly control `'unsafe-inline'` in production.
 - Keep the Laravel + Inertia + React + TypeScript development flow intact.
 
 ## Acceptance Criteria
 
+- [ ] Production responses use a strict CSP derived from the deployed runtime and
+      do not include Vite dev origins.
 - [ ] Local Inertia pages load successfully while Vite hot mode is active.
 - [ ] `@vite/client`, `@react-refresh`, and page entry modules are not blocked by
       CSP in local development.
-- [ ] HMR network traffic is permitted by `connect-src`.
-- [ ] Production responses continue to omit dev-only Vite origins.
-- [ ] Security tests fail if a future change reintroduces a static dev-breaking
-      CSP.
+- [ ] HMR network traffic is permitted by `connect-src` only when the hot server
+      is active.
+- [ ] Inline script/style handling is explicitly governed by nonces or by removal
+      of inline blocks rather than being treated as a permanent exception.
+- [ ] Security tests fail if a future change reintroduces a static
+      runtime-incorrect CSP.
 
 ## Notes
 
