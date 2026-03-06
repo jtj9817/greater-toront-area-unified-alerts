@@ -7,6 +7,7 @@ use App\Jobs\FetchTransitAlertsJob;
 use App\Services\ScheduledFetchJobDispatcher;
 use Illuminate\Bus\UniqueLock;
 use Illuminate\Contracts\Bus\QueueingDispatcher;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -109,6 +110,34 @@ test('dispatch failure releases the unique lock so later retries can enqueue', f
 
     expect(fn () => $dispatcher->dispatchFireIncidents())
         ->toThrow(RuntimeException::class, 'dispatch failed');
+
+    $lock = new UniqueLock(app('cache.store'));
+    expect($lock->acquire(new FetchFireIncidentsJob))->toBeTrue();
+    $lock->release(new FetchFireIncidentsJob);
+});
+
+test('post-lock queue check failure releases the unique lock so later retries can enqueue', function () {
+    $mockDispatcher = Mockery::mock(QueueingDispatcher::class);
+    $mockDispatcher->shouldNotReceive('dispatchToQueue');
+
+    $dispatcher = new class($mockDispatcher, app('cache.store')) extends ScheduledFetchJobDispatcher
+    {
+        private int $queueRowCheckCount = 0;
+
+        protected function hasOutstandingDatabaseQueueRow(ShouldQueue $job): bool
+        {
+            $this->queueRowCheckCount++;
+
+            if ($this->queueRowCheckCount === 2) {
+                throw new RuntimeException('queue read failed');
+            }
+
+            return false;
+        }
+    };
+
+    expect(fn () => $dispatcher->dispatchFireIncidents())
+        ->toThrow(RuntimeException::class, 'queue read failed');
 
     $lock = new UniqueLock(app('cache.store'));
     expect($lock->acquire(new FetchFireIncidentsJob))->toBeTrue();

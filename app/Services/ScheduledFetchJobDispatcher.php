@@ -71,17 +71,30 @@ class ScheduledFetchJobDispatcher
             return false;
         }
 
-        if ($this->hasOutstandingDatabaseQueueRow($job)) {
+        try {
+            if ($this->hasOutstandingDatabaseQueueRow($job)) {
+                $uniqueLock->release($job);
+
+                Log::info('Scheduled fetch job skipped', [
+                    'source' => $source,
+                    'job_class' => $job::class,
+                    'reason' => 'database_queue_row_exists_after_lock',
+                    'unique_lock_key' => UniqueLock::getKey($job),
+                ]);
+
+                return false;
+            }
+        } catch (Throwable $exception) {
             $uniqueLock->release($job);
 
-            Log::info('Scheduled fetch job skipped', [
+            Log::error('Scheduled fetch job post-lock queue check failed', [
                 'source' => $source,
                 'job_class' => $job::class,
-                'reason' => 'database_queue_row_exists_after_lock',
                 'unique_lock_key' => UniqueLock::getKey($job),
+                'exception' => $exception,
             ]);
 
-            return false;
+            throw $exception;
         }
 
         try {
@@ -108,7 +121,7 @@ class ScheduledFetchJobDispatcher
         return true;
     }
 
-    private function hasOutstandingDatabaseQueueRow(ShouldQueue $job): bool
+    protected function hasOutstandingDatabaseQueueRow(ShouldQueue $job): bool
     {
         $defaultConnection = (string) config('queue.default');
         $driver = config("queue.connections.{$defaultConnection}.driver");
