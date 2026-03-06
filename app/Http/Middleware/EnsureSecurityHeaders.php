@@ -5,6 +5,7 @@ namespace App\Http\Middleware;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Vite;
 use Symfony\Component\HttpFoundation\Response;
 
 class EnsureSecurityHeaders
@@ -18,6 +19,7 @@ class EnsureSecurityHeaders
     {
         $nonce = base64_encode(random_bytes(16));
         $request->attributes->set('csp_nonce', $nonce);
+        Vite::useCspNonce($nonce);
 
         $response = $next($request);
 
@@ -50,7 +52,7 @@ class EnsureSecurityHeaders
 
         $scriptSrc = ["'self'", "'nonce-{$nonce}'"];
         $styleSrc = ["'self'", "'nonce-{$nonce}'", 'https://fonts.googleapis.com', 'https://fonts.bunny.net'];
-        $connectSrc = ["'self'"];
+        $connectSrc = ["'self'", ...$this->broadcastConnectOrigins()];
 
         if ($hotOrigins !== []) {
             $scriptSrc[] = "'unsafe-eval'";
@@ -85,6 +87,39 @@ class EnsureSecurityHeaders
     /**
      * @return array<int, string>
      */
+    private function broadcastConnectOrigins(): array
+    {
+        $echoConfig = config('broadcasting.frontend.echo', []);
+        $key = trim((string) ($echoConfig['key'] ?? ''));
+
+        if ($key === '') {
+            return [];
+        }
+
+        $cluster = trim((string) ($echoConfig['cluster'] ?? 'mt1'));
+        $scheme = strtolower(trim((string) ($echoConfig['scheme'] ?? 'https')));
+        $host = $this->normalizeConfiguredHost($echoConfig['host'] ?? null);
+        $port = $this->normalizePort($echoConfig['port'] ?? null);
+
+        if ($host === null) {
+            $host = 'ws-'.$cluster.'.pusher.com';
+        }
+
+        $origin = $this->buildOrigin($scheme, $host, $port);
+
+        if ($origin === null) {
+            return [];
+        }
+
+        return array_values(array_unique(array_filter([
+            $origin,
+            $this->toWebsocketOrigin($origin),
+        ])));
+    }
+
+    /**
+     * @return array<int, string>
+     */
     private function hotOrigins(): array
     {
         $hotPath = public_path('hot');
@@ -110,6 +145,81 @@ class EnsureSecurityHeaders
         return array_values(array_unique(array_filter([$origin, $websocketOrigin])));
     }
 
+    private function buildOrigin(string $scheme, string $host, ?int $port): ?string
+    {
+        if (! in_array($scheme, ['http', 'https'], true)) {
+            return null;
+        }
+
+        $formattedHost = $this->formatHost($host);
+
+        if ($formattedHost === null) {
+            return null;
+        }
+
+        $normalizedPort = match ([$scheme, $port]) {
+            ['http', 80], ['https', 443] => null,
+            default => $port,
+        };
+
+        return strtolower($scheme).'://'.$formattedHost.($normalizedPort !== null ? ':'.$normalizedPort : '');
+    }
+
+    private function formatHost(string $host): ?string
+    {
+        $trimmedHost = trim($host);
+
+        if ($trimmedHost === '') {
+            return null;
+        }
+
+        return str_contains($trimmedHost, ':') && ! str_starts_with($trimmedHost, '[')
+            ? '['.$trimmedHost.']'
+            : $trimmedHost;
+    }
+
+    private function normalizeConfiguredHost(mixed $host): ?string
+    {
+        if (! is_string($host)) {
+            return null;
+        }
+
+        $trimmedHost = trim($host);
+
+        if ($trimmedHost === '') {
+            return null;
+        }
+
+        if (str_contains($trimmedHost, '://')) {
+            $parts = parse_url($trimmedHost);
+
+            return is_array($parts) && isset($parts['host']) && is_string($parts['host'])
+                ? $parts['host']
+                : null;
+        }
+
+        return $trimmedHost;
+    }
+
+    private function normalizePort(mixed $port): ?int
+    {
+        if ($port === null || $port === '') {
+            return null;
+        }
+
+        if (is_int($port)) {
+            return $port > 0 ? $port : null;
+        }
+
+        if (! is_string($port)) {
+            return null;
+        }
+
+        $parsedPort = filter_var($port, FILTER_VALIDATE_INT);
+
+        return is_int($parsedPort) && $parsedPort > 0 ? $parsedPort : null;
+    }
+
     private function parseOrigin(string $url): ?string
     {
         $parts = parse_url($url);
@@ -126,9 +236,11 @@ class EnsureSecurityHeaders
             return null;
         }
 
-        $host = str_contains($host, ':') && ! str_starts_with($host, '[')
-            ? '['.$host.']'
-            : $host;
+        $host = $this->formatHost($host);
+
+        if ($host === null) {
+            return null;
+        }
 
         return strtolower($scheme).'://'.$host.($port !== null ? ':'.$port : '');
     }

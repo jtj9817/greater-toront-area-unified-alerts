@@ -3,6 +3,8 @@
 namespace Tests\Feature\Security;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Foundation\Vite;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\File;
 
 uses(RefreshDatabase::class);
@@ -42,11 +44,37 @@ test('security headers allow vite hot origins only when hot mode is active', fun
         $response->assertOk();
 
         $csp = (string) $response->headers->get('Content-Security-Policy');
+        $html = $response->getContent();
         $nonce = extractNonceFromHtml($response->getContent());
 
         expect($csp)->toContain("script-src 'self' 'nonce-{$nonce}' 'unsafe-eval' http://[::1]:5174")
             ->and($csp)->toContain("style-src 'self' 'nonce-{$nonce}' https://fonts.googleapis.com https://fonts.bunny.net 'unsafe-inline'")
-            ->and($csp)->toContain("connect-src 'self' http://[::1]:5174 ws://[::1]:5174");
+            ->and($csp)->toContain("connect-src 'self' http://[::1]:5174 ws://[::1]:5174")
+            ->and(app(Vite::class)->cspNonce())->toBe($nonce)
+            ->and($html)->toContain('<script type="module" nonce="'.$nonce.'">')
+            ->and($html)->toContain("import RefreshRuntime from 'http://[::1]:5174/@react-refresh'");
+    });
+});
+
+test('security headers keep frontend broadcast websocket hosts in connect-src outside hot mode', function () {
+    Config::set('broadcasting.frontend.echo', [
+        'key' => 'test-key',
+        'cluster' => 'eu',
+        'host' => '',
+        'port' => '443',
+        'scheme' => 'https',
+    ]);
+
+    withHotFile(null, function (): void {
+        $response = $this->get('/');
+
+        $response->assertOk();
+
+        $csp = (string) $response->headers->get('Content-Security-Policy');
+
+        expect($csp)->toContain("connect-src 'self' https://ws-eu.pusher.com wss://ws-eu.pusher.com")
+            ->and($csp)->not->toContain("'unsafe-eval'")
+            ->and($csp)->not->toContain('http://[::1]:5174');
     });
 });
 
