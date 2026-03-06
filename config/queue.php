@@ -17,6 +17,20 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Unique Lock Store
+    |--------------------------------------------------------------------------
+    |
+    | Scheduled fetch jobs use ShouldBeUnique locks before enqueue. Keep these
+    | locks off the database cache store to avoid noisy cache_locks conflicts
+    | during normal duplicate-skip behavior. Use Redis for shared multi-node
+    | environments; file is a safe local default.
+    |
+    */
+
+    'unique_lock_store' => env('QUEUE_UNIQUE_LOCK_STORE', 'file'),
+
+    /*
+    |--------------------------------------------------------------------------
     | Queue Connections
     |--------------------------------------------------------------------------
     |

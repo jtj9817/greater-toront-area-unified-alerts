@@ -2,11 +2,13 @@
 
 namespace App\Jobs;
 
+use Illuminate\Contracts\Cache\Repository as CacheRepository;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Queue\Middleware\WithoutOverlapping;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Cache;
 use RuntimeException;
 
 class FetchTransitAlertsJob implements ShouldBeUnique, ShouldQueue
@@ -45,5 +47,10 @@ class FetchTransitAlertsJob implements ShouldBeUnique, ShouldQueue
     public function uniqueId(): string
     {
         return 'fetch-transit-alerts';
+    }
+
+    public function uniqueVia(): CacheRepository
+    {
+        return Cache::store((string) config('queue.unique_lock_store', 'file'));
     }
 }

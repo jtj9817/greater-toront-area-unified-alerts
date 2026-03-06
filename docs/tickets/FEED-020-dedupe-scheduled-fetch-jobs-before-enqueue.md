@@ -8,6 +8,7 @@ created_at: 2026-03-05
 tags: [reliability, backend, queue, scheduler, dev-environment, data-freshness]
 related_files:
   - routes/console.php
+  - app/Services/ScheduledFetchJobDispatcher.php
   - app/Jobs/FetchFireIncidentsJob.php
   - app/Jobs/FetchPoliceCallsJob.php
   - app/Jobs/FetchTransitAlertsJob.php
@@ -16,6 +17,12 @@ related_files:
   - app/Console/Commands/FetchPoliceCallsCommand.php
   - app/Console/Commands/FetchTransitAlertsCommand.php
   - app/Console/Commands/FetchGoTransitAlertsCommand.php
+  - app/Services/TorontoFireFeedService.php
+  - config/cache.php
+  - config/queue.php
+  - database/migrations/2026_01_31_185634_create_fire_incidents_table.php
+  - tests/Feature/Console/ScheduledFetchJobDispatcherTest.php
+  - tests/Feature/Commands/FetchFireIncidentsCommandTest.php
   - tests/Feature/Console/SchedulerResiliencePhase1Test.php
   - docs/tickets/FEED-019-queue-worker-max-jobs-backlog.md
 ---
@@ -234,3 +241,105 @@ Likely test locations:
   - dispatch-time uniqueness to prevent redundant queue rows
   - execution-time overlap protection to prevent concurrent runs of the same
     source
+
+## Bug Analysis (2026-03-06)
+
+### Observed runtime failures
+
+Two different failures are currently mixed together in the March 6, 2026 logs:
+
+1. `cache_locks_pkey` duplicate-key errors when scheduled fetch dedupe runs.
+2. `FetchFireIncidentsJob` retries caused by `fire_incidents.units_dispatched`
+   exceeding PostgreSQL `varchar(255)`.
+
+These are related only in timing. They are not the same root cause.
+
+### Root cause 1: incorrect FEED-020 lock handling
+
+The current FEED-020 implementation uses `ScheduledFetchJobDispatcher` to:
+
+1. inspect the `jobs` table for an outstanding fetch job
+2. manually acquire a Laravel `UniqueLock`
+3. force-release that lock when acquisition fails and no matching queue row is
+   found
+4. re-acquire and enqueue
+
+This is incorrect for two reasons:
+
+- The app default cache store is `database`, so the unique-job lock lives in
+  `cache_locks`. Laravel's database lock acquisition attempts an `INSERT`
+  first and only then falls back to recovery logic. PostgreSQL logs the failed
+  `INSERT` as a duplicate-key `ERROR` even when Laravel handles it.
+- "No matching queue row" does not prove "stale lock". Force-releasing the
+  unique lock can drop a live lock owned by another scheduler process or
+  another valid dispatch path.
+
+The safe interpretation of a failed unique-lock acquire is "skip because the
+lock is held", not "unlock and retry".
+
+### Root cause 2: fire schema no longer matches live feed size
+
+`TorontoFireFeedService` passes through `units_disp` as a plain string and
+`FetchFireIncidentsCommand` writes that value directly into
+`fire_incidents.units_dispatched`.
+
+The table schema still defines `units_dispatched` as `string()`, which becomes
+`varchar(255)` on PostgreSQL. The live Toronto Fire feed can now emit a unit
+list longer than 255 characters, so `updateOrCreate()` fails with:
+
+- `value too long for type character varying(255)`
+
+That command failure propagates back to `FetchFireIncidentsJob`, which throws a
+`RuntimeException` and is retried by the queue worker.
+
+### Test blind spots
+
+Current tests do not cover the failing production path:
+
+- `ScheduledFetchJobDispatcherTest` forces `cache.default = array`, so it never
+  exercises database-backed lock behavior.
+- Fire command tests only use short `units_dispatched` values and do not
+  attempt a payload longer than 255 characters.
+
+## Implementation Plan (2026-03-06)
+
+### Goal
+
+Fix scheduled-fetch dedupe so it skips cleanly without PostgreSQL
+`cache_locks` errors, and widen fire incident storage so live
+`units_dispatched` payloads no longer crash the fire fetch job.
+
+### Planned changes
+
+1. Keep the shared scheduled-fetch dispatcher, but simplify its lock logic.
+2. Retain the `jobs` table probe so long worker outages do not create
+   duplicates after the unique-lock TTL expires.
+3. Stop force-releasing locks on failed acquire; failed acquire should log a
+   duplicate skip and return.
+4. Move unique-job locks off the default database cache store by adding a
+   dedicated non-database lock store for fetch-job uniqueness.
+5. Keep `ShouldBeUnique` and `WithoutOverlapping(...)` in the fetch jobs.
+6. Add a migration to change `fire_incidents.units_dispatched` from
+   `string()` to `text()`.
+7. Add regression coverage for:
+   - held unique lock without queue row -> skip, do not release
+   - database-backed queue dedupe path
+   - long `units_dispatched` values in `fire:fetch-incidents`
+
+### Files expected to change
+
+- `app/Services/ScheduledFetchJobDispatcher.php`
+- `app/Jobs/FetchFireIncidentsJob.php`
+- `app/Jobs/FetchPoliceCallsJob.php`
+- `app/Jobs/FetchTransitAlertsJob.php`
+- `app/Jobs/FetchGoTransitAlertsJob.php`
+- `config/queue.php`
+- new migration to widen `fire_incidents.units_dispatched`
+- `tests/Feature/Console/ScheduledFetchJobDispatcherTest.php`
+- `tests/Feature/Commands/FetchFireIncidentsCommandTest.php`
+
+### Non-goals
+
+- No TypeScript, React, or Inertia contract change is required. The
+  `units_dispatched` field remains `string | null`; only the storage length is
+  changing.

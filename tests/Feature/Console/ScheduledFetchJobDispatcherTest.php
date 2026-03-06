@@ -19,13 +19,22 @@ beforeEach(function () {
     config([
         'cache.default' => 'array',
         'queue.default' => 'database',
+        'queue.unique_lock_store' => 'array',
     ]);
 
+    app()->forgetInstance('cache');
+    app()->forgetInstance('cache.store');
+
     Cache::flush();
+    Cache::store((string) config('queue.unique_lock_store'))->flush();
 });
 
 afterEach(function () {
     Cache::flush();
+    Cache::store((string) config('queue.unique_lock_store'))->flush();
+
+    app()->forgetInstance('cache');
+    app()->forgetInstance('cache.store');
 });
 
 test('dispatch methods enqueue one scheduled fetch job per source', function () {
@@ -74,7 +83,7 @@ test('dispatch re-enqueues after the prior job has completed and lock is release
     expect(queuedJobCount(FetchFireIncidentsJob::class))->toBe(1);
 });
 
-test('dispatch recovers a stale unique lock and enqueues the job', function () {
+test('dispatch skips when an equivalent unique lock is already held without a queue row', function () {
     Log::spy();
 
     $lock = new UniqueLock(app('cache.store'));
@@ -82,14 +91,14 @@ test('dispatch recovers a stale unique lock and enqueues the job', function () {
 
     $dispatcher = app(ScheduledFetchJobDispatcher::class);
 
-    expect($dispatcher->dispatchFireIncidents())->toBeTrue();
-    expect(queuedJobCount(FetchFireIncidentsJob::class))->toBe(1);
+    expect($dispatcher->dispatchFireIncidents())->toBeFalse();
+    expect(queuedJobCount(FetchFireIncidentsJob::class))->toBe(0);
 
-    Log::shouldHaveReceived('warning')
+    Log::shouldHaveReceived('info')
         ->withArgs(function (string $message, array $context): bool {
-            return $message === 'Scheduled fetch job lock recovered'
+            return $message === 'Scheduled fetch job skipped'
                 && ($context['job_class'] ?? null) === FetchFireIncidentsJob::class
-                && ($context['reason'] ?? null) === 'stale_unique_lock_released';
+                && ($context['reason'] ?? null) === 'unique_lock_held';
         })
         ->once();
 
@@ -118,6 +127,30 @@ test('dispatch skips when an equivalent queue row exists even if lock is held', 
         ->once();
 
     $lock->release(new FetchFireIncidentsJob);
+});
+
+test('dispatch methods use the configured unique lock store instead of the default cache store', function () {
+    config([
+        'cache.default' => 'database',
+        'queue.default' => 'database',
+        'queue.unique_lock_store' => 'array',
+    ]);
+
+    app()->forgetInstance('cache');
+    app()->forgetInstance('cache.store');
+
+    Cache::store('array')->flush();
+
+    expect(DB::table('cache_locks')->count())->toBe(0);
+
+    $dispatcher = app(ScheduledFetchJobDispatcher::class);
+
+    expect($dispatcher->dispatchFireIncidents())->toBeTrue();
+    expect($dispatcher->dispatchPoliceCalls())->toBeTrue();
+    expect($dispatcher->dispatchTransitAlerts())->toBeTrue();
+    expect($dispatcher->dispatchGoTransitAlerts())->toBeTrue();
+
+    expect(DB::table('cache_locks')->count())->toBe(0);
 });
 
 test('dispatch failure releases the unique lock so later retries can enqueue', function () {

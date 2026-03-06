@@ -3,6 +3,7 @@
 namespace App\Jobs;
 
 use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Cache\Repository as CacheRepository;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -10,6 +11,7 @@ use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\Middleware\WithoutOverlapping;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Cache;
 use RuntimeException;
 
 class FetchPoliceCallsJob implements ShouldBeUnique, ShouldQueue
@@ -79,5 +81,10 @@ class FetchPoliceCallsJob implements ShouldBeUnique, ShouldQueue
     public function uniqueId(): string
     {
         return 'fetch-police-calls';
+    }
+
+    public function uniqueVia(): CacheRepository
+    {
+        return Cache::store((string) config('queue.unique_lock_store', 'file'));
     }
 }

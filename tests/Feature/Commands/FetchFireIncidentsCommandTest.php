@@ -112,6 +112,43 @@ test('it handles service failures gracefully', function () {
         ->assertExitCode(1);
 });
 
+test('it persists long units dispatched payloads from the live feed', function () {
+    $longUnitsDispatched = implode(', ', array_map(
+        static fn (int $unit): string => "P{$unit}",
+        range(100, 180),
+    ));
+
+    expect(strlen($longUnitsDispatched))->toBeGreaterThan(255);
+
+    $feedData = [
+        'updated_at' => '2026-03-06 05:00:00',
+        'events' => [
+            [
+                'event_num' => 'F26039901',
+                'event_type' => 'ALARM HIGH-RISE',
+                'prime_street' => 'BAY ST',
+                'cross_streets' => 'RICHMOND ST W / ADELAIDE ST W',
+                'dispatch_time' => '2026-03-06T04:59:00',
+                'alarm_level' => 3,
+                'beat' => '121',
+                'units_dispatched' => $longUnitsDispatched,
+            ],
+        ],
+    ];
+
+    $this->mock(TorontoFireFeedService::class, function (MockInterface $mock) use ($feedData) {
+        $mock->shouldReceive('fetch')->once()->andReturn($feedData);
+    });
+
+    $this->artisan('fire:fetch-incidents')
+        ->expectsOutputToContain('Done. 1 active incidents synced, 0 marked inactive.')
+        ->assertExitCode(0);
+
+    expect(
+        FireIncident::query()->where('event_num', 'F26039901')->value('units_dispatched')
+    )->toBe($longUnitsDispatched);
+});
+
 test('it generates synthetic intel updates for changed incidents and deactivations', function () {
     FireIncident::factory()->create([
         'event_num' => 'F26030001',

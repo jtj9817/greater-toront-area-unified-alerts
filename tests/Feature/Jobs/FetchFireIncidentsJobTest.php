@@ -1,6 +1,7 @@
 <?php
 
 use App\Jobs\FetchFireIncidentsJob;
+use Illuminate\Cache\ArrayStore;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Queue\Middleware\WithoutOverlapping;
 use Illuminate\Support\Facades\Artisan;
@@ -26,6 +27,8 @@ test('it throws when the fire command fails so the job can retry', function () {
 })->throws(RuntimeException::class, 'fire:fetch-incidents failed with exit code 1');
 
 test('it has correct retry configuration', function () {
+    config(['queue.unique_lock_store' => 'array']);
+
     $job = new FetchFireIncidentsJob;
 
     expect($job->tries)->toBe(3);
@@ -34,6 +37,7 @@ test('it has correct retry configuration', function () {
     expect($job->uniqueFor)->toBe(600);
     expect($job)->toBeInstanceOf(ShouldBeUnique::class);
     expect($job->uniqueId())->toBe('fetch-fire-incidents');
+    expect($job->uniqueVia()->getStore())->toBeInstanceOf(ArrayStore::class);
 });
 
 test('it uses without overlapping job middleware', function () {

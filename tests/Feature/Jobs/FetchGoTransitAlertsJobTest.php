@@ -1,6 +1,7 @@
 <?php
 
 use App\Jobs\FetchGoTransitAlertsJob;
+use Illuminate\Cache\ArrayStore;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Queue\Middleware\WithoutOverlapping;
 use Illuminate\Support\Facades\Artisan;
@@ -26,6 +27,8 @@ test('it throws when the go transit command fails so the job can retry', functio
 })->throws(RuntimeException::class, 'go-transit:fetch-alerts failed with exit code 1');
 
 test('it has correct retry configuration', function () {
+    config(['queue.unique_lock_store' => 'array']);
+
     $job = new FetchGoTransitAlertsJob;
 
     expect($job->tries)->toBe(3);
@@ -34,6 +37,7 @@ test('it has correct retry configuration', function () {
     expect($job->uniqueFor)->toBe(600);
     expect($job)->toBeInstanceOf(ShouldBeUnique::class);
     expect($job->uniqueId())->toBe('fetch-go-transit-alerts');
+    expect($job->uniqueVia()->getStore())->toBeInstanceOf(ArrayStore::class);
 });
 
 test('it uses without overlapping job middleware', function () {
