@@ -3,6 +3,7 @@
 namespace App\Jobs;
 
 use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
@@ -11,7 +12,7 @@ use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Artisan;
 use RuntimeException;
 
-class FetchPoliceCallsJob implements ShouldQueue
+class FetchPoliceCallsJob implements ShouldBeUnique, ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
@@ -35,6 +36,13 @@ class FetchPoliceCallsJob implements ShouldQueue
      * @var int
      */
     public $timeout = 120;
+
+    /**
+     * Number of seconds the unique lock should be held.
+     *
+     * @var int
+     */
+    public $uniqueFor = 3600;
 
     /**
      * @return array<int, object>
@@ -66,5 +74,10 @@ class FetchPoliceCallsJob implements ShouldQueue
         if ($exitCode !== 0) {
             throw new RuntimeException("police:fetch-calls failed with exit code {$exitCode}");
         }
+    }
+
+    public function uniqueId(): string
+    {
+        return 'fetch-police-calls';
     }
 }

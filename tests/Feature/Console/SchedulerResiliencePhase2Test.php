@@ -19,7 +19,7 @@ use Mockery\MockInterface;
 
 uses(RefreshDatabase::class);
 
-test('scheduled fetch events are job-based', function () {
+test('scheduled fetch events are callback-based and named', function () {
     $schedule = app(Schedule::class);
 
     $expectedNames = [

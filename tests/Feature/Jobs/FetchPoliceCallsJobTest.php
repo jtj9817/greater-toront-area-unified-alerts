@@ -1,6 +1,7 @@
 <?php
 
 use App\Jobs\FetchPoliceCallsJob;
+use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Queue\Middleware\WithoutOverlapping;
 use Illuminate\Support\Facades\Artisan;
 
@@ -30,6 +31,9 @@ test('it has correct retry configuration', function () {
     expect($job->tries)->toBe(3);
     expect($job->backoff)->toBe(30);
     expect($job->timeout)->toBe(120);
+    expect($job->uniqueFor)->toBe(3600);
+    expect($job)->toBeInstanceOf(ShouldBeUnique::class);
+    expect($job->uniqueId())->toBe('fetch-police-calls');
 });
 
 test('it uses without overlapping job middleware', function () {

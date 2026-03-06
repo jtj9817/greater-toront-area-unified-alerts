@@ -2,13 +2,14 @@
 
 namespace App\Jobs;
 
+use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Queue\Middleware\WithoutOverlapping;
 use Illuminate\Support\Facades\Artisan;
 use RuntimeException;
 
-class FetchTransitAlertsJob implements ShouldQueue
+class FetchTransitAlertsJob implements ShouldBeUnique, ShouldQueue
 {
     use Queueable;
 
@@ -17,6 +18,8 @@ class FetchTransitAlertsJob implements ShouldQueue
     public int $backoff = 30;
 
     public int $timeout = 120;
+
+    public int $uniqueFor = 3600;
 
     /**
      * @return array<int, object>
@@ -37,5 +40,10 @@ class FetchTransitAlertsJob implements ShouldQueue
         if ($exitCode !== 0) {
             throw new RuntimeException("transit:fetch-alerts failed with exit code {$exitCode}");
         }
+    }
+
+    public function uniqueId(): string
+    {
+        return 'fetch-transit-alerts';
     }
 }

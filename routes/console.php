@@ -1,10 +1,7 @@
 <?php
 
-use App\Jobs\FetchFireIncidentsJob;
-use App\Jobs\FetchGoTransitAlertsJob;
-use App\Jobs\FetchPoliceCallsJob;
-use App\Jobs\FetchTransitAlertsJob;
 use App\Jobs\GenerateDailyDigestJob;
+use App\Services\ScheduledFetchJobDispatcher;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Log;
@@ -16,10 +13,18 @@ Artisan::command('inspire', function () {
 })->purpose('Display an inspiring quote');
 
 // withoutOverlapping() expiry is in minutes; we use 10 to avoid 24-hour lockouts if the scheduler crashes.
-Schedule::job(new FetchFireIncidentsJob)->name('fire:fetch-incidents')->everyFiveMinutes()->withoutOverlapping(10);
-Schedule::job(new FetchPoliceCallsJob)->name('police:fetch-calls')->everyTenMinutes()->withoutOverlapping(10);
-Schedule::job(new FetchTransitAlertsJob)->name('transit:fetch-alerts')->everyFiveMinutes()->withoutOverlapping(10);
-Schedule::job(new FetchGoTransitAlertsJob)->name('go-transit:fetch-alerts')->everyFiveMinutes()->withoutOverlapping(10);
+Schedule::call(function (ScheduledFetchJobDispatcher $dispatcher): void {
+    $dispatcher->dispatchFireIncidents();
+})->name('fire:fetch-incidents')->everyFiveMinutes()->withoutOverlapping(10);
+Schedule::call(function (ScheduledFetchJobDispatcher $dispatcher): void {
+    $dispatcher->dispatchPoliceCalls();
+})->name('police:fetch-calls')->everyTenMinutes()->withoutOverlapping(10);
+Schedule::call(function (ScheduledFetchJobDispatcher $dispatcher): void {
+    $dispatcher->dispatchTransitAlerts();
+})->name('transit:fetch-alerts')->everyFiveMinutes()->withoutOverlapping(10);
+Schedule::call(function (ScheduledFetchJobDispatcher $dispatcher): void {
+    $dispatcher->dispatchGoTransitAlerts();
+})->name('go-transit:fetch-alerts')->everyFiveMinutes()->withoutOverlapping(10);
 Schedule::job(new GenerateDailyDigestJob)->dailyAt('00:10')->withoutOverlapping();
 Schedule::command('notifications:prune')->daily()->withoutOverlapping();
 Schedule::command('queue:prune-failed', ['--hours' => 168])->daily()->withoutOverlapping();
