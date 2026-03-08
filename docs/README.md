@@ -28,6 +28,7 @@ docs/
 │   ├── notification-system.md
 │   ├── production-scheduler.md
 │   ├── scene-intel.md
+│   ├── security-headers.md
 │   ├── unified-alerts-qa.md
 │   └── unified-alerts-system.md
 ├── frontend/
@@ -53,27 +54,12 @@ docs/
 │   ├── production-data-migration.md
 │   └── scene-intel-feature-plan.md
 ├── tickets/
-│   ├── FEED-001-server-side-filters-infinite-scroll.md
-│   ├── FEED-001-phase-3-review.md
-│   ├── FEED-002-provider-filter-optimization.md
-│   ├── FEED-002-real-time-push.md
-│   ├── FEED-003-code-review-phase-2.md
-│   ├── FEED-003-saved-filter-presets.md
-│   ├── FEED-004-sort-direction-toggle.md
-│   ├── FEED-005-test-harness-stabilization.md
-│   ├── FEED-006-go-transit-html-sanitization.md
-│   ├── FEED-007-scheduled-jobs-never-processed.md
-│   ├── FEED-008-scheduler-missing-from-dev-script.md
-│   ├── FEED-009-sql-export-import-pipeline.md
-│   ├── FEED-010-postgresql-refactoring.md
-│   ├── FEED-011-coverage-gap-to-90-threshold.md
-│   ├── FEED-012-forge-postgresql-go-live-preflight-checklist.md
-│   ├── FEED-013-arcgis-objectid-sequence-reset.md
-│   ├── FEED-014-queue-worker-137-and-notification-fanout-idempotency.md
-│   ├── FEED-015-footer-weather-stats-hardcoded-placeholder.md
-│   ├── FEED-016-design-revamp-phase-4-verification-findings.md
-│   ├── FEED-017-design-revamp-phase-4-quality-gate-failures.md
-│   └── archive/  (closed tickets)
+│   ├── FEED-002-real-time-push.md            (Open)
+│   ├── FEED-003-saved-filter-presets.md      (Open)
+│   ├── FEED-004-sort-direction-toggle.md     (Open)
+│   ├── FEED-015-footer-weather-stats-hardcoded-placeholder.md  (Open)
+│   ├── FEED-001 through FEED-021             (all others Closed/Done — not archived to subdirectory)
+│   └── archive/  (older closed tickets moved here)
 ├── archive/
 │   ├── query-refinement-testing.md
 │   └── unified-alerts-design.md
@@ -129,11 +115,7 @@ Active work items and feature proposals:
 - **[tickets/FEED-002-real-time-push.md](tickets/FEED-002-real-time-push.md)** - Real-time push updates for the alert feed (depends on FEED-001)
 - **[tickets/FEED-003-saved-filter-presets.md](tickets/FEED-003-saved-filter-presets.md)** - Saved filter presets for quick-access filter combinations (depends on FEED-001)
 - **[tickets/FEED-004-sort-direction-toggle.md](tickets/FEED-004-sort-direction-toggle.md)** - Sort direction toggle in the feed (depends on FEED-001)
-- **[tickets/FEED-014-queue-worker-137-and-notification-fanout-idempotency.md](tickets/FEED-014-queue-worker-137-and-notification-fanout-idempotency.md)** - Stabilize queue worker exit 137 and harden notification fan-out idempotency (critical)
 - **[tickets/FEED-015-footer-weather-stats-hardcoded-placeholder.md](tickets/FEED-015-footer-weather-stats-hardcoded-placeholder.md)** - Replace hardcoded footer weather placeholder with real data source or remove weather panel (design revamp tech debt)
-- **[tickets/FEED-019-queue-worker-max-jobs-backlog.md](tickets/FEED-019-queue-worker-max-jobs-backlog.md)** - Keep the dev queue worker alive so scheduled fetch jobs do not accumulate indefinitely
-- **[tickets/FEED-020-dedupe-scheduled-fetch-jobs-before-enqueue.md](tickets/FEED-020-dedupe-scheduled-fetch-jobs-before-enqueue.md)** - Deduplicate scheduled fetch jobs before enqueue so full-snapshot backlog does not balloon
-- **[tickets/FEED-017-design-revamp-phase-4-quality-gate-failures.md](tickets/FEED-017-design-revamp-phase-4-quality-gate-failures.md)** - Resolve remaining design revamp quality-gate failures before track archival
 
 ## Historical Docs Notes
 
@@ -153,6 +135,8 @@ Active work items and feature proposals:
 | Unified Alerts Query | Implemented | [backend/unified-alerts-system.md](backend/unified-alerts-system.md) |
 | Server-Side Feed Filters + Infinite Scroll (FEED-001) | Implemented | [backend/unified-alerts-system.md](backend/unified-alerts-system.md) |
 | Production Scheduler | Implemented | [backend/production-scheduler.md](backend/production-scheduler.md) |
+| Scheduler Fetch Dedupe (`ScheduledFetchJobDispatcher`) | Implemented | [backend/production-scheduler.md](backend/production-scheduler.md) |
+| Content Security Policy (hot-mode aware) | Implemented | [backend/security-headers.md](backend/security-headers.md) |
 | In-App Notifications | Implemented | [backend/notification-system.md](backend/notification-system.md) |
 | Scene Intel (Fire) | Implemented | [backend/scene-intel.md](backend/scene-intel.md) |
 | Real-Time Feed Push | Planned | [tickets/FEED-002-real-time-push.md](tickets/FEED-002-real-time-push.md) |

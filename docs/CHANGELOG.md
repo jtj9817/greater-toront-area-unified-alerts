@@ -2,6 +2,36 @@
 
 All notable documentation-relevant changes are tracked here.
 
+## [March 7, 2026] - Documentation Sync: Scheduler Dedupe, CSP, and Ticket Closure
+
+### Added
+
+- Created `docs/backend/security-headers.md` documenting `EnsureSecurityHeaders` middleware, per-request nonce generation, production baseline CSP policy, Vite hot-mode CSP extension, and Laravel Echo connect-src derivation.
+
+### Changed
+
+- Updated `docs/backend/production-scheduler.md`:
+    - Added "Scheduled Fetch Dispatch Architecture" section documenting `ScheduledFetchJobDispatcher` two-layer deduplication logic (queue-row check + `UniqueLock`), observable log keys, and the `QUEUE_UNIQUE_LOCK_STORE` configuration.
+    - Added note on the `fire_incidents.units_dispatched` column widening from `varchar(255)` to `text`.
+    - Updated "Scheduler Resilience Guardrails" to lead with pre-enqueue deduplication and `QUEUE_UNIQUE_LOCK_STORE`.
+    - Removed stale "Remaining Work" items (heartbeat/`scheduler:status` Pest tests — these were already covered).
+- Updated `docs/README.md`:
+    - Added `backend/security-headers.md` to the documentation tree.
+    - Removed closed tickets FEED-014, FEED-017, FEED-019, and FEED-020 from the Open Tickets section.
+    - Updated the docs tree to reflect that FEED-018 through FEED-021 and FEED-014, FEED-017 are closed.
+    - Added "Scheduler Fetch Dedupe" and "Content Security Policy" rows to the Implementation Status table.
+- Updated `docs/sources/ttc-transit.md`: corrected `withoutOverlapping()` to `withoutOverlapping(10)` to match the actual `routes/console.php` call.
+- Updated `docs/backend/database-schema.md` and `docs/sources/toronto-fire.md` (prior pass):
+    - `fire_incidents.units_dispatched` column type updated to `text`; migration `2026_03_06_120000` added to history.
+- Updated `docs/backend/architecture-walkthrough.md` (prior pass):
+    - Scheduling section updated to `Schedule::call()` + `ScheduledFetchJobDispatcher` pattern and `ShouldBeUnique` middleware description.
+- Updated `CLAUDE.md`:
+    - Corrected `composer run dev` description to include supervised queue worker and scheduler.
+    - Corrected `q` filter cross-driver note to include PostgreSQL FTS + ILIKE.
+    - Fixed stale `docs/backend/sources/` path to `docs/sources/`.
+    - Added references to `docs/backend/production-scheduler.md` and `docs/backend/security-headers.md`.
+    - Added `ScheduledFetchJobDispatcher` and `QUEUE_UNIQUE_LOCK_STORE` description to Production Scheduler section.
+
 ## [March 5, 2026] - FEED-019 Dev Queue Worker Supervision
 
 ### Added

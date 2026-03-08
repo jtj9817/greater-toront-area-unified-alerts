@@ -17,7 +17,7 @@ GTA Alerts is a real-time dashboard for emergency services and transit alerts ac
 ### Development
 ```bash
 composer run setup          # One-time: install deps, .env, key, migrate, build
-composer run dev            # Runs server, queue worker, log tail (pail), and Vite concurrently
+composer run dev            # Runs server, supervised queue worker, log tail (pail), Vite, and scheduler concurrently
 ```
 
 ### Testing
@@ -119,7 +119,7 @@ AlertPresentation (frontend view model)
 2. Controllers create `UnifiedAlertsCriteria` (normalization for source/query/since/cursor/per-page)
 3. Controllers call `UnifiedAlertsQuery::cursorPaginate($criteria)`
 4. Query fetches tagged providers and builds a UNION ALL subquery
-5. Query applies status/source/since filters and cross-driver `q` behavior (MySQL FULLTEXT, SQLite fallback `LIKE`)
+5. Query applies status/source/since filters and cross-driver `q` behavior (PostgreSQL FTS + ILIKE, MySQL FULLTEXT + LIKE, SQLite outer `LIKE`)
 6. Query uses deterministic seek pagination on `(timestamp DESC, id DESC)` to compute `next_cursor`
 7. Controllers return `UnifiedAlertResource` batches plus `next_cursor`
 
@@ -213,13 +213,15 @@ Pest PHP with Feature and Unit suites.
 - Current shell/view contract includes prototype sidebar/header/footer, refresh FAB, Feed/Table toggle, and expandable table summaries.
 - Verification reference spec: `tests/e2e/design-revamp-phase-4.spec.ts`.
 - Verification runbook: `docs/runbooks/design-revamp-phase-4-verification.md`.
-- Open quality-gate debt is tracked in `docs/tickets/FEED-017-design-revamp-phase-4-quality-gate-failures.md`.
+- Remaining quality-gate findings are tracked in `docs/tickets/FEED-017-design-revamp-phase-4-quality-gate-failures.md` (Closed; see ticket for resolution notes).
 
 ### Production Scheduler
 Dedicated scheduler container (`docker/scheduler/`) runs `php artisan scheduler:run-and-log` every minute:
 - Logs all scheduler output to Laravel logs
 - Writes heartbeat keys to cache for health monitoring
 - Includes startup report and health check commands
+
+**Fetch job dispatch** is handled by `App\Services\ScheduledFetchJobDispatcher` (called from `Schedule::call()` closures in `routes/console.php`). The dispatcher enforces pre-enqueue uniqueness via a `jobs`-table check and a `UniqueLock`, preventing redundant fetch-job accumulation during worker outages. Fetch-job uniqueness locks use a dedicated cache store configured by `QUEUE_UNIQUE_LOCK_STORE` (default `file`; use `redis` in production) to avoid noisy `cache_locks` conflicts.
 
 ## Conventions
 
@@ -238,7 +240,7 @@ Dedicated scheduler container (`docker/scheduler/`) runs `php artisan scheduler:
 4. Register provider in `AppServiceProvider` with tag `alerts.select-providers`
 5. Add source to `AlertSource` enum
 6. Update `latestFeedUpdatedAt()` in `GtaAlertsController`
-7. Add schedule entry in `routes/console.php`
+7. Add a `Schedule::call()` entry in `routes/console.php` that delegates to a new method on `App\Services\ScheduledFetchJobDispatcher`
 8. Add source-specific frontend schema + mapper under `resources/js/features/gta-alerts/domain/alerts/`
 9. Update view presentation mapping (`mapDomainAlertToPresentation`) and tests
 
@@ -248,8 +250,10 @@ See `docs/` for detailed architecture:
 - `docs/backend/unified-alerts-system.md` - Unified alerts architecture (IMPLEMENTED)
 - `docs/backend/enums.md` - AlertSource, AlertStatus, AlertId documentation
 - `docs/backend/dtos.md` - UnifiedAlert, UnifiedAlertsCriteria, AlertLocation
+- `docs/backend/production-scheduler.md` - Scheduler container, ScheduledFetchJobDispatcher, resilience guardrails
+- `docs/backend/security-headers.md` - EnsureSecurityHeaders middleware, CSP nonce and hot-mode extension
 - `docs/deployment/production-seeding.md` - Forge-safe SQL export/import transfer runbook
-- `docs/backend/sources/` - Individual data source documentation
+- `docs/sources/` - Individual data source documentation (Toronto Fire, Police, TTC, GO Transit)
 - `docs/architecture/provider-adapter-pattern.md` - Provider pattern explanation
 - `docs/backend/notification-system.md` - In-app notification system (IMPLEMENTED)
 - `docs/architecture/dynamic-zones.md` - Dynamic zones feature (PLANNED)
