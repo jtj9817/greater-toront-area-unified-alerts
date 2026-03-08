@@ -59,7 +59,7 @@ Before cutover:
 - Record previous release git hash
 - Confirm rollback owner and maintenance window
 - Confirm import/export SQL commands are available:
-  - `php artisan list | rg "alert-data:import-sql|alert-data:export-sql"`
+  - `php artisan list | rg "db:export-sql|db:import-sql"`
 
 ## Phase 5 — Staging Smoke Deploy
 
