@@ -1,7 +1,7 @@
 ---
 ticket_id: FEED-008
 title: "[Bug] No Scheduler Runs in Development — Scheduled Jobs Never Dispatched to Queue"
-status: Open
+status: Closed
 priority: Critical
 assignee: Unassigned
 created_at: 2026-02-24

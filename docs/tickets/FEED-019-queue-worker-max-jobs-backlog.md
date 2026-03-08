@@ -1,7 +1,7 @@
 ---
 ticket_id: FEED-019
 title: "[Bug] Dev queue worker exits after 1000 jobs and leaves fetch backlog unprocessed"
-status: Open
+status: Closed
 priority: Critical
 assignee: Unassigned
 tags: [bug, backend, queue, scheduler, dev-environment, data-freshness, reliability]

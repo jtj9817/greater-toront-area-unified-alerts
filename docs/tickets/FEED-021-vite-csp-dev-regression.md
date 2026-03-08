@@ -1,7 +1,7 @@
 ---
 ticket_id: FEED-021
 title: "[Bug] Vite dev assets blocked by static CSP on Inertia pages"
-status: Open
+status: Closed
 priority: High
 assignee: Unassigned
 tags: [bug, frontend, security, vite, inertia, laravel, dev-environment]
