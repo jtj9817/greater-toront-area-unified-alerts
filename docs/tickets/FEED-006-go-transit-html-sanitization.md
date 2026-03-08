@@ -1,7 +1,7 @@
 ---
 ticket_id: FEED-006
 title: "[Bug] GO Transit MessageBody Contains Raw CSS After strip_tags()"
-status: Open
+status: Closed
 priority: High
 assignee: Unassigned
 created_at: 2026-02-23

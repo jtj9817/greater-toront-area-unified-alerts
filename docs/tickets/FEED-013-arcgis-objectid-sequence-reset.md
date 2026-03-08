@@ -1,7 +1,7 @@
 ---
 ticket_id: FEED-013
 title: "[Bug] ArcGIS OBJECTID Sequence Reset Causes Silent Data Corruption in police_calls"
-status: Open
+status: Closed
 priority: High
 assignee: Unassigned
 created_at: 2026-03-04
