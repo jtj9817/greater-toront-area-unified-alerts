@@ -11,7 +11,7 @@ Implemented. TTC alerts are ingested into `transit_alerts` and surfaced in the u
 - Queue job: `app/Jobs/FetchTransitAlertsJob.php`
 - Model: `app/Models/TransitAlert.php`
 - Unified provider: `app/Services/Alerts/Providers/TransitAlertSelectProvider.php`
-- Schedule: `routes/console.php` -> `transit:fetch-alerts` every 5 minutes (`withoutOverlapping()`)
+- Schedule: `routes/console.php` -> `transit:fetch-alerts` every 5 minutes (`withoutOverlapping(10)`)
 
 ## Upstream TTC Sources
 
