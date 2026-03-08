@@ -179,9 +179,11 @@ For production containers, prefer stdout/stderr logging so orchestration platfor
 
 ## Scheduler Resilience Guardrails
 
-The scheduler now ships with multiple guardrails to prevent silent failures and minimize long-lived outages:
+The scheduler ships with multiple guardrails to prevent silent failures and minimize long-lived outages:
 
-- **Job-based ingestion with retries:** Fetchers run as queued jobs with `$tries=3`, `$backoff=30`, `$timeout=120`.
+- **Pre-enqueue deduplication (`ScheduledFetchJobDispatcher`):** Fetch jobs are dispatched via `Schedule::call()` closures that delegate to `App\Services\ScheduledFetchJobDispatcher`. The dispatcher checks for an outstanding database queue row and acquires a `UniqueLock` before enqueuing. If either check indicates a duplicate, the dispatch is skipped and logged. A failed lock-acquire is treated as a skip — locks are never force-released.
+- **Configurable unique-lock store (`QUEUE_UNIQUE_LOCK_STORE`):** Fetch-job uniqueness locks use the cache store configured by `QUEUE_UNIQUE_LOCK_STORE` (default `file`; use `redis` for shared multi-node environments). This avoids noisy `cache_locks` duplicate-key errors during normal skip behavior.
+- **Job-based ingestion with retries:** Fetchers run as queued jobs with `$tries=3`, `$backoff=30`, `$timeout=120`. Each job implements `ShouldBeUnique` as a second-layer execution-time guard.
 - **Overlap protection without 24-hour lockouts:** Scheduled events use `withoutOverlapping(10)`; job middleware releases locks after 30 seconds on failure and expires at 10 minutes.
 - **Empty feed protection:** `ALLOW_EMPTY_FEEDS=false` (default) causes empty feed responses to throw and **skip deactivation**, preventing mass data loss.
 - **Circuit breaker:** After 5 consecutive failures per feed, fetch attempts are skipped for 5 minutes to reduce upstream load.
@@ -233,7 +235,12 @@ Use log-based alerts for these events:
 - If errors mention “zero alerts” or “zero events”, review `ALLOW_EMPTY_FEEDS` behavior and upstream status.
 - Check failed jobs via `php artisan queue:failed` and retry if appropriate.
 
-5) Queue backlog grows:
+5) Scheduler keeps logging “Scheduled fetch job skipped”:
+- This is normal when a previous fetch job for that source is still pending or running (pre-enqueue dedupe working correctly).
+- If skips persist indefinitely with no queue row present, the unique lock may be stale. Verify the cache store named by `QUEUE_UNIQUE_LOCK_STORE` is reachable and the lock TTL has not been extended abnormally.
+- Log entry `reason: outstanding_queue_row_exists` means the worker is alive but slow; `reason: unique_lock_held` means a lock is held without a matching queue row (e.g., job is executing and holds the lock).
+
+6) Queue backlog grows:
 - The queue depth monitor logs an error when depth exceeds 100.
 - Verify the queue worker is running and that jobs are not blocked by overlap locks.
 
@@ -242,10 +249,51 @@ Use log-based alerts for these events:
 - `docs/runbooks/scheduler-troubleshooting.md`
 - `docs/runbooks/queue-troubleshooting.md`
 
+## Scheduled Fetch Dispatch Architecture
+
+### ScheduledFetchJobDispatcher
+
+All four feed-fetch entries in `routes/console.php` use `Schedule::call()` closures that delegate to `App\Services\ScheduledFetchJobDispatcher`. This service enforces pre-enqueue uniqueness so the `jobs` table never accumulates redundant fetch-job rows when a worker is paused or slow.
+
+**Dispatch logic (per source):**
+
+1. Check the `jobs` table for an outstanding row with the same job class name. If one exists, log a skip and return.
+2. Attempt to acquire a `UniqueLock` against the cache store configured in `QUEUE_UNIQUE_LOCK_STORE`. If the lock is already held, log a skip and return — locks are never force-released.
+3. Re-check the `jobs` table after acquiring the lock (TOCTOU guard). If a row appeared in the interim, release the lock and return.
+4. Dispatch the job to the queue. If dispatch throws, release the lock and rethrow.
+5. Log the successful enqueue with the lock key.
+
+Both the pre-lock and post-lock queue-row checks only apply when the default queue connection uses the `database` driver. Other drivers return `false` from the check.
+
+**Unique lock store (`QUEUE_UNIQUE_LOCK_STORE`):**
+
+Fetch-job uniqueness locks are kept on a dedicated non-database cache store to avoid noisy `cache_locks` duplicate-key errors during normal skip behavior.
+
+```
+# .env / .env.example
+QUEUE_UNIQUE_LOCK_STORE=file      # default — safe for single-node dev
+QUEUE_UNIQUE_LOCK_STORE=redis     # recommended for multi-node production
+```
+
+The value is read from `config/queue.php` (`queue.unique_lock_store`). Each job class implements `uniqueVia()` to read this config key and return the appropriate cache store.
+
+**Each job class** (`FetchFireIncidentsJob`, `FetchPoliceCallsJob`, `FetchTransitAlertsJob`, `FetchGoTransitAlertsJob`) implements:
+- `ShouldBeUnique` with `$uniqueFor = 600` seconds
+- `uniqueVia()` returning the `QUEUE_UNIQUE_LOCK_STORE` cache store
+- `WithoutOverlapping` middleware as a second execution-time concurrency guard
+- `$tries = 3`, `$backoff = 30`, `$timeout = 120`
+
+**Observable log keys:**
+- `Scheduled fetch job enqueued` — job was new and dispatched
+- `Scheduled fetch job skipped` with `reason: outstanding_queue_row_exists` — skipped at queue-row check
+- `Scheduled fetch job skipped` with `reason: unique_lock_held` — skipped because lock was already held
+- `Scheduled fetch job skipped` with `reason: outstanding_queue_row_exists_after_lock` — skipped at TOCTOU check
+
+### fire_incidents.units_dispatched Column Width
+
+The `units_dispatched` column was widened from `varchar(255)` to `text` in migration `2026_03_06_change_fire_incidents_units_dispatched_to_text.php`. The Toronto Fire feed can emit unit lists longer than 255 characters; the narrow column caused `FetchFireIncidentsJob` to fail with a PostgreSQL `value too long for type character varying(255)` error and enter a retry loop.
+
 ## Remaining Work (Not Implemented Yet)
 
 - Add a production `compose` / deployment manifest for a `scheduler` service that builds `docker/scheduler/Dockerfile` and sets required env vars.
 - Decide whether the scheduler image should be based on a published runtime image (instead of `sail-8.5/app`) for CI/CD.
-- Optionally add Pest tests for:
-  - heartbeat keys after `scheduler:run-and-log`
-  - `scheduler:status` behavior for missing/stale heartbeat

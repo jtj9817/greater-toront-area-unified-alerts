@@ -64,8 +64,8 @@ The backend follows a **layered architecture** with clear separation of concerns
 │                         LAYER 4: QUEUE JOBS (Background)                     │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │  FetchFireIncidentsJob          $tries=3, $backoff=30, $timeout=120          │
-│  FetchPoliceCallsJob            WithoutOverlapping middleware (30s release)  │
-│  FetchTransitAlertsJob          Dispatched by scheduler via Schedule::job()  │
+│  FetchPoliceCallsJob            ShouldBeUnique + WithoutOverlapping (30s)    │
+│  FetchTransitAlertsJob          Dispatched by ScheduledFetchJobDispatcher    │
 │  FetchGoTransitAlertsJob        Calls Artisan::call() on underlying command  │
 └─────────────────────────────────────────────────────────────────────────────┘
                                        │
@@ -379,17 +379,22 @@ enum AlertStatus: string
 
 ## Scheduling
 
-Data fetchers run as **queued jobs** on Laravel's scheduler (`routes/console.php`). Using `Schedule::job()` instead of `Schedule::command()` enables job-level retries, backoff, and timeout configuration:
+Data fetchers are dispatched via `Schedule::call()` closures in `routes/console.php` that delegate to `App\Services\ScheduledFetchJobDispatcher`. The dispatcher enforces pre-enqueue uniqueness: it checks for an outstanding database queue row, then acquires a `UniqueLock`, and only enqueues a new job when neither guard blocks. A failed lock-acquire is treated as a skip (logged and returned) — locks are never force-released.
 
 ```php
-// withoutOverlapping(10) sets a 10-minute lock expiry to avoid 24-hour lockouts on crash
-Schedule::job(new FetchFireIncidentsJob)->name('fire:fetch-incidents')->everyFiveMinutes()->withoutOverlapping(10);
-Schedule::job(new FetchPoliceCallsJob)->name('police:fetch-calls')->everyTenMinutes()->withoutOverlapping(10);
-Schedule::job(new FetchTransitAlertsJob)->name('transit:fetch-alerts')->everyFiveMinutes()->withoutOverlapping(10);
-Schedule::job(new FetchGoTransitAlertsJob)->name('go-transit:fetch-alerts')->everyFiveMinutes()->withoutOverlapping(10);
+// Schedule::call() + ScheduledFetchJobDispatcher replaced the former Schedule::job() calls.
+// withoutOverlapping(10) sets a 10-minute scheduler-level lock expiry.
+Schedule::call(fn (ScheduledFetchJobDispatcher $d) => $d->dispatchFireIncidents())
+    ->name('fire:fetch-incidents')->everyFiveMinutes()->withoutOverlapping(10);
+Schedule::call(fn (ScheduledFetchJobDispatcher $d) => $d->dispatchPoliceCalls())
+    ->name('police:fetch-calls')->everyTenMinutes()->withoutOverlapping(10);
+Schedule::call(fn (ScheduledFetchJobDispatcher $d) => $d->dispatchTransitAlerts())
+    ->name('transit:fetch-alerts')->everyFiveMinutes()->withoutOverlapping(10);
+Schedule::call(fn (ScheduledFetchJobDispatcher $d) => $d->dispatchGoTransitAlerts())
+    ->name('go-transit:fetch-alerts')->everyFiveMinutes()->withoutOverlapping(10);
 ```
 
-Each job is configured with `$tries = 3`, `$backoff = 30`, `$timeout = 120` and uses `WithoutOverlapping` middleware for per-job lock management.
+Each job class (`FetchFireIncidentsJob`, etc.) implements `ShouldBeUnique` with `$uniqueFor = 600` and uses `uniqueVia()` to route its uniqueness lock to the cache store configured in `QUEUE_UNIQUE_LOCK_STORE` (default `file`). This keeps uniqueness locks off the database `cache_locks` table. Each job is also configured with `$tries = 3`, `$backoff = 30`, `$timeout = 120`, and retains `WithoutOverlapping` middleware as an execution-time concurrency guard.
 
 Additional scheduled tasks:
 ```php
