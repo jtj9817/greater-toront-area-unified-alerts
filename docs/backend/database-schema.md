@@ -250,7 +250,7 @@ Backing table for Toronto Fire CAD data. Upserted by `FetchFireIncidentsCommand`
 | `dispatch_time` | datetime | No | | Time incident was dispatched (no timezone in column type; stored as UTC) |
 | `alarm_level` | tinyint unsigned | No | 0 | Alarm level 0–5 |
 | `beat` | varchar(255) | Yes | NULL | Dispatch zone identifier |
-| `units_dispatched` | varchar(255) | Yes | NULL | Unit identifiers (comma-separated string) |
+| `units_dispatched` | text | Yes | NULL | Unit identifiers (comma-separated string); widened from varchar(255) to text in migration `2026_03_06_120000` to accommodate long live-feed payloads |
 | `is_active` | boolean | No | true | False when absent from feed |
 | `feed_updated_at` | timestamp | Yes | NULL | Last feed sync timestamp |
 | `created_at` | timestamp | Yes | NULL | |
@@ -680,6 +680,7 @@ All migrations in chronological run order:
 | `2026_02_13_000001_create_incident_updates_table.php` | Creates `incident_updates` |
 | `2026_02_19_120000_add_fulltext_indexes_to_alert_tables.php` | Adds MySQL FULLTEXT indexes to all four alert tables (no-op on other drivers) |
 | `2026_02_26_000001_add_pgsql_fulltext_indexes_to_alert_tables.php` | Adds PostgreSQL GIN indexes to all four alert tables (no-op on other drivers; runs outside transaction) |
+| `2026_03_06_120000_change_fire_incidents_units_dispatched_to_text.php` | Widens `fire_incidents.units_dispatched` from `varchar(255)` to `text` to accommodate long live-feed unit lists |
 
 ---
 

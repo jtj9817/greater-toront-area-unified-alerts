@@ -47,7 +47,7 @@ The feed was discovered via network monitoring during browser automation of the 
 | `dispatch_time` | `dispatch_time` | `datetime` | ISO 8601 timestamp of initial dispatch |
 | `alarm_lev` | `alarm_level` | `unsignedTinyInteger` | 0-6 scale. 0 = initial response, 1 = support fire response, 2-6 = escalating vehicle counts (10-32 vehicles) |
 | `beat` | `beat` | `string` (nullable) | Nearest fire station number |
-| `units_disp` | `units_dispatched` | `string` (nullable) | Comma-separated unit codes. Can be empty for just-dispatched incidents |
+| `units_disp` | `units_dispatched` | `text` (nullable) | Comma-separated unit codes. Can be empty for just-dispatched incidents. Stored as `text` (not `varchar(255)`) to accommodate long live-feed payloads |
 | `update_from_db_time` | `feed_updated_at` | `timestamp` | When the CAD system last refreshed the feed |
 
 ### Unit Code Prefixes
@@ -122,7 +122,7 @@ cross_streets      VARCHAR(255) NULLABLE
 dispatch_time      DATETIME
 alarm_level        TINYINT UNSIGNED DEFAULT 0
 beat               VARCHAR(255) NULLABLE
-units_dispatched   VARCHAR(255) NULLABLE
+units_dispatched   TEXT NULLABLE
 is_active          BOOLEAN DEFAULT TRUE
 feed_updated_at    TIMESTAMP NULLABLE
 created_at         TIMESTAMP
