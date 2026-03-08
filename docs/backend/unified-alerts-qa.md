@@ -31,5 +31,7 @@ Deterministic ordering tuple:
 
 ## Current residual risks
 
-- Very broad `q` searches can still be expensive without selective terms, even with FULLTEXT.
-- `meta` can become overloaded if too many fields stay unstructured.
+- **`q` search performance:** GIN indexes on all four alert tables (added by FEED-010 PostgreSQL refactoring, migration `2026_02_26_000001_add_pgsql_fulltext_indexes_to_alert_tables.php`) substantially mitigate the cost of FTS queries on PostgreSQL. Very short or highly common terms (e.g., single-character queries) still lack index selectivity and may fall back to broader scans. The `ILIKE` substring fallback applied alongside FTS adds additional per-row work for those cases.
+- **`meta` overload:** If too many source-specific fields accumulate in unstructured `meta` JSON, querying and mapping become harder to maintain. New sources should use typed schema additions rather than ad-hoc keys where possible.
+
+> **Historical note:** Before FEED-010 (archived 2026-02-27), the system targeted MySQL as the production database driver. The residual risk around FULLTEXT performance was more significant at that time because MySQL FULLTEXT has weaker planner integration than PostgreSQL GIN. The current production target is PostgreSQL.
