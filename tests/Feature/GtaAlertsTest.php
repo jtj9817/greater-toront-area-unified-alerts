@@ -105,6 +105,29 @@ test('the home page allows filtering by status', function () {
         );
 });
 
+test('the home page supports sort direction toggle', function () {
+    Carbon::setTestNow(Carbon::parse('2026-02-03 12:00:00'));
+
+    FireIncident::factory()->create([
+        'event_num' => 'E1',
+        'is_active' => true,
+        'dispatch_time' => Carbon::now()->subMinutes(1),
+    ]);
+
+    FireIncident::factory()->create([
+        'event_num' => 'E2',
+        'is_active' => true,
+        'dispatch_time' => Carbon::now()->subMinutes(2),
+    ]);
+
+    $this->get(route('home', ['sort' => 'asc']))
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('filters.sort', 'asc')
+            ->where('alerts.data.0.id', 'fire:E2')
+            ->where('alerts.data.1.id', 'fire:E1')
+        );
+});
+
 test('the home page rejects invalid status values', function () {
     $this->get(route('home', ['status' => 'invalid-status']))
         ->assertRedirect()
@@ -121,6 +144,12 @@ test('the home page rejects invalid since values', function () {
     $this->get(route('home', ['since' => '2h']))
         ->assertRedirect()
         ->assertSessionHasErrors(['since']);
+});
+
+test('the home page rejects invalid sort values', function () {
+    $this->get(route('home', ['sort' => 'invalid']))
+        ->assertRedirect()
+        ->assertSessionHasErrors(['sort']);
 });
 
 test('the home page rejects invalid cursor values', function () {
@@ -341,12 +370,14 @@ test('the home page sets latest_feed_updated_at from go transit when it is most 
 test('the home page echoes all filter params in the filters prop for ui rehydration', function () {
     $this->get(route('home', [
         'status' => 'active',
+        'sort' => 'asc',
         'source' => 'fire',
         'q' => 'test search',
         'since' => '1h',
     ]))
         ->assertInertia(fn (Assert $page) => $page
             ->where('filters.status', 'active')
+            ->where('filters.sort', 'asc')
             ->where('filters.source', 'fire')
             ->where('filters.q', 'test search')
             ->where('filters.since', '1h')
@@ -463,6 +494,7 @@ test('the home page handles empty filters gracefully', function () {
     $this->get(route('home'))
         ->assertInertia(fn (Assert $page) => $page
             ->where('filters.status', 'all')
+            ->where('filters.sort', 'desc')
             ->where('filters.source', null)
             ->where('filters.q', null)
             ->where('filters.since', null)

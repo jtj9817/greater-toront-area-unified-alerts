@@ -14,11 +14,15 @@ readonly class UnifiedAlertsCriteria
 
     public const int MAX_PER_PAGE = 200;
 
+    public const string DEFAULT_SORT = 'desc';
+
     public string $status;
 
     public int $perPage;
 
     public ?int $page;
+
+    public string $sort;
 
     public ?string $source;
 
@@ -35,10 +39,16 @@ readonly class UnifiedAlertsCriteria
      */
     public const array SINCE_OPTIONS = ['30m', '1h', '3h', '6h', '12h'];
 
+    /**
+     * @var array<int, string>
+     */
+    public const array SORT_OPTIONS = ['asc', 'desc'];
+
     public function __construct(
         string $status = AlertStatus::All->value,
         int $perPage = self::DEFAULT_PER_PAGE,
         ?int $page = null,
+        ?string $sort = self::DEFAULT_SORT,
         ?string $source = null,
         ?string $query = null,
         ?string $since = null,
@@ -47,6 +57,7 @@ readonly class UnifiedAlertsCriteria
         $this->status = AlertStatus::normalize($status);
         $this->perPage = self::normalizePerPage($perPage);
         $this->page = self::normalizePage($page);
+        $this->sort = self::normalizeSort($sort);
         $this->source = self::normalizeSource($source);
         $this->query = self::normalizeQuery($query);
         $this->since = self::normalizeSince($since);
@@ -76,6 +87,25 @@ readonly class UnifiedAlertsCriteria
         }
 
         return $page;
+    }
+
+    private static function normalizeSort(?string $sort): string
+    {
+        if ($sort === null) {
+            return self::DEFAULT_SORT;
+        }
+
+        $normalized = mb_strtolower(trim($sort));
+        if ($normalized === '') {
+            return self::DEFAULT_SORT;
+        }
+
+        if (! in_array($normalized, self::SORT_OPTIONS, true)) {
+            $expected = implode(', ', self::SORT_OPTIONS);
+            throw new \InvalidArgumentException("Invalid sort '{$sort}'. Expected one of: {$expected}.");
+        }
+
+        return $normalized;
     }
 
     private static function normalizeSource(?string $source): ?string

@@ -15,6 +15,7 @@ test('unified alerts criteria defaults', function () {
     expect($criteria->status)->toBe('all');
     expect($criteria->perPage)->toBe(50);
     expect($criteria->page)->toBeNull();
+    expect($criteria->sort)->toBe('desc');
     expect($criteria->source)->toBeNull();
     expect($criteria->query)->toBeNull();
     expect($criteria->since)->toBeNull();
@@ -34,6 +35,7 @@ test('unified alerts criteria accepts valid values', function () {
         status: 'active',
         perPage: 25,
         page: 2,
+        sort: 'asc',
         source: 'fire',
         query: 'alarm',
         since: '1h',
@@ -43,6 +45,7 @@ test('unified alerts criteria accepts valid values', function () {
     expect($criteria->status)->toBe('active');
     expect($criteria->perPage)->toBe(25);
     expect($criteria->page)->toBe(2);
+    expect($criteria->sort)->toBe('asc');
     expect($criteria->source)->toBe('fire');
     expect($criteria->query)->toBe('alarm');
     expect($criteria->since)->toBe('1h');
@@ -71,12 +74,14 @@ test('unified alerts criteria rejects invalid status', function () {
 
 test('unified alerts criteria trims query and normalizes empty values to null', function () {
     $criteria = new UnifiedAlertsCriteria(
+        sort: '  ',
         source: '  ',
         query: " \n\t ",
         since: '',
         cursor: '   ',
     );
 
+    expect($criteria->sort)->toBe('desc');
     expect($criteria->source)->toBeNull();
     expect($criteria->query)->toBeNull();
     expect($criteria->since)->toBeNull();
@@ -90,6 +95,11 @@ test('unified alerts criteria rejects invalid source', function () {
 
 test('unified alerts criteria rejects invalid since', function () {
     expect(fn () => new UnifiedAlertsCriteria(since: '2h'))
+        ->toThrow(\InvalidArgumentException::class);
+});
+
+test('unified alerts criteria rejects invalid sort', function () {
+    expect(fn () => new UnifiedAlertsCriteria(sort: 'oldest'))
         ->toThrow(\InvalidArgumentException::class);
 });
 

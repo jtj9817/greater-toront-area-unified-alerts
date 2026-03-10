@@ -10,6 +10,7 @@ interface GTAAlertsProps {
     };
     filters: {
         status: 'all' | 'active' | 'cleared';
+        sort: 'asc' | 'desc';
         source?: string | null;
         q?: string | null;
         since?: string | null;

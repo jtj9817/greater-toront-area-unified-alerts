@@ -82,12 +82,13 @@ class UnifiedAlertsQuery
         if ($criteria->cursor !== null) {
             $cursorTs = $criteria->cursor->timestamp->toDateTimeString();
             $cursorId = $criteria->cursor->id;
+            $cursorComparisonOperator = $criteria->sort === 'asc' ? '>' : '<';
 
-            $query->where(function ($where) use ($cursorTs, $cursorId) {
-                $where->where('timestamp', '<', $cursorTs)
-                    ->orWhere(function ($nested) use ($cursorTs, $cursorId) {
+            $query->where(function ($where) use ($cursorTs, $cursorId, $cursorComparisonOperator) {
+                $where->where('timestamp', $cursorComparisonOperator, $cursorTs)
+                    ->orWhere(function ($nested) use ($cursorTs, $cursorId, $cursorComparisonOperator) {
                         $nested->where('timestamp', '=', $cursorTs)
-                            ->where('id', '<', $cursorId);
+                            ->where('id', $cursorComparisonOperator, $cursorId);
                     });
             });
         }
@@ -140,6 +141,12 @@ class UnifiedAlertsQuery
                 $where->whereRaw('LOWER(title) LIKE ?', [$needle])
                     ->orWhereRaw('LOWER(location_name) LIKE ?', [$needle]);
             });
+        }
+
+        if ($criteria->sort === 'asc') {
+            return $query
+                ->orderBy('timestamp')
+                ->orderBy('id');
         }
 
         return $query

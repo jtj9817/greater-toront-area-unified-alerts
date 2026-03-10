@@ -145,6 +145,7 @@ function buildAppProps(alerts: UnifiedAlertResource[] = buildAlerts()) {
         },
         filters: {
             status: 'all' as const,
+            sort: 'desc' as const,
             source: null,
             q: null,
             since: null,

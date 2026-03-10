@@ -24,8 +24,10 @@ afterEach(function (): void {
 /**
  * @param  array<int, UnifiedAlert>  $items
  */
-function expectAlertsOrderedByDeterministicTuple(array $items): void
+function expectAlertsOrderedByDeterministicTuple(array $items, string $direction = 'desc'): void
 {
+    $isAscending = $direction === 'asc';
+
     for ($index = 1; $index < count($items); $index++) {
         $previous = $items[$index - 1];
         $current = $items[$index];
@@ -34,12 +36,20 @@ function expectAlertsOrderedByDeterministicTuple(array $items): void
         $currentTimestamp = $current->timestamp->getTimestamp();
 
         if ($previousTimestamp !== $currentTimestamp) {
-            expect($previousTimestamp)->toBeGreaterThanOrEqual($currentTimestamp);
+            if ($isAscending) {
+                expect($previousTimestamp)->toBeLessThanOrEqual($currentTimestamp);
+            } else {
+                expect($previousTimestamp)->toBeGreaterThanOrEqual($currentTimestamp);
+            }
 
             continue;
         }
 
-        expect(strcmp($previous->id, $current->id))->toBeGreaterThanOrEqual(0);
+        if ($isAscending) {
+            expect(strcmp($previous->id, $current->id))->toBeLessThanOrEqual(0);
+        } else {
+            expect(strcmp($previous->id, $current->id))->toBeGreaterThanOrEqual(0);
+        }
     }
 }
 
@@ -193,6 +203,33 @@ test('unified alerts query returns a mixed feed ordered by timestamp desc', func
     ]);
 
     expectAlertsOrderedByDeterministicTuple($results->items());
+    expectUnifiedAlertsHaveValidIdentifiers($results->items());
+});
+
+test('unified alerts query returns a mixed feed ordered by timestamp asc', function () {
+    Carbon::setTestNow(Carbon::parse('2026-02-02 12:00:00'));
+    $this->seed(UnifiedAlertsTestSeeder::class);
+
+    $results = app(UnifiedAlertsQuery::class)->paginate(
+        new UnifiedAlertsCriteria(status: 'all', sort: 'asc', perPage: 50)
+    );
+
+    $ids = collect($results->items())->map(fn (UnifiedAlert $a) => $a->id)->all();
+    $expectedDesc = [
+        'fire:FIRE-0001',
+        'police:900001',
+        'transit:api:TR-0001',
+        'fire:FIRE-0002',
+        'police:900002',
+        'fire:FIRE-0003',
+        'police:900003',
+        'transit:sxa:TR-0002',
+        'fire:FIRE-0004',
+        'police:900004',
+    ];
+
+    expect($ids)->toBe(array_reverse($expectedDesc));
+    expectAlertsOrderedByDeterministicTuple($results->items(), 'asc');
     expectUnifiedAlertsHaveValidIdentifiers($results->items());
 });
 
@@ -616,6 +653,38 @@ test('unified alerts query cursor pagination returns deterministic batches witho
 
         expect(array_intersect($seen, $ids))->toBeEmpty();
         $seen = array_merge($seen, $ids);
+
+        $cursor = $batch['next_cursor'];
+    } while ($cursor !== null);
+
+    expect($seen)->toBe($expected);
+});
+
+test('unified alerts query cursor pagination respects ascending sort order', function () {
+    Carbon::setTestNow(Carbon::parse('2026-02-02 12:00:00'));
+    $this->seed(UnifiedAlertsTestSeeder::class);
+
+    $baseline = app(UnifiedAlertsQuery::class)->paginate(
+        new UnifiedAlertsCriteria(status: 'all', sort: 'asc', perPage: 50)
+    );
+    $expected = collect($baseline->items())->map(fn (UnifiedAlert $a) => $a->id)->values()->all();
+
+    $seen = [];
+    $cursor = null;
+
+    do {
+        $batch = app(UnifiedAlertsQuery::class)->cursorPaginate(
+            new UnifiedAlertsCriteria(status: 'all', sort: 'asc', perPage: 3, cursor: $cursor)
+        );
+
+        /** @var array<int, UnifiedAlert> $items */
+        $items = $batch['items'];
+        $ids = array_map(fn (UnifiedAlert $a) => $a->id, $items);
+
+        expect(array_intersect($seen, $ids))->toBeEmpty();
+        $seen = array_merge($seen, $ids);
+
+        expectAlertsOrderedByDeterministicTuple($items, 'asc');
 
         $cursor = $batch['next_cursor'];
     } while ($cursor !== null);

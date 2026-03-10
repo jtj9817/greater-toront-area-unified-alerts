@@ -60,6 +60,7 @@ describe('useInfiniteScroll', () => {
             initialNextCursor: 'cursor-1',
             filters: {
                 status: 'all' as const,
+                sort: 'desc' as const,
                 source: null,
                 q: null,
                 since: null,
@@ -108,6 +109,7 @@ describe('useInfiniteScroll', () => {
             initialNextCursor: 'cursor-1',
             filters: {
                 status: 'all' as const,
+                sort: 'desc' as const,
                 source: null,
                 q: null,
                 since: null,
@@ -137,6 +139,42 @@ describe('useInfiniteScroll', () => {
         expect(global.fetch).toHaveBeenCalledTimes(1);
     });
 
+    it('includes sort=asc in cursor fetch requests when oldest-first mode is active', async () => {
+        vi.mocked(global.fetch).mockResolvedValueOnce({
+            ok: true,
+            status: 200,
+            statusText: 'OK',
+            json: async () => ({
+                data: [fireResource('F2', '2026-02-03T11:58:00Z')],
+                next_cursor: null,
+            }),
+        } as Response);
+
+        const { result } = renderHook(() =>
+            useInfiniteScroll({
+                initialAlerts: [fireResource('F1', '2026-02-03T11:59:00Z')],
+                initialNextCursor: 'cursor-1',
+                filters: {
+                    status: 'all',
+                    sort: 'asc',
+                    source: null,
+                    q: null,
+                    since: null,
+                },
+                apiUrl: '/api/feed',
+            }),
+        );
+
+        await act(async () => {
+            await result.current.loadMore();
+        });
+
+        expect(global.fetch).toHaveBeenCalledWith(
+            '/api/feed?sort=asc&cursor=cursor-1',
+            expect.any(Object),
+        );
+    });
+
     it('resets alerts and cursor when filters trigger a new initial payload', () => {
         const { result, rerender } = renderHook(
             (props: {
@@ -144,6 +182,7 @@ describe('useInfiniteScroll', () => {
                 initialNextCursor: string | null;
                 filters: {
                     status: 'all' | 'active' | 'cleared';
+                    sort: 'asc' | 'desc';
                     source: string | null;
                     q: string | null;
                     since: string | null;
@@ -162,6 +201,7 @@ describe('useInfiniteScroll', () => {
                     initialNextCursor: 'cursor-old',
                     filters: {
                         status: 'all',
+                        sort: 'desc',
                         source: null,
                         q: null,
                         since: null,
@@ -182,6 +222,7 @@ describe('useInfiniteScroll', () => {
             initialNextCursor: null,
             filters: {
                 status: 'active',
+                sort: 'desc',
                 source: 'fire',
                 q: 'alarm',
                 since: '1h',

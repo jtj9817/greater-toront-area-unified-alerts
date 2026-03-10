@@ -105,6 +105,7 @@ function buildProps(query: string | null) {
         },
         filters: {
             status: 'all' as const,
+            sort: 'desc' as const,
             q: query,
             source: null,
             since: null,

@@ -26,6 +26,7 @@ class GtaAlertsController extends Controller
             'source' => ['nullable', Rule::enum(AlertSource::class)],
             'q' => ['nullable', 'string', 'max:200'],
             'since' => ['nullable', Rule::in(UnifiedAlertsCriteria::SINCE_OPTIONS)],
+            'sort' => ['nullable', Rule::in(UnifiedAlertsCriteria::SORT_OPTIONS)],
             'cursor' => ['nullable', 'string', 'max:512', new UnifiedAlertsCursorRule],
         ]);
 
@@ -34,6 +35,7 @@ class GtaAlertsController extends Controller
 
         $criteria = new UnifiedAlertsCriteria(
             status: $status,
+            sort: $validated['sort'] ?? null,
             source: $validated['source'] ?? null,
             query: $validated['q'] ?? null,
             since: $validated['since'] ?? null,
@@ -54,6 +56,7 @@ class GtaAlertsController extends Controller
             ],
             'filters' => [
                 'status' => $status,
+                'sort' => $criteria->sort,
                 'source' => $criteria->source,
                 'q' => $criteria->query,
                 'since' => $criteria->since,

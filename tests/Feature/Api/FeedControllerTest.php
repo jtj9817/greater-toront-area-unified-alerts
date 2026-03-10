@@ -121,6 +121,32 @@ test('the feed api respects since filter', function () {
         ->and($data[0]['external_id'])->toBe('F1');
 });
 
+test('the feed api respects sort direction', function () {
+    Carbon::setTestNow(Carbon::parse('2026-02-03 12:00:00'));
+
+    FireIncident::factory()->create([
+        'event_num' => 'F1',
+        'is_active' => true,
+        'dispatch_time' => Carbon::now()->subMinutes(1),
+    ]);
+
+    FireIncident::factory()->create([
+        'event_num' => 'F2',
+        'is_active' => true,
+        'dispatch_time' => Carbon::now()->subMinutes(2),
+    ]);
+
+    $descResponse = $this->getJson(route('api.feed', ['sort' => 'desc']));
+    $descResponse->assertOk();
+    $descExternalIds = array_column($descResponse->json('data') ?? [], 'external_id');
+    expect($descExternalIds)->toBe(['F1', 'F2']);
+
+    $ascResponse = $this->getJson(route('api.feed', ['sort' => 'asc']));
+    $ascResponse->assertOk();
+    $ascExternalIds = array_column($ascResponse->json('data') ?? [], 'external_id');
+    expect($ascExternalIds)->toBe(['F2', 'F1']);
+});
+
 test('the feed api supports cursor pagination', function () {
     Carbon::setTestNow(Carbon::parse('2026-02-03 12:00:00'));
 
@@ -245,6 +271,12 @@ test('the feed api rejects invalid since', function () {
     $response = $this->getJson(route('api.feed', ['since' => '2d']));
     $response->assertUnprocessable()
         ->assertJsonValidationErrors(['since']);
+});
+
+test('the feed api rejects invalid sort', function () {
+    $response = $this->getJson(route('api.feed', ['sort' => 'invalid']));
+    $response->assertUnprocessable()
+        ->assertJsonValidationErrors(['sort']);
 });
 
 test('the feed api rejects invalid per_page', function () {

@@ -65,7 +65,7 @@ function buildBasePropsWithAuth(
             data: alerts,
             next_cursor: null,
         },
-        filters: { status: 'all' as const },
+        filters: { status: 'all' as const, sort: 'desc' as const },
         latestFeedUpdatedAt: null,
         authUserId,
     };
@@ -77,7 +77,7 @@ function buildBaseProps(alerts: UnifiedAlertResource[]) {
             data: alerts,
             next_cursor: null,
         },
-        filters: { status: 'all' as const },
+        filters: { status: 'all' as const, sort: 'desc' as const },
         latestFeedUpdatedAt: null,
         authUserId: null,
     };

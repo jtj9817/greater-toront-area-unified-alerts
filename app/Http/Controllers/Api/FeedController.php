@@ -25,6 +25,7 @@ class FeedController extends Controller
      * - source: 'fire' | 'police' | 'transit' | 'go_transit'
      * - q: search query string
      * - since: '30m' | '1h' | '3h' | '6h' | '12h'
+     * - sort: 'desc' (default) | 'asc'
      * - cursor: opaque cursor string for pagination
      *
      * @return JsonResponse{data: array<int, mixed>, next_cursor: string|null}
@@ -36,12 +37,14 @@ class FeedController extends Controller
             'source' => ['nullable', Rule::enum(AlertSource::class)],
             'q' => ['nullable', 'string', 'max:200'],
             'since' => ['nullable', Rule::in(UnifiedAlertsCriteria::SINCE_OPTIONS)],
+            'sort' => ['nullable', Rule::in(UnifiedAlertsCriteria::SORT_OPTIONS)],
             'cursor' => ['nullable', 'string', 'max:512', new UnifiedAlertsCursorRule],
             'per_page' => ['nullable', 'integer', 'min:1', 'max:100'],
         ]);
 
         $criteria = new UnifiedAlertsCriteria(
             status: $validated['status'] ?? 'all',
+            sort: $validated['sort'] ?? null,
             source: $validated['source'] ?? null,
             query: $validated['q'] ?? null,
             since: $validated['since'] ?? null,

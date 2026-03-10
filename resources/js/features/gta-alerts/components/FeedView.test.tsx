@@ -237,6 +237,24 @@ describe('FeedView', () => {
         expect(screen.queryByText('Reset')).not.toBeInTheDocument();
     });
 
+    it('shows Reset button when oldest-first sort is active', () => {
+        render(
+            <FeedView
+                searchQuery=""
+                onSelectAlert={() => {}}
+                initialAlerts={mockUnified}
+                initialNextCursor={null}
+                latestFeedUpdatedAt={new Date().toISOString()}
+                status="all"
+                sort="asc"
+                source={null}
+                since={null}
+            />,
+        );
+
+        expect(screen.getByText('Reset')).toBeInTheDocument();
+    });
+
     it('renders view mode toggle (Feed/Table)', () => {
         render(
             <FeedView
@@ -271,5 +289,28 @@ describe('FeedView', () => {
         fireEvent.click(screen.getByRole('button', { name: 'Feed view' }));
 
         expect(inertiaRouterMocks.get).toHaveBeenCalledTimes(callsBeforeToggle);
+    });
+
+    it('toggles sort direction and omits desc from the generated URL', () => {
+        render(
+            <FeedView
+                searchQuery=""
+                onSelectAlert={() => {}}
+                initialAlerts={mockUnified}
+                initialNextCursor={null}
+                latestFeedUpdatedAt={new Date().toISOString()}
+                status="all"
+                sort="desc"
+            />,
+        );
+
+        fireEvent.click(
+            screen.getByRole('button', { name: 'Switch to oldest first' }),
+        );
+
+        expect(inertiaRouterMocks.get).toHaveBeenCalledTimes(1);
+        const [url] = inertiaRouterMocks.get.mock.calls[0] as [string];
+        expect(url).toContain('sort=asc');
+        expect(url).not.toContain('sort=desc');
     });
 });

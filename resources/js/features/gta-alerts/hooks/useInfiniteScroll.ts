@@ -38,6 +38,7 @@ export interface UseInfiniteScrollOptions {
     /** Current filter values for constructing API requests */
     filters: {
         status: 'all' | 'active' | 'cleared';
+        sort: 'asc' | 'desc';
         source: string | null;
         q: string | null;
         since: string | null;
@@ -129,6 +130,9 @@ export function useInfiniteScroll(
             if (requestFilters.status !== 'all') {
                 params.set('status', requestFilters.status);
             }
+            if (requestFilters.sort === 'asc') {
+                params.set('sort', requestFilters.sort);
+            }
             if (requestFilters.source) {
                 params.set('source', requestFilters.source);
             }
@@ -165,6 +169,7 @@ export function useInfiniteScroll(
             const currentFilters = filtersRef.current;
             const filtersChanged =
                 currentFilters.status !== requestFilters.status ||
+                currentFilters.sort !== requestFilters.sort ||
                 currentFilters.source !== requestFilters.source ||
                 currentFilters.q !== requestFilters.q ||
                 currentFilters.since !== requestFilters.since;

@@ -15,6 +15,7 @@ interface FeedViewProps {
     initialNextCursor: string | null;
     latestFeedUpdatedAt: string | null;
     status?: 'all' | 'active' | 'cleared';
+    sort?: 'asc' | 'desc';
     source?: string | null;
     since?: string | null;
 }
@@ -26,6 +27,7 @@ export const FeedView: React.FC<FeedViewProps> = ({
     initialNextCursor,
     latestFeedUpdatedAt,
     status = 'all',
+    sort = 'desc',
     source = null,
     since = null,
 }) => {
@@ -67,6 +69,7 @@ export const FeedView: React.FC<FeedViewProps> = ({
         initialNextCursor,
         filters: {
             status,
+            sort,
             source,
             q: searchQuery,
             since,
@@ -76,6 +79,7 @@ export const FeedView: React.FC<FeedViewProps> = ({
     });
 
     const activeCategory = source || 'all';
+    const sortQueryValue = sort === 'asc' ? sort : null;
 
     // Get Set of Saved IDs for efficient lookup
     const savedIds = useMemo(() => new Set<string>([]), []); // Temporary empty until saved logic implemented
@@ -87,9 +91,34 @@ export const FeedView: React.FC<FeedViewProps> = ({
             home({
                 query: {
                     status: status === 'all' ? null : status,
+                    sort: null,
                     source: null,
                     q: searchQuery || null,
                     since: null,
+                },
+            }).url,
+            {},
+            {
+                preserveScroll: true,
+                preserveState: true,
+                replace: true,
+                only: ['alerts', 'filters'],
+            },
+        );
+    };
+
+    const handleSortToggle = () => {
+        if (isFilterLoading) return;
+        const nextSort = sort === 'asc' ? 'desc' : 'asc';
+
+        router.get(
+            home({
+                query: {
+                    status: status === 'all' ? null : status,
+                    sort: nextSort === 'asc' ? nextSort : null,
+                    source: source ?? null,
+                    q: searchQuery || null,
+                    since: since ?? null,
                 },
             }).url,
             {},
@@ -165,6 +194,7 @@ export const FeedView: React.FC<FeedViewProps> = ({
                                                     opt.id === 'all'
                                                         ? null
                                                         : opt.id,
+                                                sort: sortQueryValue,
                                                 source: source ?? null,
                                                 q: searchQuery || null,
                                                 since: since ?? null,
@@ -220,6 +250,7 @@ export const FeedView: React.FC<FeedViewProps> = ({
                                                     status === 'all'
                                                         ? null
                                                         : status,
+                                                sort: sortQueryValue,
                                                 source: nextSource,
                                                 q: searchQuery || null,
                                                 since: since ?? null,
@@ -286,6 +317,7 @@ export const FeedView: React.FC<FeedViewProps> = ({
                                                     status === 'all'
                                                         ? null
                                                         : status,
+                                                sort: sortQueryValue,
                                                 source: source ?? null,
                                                 q: searchQuery || null,
                                                 since:
@@ -322,7 +354,9 @@ export const FeedView: React.FC<FeedViewProps> = ({
 
                     <div className="ml-auto flex items-center gap-3">
                         {/* Reset Button (Only shows if filters are active) */}
-                        {(since !== null || activeCategory !== 'all') && (
+                        {(since !== null ||
+                            activeCategory !== 'all' ||
+                            sort === 'asc') && (
                             <button
                                 id="gta-alerts-feed-reset-btn"
                                 onClick={handleReset}
@@ -333,6 +367,30 @@ export const FeedView: React.FC<FeedViewProps> = ({
                                 Reset
                             </button>
                         )}
+
+                        <button
+                            id="gta-alerts-feed-sort-direction-btn"
+                            onClick={handleSortToggle}
+                            disabled={isFilterLoading}
+                            aria-label={
+                                sort === 'asc'
+                                    ? 'Switch to newest first'
+                                    : 'Switch to oldest first'
+                            }
+                            className={`flex items-center gap-1.5 rounded border border-[#333333] bg-background-dark px-2.5 py-1.5 text-xs font-medium transition-colors hover:border-primary hover:text-primary disabled:cursor-not-allowed disabled:opacity-50 ${
+                                sort === 'asc' ? 'text-primary' : 'text-white'
+                            }`}
+                        >
+                            <Icon
+                                name={
+                                    sort === 'asc'
+                                        ? 'arrow_upward'
+                                        : 'arrow_downward'
+                                }
+                                className="text-sm"
+                            />
+                            {sort === 'asc' ? 'Oldest' : 'Newest'}
+                        </button>
 
                         {/* View Mode Toggle */}
                         <div
@@ -493,6 +551,7 @@ export const FeedView: React.FC<FeedViewProps> = ({
                                     home({
                                         query: {
                                             status: null,
+                                            sort: null,
                                             source: null,
                                             q: null,
                                             since: null,

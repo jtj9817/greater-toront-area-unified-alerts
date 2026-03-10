@@ -22,6 +22,7 @@ interface AppProps {
     };
     filters: {
         status: 'all' | 'active' | 'cleared';
+        sort: 'asc' | 'desc';
         source?: string | null;
         q?: string | null;
         since?: string | null;
@@ -91,6 +92,7 @@ const App: React.FC<AppProps> = ({
                                 filters.status === 'all'
                                     ? null
                                     : filters.status,
+                            sort: filters.sort === 'asc' ? filters.sort : null,
                             source: filters.source ?? null,
                             q: searchQuery || null,
                             since: filters.since ?? null,
@@ -261,6 +263,7 @@ const App: React.FC<AppProps> = ({
                         initialNextCursor={alerts.next_cursor}
                         latestFeedUpdatedAt={latestFeedUpdatedAt}
                         status={filters.status}
+                        sort={filters.sort}
                         source={filters.source ?? null}
                         since={filters.since ?? null}
                     />
