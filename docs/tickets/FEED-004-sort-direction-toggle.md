@@ -1,22 +1,22 @@
 # [FEED-004] Sort Direction Toggle
 
 **Date:** 2026-02-18
-**Status:** Open
+**Status:** Closed (Implemented)
 **Priority:** Low
 **Components:** Backend, Frontend
 **Depends On:** [FEED-001](./FEED-001-server-side-filters-infinite-scroll.md)
 
-## Problem
+## Problem (Historical)
 
 The feed is hardcoded to newest-first ordering. Users investigating historical patterns or reviewing a sequence of events chronologically cannot reverse the sort order.
 
-## Current State
+## Current State (Historical)
 
 - `UnifiedAlertsQuery` sorts by `timestamp DESC` with tie-breaker `id DESC`
 - No query parameter or UI control exists to change sort direction
 - Newest-first is the correct default for a live incident feed
 
-## Proposed Solution
+## Proposed Solution (Implemented)
 
 Add a `sort` query parameter (`desc` default, `asc` optional) that controls the `ORDER BY` direction in `UnifiedAlertsQuery`.
 
@@ -42,3 +42,29 @@ Add a `sort` query parameter (`desc` default, `asc` optional) that controls the 
 
 - Sort by fields other than timestamp (e.g., sort by source, severity)
 - Multi-column sorting
+
+## Resolution (Implemented 2026-03-10)
+
+FEED-004 is fully shipped.
+
+- Added `sort` to `UnifiedAlertsCriteria` with validation and normalization
+  (`asc` or `desc`, default `desc`).
+- Updated `UnifiedAlertsQuery` ordering for both standard pagination and
+  cursor pagination, including direction-aware cursor comparisons.
+- Added request validation for `sort` in both `GtaAlertsController` and
+  `Api\FeedController`.
+- Extended the Laravel → Inertia → React filter contract to include
+  `filters.sort`.
+- Added a feed sort toggle in the UI and preserved clean URLs by omitting
+  `sort` for the default newest-first (`desc`) mode.
+- Updated infinite-scroll requests so `sort=asc` is included when in oldest-first
+  mode.
+
+Primary implementation references:
+
+- `app/Services/Alerts/DTOs/UnifiedAlertsCriteria.php`
+- `app/Services/Alerts/UnifiedAlertsQuery.php`
+- `app/Http/Controllers/GtaAlertsController.php`
+- `app/Http/Controllers/Api/FeedController.php`
+- `resources/js/features/gta-alerts/components/FeedView.tsx`
+- `resources/js/features/gta-alerts/hooks/useInfiniteScroll.ts`

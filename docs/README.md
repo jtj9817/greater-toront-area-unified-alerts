@@ -56,7 +56,6 @@ docs/
 ├── tickets/
 │   ├── FEED-002-real-time-push.md            (Open)
 │   ├── FEED-003-saved-filter-presets.md      (Open)
-│   ├── FEED-004-sort-direction-toggle.md     (Open)
 │   ├── FEED-015-footer-weather-stats-hardcoded-placeholder.md  (Open)
 │   ├── FEED-001 through FEED-021             (all others Closed/Done — not archived to subdirectory)
 │   └── archive/  (older closed tickets moved here)
@@ -114,7 +113,6 @@ Active work items and feature proposals:
 
 - **[tickets/FEED-002-real-time-push.md](tickets/FEED-002-real-time-push.md)** - Real-time push updates for the alert feed (depends on FEED-001)
 - **[tickets/FEED-003-saved-filter-presets.md](tickets/FEED-003-saved-filter-presets.md)** - Saved filter presets for quick-access filter combinations (depends on FEED-001)
-- **[tickets/FEED-004-sort-direction-toggle.md](tickets/FEED-004-sort-direction-toggle.md)** - Sort direction toggle in the feed (depends on FEED-001)
 - **[tickets/FEED-015-footer-weather-stats-hardcoded-placeholder.md](tickets/FEED-015-footer-weather-stats-hardcoded-placeholder.md)** - Replace hardcoded footer weather placeholder with real data source or remove weather panel (design revamp tech debt)
 
 ## Historical Docs Notes
@@ -134,6 +132,7 @@ Active work items and feature proposals:
 | GO Transit Integration | Implemented | [sources/go-transit.md](sources/go-transit.md) |
 | Unified Alerts Query | Implemented | [backend/unified-alerts-system.md](backend/unified-alerts-system.md) |
 | Server-Side Feed Filters + Infinite Scroll (FEED-001) | Implemented | [backend/unified-alerts-system.md](backend/unified-alerts-system.md) |
+| Sort Direction Toggle (FEED-004) | Implemented | [tickets/FEED-004-sort-direction-toggle.md](tickets/FEED-004-sort-direction-toggle.md) |
 | Production Scheduler | Implemented | [backend/production-scheduler.md](backend/production-scheduler.md) |
 | Scheduler Fetch Dedupe (`ScheduledFetchJobDispatcher`) | Implemented | [backend/production-scheduler.md](backend/production-scheduler.md) |
 | Content Security Policy (hot-mode aware) | Implemented | [backend/security-headers.md](backend/security-headers.md) |

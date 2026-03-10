@@ -2,6 +2,16 @@
 
 All notable documentation-relevant changes are tracked here.
 
+## [March 10, 2026] - FEED-004 Ticket Closure
+
+### Changed
+
+- Marked FEED-004 as closed/implemented and added implementation-resolution notes:
+    - `docs/tickets/FEED-004-sort-direction-toggle.md`
+- Updated docs ticket index and status surfaces:
+    - Removed FEED-004 from the `docs/README.md` Open Tickets list and tickets tree open markers.
+    - Added FEED-004 as implemented in the `docs/README.md` Implementation Status table.
+
 ## [March 7, 2026] - Documentation Sync: Scheduler Dedupe, CSP, and Ticket Closure
 
 ### Added
