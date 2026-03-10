@@ -10,7 +10,7 @@ class SavedPlaceUpdateRequest extends FormRequest
 {
     protected function prepareForValidation(): void
     {
-        if ($this->has('name')) {
+        if ($this->has('name') && is_string($this->input('name'))) {
             $this->merge([
                 'name' => strip_tags(trim($this->input('name'))),
             ]);
