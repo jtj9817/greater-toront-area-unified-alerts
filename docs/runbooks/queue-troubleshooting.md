@@ -9,7 +9,7 @@ For full Forge go-live steps, see:
 
 ## Signals & Thresholds
 
-- **Queue depth alert:** Logged as an error when depth exceeds 100 (checked every 5 minutes).
+- **Queue depth alert:** Logged as an error when depth exceeds `QUEUE_DEPTH_ALERT_THRESHOLD` (default `100`; checked every 5 minutes).
 - **Failed jobs growth:** `failed_jobs` table grows without pruning or retries.
 
 ## Worker Exit 137 (OOM Kill)
@@ -39,10 +39,18 @@ That wrapper launches the bounded worker inside Sail:
 **Mitigation (production / Forge):**
 
 ```
-php artisan queue:work --sleep=1 --tries=3 --timeout=90 --max-time=3600
+php artisan queue:work --sleep=1 --tries=3 --timeout=120 --max-time=3600
 ```
 
 `--max-time=3600` bounds the worker to a 1-hour lifetime; Forge restarts it on exit.
+
+Queue timing alignment requirements:
+
+- Fetch jobs use `$timeout=120`.
+- Set queue `retry_after` greater than worker/job timeout to avoid duplicate concurrent retries.
+- Recommended production env values:
+  - `DB_QUEUE_RETRY_AFTER=180`
+  - `REDIS_QUEUE_RETRY_AFTER=180`
 
 **Dev orchestration:**
 
@@ -105,7 +113,13 @@ For scheduled ingestion visibility, local development also logs actual fetch-job
 
 - Confirm Forge daemon status is `active` for queue workers.
 - Expected daemon command:
-  `php artisan queue:work --sleep=1 --tries=3 --timeout=90 --max-time=3600`
+  `php artisan queue:work --sleep=1 --tries=3 --timeout=120 --max-time=3600`
+- Confirm retry-after env values are greater than timeout:
+  - `DB_QUEUE_RETRY_AFTER=180`
+  - `REDIS_QUEUE_RETRY_AFTER=180`
+- Confirm queue-depth alert routing:
+  - `QUEUE_DEPTH_ALERT_LOG_CHANNEL=queue_alerts`
+  - `QUEUE_ALERT_CHANNELS=single,slack` (or your central log destination)
 - Restart workers after deploy:
   `php artisan queue:restart`
 

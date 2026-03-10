@@ -26,7 +26,7 @@ For full Forge go-live steps, see:
 - Ensure cron is running in the scheduler container (`cron -f`)
 - Confirm the cache store is writable (heartbeat stored in cache)
 - In Forge production, confirm scheduler cron entry exists:
-  `* * * * * cd /home/forge/<site> && php artisan schedule:run >> /dev/null 2>&1`
+  `* * * * * cd /home/forge/<site> && php artisan scheduler:run-and-log --no-interaction >> /dev/null 2>&1`
 
 ### Fetch jobs failing or retrying
 

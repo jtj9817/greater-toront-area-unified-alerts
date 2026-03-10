@@ -60,10 +60,10 @@ This checklist goes beyond DB migration and validates runtime, workers, schedule
 
 Run on server as `forge` user (SSH).
 
-1. Confirm PHP version and required extensions (especially `pgsql` + `pdo_pgsql`).
+1. Confirm PHP version and required extensions (especially `pgsql`, `pdo_pgsql`, and `pcntl` for worker signal handling).
    ```bash
    php -v
-   php -m | rg -n "pgsql|pdo_pgsql|redis|mbstring|openssl|tokenizer|xml|ctype|json|bcmath"
+   php -m | rg -n "pgsql|pdo_pgsql|redis|pcntl|mbstring|openssl|tokenizer|xml|ctype|json|bcmath"
    ```
 
 2. Confirm Node/pnpm versions used by build pipeline.
@@ -100,6 +100,13 @@ In Forge UI, verify these values before first deploy:
    - `CACHE_STORE=redis` (recommended)
    - `SESSION_DRIVER=redis` (recommended)
    - `QUEUE_CONNECTION=redis`
+   - `QUEUE_UNIQUE_LOCK_STORE=redis`
+   - `DB_QUEUE_RETRY_AFTER=180`
+   - `REDIS_QUEUE_RETRY_AFTER=180`
+   - `QUEUE_DEPTH_ALERT_THRESHOLD=100`
+   - `QUEUE_DEPTH_ALERT_LOG_CHANNEL=queue_alerts`
+   - `QUEUE_ALERT_CHANNELS=single,slack` (or your central log destination)
+   - Redis queue behavior note: `ScheduledFetchJobDispatcher` database-row pre-enqueue dedupe applies only to `database` queue driver; with `QUEUE_CONNECTION=redis`, protection is lock-based via `QUEUE_UNIQUE_LOCK_STORE`.
    - `LOG_CHANNEL=stack`
    - `BROADCAST_CONNECTION=log` (or your chosen provider)
 
@@ -112,13 +119,13 @@ In Forge UI, verify these values before first deploy:
 3. **Daemons**
    - Queue worker daemon exists and is running:
      ```bash
-     php artisan queue:work --sleep=1 --tries=3 --timeout=90 --max-time=3600
+     php artisan queue:work --sleep=1 --tries=3 --timeout=120 --max-time=3600
      ```
 
 4. **Scheduler**
    - Cron exists:
      ```bash
-     * * * * * cd /home/forge/<site> && php artisan schedule:run >> /dev/null 2>&1
+     * * * * * cd /home/forge/<site> && php artisan scheduler:run-and-log --no-interaction >> /dev/null 2>&1
      ```
 
 5. **SSL**
@@ -216,6 +223,7 @@ In Forge UI, verify these values before first deploy:
    ```bash
    php artisan queue:failed
    php artisan schedule:list
+   php artisan scheduler:status --max-age=5
    ```
 
 3. Logs and error checks:
@@ -235,13 +243,13 @@ In Forge UI, verify these values before first deploy:
 
 ## Required Pre-Flight Checks Beyond PostgreSQL Migration
 
-- PHP extension parity (`pgsql`, `pdo_pgsql`, `redis`) is verified.
+- PHP extension parity (`pgsql`, `pdo_pgsql`, `redis`, `pcntl`) is verified.
 - Queue worker and scheduler are explicitly configured in Forge.
-- Production env vars are audited (debug off, URL/SSL correct, redis-backed queue/session/cache).
+- Production env vars are audited (debug off, URL/SSL correct, redis-backed queue/session/cache/unique locks, retry-after aligned with timeout).
 - Deploy script is confirmed to build frontend assets (`pnpm`) and run migrations.
 - Backups/snapshots and rollback drill are in place before cutover.
 - Staging dry-run is completed with the same runtime profile as production.
-- Post-deploy observability (logs, failed jobs, scheduler status) is actively monitored.
+- Post-deploy observability (logs, failed jobs, scheduler status, queue-depth alert channel delivery) is actively monitored.
 
 ## Verification Log (Local, 2026-03-02)
 

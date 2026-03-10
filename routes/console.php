@@ -35,12 +35,15 @@ Schedule::command('model:prune', [
 Schedule::call(function (): void {
     try {
         $depth = Queue::size();
-        $threshold = 100;
+        $threshold = max(1, (int) config('queue.depth_alert_threshold', 100));
+        $alertChannel = (string) config('logging.queue_depth_alert_channel', 'stack');
 
         if ($depth > $threshold) {
-            Log::error('Queue depth exceeded threshold', [
+            Log::channel($alertChannel)->error('Queue depth exceeded threshold', [
                 'depth' => $depth,
                 'threshold' => $threshold,
+                'queue_connection' => (string) config('queue.default'),
+                'alert_channel' => $alertChannel,
             ]);
         }
     } catch (\Throwable $e) {

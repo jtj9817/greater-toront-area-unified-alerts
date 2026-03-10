@@ -187,14 +187,14 @@ The scheduler ships with multiple guardrails to prevent silent failures and mini
 - **Overlap protection without 24-hour lockouts:** Scheduled events use `withoutOverlapping(10)`; job middleware releases locks after 30 seconds on failure and expires at 10 minutes.
 - **Empty feed protection:** `ALLOW_EMPTY_FEEDS=false` (default) causes empty feed responses to throw and **skip deactivation**, preventing mass data loss.
 - **Circuit breaker:** After 5 consecutive failures per feed, fetch attempts are skipped for 5 minutes to reduce upstream load.
-- **Queue depth monitoring:** A scheduled check logs an error when queue depth exceeds 100.
+- **Queue depth monitoring:** A scheduled check logs an error when queue depth exceeds `QUEUE_DEPTH_ALERT_THRESHOLD` (default `100`) and routes to `QUEUE_DEPTH_ALERT_LOG_CHANNEL`.
 - **Failed job pruning:** `queue:prune-failed --hours=168` runs daily to prevent unbounded growth.
 
 ### Monitoring Thresholds
 
 | Signal | Threshold | Behavior |
 | --- | --- | --- |
-| Queue depth | > 100 | Logs error (every 5 minutes) |
+| Queue depth | > `QUEUE_DEPTH_ALERT_THRESHOLD` (default `100`) | Logs error to `QUEUE_DEPTH_ALERT_LOG_CHANNEL` (every 5 minutes) |
 | Circuit breaker | 5 failures | Opens for 5 minutes |
 | Scene intel failures | > 50% | Logs warning + console warning |
 | Overlap lock expiry | 10 minutes | Prevents 24-hour lockouts |
@@ -211,7 +211,7 @@ The scheduler ships with multiple guardrails to prevent silent failures and mini
 Use log-based alerts for these events:
 
 - `Fetch*Command failed` errors (command failure rate)
-- Queue depth threshold errors (`depth > 100`)
+- Queue depth threshold errors (`depth > QUEUE_DEPTH_ALERT_THRESHOLD`)
 - `Scene intel failure rate exceeded threshold`
 - `Circuit breaker open` events (repeated upstream failures)
 
@@ -241,7 +241,8 @@ Use log-based alerts for these events:
 - Log entry `reason: outstanding_queue_row_exists` means the worker is alive but slow; `reason: unique_lock_held` means a lock is held without a matching queue row (e.g., job is executing and holds the lock).
 
 6) Queue backlog grows:
-- The queue depth monitor logs an error when depth exceeds 100.
+- The queue depth monitor logs an error when depth exceeds `QUEUE_DEPTH_ALERT_THRESHOLD`.
+- Ensure `QUEUE_DEPTH_ALERT_LOG_CHANNEL` routes to an operator notification path (for example `queue_alerts` with `QUEUE_ALERT_CHANNELS=single,slack`).
 - Verify the queue worker is running and that jobs are not blocked by overlap locks.
 
 ## Runbooks

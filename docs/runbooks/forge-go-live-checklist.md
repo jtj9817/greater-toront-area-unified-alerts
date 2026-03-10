@@ -26,12 +26,13 @@ If any command fails, stop and fix before deploying.
 Run on server as `forge`:
 
 - `php -v`
-- `php -m | rg -n "pgsql|pdo_pgsql|redis|mbstring|openssl|tokenizer|xml|ctype|json|bcmath"`
+- `php -m | rg -n "pgsql|pdo_pgsql|redis|pcntl|mbstring|openssl|tokenizer|xml|ctype|json|bcmath"`
 - `node -v`
 - `pnpm -v`
 - `cd /home/forge/<site>`
 - `php artisan tinker --execute="DB::connection()->getPdo(); echo 'db-ok';"`
 - `php artisan tinker --execute="cache()->put('preflight','ok',60); echo cache()->get('preflight');"`
+- `php artisan tinker --execute="Log::channel(config('logging.queue_depth_alert_channel'))->error('queue-alert-preflight'); echo 'queue-alert-ok';"`
 
 ## Phase 3 — Forge UI Configuration Check
 
@@ -44,11 +45,18 @@ Verify in Forge before deploy:
 - `CACHE_STORE=redis`
 - `SESSION_DRIVER=redis`
 - `QUEUE_CONNECTION=redis`
+- `QUEUE_UNIQUE_LOCK_STORE=redis`
+- `DB_QUEUE_RETRY_AFTER=180`
+- `REDIS_QUEUE_RETRY_AFTER=180`
+- `QUEUE_DEPTH_ALERT_THRESHOLD=100`
+- `QUEUE_DEPTH_ALERT_LOG_CHANNEL=queue_alerts`
+- `QUEUE_ALERT_CHANNELS=single,slack` (or your central log destination)
+- Redis queue behavior: `ScheduledFetchJobDispatcher` skips database-row pre-enqueue dedupe when `QUEUE_CONNECTION=redis`; uniqueness protection is lock-based (`QUEUE_UNIQUE_LOCK_STORE`) and assumes workers stay healthy.
 - Deploy script: `bash scripts/forge-deploy.sh`
 - Queue daemon running:
-  `php artisan queue:work --sleep=1 --tries=3 --timeout=90 --max-time=3600`
+  `php artisan queue:work --sleep=1 --tries=3 --timeout=120 --max-time=3600`
 - Scheduler cron present:
-  `* * * * * cd /home/forge/<site> && php artisan schedule:run >> /dev/null 2>&1`
+  `* * * * * cd /home/forge/<site> && php artisan scheduler:run-and-log --no-interaction >> /dev/null 2>&1`
 
 ## Phase 4 — Backup and Rollback Readiness
 
@@ -103,8 +111,10 @@ Validate:
 - Home page, auth flow, and GTA alerts page are functional
 - `php artisan queue:failed` remains clean
 - `php artisan schedule:list` shows expected jobs
+- `php artisan scheduler:status --max-age=5` returns success
 - `tail -n 200 storage/logs/laravel.log` has no critical errors
 - No PostgreSQL SQL function errors (`DATE_FORMAT`, `JSON_OBJECT`, `MATCH AGAINST`)
 - Forge daemon logs show stable workers (no repeated crashes)
+- Queue-depth alerts route to an operator notification destination (for example Slack)
 
 If critical errors appear, execute rollback immediately.

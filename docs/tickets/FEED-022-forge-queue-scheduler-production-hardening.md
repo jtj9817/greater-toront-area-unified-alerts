@@ -1,7 +1,7 @@
 ---
 ticket_id: FEED-022
 title: "[Deployment] Harden Forge queue and scheduler production configuration"
-status: Open
+status: In Progress
 priority: Critical
 assignee: Unassigned
 created_at: 2026-03-10
@@ -42,6 +42,36 @@ The codebase already includes meaningful resilience features, including:
 However, the documented Forge runtime and the default environment values do not
 fully align with those safeguards. That gap creates avoidable failure modes in
 production.
+
+## Implementation Update (2026-03-10)
+
+The following hardening work has been applied in this repository:
+
+- Queue retry timing defaults were aligned to fetch job timeout behavior by
+  setting `DB_QUEUE_RETRY_AFTER`, `REDIS_QUEUE_RETRY_AFTER`, and
+  `BEANSTALKD_QUEUE_RETRY_AFTER` defaults to `180` in `config/queue.php`.
+- Queue depth monitoring now uses configurable settings:
+  - `QUEUE_DEPTH_ALERT_THRESHOLD` (default `100`) via `config/queue.php`
+  - `QUEUE_DEPTH_ALERT_LOG_CHANNEL` via `config/logging.php`
+  - `queue_alerts` stack log channel via `config/logging.php`
+- Scheduler queue-depth monitoring in `routes/console.php` now logs threshold
+  breaches to the configured alert channel, including queue connection context.
+- `.env.example` now documents production-safe Forge overrides for:
+  - `QUEUE_CONNECTION=redis`
+  - `CACHE_STORE=redis`
+  - `SESSION_DRIVER=redis`
+  - `QUEUE_UNIQUE_LOCK_STORE=redis`
+  - `DB_QUEUE_RETRY_AFTER=180`
+  - `REDIS_QUEUE_RETRY_AFTER=180`
+  - queue-depth alert routing variables
+- Forge and troubleshooting runbooks now use
+  `php artisan scheduler:run-and-log --no-interaction` for cron guidance.
+- Forge runtime preflight documentation now explicitly includes `pcntl`.
+- Runbooks now define an actionable queue-depth alert delivery path through
+  `QUEUE_DEPTH_ALERT_LOG_CHANNEL` / `QUEUE_ALERT_CHANNELS`.
+- Redis queue behavior tradeoff for `ScheduledFetchJobDispatcher` has been
+  documented (database-row pre-enqueue dedupe is database-driver-only; Redis
+  relies on lock-based uniqueness).
 
 ## Problem Statement
 

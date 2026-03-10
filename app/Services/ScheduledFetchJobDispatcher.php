@@ -127,6 +127,8 @@ class ScheduledFetchJobDispatcher
         $driver = config("queue.connections.{$defaultConnection}.driver");
 
         if ($driver !== 'database') {
+            // Non-database drivers (for example Redis) do not have a queryable
+            // jobs table here; uniqueness falls back to cache-backed locks.
             return false;
         }
 

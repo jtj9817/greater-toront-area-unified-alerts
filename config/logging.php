@@ -38,6 +38,18 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Queue Depth Alert Channel
+    |--------------------------------------------------------------------------
+    |
+    | Queue backlog threshold alerts are sent to this channel from the
+    | scheduler. In production, point this at a channel that notifies ops.
+    |
+    */
+
+    'queue_depth_alert_channel' => env('QUEUE_DEPTH_ALERT_LOG_CHANNEL', 'stack'),
+
+    /*
+    |--------------------------------------------------------------------------
     | Log Channels
     |--------------------------------------------------------------------------
     |
@@ -139,6 +151,12 @@ return [
             'path' => storage_path('logs/queue_execution.log'),
             'level' => env('LOG_LEVEL', 'debug'),
             'replace_placeholders' => true,
+        ],
+
+        'queue_alerts' => [
+            'driver' => 'stack',
+            'channels' => explode(',', (string) env('QUEUE_ALERT_CHANNELS', 'single')),
+            'ignore_exceptions' => false,
         ],
 
     ],
