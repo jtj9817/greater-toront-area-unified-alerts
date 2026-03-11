@@ -48,7 +48,8 @@ test('scheduled callback mutex is released even when the callback throws', funct
 });
 
 test('queue depth monitor logs error when threshold exceeded', function () {
-    Log::spy();
+    $channelSpy = Mockery::spy(\Psr\Log\LoggerInterface::class);
+    Log::shouldReceive('channel')->with('stack')->andReturn($channelSpy);
 
     // Ensure we use the database driver for queues so we can manipulate the jobs table
     config(['queue.default' => 'database']);
@@ -89,7 +90,7 @@ test('queue depth monitor logs error when threshold exceeded', function () {
 
     $event->run(app());
 
-    Log::shouldHaveReceived('error')
+    $channelSpy->shouldHaveReceived('error')
         ->withArgs(function (string $message, array $context): bool {
             return $message === 'Queue depth exceeded threshold'
                 && ($context['depth'] ?? null) === 101
