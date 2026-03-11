@@ -14,7 +14,7 @@
         "lint:check": "eslint . --config eslint.config.js --no-config-lookup --max-warnings 0",
         "types": "tsc --noEmit",
         "test": "vitest run",
-        "test:ci": "LARAVEL_BYPASS_ENV_CHECK=1 vitest run",
+        "test:ci": "LARAVEL_BYPASS_ENV_CHECK=1 NODE_OPTIONS='--max-old-space-size=4096' vitest run --no-isolate",
         "test:watch": "vitest",
         "coverage": "vitest run --coverage",
         "quality:check": "npm run format:check && npm run lint:check && npm run types && npm run test:ci"

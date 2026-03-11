@@ -82,6 +82,7 @@ jobs:
       - name: Frontend Tests
         env:
           LARAVEL_BYPASS_ENV_CHECK: 1
+          NODE_OPTIONS: "--max-old-space-size=4096"
         run: pnpm run test
 
       - name: Backend Tests

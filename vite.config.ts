@@ -28,6 +28,13 @@ export default defineConfig({
         globals: true,
         environment: 'jsdom',
         setupFiles: './resources/js/tests/setup.ts',
+        pool: 'threads',
+        poolOptions: {
+            threads: {
+                isolate: false,
+                singleThread: true,
+            },
+        },
         include: [
             'resources/js/**/*.test.{ts,tsx}',
             'tests/e2e/**/*.spec.{ts,tsx}',
