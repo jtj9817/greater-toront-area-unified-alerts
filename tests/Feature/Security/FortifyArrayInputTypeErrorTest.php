@@ -9,7 +9,7 @@ test('CreateNewUser action correctly rejects array input for name instead of thr
         'password' => 'Password123',
         'password_confirmation' => 'Password123',
     ], [
-        'Accept' => 'application/json'
+        'Accept' => 'application/json',
     ]);
 
     $response->assertStatus(422); // Should fail validation, not 500

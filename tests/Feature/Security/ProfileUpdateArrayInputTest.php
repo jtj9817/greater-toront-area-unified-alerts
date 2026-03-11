@@ -13,7 +13,7 @@ test('ProfileUpdateRequest correctly rejects array input for name', function () 
             'name' => ['an array'],
             'email' => 'test@example.com',
         ], [
-            'Accept' => 'application/json'
+            'Accept' => 'application/json',
         ]);
 
     $response->assertStatus(422); // Should fail validation, not cause an Array to string conversion warning/error
