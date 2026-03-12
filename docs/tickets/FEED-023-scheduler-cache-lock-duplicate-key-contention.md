@@ -158,6 +158,26 @@ contention, while preserving safe overlap prevention and job deduplication.
 
 ### GUIDELINES:
 
+#### Step 0: Redis and scheduler pre-flight gate (required before implementation)
+
+- **Files:** `.env`, `.env.example`, deployment/runtime scheduler config (cron or
+  process manager), `docs/runbooks/scheduler-troubleshooting.md`
+- **Change:**
+  - Verify exactly one scheduler authority is active per environment:
+    - either `schedule:work`
+    - or cron `schedule:run` / `scheduler:run-and-log`
+    - never both at the same time.
+  - Verify Redis service health before lock-store migration.
+  - Set scheduler lock store explicitly:
+    - `SCHEDULE_CACHE_STORE=redis` (production / shared runtime)
+    - `SCHEDULE_CACHE_STORE=file` (acceptable local single-node fallback)
+  - For lock behavior consistency across scheduler + unique jobs, set
+    `QUEUE_UNIQUE_LOCK_STORE=redis` where Redis is available.
+  - Clear and reload framework caches (`php artisan optimize:clear`) before
+    verification runs.
+- **Why:** Prevents partial rollout where lock-store changes are made while
+  duplicate scheduler processes are still active.
+
 #### Step 1: Add explicit scheduler lock-store configuration
 
 - **File:** `config/cache.php`
@@ -216,6 +236,10 @@ contention, while preserving safe overlap prevention and job deduplication.
 
 - No new PostgreSQL `cache_locks_pkey` errors for scheduler mutex keys during
   normal scheduling.
+- A pre-flight checklist is present and enforced before lock-store migration:
+  - Redis health confirmed.
+  - Single scheduler authority confirmed.
+  - `SCHEDULE_CACHE_STORE` explicitly configured.
 - Only one scheduler authority is active per environment.
 - Scheduled fetch cadence remains unchanged.
 - `withoutOverlapping(...)` safeguards remain active.
