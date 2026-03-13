@@ -7,6 +7,8 @@ cd "${ROOT_DIR}"
 
 SAIL_BIN="${SAIL_BIN:-./vendor/bin/sail}"
 TODAY="${TODAY:-$(date +%F)}"
+LOG_DIR="${LOG_DIR:-storage/logs}"
+LOG_FILE="${LOG_FILE:-${LOG_DIR}/feed-023-runtime-verify-$(date +%Y%m%d-%H%M%S).log}"
 
 info() {
     printf '[INFO] %s\n' "$*"
@@ -58,10 +60,55 @@ search_logs() {
     fi
 }
 
+list_container_scheduler_processes() {
+    "${SAIL_BIN}" exec laravel.test sh -lc '
+        ps -eo pid=,args= | awk '"'"'
+            $1 ~ /^[0-9]+$/ && $2 == "php" && $3 == "artisan" &&
+            ($4 == "schedule:work" || $4 == "schedule:run" || $4 == "scheduler:run-and-log") {
+                printf "%s %s\n", $1, substr($0, index($0, $2))
+            }
+        '"'"'
+    ' 2>/dev/null || true
+}
+
+ensure_no_active_scheduler_processes() {
+    local host_processes
+    local container_processes
+    local found=0
+
+    host_processes="$(list_host_scheduler_processes || true)"
+    container_processes="$(list_container_scheduler_processes || true)"
+
+    if [[ -n "${host_processes}" ]]; then
+        warn "Active host scheduler processes detected:"
+        printf '%s\n' "${host_processes}"
+        found=1
+    fi
+
+    if [[ -n "${container_processes}" ]]; then
+        warn "Active container scheduler processes detected:"
+        printf '%s\n' "${container_processes}"
+        found=1
+    fi
+
+    if (( found == 1 )); then
+        return 1
+    fi
+
+    info "No active schedule:work / schedule:run / scheduler:run-and-log processes detected."
+
+    return 0
+}
+
+mkdir -p "${LOG_DIR}"
+: > "${LOG_FILE}"
+exec > >(tee -a "${LOG_FILE}") 2>&1
+
 separator
 info "FEED-023 runtime verification helper"
 info "Repo: ${ROOT_DIR}"
 info "Date filter for logs: ${TODAY}"
+info "Log file: ${LOG_FILE}"
 
 separator
 info "Stage 1: pre-check required tooling"
@@ -112,6 +159,15 @@ info "Container scheduler/cron entries:"
   echo "[container] /etc/cron.d/laravel-scheduler:";
   cat /etc/cron.d/laravel-scheduler 2>/dev/null || true
 '
+
+info "Scheduler process safety check (before this script runs any scheduler command):"
+if ! ensure_no_active_scheduler_processes; then
+    warn "Resolve active scheduler processes before Stage 5."
+    if ! confirm "Continue to Stage 3 for cleanup/inspection?"; then
+        warn "No scheduler tick will be started while active scheduler processes exist."
+        exit 1
+    fi
+fi
 
 if ! confirm "Proceed to Stage 3 (optional duplicate process cleanup)?"; then
     info "Stopped by user."
@@ -178,6 +234,12 @@ info "Stage 4: runtime pre-flight checks"
 if ! confirm "Proceed to Stage 5 (run scheduler tick)?"; then
     info "Stopped by user."
     exit 0
+fi
+
+info "Final scheduler process safety check before Stage 5:"
+if ! ensure_no_active_scheduler_processes; then
+    warn "Active scheduler process found. Aborting before starting scheduler:run-and-log."
+    exit 1
 fi
 
 separator
