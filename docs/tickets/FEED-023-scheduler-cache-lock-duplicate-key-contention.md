@@ -260,7 +260,7 @@ Status: **Completed** (`tests/Feature/Console/SchedulerResiliencePhase1Test.php`
 
 #### Step 5: Verify in runtime
 
-Status: **Blocked** (operator-level process control required for final single-authority enforcement)
+Status: **Completed** (runtime verification passed after single-authority correction)
 
 - **Files/commands affected:** runtime ops, no app logic change
 - **Checks:**
@@ -282,10 +282,19 @@ Verification update (2026-03-13):
   `storage/logs/laravel.log` for 2026-03-13.
 - Scheduled jobs continued to enqueue on expected cadence (5-minute/10-minute
   intervals) in `storage/logs/queue_enqueues.log`.
-- Remaining blocker: duplicate scheduler authorities are still active in this
-  environment (`php artisan schedule:work` observed more than once). Terminating
-  extra host-level scheduler processes was not permitted from this execution
-  context and requires operator action.
+- Historical note: at the initial Step 5 pass, duplicate scheduler authorities
+  were present and this step was marked blocked pending operator cleanup.
+
+Final verification pass (2026-03-13):
+
+- Scheduler authority now resolves to a single active runner (`schedule:work`)
+  for this environment.
+- Latest scheduler enqueue window (`2026-03-13 05:55`) shows one
+  `schedule:run` PID (`357`) for the minute, confirming no same-minute
+  duplicate scheduler invocation.
+- No new `cache_locks_pkey` duplicate-key errors were observed during the
+  verification window.
+- Scheduled fetch enqueue cadence remains active.
 
 ---
 
