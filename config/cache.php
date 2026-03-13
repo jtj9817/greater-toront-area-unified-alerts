@@ -19,6 +19,19 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Scheduler Mutex Cache Store
+    |--------------------------------------------------------------------------
+    |
+    | This option controls the cache store used for scheduling mutexes, such as
+    | `withoutOverlapping(...)` locks. Use a non-database store (file/redis) to
+    | avoid scheduler lock contention on database-backed cache stores.
+    |
+    */
+
+    'schedule_store' => env('SCHEDULE_CACHE_STORE', env('SCHEDULE_CACHE_DRIVER')),
+
+    /*
+    |--------------------------------------------------------------------------
     | Cache Stores
     |--------------------------------------------------------------------------
     |

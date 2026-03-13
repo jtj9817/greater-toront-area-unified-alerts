@@ -31,6 +31,21 @@ test('scheduled fetch commands use short overlap mutex expiry', function () {
     }
 });
 
+test('scheduler cache store is configurable via cache.schedule_store', function () {
+    config([
+        'cache.schedule_store' => 'array',
+    ]);
+
+    expect(array_key_exists('schedule_store', (array) config('cache')))->toBeTrue();
+
+    $kernel = app(\Illuminate\Contracts\Console\Kernel::class);
+    $kernelRef = new \ReflectionClass($kernel);
+    $method = $kernelRef->getMethod('scheduleCache');
+    $method->setAccessible(true);
+
+    expect($method->invoke($kernel))->toBe('array');
+});
+
 test('scheduled callback mutex is released even when the callback throws', function () {
     config(['cache.default' => 'array']);
     Cache::flush();
@@ -49,6 +64,21 @@ test('scheduled callback mutex is released even when the callback throws', funct
 
 test('queue depth monitor logs error when threshold exceeded', function () {
     Log::spy();
+
+    config(['logging.queue_depth_alert_channel' => 'stack']);
+    $logger = Mockery::mock(\Psr\Log\LoggerInterface::class);
+    $logger
+        ->shouldReceive('error')
+        ->once()
+        ->withArgs(function (string $message, array $context): bool {
+            return $message === 'Queue depth exceeded threshold'
+                && ($context['depth'] ?? null) === 101
+                && ($context['threshold'] ?? null) === 100;
+        });
+
+    Log::shouldReceive('channel')
+        ->with('stack')
+        ->andReturn($logger);
 
     // Ensure we use the database driver for queues so we can manipulate the jobs table
     config(['queue.default' => 'database']);
@@ -88,14 +118,6 @@ test('queue depth monitor logs error when threshold exceeded', function () {
     expect($event)->not->toBeNull();
 
     $event->run(app());
-
-    Log::shouldHaveReceived('error')
-        ->withArgs(function (string $message, array $context): bool {
-            return $message === 'Queue depth exceeded threshold'
-                && ($context['depth'] ?? null) === 101
-                && ($context['threshold'] ?? null) === 100;
-        })
-        ->once();
 });
 
 test('fire fetch command returns failure and logs when database is unavailable', function () {
