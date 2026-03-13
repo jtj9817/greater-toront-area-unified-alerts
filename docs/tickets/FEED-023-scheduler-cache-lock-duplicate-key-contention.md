@@ -260,7 +260,7 @@ Status: **Completed** (`tests/Feature/Console/SchedulerResiliencePhase1Test.php`
 
 #### Step 5: Verify in runtime
 
-Status: **Pending** (requires environment-level verification)
+Status: **Blocked** (operator-level process control required for final single-authority enforcement)
 
 - **Files/commands affected:** runtime ops, no app logic change
 - **Checks:**
@@ -268,6 +268,24 @@ Status: **Pending** (requires environment-level verification)
   - Confirm absence of `cache_locks_pkey` duplicate-key errors for scheduler
     lock keys.
   - Confirm scheduled jobs still enqueue at expected cadence.
+
+Verification update (2026-03-13):
+
+- `SCHEDULE_CACHE_STORE=file` is active in runtime config and
+  `cache.schedule_store` resolves to `file`.
+- Redis health check for shared lock-store migration path succeeded:
+  `cache()->store('redis')->put/get(...)` returned `ok`.
+- `php artisan optimize:clear` succeeded in Sail runtime.
+- A controlled scheduler tick via `php artisan scheduler:run-and-log` completed
+  successfully.
+- No new `cache_locks_pkey` duplicate-key entries were observed in
+  `storage/logs/laravel.log` for 2026-03-13.
+- Scheduled jobs continued to enqueue on expected cadence (5-minute/10-minute
+  intervals) in `storage/logs/queue_enqueues.log`.
+- Remaining blocker: duplicate scheduler authorities are still active in this
+  environment (`php artisan schedule:work` observed more than once). Terminating
+  extra host-level scheduler processes was not permitted from this execution
+  context and requires operator action.
 
 ---
 
