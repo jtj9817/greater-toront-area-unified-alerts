@@ -1,5 +1,7 @@
 SHELL=/bin/bash
 PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 
+# Single scheduler authority:
+# Run cron `scheduler:run-and-log` in this container OR run `schedule:work`
+# elsewhere in this environment, never both.
 * * * * * sail cd /var/www/html && php artisan scheduler:run-and-log --no-interaction
-

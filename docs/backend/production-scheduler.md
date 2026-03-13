@@ -16,6 +16,27 @@ In production, a more typical approach is to run `schedule:run` every minute via
 * * * * * cd /path && php artisan schedule:run
 ```
 
+## Phase 0 Pre-Flight Gate (FEED-023)
+
+Complete this gate before any scheduler lock-store migration:
+
+1. Select exactly one scheduler authority per environment:
+   - `schedule:work`, or
+   - cron `schedule:run` / `scheduler:run-and-log`
+2. Verify there is no second authority running:
+   - `pgrep -fa "artisan (schedule:work|schedule:run|scheduler:run-and-log)"`
+   - `crontab -l | rg -n "schedule:run|scheduler:run-and-log"`
+   - if more than one authority is present, stop extras before continuing
+3. Verify Redis health before switching shared environments to Redis lock stores:
+   - `php artisan tinker --execute="cache()->store('redis')->put('scheduler:phase0:health', 'ok', 60); dump(cache()->store('redis')->get('scheduler:phase0:health'));"`
+4. Set explicit lock stores:
+   - local single-node: `SCHEDULE_CACHE_STORE=file`, `QUEUE_UNIQUE_LOCK_STORE=file`
+   - shared/multi-node: `SCHEDULE_CACHE_STORE=redis`, `QUEUE_UNIQUE_LOCK_STORE=redis`
+5. Clear cached framework state before verification:
+   - `php artisan optimize:clear`
+
+If any check fails, stop rollout and fix the runtime state first. Do not continue with partial lock-store changes.
+
 During this session, we moved from “inline bash inside `compose.yaml` that installs `cron` at container startup” to a production-friendly approach:
 
 - **Bake cron into an image** (no apt installs at boot, reproducible builds).
@@ -181,6 +202,8 @@ For production containers, prefer stdout/stderr logging so orchestration platfor
 
 The scheduler ships with multiple guardrails to prevent silent failures and minimize long-lived outages:
 
+- **Single scheduler authority:** Exactly one scheduler authority may run in an environment (`schedule:work` or cron `schedule:run` / `scheduler:run-and-log`, never both). This prevents duplicate overlap-lock acquisition attempts for the same minute.
+- **Explicit scheduler mutex store (`SCHEDULE_CACHE_STORE`):** Scheduler `withoutOverlapping(...)` mutexes use the cache store configured by `SCHEDULE_CACHE_STORE` (`file` for local single-node, `redis` for shared environments) so scheduler lock contention does not hit the database `cache_locks` table.
 - **Pre-enqueue deduplication (`ScheduledFetchJobDispatcher`):** Fetch jobs are dispatched via `Schedule::call()` closures that delegate to `App\Services\ScheduledFetchJobDispatcher`. The dispatcher checks for an outstanding database queue row and acquires a `UniqueLock` before enqueuing. If either check indicates a duplicate, the dispatch is skipped and logged. A failed lock-acquire is treated as a skip — locks are never force-released.
 - **Configurable unique-lock store (`QUEUE_UNIQUE_LOCK_STORE`):** Fetch-job uniqueness locks use the cache store configured by `QUEUE_UNIQUE_LOCK_STORE` (default `file`; use `redis` for shared multi-node environments). This avoids noisy `cache_locks` duplicate-key errors during normal skip behavior.
 - **Job-based ingestion with retries:** Fetchers run as queued jobs with `$tries=3`, `$backoff=30`, `$timeout=120`. Each job implements `ShouldBeUnique` as a second-layer execution-time guard.

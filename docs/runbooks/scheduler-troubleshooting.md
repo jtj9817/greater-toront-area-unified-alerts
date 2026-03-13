@@ -14,6 +14,55 @@ For full Forge go-live steps, see:
 - Review recent logs: `storage/logs/laravel.log` or container stdout/stderr
 - Ensure queue workers are running (job-based ingestion)
 
+## Phase 0 Pre-Flight Gate (FEED-023)
+
+Run this gate before migrating scheduler mutex storage or changing scheduler runtime config.
+
+### 1) Confirm single scheduler authority
+
+Exactly one scheduler authority may run per environment:
+
+- `schedule:work` daemon, or
+- cron invoking `schedule:run` / `scheduler:run-and-log`
+
+Never run both at the same time.
+
+Checks:
+
+- Running scheduler processes:
+  `pgrep -fa "artisan (schedule:work|schedule:run|scheduler:run-and-log)"`
+- User crontab entries:
+  `crontab -l | rg -n "schedule:run|scheduler:run-and-log"`
+- Scheduler container cron file (if used):
+  `cat /etc/cron.d/laravel-scheduler`
+
+If multiple scheduler authorities are present, stop extras before continuing.
+
+### 2) Verify Redis health (for shared environments)
+
+- Validate Redis is reachable and writable:
+  `php artisan tinker --execute="cache()->store('redis')->put('scheduler:phase0:health', 'ok', 60); dump(cache()->store('redis')->get('scheduler:phase0:health'));"`
+
+If this fails, stop rollout and fix Redis connectivity before changing lock stores.
+
+### 3) Set explicit lock stores
+
+- Local single-node default:
+  - `SCHEDULE_CACHE_STORE=file`
+  - `QUEUE_UNIQUE_LOCK_STORE=file`
+- Shared/multi-node (production):
+  - `SCHEDULE_CACHE_STORE=redis`
+  - `QUEUE_UNIQUE_LOCK_STORE=redis`
+
+### 4) Clear cached config before verification
+
+- `php artisan optimize:clear`
+
+### 5) Verification pass
+
+- Run one scheduler tick in the selected authority mode.
+- Confirm enqueue cadence is normal and no `cache_locks_pkey` duplicate-key errors appear.
+
 ## Common Failure Modes & Recovery
 
 ### Scheduler heartbeat is stale
