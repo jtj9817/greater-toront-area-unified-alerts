@@ -1,17 +1,19 @@
 ---
 ticket_id: FEED-023
 title: "[Bug] Resolve scheduler cache_locks duplicate-key contention on PostgreSQL"
-status: Open
+status: In Progress
 priority: High
 assignee: Unassigned
 created_at: 2026-03-12
 tags: [scheduler, cache, postgres, concurrency, reliability]
 related_files:
+  - docker/scheduler/laravel-scheduler
   - routes/console.php
   - config/cache.php
   - .env
   - .env.example
   - app/Services/ScheduledFetchJobDispatcher.php
+  - tests/Feature/Console/SchedulerResiliencePhase1Test.php
   - docs/backend/production-scheduler.md
   - docs/runbooks/scheduler-troubleshooting.md
   - storage/logs/laravel.log
@@ -31,6 +33,30 @@ This is the scheduler overlap mutex for `fire:fetch-incidents`, not an app
 table write. The lock contention is happening because more than one
 `schedule:run` process is active for the same minute while scheduler mutexes are
 stored in the database cache lock table.
+
+## Implementation Update (2026-03-12)
+
+The last two FEED-023 commits applied the following ticket changes:
+
+- Added a required **Phase 0 pre-flight gate** in scheduler docs with explicit
+  checks for:
+  - single scheduler authority
+  - Redis health before shared lock-store migration
+  - explicit lock-store selection for scheduler and unique-job locks
+  - `php artisan optimize:clear` before verification
+- Added explicit env-template guidance in `.env.example`:
+  - `SCHEDULE_CACHE_STORE=file` for local single-node runtime
+  - documented production/shared recommendation:
+    `SCHEDULE_CACHE_STORE=redis`
+- Added single-authority guardrail comments in
+  `docker/scheduler/laravel-scheduler` to prevent running cron scheduler and
+  `schedule:work` simultaneously.
+- Implemented explicit scheduler mutex-store configuration in
+  `config/cache.php`:
+  - `'schedule_store' => env('SCHEDULE_CACHE_STORE', env('SCHEDULE_CACHE_DRIVER'))`
+- Added regression coverage in
+  `tests/Feature/Console/SchedulerResiliencePhase1Test.php` asserting kernel
+  scheduler cache resolution honors `cache.schedule_store`.
 
 ---
 
@@ -160,6 +186,8 @@ contention, while preserving safe overlap prevention and job deduplication.
 
 #### Step 0: Redis and scheduler pre-flight gate (required before implementation)
 
+Status: **Completed** (implemented in docs/env + scheduler cron guidance)
+
 - **Files:** `.env`, `.env.example`, deployment/runtime scheduler config (cron or
   process manager), `docs/runbooks/scheduler-troubleshooting.md`
 - **Change:**
@@ -180,14 +208,18 @@ contention, while preserving safe overlap prevention and job deduplication.
 
 #### Step 1: Add explicit scheduler lock-store configuration
 
+Status: **Completed** (`config/cache.php`)
+
 - **File:** `config/cache.php`
 - **Change:** Add a new top-level config key:
-  - `'schedule_store' => env('SCHEDULE_CACHE_STORE')`
+  - `'schedule_store' => env('SCHEDULE_CACHE_STORE', env('SCHEDULE_CACHE_DRIVER'))`
 - **Why:** Laravel Kernel resolves scheduler mutex store from
   `cache.schedule_store` (or `SCHEDULE_CACHE_*` env vars). Making it explicit
   removes ambiguity and improves config discoverability.
 
 #### Step 2: Define safe defaults in environment templates
+
+Status: **Completed** (`.env.example`)
 
 - **File:** `.env.example`
 - **Change:**
@@ -197,6 +229,9 @@ contention, while preserving safe overlap prevention and job deduplication.
 - **Why:** Prevent scheduler mutex writes to `cache_locks` by default.
 
 #### Step 3: Update scheduler operations documentation
+
+Status: **Completed** (`docs/backend/production-scheduler.md`,
+`docs/runbooks/scheduler-troubleshooting.md`)
 
 - **Files:** `docs/backend/production-scheduler.md`,
   `docs/runbooks/scheduler-troubleshooting.md`
@@ -214,6 +249,8 @@ contention, while preserving safe overlap prevention and job deduplication.
 
 #### Step 4: Add regression tests for scheduler lock store config
 
+Status: **Completed** (`tests/Feature/Console/SchedulerResiliencePhase1Test.php`)
+
 - **File:** `tests/Feature/Console/SchedulerResiliencePhase1Test.php`
 - **Change:**
   - Add tests that assert scheduler runs cleanly with non-database cache store.
@@ -222,6 +259,8 @@ contention, while preserving safe overlap prevention and job deduplication.
   to database lock tables unexpectedly.
 
 #### Step 5: Verify in runtime
+
+Status: **Pending** (requires environment-level verification)
 
 - **Files/commands affected:** runtime ops, no app logic change
 - **Checks:**
