@@ -17,6 +17,7 @@ vi.mock('@inertiajs/react', async () => {
     return {
         ...actual,
         usePage: () => ({
+            url: '/',
             props: {
                 processing: false,
             },
