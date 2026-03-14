@@ -216,7 +216,7 @@ export const FeedView: React.FC<FeedViewProps> = ({
                                 </Link>
                             ))}
                         </div>
-                        <span className="ml-auto rounded-full border border-[#333333] bg-background-dark px-2.5 py-1 text-[10px] text-text-secondary">
+                        <span className="ml-auto hidden rounded-full border border-[#333333] bg-background-dark px-2.5 py-1 text-[10px] text-text-secondary sm:inline">
                             {totalCount} loaded
                         </span>
                     </div>

@@ -60,7 +60,7 @@ export function mapDomainAlertToPresentation(
     return {
         id: alert.id,
         title: alert.title,
-        location: alert.location?.name ?? 'Unknown location',
+        location: alert.location?.name?.trim() || 'Unknown location',
         timeAgo: formatTimeAgo(alert.timestamp),
         timestamp: alert.timestamp,
         description: details.description,

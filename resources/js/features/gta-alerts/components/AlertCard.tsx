@@ -34,6 +34,12 @@ export const AlertCard: React.FC<AlertCardProps> = ({
     const sourceLabel = getSourceLabel(alert);
     const isActive = alert.isActive;
     const eventReference = item.metadata?.eventNum ?? alert.externalId;
+    const hasLocation =
+        !!item.location && item.location !== 'Unknown location';
+    const truncatedEventRef =
+        eventReference.length > 20
+            ? `${eventReference.slice(0, 20)}…`
+            : eventReference;
     const severityLabel =
         item.severity === 'high'
             ? 'Critical Severity'
@@ -48,6 +54,12 @@ export const AlertCard: React.FC<AlertCardProps> = ({
               : 'border-2 border-black bg-panel-light text-black';
     const summaryBorderClass =
         item.severity === 'high' ? 'border-critical' : 'border-warning';
+    const summaryLabelColor =
+        item.severity === 'high'
+            ? 'text-critical'
+            : item.severity === 'medium'
+              ? 'text-amber-600'
+              : 'text-text-secondary';
 
     return (
         <article
@@ -58,7 +70,7 @@ export const AlertCard: React.FC<AlertCardProps> = ({
             <div className="flex flex-col gap-5 md:flex-row">
                 <div className="flex items-center justify-between gap-3 border-b-2 border-black pb-3 md:w-28 md:flex-col md:items-center md:justify-start md:border-r-2 md:border-b-0 md:pr-4 md:pb-0">
                     <span
-                        className={`text-sm font-black uppercase ${isActive ? 'text-black' : 'text-text-secondary'}`}
+                        className={`whitespace-nowrap text-sm font-black uppercase ${isActive ? 'text-black' : 'text-text-secondary'}`}
                     >
                         {formatTimestampEST(item.timestamp)}
                     </span>
@@ -98,14 +110,18 @@ export const AlertCard: React.FC<AlertCardProps> = ({
                     </div>
 
                     <p className="mb-4 flex flex-wrap items-center gap-2 text-sm font-bold">
-                        <Icon
-                            name="location_on"
-                            className={`text-base ${item.iconColor}`}
-                        />
-                        <span className="underline decoration-primary decoration-2">
-                            {item.location}
-                        </span>
-                        <span className="text-black/60">|</span>
+                        {hasLocation && (
+                            <>
+                                <Icon
+                                    name="location_on"
+                                    className={`text-base ${item.iconColor}`}
+                                />
+                                <span className="underline decoration-primary decoration-2">
+                                    {item.location}
+                                </span>
+                                <span className="text-black/60">|</span>
+                            </>
+                        )}
                         <Icon
                             name="schedule"
                             className={`text-base ${item.iconColor}`}
@@ -116,7 +132,7 @@ export const AlertCard: React.FC<AlertCardProps> = ({
                     <div
                         className={`border-l-[12px] bg-panel-light p-4 ${summaryBorderClass}`}
                     >
-                        <p className="mb-2 text-[11px] font-black tracking-widest text-critical uppercase">
+                        <p className={`mb-2 text-[11px] font-black tracking-widest uppercase ${summaryLabelColor}`}>
                             Incident Summary
                         </p>
                         <p className="text-sm leading-relaxed font-bold">
@@ -130,7 +146,7 @@ export const AlertCard: React.FC<AlertCardProps> = ({
                                 name={item.iconName}
                                 className={item.iconColor}
                             />
-                            Event #{eventReference}
+                            Event #{truncatedEventRef}
                         </span>
                         {item.metadata?.unitsDispatched && (
                             <span className="flex items-center gap-1 border-2 border-black bg-panel-light px-2 py-1">

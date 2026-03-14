@@ -325,3 +325,10 @@
         transparent
     );
 }
+
+@media (min-width: 768px) {
+    .mask-linear-fade {
+        -webkit-mask-image: none;
+        mask-image: none;
+    }
+}
