@@ -132,7 +132,7 @@ export const FeedView: React.FC<FeedViewProps> = ({
     };
 
     const categories = [
-        { id: 'all', label: 'All Alerts', icon: 'grid_view' },
+        { id: 'all', label: 'All Alerts', icon: 'feed' },
         { id: 'fire', label: 'Fire', icon: 'local_fire_department' },
         { id: 'police', label: 'Police', icon: 'local_police' },
         { id: 'transit', label: 'TTC', icon: 'train' },

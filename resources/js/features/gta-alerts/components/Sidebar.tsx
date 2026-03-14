@@ -1,4 +1,5 @@
 import React from 'react';
+import { BrandIcon } from './BrandIcon';
 import { Icon } from './Icon';
 
 interface SidebarProps {
@@ -20,7 +21,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 }) => {
     const navItems = [
         { id: 'feed', name: 'Feed', icon: 'feed' },
-        { id: 'inbox', name: 'Inbox', icon: 'notifications' },
+        { id: 'inbox', name: 'Inbox', icon: 'crisis_alert' },
         { id: 'saved', name: 'Saved', icon: 'bookmark' },
         { id: 'zones', name: 'Zones', icon: 'map' },
         { id: 'settings', name: 'Settings', icon: 'settings' },
@@ -53,11 +54,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     id="gta-alerts-sidebar-brand-icon"
                     className="bg-primary p-2 text-black"
                 >
-                    <Icon
-                        name="local_fire_department"
-                        className="block text-2xl"
-                        fill
-                    />
+                    <BrandIcon className="block h-6 w-6" />
                 </div>
                 {!isCollapsed && (
                     <h1 className="text-xl leading-none font-black tracking-tighter whitespace-nowrap text-white uppercase">

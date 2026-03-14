@@ -92,7 +92,7 @@ describe('presentationStyles', () => {
     });
 
     it('derives go_transit and transit route-specific icon names', () => {
-        expect(deriveIconName(makeGoAlert(), 'go_transit')).toBe('train');
+        expect(deriveIconName(makeGoAlert(), 'go_transit')).toBe('directions_transit');
         expect(deriveIconName(makeTransitAlert('Bus'), 'transit')).toBe(
             'directions_bus',
         );
@@ -111,7 +111,7 @@ describe('presentationStyles', () => {
         const fire = makeFireAlert('STRUCTURE FIRE');
 
         expect(deriveIconName(fire, 'fire')).toBe('local_fire_department');
-        expect(deriveIconName(fire, 'police')).toBe('shield');
+        expect(deriveIconName(fire, 'police')).toBe('local_police');
         expect(deriveIconName(fire, 'hazard')).toBe('warning');
         expect(deriveIconName(fire, 'transit')).toBe('train');
         expect(deriveIconName(fire, 'medical')).toBe('medical_services');

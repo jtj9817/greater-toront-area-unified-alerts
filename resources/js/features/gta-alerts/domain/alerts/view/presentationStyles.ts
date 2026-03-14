@@ -10,7 +10,7 @@ export function deriveIconName(
     if (normalizedTitle.includes('GAS')) return 'warning';
     if (normalizedTitle.includes('COLLISION')) return 'car_crash';
 
-    if (type === 'go_transit') return 'train';
+    if (type === 'go_transit') return 'directions_transit';
 
     if (type === 'transit' && alert.kind === 'transit') {
         return deriveTtcIconName(alert);
@@ -20,7 +20,7 @@ export function deriveIconName(
         case 'fire':
             return 'local_fire_department';
         case 'police':
-            return 'shield';
+            return 'local_police';
         case 'hazard':
             return 'warning';
         case 'transit':

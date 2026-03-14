@@ -351,7 +351,7 @@ export const NotificationInboxView: React.FC<NotificationInboxViewProps> = ({
                         id="gta-alerts-inbox-auth-required-title"
                         className="mb-3 flex items-center gap-3 text-2xl font-bold text-white"
                     >
-                        <Icon name="lock" className="text-primary" />
+                        <Icon name="account_circle" className="text-primary" />
                         Sign in to view your notification inbox
                     </h2>
                     <p className="mb-6 max-w-2xl text-sm text-text-secondary">
@@ -364,7 +364,7 @@ export const NotificationInboxView: React.FC<NotificationInboxViewProps> = ({
                             href={login().url}
                             className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white transition hover:bg-primary/90"
                         >
-                            <Icon name="login" />
+                            <Icon name="key" />
                             Sign in
                         </Link>
                         <Link

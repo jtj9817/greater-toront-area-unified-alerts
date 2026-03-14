@@ -130,7 +130,7 @@ describe('mapDomainAlertToPresentation', () => {
 
         expect(alertItem.type).toBe('go_transit');
         expect(alertItem.severity).toBe('medium');
-        expect(alertItem.iconName).toBe('train');
+        expect(alertItem.iconName).toBe('directions_transit');
         expect(alertItem.metadata?.source).toBe('GO Transit');
     });
 
