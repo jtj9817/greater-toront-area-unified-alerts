@@ -17,6 +17,7 @@ vi.mock('@inertiajs/react', async () => {
     return {
         ...actual,
         usePage: () => ({
+            url: 'http://localhost/',
             props: {
                 processing: false,
             },
@@ -28,6 +29,18 @@ vi.mock('@inertiajs/react', async () => {
         },
     };
 });
+
+vi.mock('laravel-vite-plugin/inertia-helpers', () => ({
+    resolvePageComponent: vi.fn(),
+}));
+
+vi.mock('@/wayfinder', () => ({
+    home: vi.fn((opts) => {
+        let url = '/?';
+        if (opts?.query?.sort) url += `sort=${opts.query.sort}&`;
+        return { url };
+    }),
+}));
 
 describe('FeedView', () => {
     beforeEach(() => {
