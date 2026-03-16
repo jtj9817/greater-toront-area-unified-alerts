@@ -1,5 +1,5 @@
 import { Link } from '@inertiajs/react';
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { login, register } from '@/routes';
 import {
     clearNotificationInbox,
@@ -15,6 +15,7 @@ import { Icon } from './Icon';
 type NotificationInboxViewProps = {
     authUserId: number | null;
     onOpenAlert?: (alertId: string) => void;
+    onUnreadCountChange?: (count: number) => void;
 };
 
 const inboxDateFormatter = new Intl.DateTimeFormat('en-CA', {
@@ -96,6 +97,7 @@ const mergeItemsById = (
 export const NotificationInboxView: React.FC<NotificationInboxViewProps> = ({
     authUserId,
     onOpenAlert,
+    onUnreadCountChange,
 }) => {
     const [items, setItems] = useState<NotificationInboxItem[]>([]);
     const [unreadCount, setUnreadCount] = useState(0);
@@ -107,6 +109,10 @@ export const NotificationInboxView: React.FC<NotificationInboxViewProps> = ({
     const [isClearing, setIsClearing] = useState(false);
     const [activeItemId, setActiveItemId] = useState<number | null>(null);
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+    useEffect(() => {
+        onUnreadCountChange?.(unreadCount);
+    }, [unreadCount, onUnreadCountChange]);
 
     useEffect(() => {
         if (authUserId === null) {

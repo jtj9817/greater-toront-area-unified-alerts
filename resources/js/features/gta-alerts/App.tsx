@@ -57,6 +57,7 @@ const App: React.FC<AppProps> = ({
     const [searchQuery, setSearchQuery] = useState(filters.q || '');
     const [activeAlertId, setActiveAlertId] = useState<string | null>(null);
     const [isRefreshingFeed, setIsRefreshingFeed] = useState(false);
+    const [inboxUnreadCount, setInboxUnreadCount] = useState(0);
 
     // Sync local search query with URL state (e.g., back button, Reset All Filters).
     const syncSearchQueryFromUrl = useCallback(() => {
@@ -251,6 +252,7 @@ const App: React.FC<AppProps> = ({
                     <NotificationInboxView
                         authUserId={authUserId}
                         onOpenAlert={setActiveAlertId}
+                        onUnreadCountChange={setInboxUnreadCount}
                     />
                 );
             case 'feed':
@@ -346,10 +348,12 @@ const App: React.FC<AppProps> = ({
                                     aria-label="Open notification center"
                                 >
                                     <Icon
-                                        name="notifications"
+                                        name="crisis_alert"
                                         style={{ fontSize: '22px' }}
                                     />
-                                    <span className="absolute top-1.5 right-1.5 h-2 w-2 border border-black bg-critical"></span>
+                                    {authUserId !== null && inboxUnreadCount > 0 && (
+                                        <span className="absolute top-1.5 right-1.5 h-2 w-2 bg-critical"></span>
+                                    )}
                                 </button>
                                 <button
                                     id="gta-alerts-header-mobile-settings-btn"
@@ -358,7 +362,7 @@ const App: React.FC<AppProps> = ({
                                     aria-label="Open settings"
                                 >
                                     <Icon
-                                        name="person"
+                                        name="settings"
                                         style={{ fontSize: '22px' }}
                                     />
                                 </button>
@@ -399,24 +403,26 @@ const App: React.FC<AppProps> = ({
 
                             <div
                                 id="gta-alerts-header-desktop-actions"
-                                className="hidden items-center gap-3 pl-4 md:flex"
+                                className="hidden items-center justify-center gap-3 pl-4 md:flex"
                             >
                                 <button
                                     id="gta-alerts-header-desktop-inbox-btn"
-                                    className="relative border border-[#333333] bg-[#1a1a1a] p-2 text-white transition-colors hover:bg-primary hover:text-black"
+                                    className="relative flex items-center justify-center p-2 text-white transition-colors hover:text-primary"
                                     onClick={() => handleNavigate('inbox')}
                                     aria-label="Open notification center"
                                 >
-                                    <Icon name="notifications" />
-                                    <span className="absolute top-1.5 right-1.5 h-2 w-2 border border-black bg-critical"></span>
+                                    <Icon name="crisis_alert" />
+                                    {authUserId !== null && inboxUnreadCount > 0 && (
+                                        <span className="absolute top-1.5 right-1.5 h-2 w-2 bg-critical"></span>
+                                    )}
                                 </button>
                                 <button
                                     id="gta-alerts-header-desktop-settings-btn"
-                                    className="border border-[#333333] bg-[#1a1a1a] p-2 text-white transition-colors hover:bg-primary hover:text-black"
+                                    className="flex items-center justify-center p-2 text-white transition-colors hover:text-primary"
                                     onClick={() => handleNavigate('settings')}
                                     aria-label="Open settings"
                                 >
-                                    <Icon name="person" />
+                                    <Icon name="settings" />
                                 </button>
                             </div>
                         </div>
