@@ -12,10 +12,10 @@ class ProfileUpdateRequest extends FormRequest
 
     protected function prepareForValidation(): void
     {
-        if ($this->has('name')) {
+        if ($this->has('name') && is_string($this->input('name'))) {
             $this->merge([
                 // Sentinel: Sanitize name to prevent Stored XSS
-                'name' => strip_tags(trim((string) $this->input('name'))),
+                'name' => strip_tags(trim($this->input('name'))),
             ]);
         }
     }

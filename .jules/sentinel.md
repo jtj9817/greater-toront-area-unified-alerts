@@ -19,7 +19,13 @@
 **Vulnerability:** The `StoreSceneIntelEntryRequest` allowed raw HTML/Script tags to be stored in the `metadata` JSON field. While `content` was sanitized, the flexible `metadata` array was not, and `IncidentUpdateResource` exposed it raw.
 **Learning:** Flexible JSON/Array fields (like `metadata`) in FormRequests are often overlooked by simple scalar validation/sanitization rules. `prepareForValidation` needs recursive logic to handle these structures safely.
 **Prevention:** Use a recursive `sanitizeArray` helper in `prepareForValidation` for any `array` input that accepts free-text values.
+
 ## 2025-02-27 - Fortify Action Array Input TypeError
 **Vulnerability:** Fortify Actions (like `CreateNewUser`) process raw input arrays directly without going through FormRequests, meaning automatic string casting and sanitization hooks aren't naturally present. Calling string functions like `trim` and `strip_tags` on an array payload causes a PHP `TypeError`, leading to a 500 server crash.
 **Learning:** Manual sanitization inside Fortify actions must explicitly use type checking (e.g., `is_string()`) to ensure array payloads fail validation correctly (422) instead of crashing the process (500).
 **Prevention:** Always wrap manual sanitization steps in type checks (`is_string`) before applying string functions, particularly in interfaces like Fortify Actions that handle direct raw request arrays.
+
+## 2025-02-27 - FormRequest Array-to-String TypeError
+**Vulnerability:** `ProfileUpdateRequest` explicitly cast array inputs to strings via `(string) $this->input('name')` when applying sanitization functions like `trim()` and `strip_tags()`. If an array was sent via the request, this resulted in an Array-to-String conversion warning/error or a TypeError when string functions execute, leading to a 500 Internal Server Error instead of a 422 Unprocessable Entity.
+**Learning:** Directly casting `$this->input()` to a string `(string)` inside `prepareForValidation` is dangerous because HTTP requests can easily provide array payloads (`name[]=foo`).
+**Prevention:** Before applying string functions in `prepareForValidation`, use `is_string($this->input('field'))` instead of forcing a cast via `(string)`.
