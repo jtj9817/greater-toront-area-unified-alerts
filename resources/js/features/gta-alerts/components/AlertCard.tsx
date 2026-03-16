@@ -91,11 +91,6 @@ export const AlertCard: React.FC<AlertCardProps> = ({
                             >
                                 {item.title}
                             </h4>
-                            <span
-                                className={`px-3 py-1 text-[10px] font-black tracking-wider uppercase ${severityClasses}`}
-                            >
-                                {severityLabel}
-                            </span>
                         </div>
                         <div className="flex items-center gap-2 text-[10px] font-black tracking-wider uppercase">
                             <span className="border-2 border-black bg-panel-light px-2 py-1">
@@ -106,6 +101,11 @@ export const AlertCard: React.FC<AlertCardProps> = ({
                                     SAVED
                                 </span>
                             )}
+                            <span
+                                className={`px-3 py-1 text-[10px] font-black tracking-wider uppercase ${severityClasses}`}
+                            >
+                                {severityLabel}
+                            </span>
                         </div>
                     </div>
 
