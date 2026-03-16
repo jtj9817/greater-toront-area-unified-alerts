@@ -407,7 +407,7 @@ const App: React.FC<AppProps> = ({
                             >
                                 <button
                                     id="gta-alerts-header-desktop-inbox-btn"
-                                    className="relative flex items-center justify-center p-2 text-white transition-colors hover:text-primary"
+                                    className="relative flex items-center justify-center p-2 text-white transition-all hover:bg-white/10 hover:text-primary"
                                     onClick={() => handleNavigate('inbox')}
                                     aria-label="Open notification center"
                                 >
@@ -418,7 +418,7 @@ const App: React.FC<AppProps> = ({
                                 </button>
                                 <button
                                     id="gta-alerts-header-desktop-settings-btn"
-                                    className="flex items-center justify-center p-2 text-white transition-colors hover:text-primary"
+                                    className="flex items-center justify-center p-2 text-white transition-all hover:bg-white/10 hover:text-primary"
                                     onClick={() => handleNavigate('settings')}
                                     aria-label="Open settings"
                                 >
