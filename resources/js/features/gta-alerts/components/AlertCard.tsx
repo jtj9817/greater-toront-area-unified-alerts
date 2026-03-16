@@ -34,8 +34,7 @@ export const AlertCard: React.FC<AlertCardProps> = ({
     const sourceLabel = getSourceLabel(alert);
     const isActive = alert.isActive;
     const eventReference = item.metadata?.eventNum ?? alert.externalId;
-    const hasLocation =
-        !!item.location && item.location !== 'Unknown location';
+    const hasLocation = !!item.location && item.location !== 'Unknown location';
     const truncatedEventRef =
         eventReference.length > 20
             ? `${eventReference.slice(0, 20)}…`
@@ -70,7 +69,7 @@ export const AlertCard: React.FC<AlertCardProps> = ({
             <div className="flex flex-col gap-5 md:flex-row">
                 <div className="flex items-center justify-between gap-3 border-b-2 border-black pb-3 md:w-28 md:flex-col md:items-center md:justify-start md:border-r-2 md:border-b-0 md:pr-4 md:pb-0">
                     <span
-                        className={`whitespace-nowrap text-sm font-black uppercase ${isActive ? 'text-black' : 'text-text-secondary'}`}
+                        className={`text-sm font-black whitespace-nowrap uppercase ${isActive ? 'text-black' : 'text-text-secondary'}`}
                     >
                         {formatTimestampEST(item.timestamp)}
                     </span>
@@ -132,7 +131,9 @@ export const AlertCard: React.FC<AlertCardProps> = ({
                     <div
                         className={`border-l-[12px] bg-panel-light p-4 ${summaryBorderClass}`}
                     >
-                        <p className={`mb-2 text-[11px] font-black tracking-widest uppercase ${summaryLabelColor}`}>
+                        <p
+                            className={`mb-2 text-[11px] font-black tracking-widest uppercase ${summaryLabelColor}`}
+                        >
                             Incident Summary
                         </p>
                         <p className="text-sm leading-relaxed font-bold">
