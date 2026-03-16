@@ -1,0 +1,883 @@
+=== composer test run 4 (2026-03-16T19:05:00-04:00) ===
+> @php artisan config:clear --ansi
+
+  [37;44m INFO [39;49m Configuration cache cleared successfully.  
+
+> pint --test
+
+  ............................................................................
+  ............................................................................
+  ............................................................................
+  ............................................................................
+  .................................
+
+  ──────────────────────────────────────────────────────────────────── Laravel  
+    PASS   ......................................................... 337 files  
+
+> @php artisan test
+
+   PASS  Tests\Unit\Enums\AlertSourceTest
+  ✓ alert source exposes ordered values                                  0.01s  
+  ✓ alert source validates expected values with dataset "fire"
+  ✓ alert source validates expected values with dataset "police"
+  ✓ alert source validates expected values with dataset "transit"
+  ✓ alert source validates expected values with dataset "go_transit"
+  ✓ alert source rejects unexpected values with dataset "null"
+  ✓ alert source rejects unexpected values with dataset "empty"
+  ✓ alert source rejects unexpected values with dataset "unknown"
+
+   PASS  Tests\Unit\Enums\AlertStatusTest
+  ✓ alert status exposes ordered values                                  0.01s  
+  ✓ alert status normalizes null to all
+  ✓ alert status normalizes valid values with dataset "all"
+  ✓ alert status normalizes valid values with dataset "active"
+  ✓ alert status normalizes valid values with dataset "cleared"
+  ✓ alert status throws for invalid values
+
+   PASS  Tests\Unit\Enums\IncidentUpdateTypeTest
+  ✓ incident update type exposes ordered values
+
+   PASS  Tests\Unit\Events\AlertNotificationSentTest
+  ✓ it exposes the expected broadcast payload and private channel
+
+   PASS  Tests\Unit\ExampleTest
+  ✓ that true is true
+
+   PASS  Tests\Unit\Http\Resources\FireIncidentResourceTest
+  ✓ fire incident resource maps model to transport shape                 0.13s  
+
+   PASS  Tests\Unit\Http\Resources\UnifiedAlertResourceTest
+  ✓ unified alert resource maps dto to transport shape
+  ✓ unified alert resource returns null location and empty meta when missing
+
+   PASS  Tests\Unit\Models\FireIncidentTest
+  ✓ it has correct fillable attributes                                   0.11s  
+  ✓ it casts attributes correctly                                        0.01s  
+  ✓ it can scope active incidents                                        0.02s  
+  ✓ it has many incident updates                                         0.02s  
+
+   PASS  Tests\Unit\Models\GoTransitAlertTest
+  ✓ go transit alert model has expected fillable attributes              0.01s  
+  ✓ go transit alert model casts posted feed updated and active attribu… 0.01s  
+  ✓ go transit alert model active scope returns only active records      0.01s  
+
+   PASS  Tests\Unit\Models\IncidentUpdateTest
+  ✓ it has expected fillable attributes                                  0.01s  
+  ✓ it casts attributes correctly                                        0.02s  
+  ✓ it belongs to a fire incident and creator                            0.01s  
+  ✓ incident update factory make does not persist a fire incident        0.01s  
+  ✓ incident update factory does not create extra fire incident when ev… 0.01s  
+
+   PASS  Tests\Unit\Models\NotificationLogTest
+  ✓ it has expected fillable attributes and casts                        0.01s  
+  ✓ it scopes unread logs                                                0.01s  
+  ✓ it scopes undismissed logs                                           0.01s  
+  ✓ it belongs to a user                                                 0.01s  
+  ✓ it composes unread and undismissed scopes together                   0.01s  
+
+   PASS  Tests\Unit\Models\NotificationPreferenceTest
+  ✓ it has expected fillable attributes and casts                        0.01s  
+  ✓ preference validation rules accept valid payload                     0.02s  
+  ✓ preference validation rules reject invalid payload                   0.01s  
+  ✓ preference validation rules require complete geofence coordinates a… 0.01s  
+
+   PASS  Tests\Unit\Models\PoliceCallTest
+  ✓ it has correct casts
+  ✓ it uses default timestamps
+  ✓ it has correct fillable attributes
+
+   PASS  Tests\Unit\Models\TransitAlertTest
+  ✓ it has correct fillable attributes                                   0.01s  
+  ✓ it casts attributes correctly                                        0.01s  
+  ✓ it can scope active alerts                                           0.01s  
+  ✓ transit alert factory inactive state sets is_active to false         0.01s  
+  ✓ transit alert factory subway state sets subway defaults              0.01s  
+  ✓ transit alert factory elevator state sets elevator defaults          0.02s  
+  ✓ transit alert factory sxa state sets sxa defaults                    0.01s  
+
+   PASS  Tests\Unit\Models\UserTest
+  ✓ user model has expected fillable hidden and casts                    0.02s  
+  ✓ user model relationships are configured correctly                    0.02s  
+
+   PASS  Tests\Unit\Providers\AppServiceProviderTest
+  ✓ app service provider configures CarbonImmutable dates                0.01s  
+  ✓ app service provider uses 8-char password default outside productio… 0.01s  
+  ✓ app service provider uses 12-char password default in production     0.01s  
+
+   PASS  Tests\Unit\Providers\QueueEnqueueDebugServiceProviderTest
+  ✓ queue enqueue debug provider does not register listener when debug…  0.01s  
+  ✓ queue enqueue debug provider uses default matchers when env matcher… 0.01s  
+  ✓ queue enqueue debug provider matcher list trims values and drops em… 0.01s  
+  ✓ queue enqueue debug provider matcher supports wildcard exact and pa… 0.01s  
+  ✓ queue enqueue debug provider logs warning when payload extraction f… 0.02s  
+  ✓ queue enqueue debug provider toggles stack inclusion and compacts s… 0.01s  
+  ✓ queue enqueue debug provider compact stack enforces frame limit      0.01s  
+
+   PASS  Tests\Unit\Providers\QueueExecutionDebugServiceProviderTest
+  ✓ queue execution debug provider does not register listeners when deb… 0.01s  
+  ✓ queue execution debug provider uses default matchers when env match… 0.01s  
+  ✓ queue execution debug provider matcher supports wildcard exact and…  0.01s  
+  ✓ queue execution debug provider logs processing processed and failed… 0.01s  
+
+   PASS  Tests\Unit\Rules\UnifiedAlertsCursorRuleTest
+  ✓ unified alerts cursor rule accepts null                              0.01s  
+  ✓ unified alerts cursor rule rejects non-string values                 0.01s  
+  ✓ unified alerts cursor rule accepts blank string                      0.01s  
+  ✓ unified alerts cursor rule rejects invalid encoded cursor            0.01s  
+  ✓ unified alerts cursor rule accepts valid encoded cursor              0.01s  
+  ✓ unified alerts cursor rule accepts valid encoded cursor with surrou… 0.01s  
+
+   PASS  Tests\Unit\Services\Alerts\AlertIdTest
+  ✓ alert id builds from parts
+  ✓ alert id parses from string
+  ✓ alert id rejects invalid formats with dataset "missing colon"
+  ✓ alert id rejects invalid formats with dataset "empty source"
+  ✓ alert id rejects invalid formats with dataset "empty external id"
+  ✓ alert id rejects invalid sources
+
+   PASS  Tests\Unit\Services\Alerts\Mappers\UnifiedAlertMapperTest
+  ✓ unified alert mapper decodes meta arrays as-is
+  ✓ unified alert mapper decodes meta json objects and never leaks json exceptions with dataset "null"
+  ✓ unified alert mapper decodes meta json objects and never leaks json exceptions with dataset "empty string"
+  ✓ unified alert mapper decodes meta json objects and never leaks json exceptions with dataset "invalid json"
+  ✓ unified alert mapper decodes meta json objects and never leaks json exceptions with dataset "valid json object"
+  ✓ unified alert mapper decodes meta json objects and never leaks json exceptions with dataset "valid json array"
+  ✓ unified alert mapper decodes meta json objects and never leaks json exceptions with dataset "valid json scalar string"
+  ✓ unified alert mapper decodes meta json objects and never leaks json exceptions with dataset "valid json scalar int"
+  ✓ unified alert mapper decodes meta json objects and never leaks json exceptions with dataset "valid json null"
+  ✓ unified alert mapper maps a row to a dto with location and decoded meta
+  ✓ unified alert mapper returns null location when all location fields are null
+  ✓ unified alert mapper builds a coords-only location and preserves zero coords
+  ✓ unified alert mapper throws when timestamp is missing or not parseable with dataset "null"
+  ✓ unified alert mapper throws when timestamp is missing or not parseable with dataset "empty"
+  ✓ unified alert mapper throws when timestamp is missing or not parseable with dataset "not parseable"
+  ✓ unified alert mapper throws when required string fields are missing or empty with dataset "source null"
+  ✓ unified alert mapper throws when required string fields are missing or empty with dataset "external_id empty"
+  ✓ unified alert mapper throws when required string fields are missing or empty with dataset "title empty"
+
+   PASS  Tests\Unit\Services\Alerts\Providers\FireAlertSelectProviderTest
+  ✓ fire alert select provider maps unified columns                      0.02s  
+  ✓ fire alert select provider includes intel summary and last updated   0.01s  
+  ✓ fire alert select provider limits embedded intel summary to latest…  0.02s  
+  ✓ fire alert select provider uses non-sqlite expressions when driver…  0.01s  
+  ✓ fire alert select provider uses pgsql-safe expressions when driver…  0.01s  
+  ✓ fire alert select provider pushes down status and since filters      0.01s  
+  ✓ fire alert select provider source mismatch adds hard false predicat… 0.01s  
+  ✓ fire alert select provider applies cleared status filter             0.01s  
+  ✓ fire alert select provider mysql query path includes fulltext and l… 0.01s  
+  ✓ fire alert select provider pgsql query path includes fulltext and i… 0.01s  
+  ✓ fire alert select provider maps unknown incident update type to fal… 0.01s  
+
+   PASS  Tests\Unit\Services\Alerts\Providers\GoTransitAlertSelectProviderTest
+  ✓ go transit alert select provider maps unified columns                0.02s  
+  ✓ go transit alert select provider maps saag columns                   0.01s  
+  ✓ go transit alert select provider uses non-sqlite expressions when d… 0.01s  
+  ✓ go transit alert select provider uses pgsql-safe expressions when d… 0.01s  
+  ✓ go transit alert select provider pushes down status and since filte… 0.01s  
+  ✓ go transit alert select provider pgsql query path includes fulltext… 0.01s  
+
+   PASS  Tests\Unit\Services\Alerts\Providers\PoliceAlertSelectProviderTest
+  ✓ police alert select provider maps unified columns                    0.02s  
+  ✓ police alert select provider uses non-sqlite expressions when drive… 0.01s  
+  ✓ police alert select provider uses pgsql-safe expressions when drive… 0.01s  
+  ✓ police alert select provider pgsql query path includes fulltext and… 0.01s  
+  ✓ police alert select provider pushes down status and since filters    0.01s  
+
+   PASS  Tests\Unit\Services\Alerts\Providers\TransitAlertSelectProviderTest
+  ✓ transit alert select provider maps unified columns                   0.02s  
+  ✓ transit alert select provider uses non-sqlite expressions when driv… 0.01s  
+  ✓ transit alert select provider uses pgsql-safe expressions when driv… 0.01s  
+  ✓ transit alert select provider pushes down status and since filters   0.01s  
+  ✓ transit alert select provider source mismatch adds hard false predi… 0.01s  
+  ✓ transit alert select provider applies cleared status filter          0.01s  
+  ✓ transit alert select provider mysql query path includes fulltext an… 0.01s  
+  ✓ transit alert select provider pgsql query path includes fulltext an… 0.01s  
+  ✓ transit alert select provider since cutoff falls back to created at… 0.01s  
+  ✓ transit alert select provider since cutoff includes rows exactly at… 0.02s  
+
+   PASS  Tests\Unit\Services\Alerts\UnifiedAlertDtoTest
+  ✓ alert location dto stores values
+  ✓ unified alert dto stores values and defaults
+  ✓ unified alert dto allows null location and empty meta
+
+   PASS  Tests\Unit\Services\Alerts\UnifiedAlertsCriteriaTest
+  ✓ unified alerts criteria defaults
+  ✓ unified alerts criteria accepts valid values
+  ✓ unified alerts criteria enforces per-page bounds with dataset "too small"
+  ✓ unified alerts criteria enforces per-page bounds with dataset "too large"
+  ✓ unified alerts criteria enforces page bounds
+  ✓ unified alerts criteria rejects invalid status
+  ✓ unified alerts criteria trims query and normalizes empty values to null
+  ✓ unified alerts criteria rejects invalid source
+  ✓ unified alerts criteria rejects invalid since
+  ✓ unified alerts criteria rejects invalid sort
+  ✓ unified alerts criteria rejects invalid cursor
+
+   PASS  Tests\Unit\Services\Alerts\UnifiedAlertsCursorTest
+  ✓ unified alerts cursor encodes and decodes round-trip
+  ✓ unified alerts cursor rejects invalid payloads with dataset "empty"
+  ✓ unified alerts cursor rejects invalid payloads with dataset "not base64"
+  ✓ unified alerts cursor rejects invalid payloads with dataset "not json"
+  ✓ unified alerts cursor rejects invalid payloads with dataset "missing keys"
+  ✓ unified alerts cursor rejects invalid payloads with dataset "invalid timestamp"
+
+   PASS  Tests\Unit\Services\Notifications\AlertContentExtractorTest
+  ✓ it extracts route station and line urns from transit content         0.01s  
+  ✓ it returns deduplicated normalized urns                              0.01s  
+  ✓ it extracts all configured ttc routes from text and combined route…  0.01s  
+  ✓ it extracts standard bus routes not in config                        0.01s  
+  ✓ it extracts standard bus routes like 29 even if only in text         0.01s  
+  ✓ it does not extract time strings as routes                           0.01s  
+
+   PASS  Tests\Unit\Services\SceneIntel\SceneIntelProcessorTest
+  ✓ it generates alarm and resource updates from an incident snapshot d… 0.02s  
+  ✓ it generates a closure update once when an incident transitions to…  0.01s  
+  ✓ it does not generate updates without previous incident data          0.01s  
+  ✓ it records phase changes across reactivation and deactivation cycle… 0.01s  
+
+   PASS  Tests\Unit\Services\SceneIntel\SceneIntelRepositoryTest
+  ✓ it returns latest updates for an incident with limit                 0.01s  
+  ✓ it uses id as a deterministic tiebreaker for latest and summary que… 0.01s  
+  ✓ it returns timeline in chronological order                           0.01s  
+  ✓ it uses id as a deterministic tiebreaker for timeline queries        0.01s  
+  ✓ it returns intel summary payload for an incident                     0.01s  
+  ✓ it adds a manual entry for an incident                               0.01s  
+
+   PASS  Tests\Feature\AlertFullTextMigrationsTest
+  ✓ pgsql fulltext migration opts out of transactions for concurrent in… 0.01s  
+  ✓ pgsql fulltext migration creates concurrent gin indexes with expect… 0.01s  
+  ✓ pgsql fulltext migration drops indexes concurrently on rollback      0.01s  
+  ✓ pgsql fulltext migration is a no-op for non-pgsql drivers            0.01s  
+  ✓ mysql fulltext migration runs for mariadb driver family              0.01s  
+
+   PASS  Tests\Feature\Api\FeedControllerTest
+  ✓ the feed api returns alerts with next_cursor                         0.05s  
+  ✓ the feed api respects status filter                                  0.03s  
+  ✓ the feed api respects source filter                                  0.02s  
+  ✓ the feed api respects since filter                                   0.02s  
+  ✓ the feed api respects sort direction                                 0.02s  
+  ✓ the feed api supports cursor pagination                              0.02s  
+  ✓ the feed api returns next_cursor when there are more results         0.04s  
+  ✓ the feed api respects per_page parameter                             0.04s  
+  ✓ the feed api fetches next page using cursor                          0.04s  
+  ✓ the feed api validates cursor parameter                              0.02s  
+  ✓ the feed api rejects invalid status                                  0.02s  
+  ✓ the feed api rejects invalid source                                  0.01s  
+  ✓ the feed api rejects invalid since                                   0.01s  
+  ✓ the feed api rejects invalid sort                                    0.01s  
+  ✓ the feed api rejects invalid per_page                                0.01s  
+  ✓ the feed api returns empty array when no alerts match                0.01s  
+  ✓ the feed api combines multiple filters correctly                     0.02s  
+  ✓ the feed api is rate limited                                         0.02s  
+  ✓ the feed api returns empty array for short search query              0.01s  
+
+   PASS  Tests\Feature\Auth\AuthenticationTest
+  ✓ login screen can be rendered                                         0.03s  
+  ✓ users can authenticate using the login screen                        0.02s  
+  ✓ users with two factor enabled are redirected to two factor challeng… 0.02s  
+  ✓ users can not authenticate with invalid password                     0.01s  
+  ✓ users can logout                                                     0.01s  
+  ✓ users are rate limited                                               0.02s  
+
+   PASS  Tests\Feature\Auth\EmailVerificationTest
+  ✓ email verification screen can be rendered                            0.02s  
+  ✓ email can be verified                                                0.02s  
+  ✓ email is not verified with invalid hash                              0.02s  
+  ✓ email is not verified with invalid user id                           0.01s  
+  ✓ verified user is redirected to dashboard from verification prompt    0.01s  
+  ✓ already verified user visiting verification link is redirected with… 0.02s  
+
+   PASS  Tests\Feature\Auth\PasswordConfirmationTest
+  ✓ confirm password screen can be rendered                              0.02s  
+  ✓ password confirmation requires authentication                        0.02s  
+
+   PASS  Tests\Feature\Auth\PasswordPolicyTest
+  ✓ password defaults enforce complexity in non-production environments  0.01s  
+
+   PASS  Tests\Feature\Auth\PasswordResetTest
+  ✓ reset password link screen can be rendered                           0.02s  
+  ✓ reset password link can be requested                                 0.22s  
+  ✓ reset password screen can be rendered                                0.22s  
+  ✓ password can be reset with valid token                               0.22s  
+  ✓ password cannot be reset with invalid token                          0.22s  
+
+   PASS  Tests\Feature\Auth\RegistrationTest
+  ✓ registration screen can be rendered                                  0.02s  
+  ✓ new users can register                                               0.02s  
+
+   PASS  Tests\Feature\Auth\TwoFactorChallengeTest
+  ✓ two factor challenge redirects to login when not authenticated       0.01s  
+  ✓ two factor challenge can be rendered                                 0.02s  
+
+   PASS  Tests\Feature\Auth\VerificationNotificationTest
+  ✓ sends verification notification                                      0.02s  
+  ✓ does not send verification notification if email is verified         0.01s  
+
+   PASS  Tests\Feature\Commands\ExportProductionDataCommandTest
+  ✓ it exports a single model dataset using insertOrIgnore and preserve… 0.02s  
+  ✓ it exports all alert models into the generated seeder                0.02s  
+  ✓ it splits export output into linked part seeders when output exceed… 0.21s  
+  ✓ it warns and falls back for invalid chunk and max-bytes values       0.03s  
+  ✓ it fails when output directory cannot be created                     0.01s  
+  ✓ it fails cleanly when split rename step cannot create part files     0.03s  
+  ✓ it throws guard errors when writeBlock and closeSeederFile are call… 0.01s  
+
+   PASS  Tests\Feature\Commands\FetchFireIncidentsCommandTest
+  ✓ it syncs fire incidents from the service                             0.03s  
+  ✓ it deactivates incidents no longer in the feed                       0.02s  
+  ✓ it handles service failures gracefully                               0.02s  
+  ✓ it persists long units dispatched payloads from the live feed        0.01s  
+  ✓ it generates synthetic intel updates for changed incidents and deac… 0.02s  
+  ✓ it does not duplicate closure intel updates for the same transition… 0.01s  
+  ✓ it records a new closure intel update after an incident is reactiva… 0.02s  
+
+   PASS  Tests\Feature\Commands\FetchGoTransitAlertsCommandTest
+  ✓ it syncs go transit alerts from the service                          0.02s  
+  ✓ it deactivates alerts no longer in the feed                          0.02s  
+  ✓ it handles empty feed gracefully                                     0.01s  
+  ✓ it handles service failures gracefully                               0.01s  
+
+   PASS  Tests\Feature\Commands\FetchPoliceCallsCommandTest
+  ✓ it creates new records from feed data                                0.02s  
+  ✓ it updates existing records on re-fetch                              0.01s  
+  ✓ it deactivates calls no longer in the feed                           0.02s  
+  ✓ it preserves existing data when feed is empty and empty feeds are n… 0.01s  
+  ✓ active scope returns only active records                             0.01s  
+  ✓ it returns failure on service exception                              0.01s  
+  ✓ it dispatches alert created events for new calls                     0.01s  
+  ✓ it skips deactivation when the police feed fetch is partial          0.02s  
+
+   PASS  Tests\Feature\Commands\FetchTransitAlertsCommandTest
+  ✓ it syncs transit alerts by external_id and deactivates stale rows    0.03s  
+  ✓ it returns failure when feed fetch throws                            0.01s  
+  ✓ it dispatches accessibility notifications only when status transiti… 0.01s  
+  ✓ it dispatches notification when accessibility alert transitions to…  0.01s  
+
+   PASS  Tests\Feature\Commands\PruneNotificationsCommandTest
+  ✓ it prunes notification logs older than 30 days                       0.02s  
+  ✓ it reports zero when there are no stale logs to prune                0.01s  
+
+   PASS  Tests\Feature\Commands\SailWrapperCommandTest
+  ✓ sail wrapper shows usage when no args are provided                   0.01s  
+  ✓ sail wrapper returns error when configured sail script path is miss… 0.01s  
+  ✓ sail wrapper runs configured script and returns child exit code      0.02s  
+
+   PASS  Tests\Feature\Commands\SchedulerCommandsTest
+  ✓ scheduler:run-and-log writes heartbeat on success                    0.02s  
+  ✓ scheduler:run-and-log writes failure heartbeat when schedule:run th… 0.01s  
+  ✓ scheduler:status fails when heartbeat is missing                     0.01s  
+  ✓ scheduler:status fails when heartbeat is stale                       0.01s  
+  ✓ scheduler:status succeeds when heartbeat is fresh                    0.01s  
+  ✓ scheduler:report logs schedule output lines                          0.01s  
+  ✓ scheduler:report returns failure when schedule:list throws           0.02s  
+
+   PASS  Tests\Feature\Commands\VerifyProductionSeedCommandTest
+  ✓ it verifies generated split seeders successfully                     0.25s  
+  ✓ it fails verification when seeder has a syntax error                 0.04s  
+  ✓ it fails verification when required table exports are missing        0.03s  
+  ✓ it uses the default seeder path when path option is omitted          0.02s  
+  ✓ it fails verification when a referenced split seeder file is missin… 0.01s  
+  ✓ it fails verification when created_at sentinel is missing            0.03s  
+  ✓ it fails verification when updated_at sentinel is missing            0.03s  
+  ✓ it fails verification when seeder file cannot be read                0.02s  
+
+   PASS  Tests\Feature\Console\Commands\FetchFireIncidentsCommandTest
+  ✓ it continues processing incidents when scene intel processor fails   0.02s  
+  ✓ it optimizes the query to select only necessary columns              0.01s  
+  ✓ it logs a warning when scene intel failure rate exceeds 50%          0.02s  
+
+   PASS  Tests\Feature\Console\Commands\FetchPoliceCallsCommandTest
+  ✓ it rethrows QueryException so the command fails and can be retried   0.02s  
+  ✓ it skips a single record when a non-db exception occurs and continu… 0.01s  
+  ✓ it preserves existing calls when pagination is partial and the feed… 0.01s  
+  ✓ it does not dispatch an alert when an existing active call remains…  0.01s  
+  ✓ it detects OBJECTID sequence reset, clears stale rows, and fires Al… 0.01s  
+  ✓ it rolls back reset clear when reseed hits QueryException and prese… 0.01s  
+  ✓ it does not trigger reset detection when feed OBJECTIDs are consist… 0.02s  
+  ✓ it handles duplicate object ids without creating duplicate records…  0.01s  
+
+   PASS  Tests\Feature\Console\Commands\FetchTransitAlertsCommandTest
+  ✓ it skips alerts with invalid external ids (including whitespace)     0.02s  
+  ✓ it persists a trimmed external id when the feed includes whitespace… 0.01s  
+  ✓ it rethrows QueryException so the command fails and can be retried   0.01s  
+  ✓ it dispatches accessibility notifications based on status transitio… 0.02s  
+  ✓ it dispatches accessibility notifications when transitioning from i… 0.01s  
+
+   PASS  Tests\Feature\Console\DevQueueWorkerScriptTest
+  ✓ composer dev scripts use the dev queue worker wrapper                0.01s  
+  ✓ dev queue worker wrapper restarts clean worker exits and surfaces f… 0.04s  
+
+   PASS  Tests\Feature\Console\ImportTorontoGeospatialDataCommandTest
+  ✓ toronto geospatial import command truncates and ingests addresses a… 0.02s  
+  ✓ toronto geospatial import command fails when dataset file is missin… 0.01s  
+  ✓ toronto geospatial import command fails for unreadable dataset file… 0.01s  
+  ✓ toronto geospatial import command fails for unsupported dataset fil… 0.02s  
+  ✓ toronto geospatial import command fails when address csv is missing… 0.02s  
+  ✓ toronto geospatial import command fails for invalid poi json payloa… 0.01s  
+  ✓ toronto geospatial import command appends duplicate records when tr… 0.02s  
+  ✓ toronto geospatial import command requires at least one dataset opt… 0.01s  
+  ✓ toronto geospatial import command fails when csv headers are missin… 0.01s  
+  ✓ toronto geospatial import command skips csv rows with mismatched co… 0.01s  
+  ✓ toronto geospatial import command rejects json files larger than 50… 0.01s  
+  ✓ toronto geospatial import command maps geojson coordinates into poi… 0.01s  
+  ✓ toronto geospatial import command supports non-list json objects fo… 0.02s  
+  ✓ toronto geospatial import command skips invalid mapped address and…  0.02s  
+  ✓ toronto geospatial import command flushes inserts in 1000-row chunk… 0.07s  
+
+   PASS  Tests\Feature\Console\NotificationPruningScheduleTest
+  ✓ notifications prune command is scheduled daily                       0.03s  
+
+   PASS  Tests\Feature\Console\ScheduledFetchJobDispatcherTest
+  ✓ dispatch methods enqueue one scheduled fetch job per source          0.02s  
+  ✓ dispatch skips duplicate enqueue when an equivalent job is already…  0.01s  
+  ✓ dispatch re-enqueues after the prior job has completed and lock is…  0.01s  
+  ✓ dispatch skips when an equivalent unique lock is already held witho… 0.01s  
+  ✓ dispatch skips when an equivalent queue row exists even if lock is…  0.01s  
+  ✓ dispatch methods use the configured unique lock store instead of th… 0.01s  
+  ✓ dispatch failure releases the unique lock so later retries can enqu… 0.01s  
+  ✓ post-lock queue check failure releases the unique lock so later ret… 0.01s  
+
+   PASS  Tests\Feature\Console\SchedulerResiliencePhase1Test
+  ✓ scheduled fetch commands use short overlap mutex expiry              0.05s  
+  ✓ scheduler cache store is configurable via cache.schedule_store       0.01s  
+  ✓ scheduled callback mutex is released even when the callback throws   0.01s  
+  ✓ queue depth monitor logs error when threshold exceeded               0.04s  
+  ✓ fire fetch command returns failure and logs when database is unavai… 0.02s  
+
+   PASS  Tests\Feature\Console\SchedulerResiliencePhase2Test
+  ✓ scheduled fetch events are callback-based and named                  0.05s  
+  ✓ fire command preserves existing incidents when feed is empty         0.03s  
+  ✓ police command preserves existing calls when feed is empty           0.01s  
+  ✓ go transit command preserves existing alerts when feed is empty      0.01s  
+  ✓ transit command preserves existing alerts when feed is empty         0.01s  
+  ✓ fire command continues when a single record timestamp fails to pars… 0.01s  
+  ✓ go transit command continues when a single record timestamp fails t… 0.01s  
+
+   PASS  Tests\Feature\Console\SchedulerResiliencePhase3Test
+  ✓ failed job pruning is scheduled daily                                0.02s  
+
+   PASS  Tests\Feature\DashboardTest
+  ✓ guests are redirected to the login page                              0.01s  
+  ✓ authenticated users can visit the dashboard                          0.01s  
+  ✓ dashboard returns active fire incidents from the database            0.02s  
+
+   PASS  Tests\Feature\ExampleTest
+  ✓ it returns a successful response                                     0.02s  
+
+   PASS  Tests\Feature\ExportAlertDataSqlTest
+  ✓ db export sql exports default tables with postgres upsert statement… 0.03s  
+  ✓ db export sql supports table filtering chunking and no header        0.02s  
+  ✓ db export sql supports gzip output                                   0.02s  
+  ✓ db export sql emits deterministic header by default and writes to d… 0.03s  
+  ✓ db export sql preserves null values and escapes single quotes corre… 0.02s  
+  ✓ db export sql rejects unsupported tables                             0.01s  
+  ✓ db export sql rejects empty normalized tables option                 0.01s  
+  ✓ db export sql warns and falls back when chunk size is invalid        0.01s  
+  ✓ db export sql respects explicit gzip extension without appending an… 0.03s  
+  ✓ db export sql fails when output directory cannot be created          0.02s  
+  ✓ db export sql fails when output path points to an existing director… 0.02s  
+  ✓ db export sql fails when output path points to an existing director… 0.01s  
+  ✓ db export sql fails when target table is missing from schema         0.01s  
+  ✓ db export sql fails when table does not expose required id column    0.01s  
+  ✓ db export sql normalizes boolean literals for numeric and string va… 0.02s  
+
+   PASS  Tests\Feature\FireIncidentMigrationTest
+  ✓ fire_incidents table exists and has expected columns                 0.06s  
+
+   PASS  Tests\Feature\Geocoding\LocalGeocodingSearchControllerTest
+  ✓ geocoding search endpoint requires authentication                    0.01s  
+  ✓ geocoding search validates required query string                     0.01s  
+  ✓ geocoding search returns matching local addresses and pois           0.01s  
+  ✓ geocoding search returns an empty dataset for short queries          0.01s  
+  ✓ geocoding search returns an empty dataset when there are no matches  0.01s  
+  ✓ geocoding search enforces default result limit                       0.02s  
+  ✓ geocoding search handles special character queries without broad wi… 0.02s  
+
+   PASS  Tests\Feature\GtaAlertsTest
+  ✓ the home page renders the gta-alerts component                       0.02s  
+  ✓ the home page provides unified alerts data                           0.02s  
+  ✓ the home page allows filtering by status                             0.02s  
+  ✓ the home page supports sort direction toggle                         0.02s  
+  ✓ the home page rejects invalid status values                          0.01s  
+  ✓ the home page rejects invalid source values                          0.02s  
+  ✓ the home page rejects invalid since values                           0.01s  
+  ✓ the home page rejects invalid sort values                            0.01s  
+  ✓ the home page rejects invalid cursor values                          0.01s  
+  ✓ the home page trims cursor values before validating                  0.01s  
+  ✓ the home page trims q and treats whitespace-only q as unset          0.01s  
+  ✓ the home page supports server-side filtering by source, since, and…  0.02s  
+  ✓ the home page sets latest_feed_updated_at from fire when police is…  0.02s  
+  ✓ the home page sets latest_feed_updated_at from police when fire is…  0.02s  
+  ✓ the home page sets latest_feed_updated_at to the most recent of fir… 0.02s  
+  ✓ the home page sets latest_feed_updated_at from transit when fire an… 0.02s  
+  ✓ the home page sets latest_feed_updated_at to the most recent of fir… 0.02s  
+  ✓ go transit alerts appear in unified feed                             0.02s  
+  ✓ the home page sets latest_feed_updated_at from go transit when it i… 0.02s  
+  ✓ the home page echoes all filter params in the filters prop for ui r… 0.02s  
+  ✓ the home page preserves filter params through pagination links       0.04s  
+  ✓ the home page combines multiple filters correctly                    0.02s  
+  ✓ the home page handles all valid since options                        0.03s  
+  ✓ the home page handles empty filters gracefully                       0.02s  
+  ✓ the home page returns empty results for short queries                0.02s  
+  ✓ the home page sanitizes search query                                 0.02s  
+
+   PASS  Tests\Feature\ImportAlertDataSqlTest
+  ✓ db import sql dry run rejects ddl statements                         0.03s  
+  ✓ db import sql dry run does not require postgres network credentials  0.01s  
+  ✓ db import sql reports missing psql binary                            0.02s  
+  ✓ db import sql requires confirmation unless force is provided         0.02s  
+  ✓ db import sql executes without prompt when force is provided         0.01s  
+  ✓ db import sql rejects gzip input and prints decompression guidance   0.01s  
+  ✓ db import sql refuses testing environment without allow testing fla… 0.01s  
+  ✓ db import sql requires --file option                                 0.01s  
+  ✓ db import sql fails when default database connection is missing      0.02s  
+  ✓ db import sql fails when database name is missing from connection    0.02s  
+  ✓ db import sql fails when required runtime connection keys are missi… 0.01s  
+  ✓ db import sql fails when required runtime connection keys are missi… 0.01s  
+  ✓ db import sql fails when required runtime connection keys are missi… 0.01s  
+  ✓ db import sql fails when required connection values are blank        0.01s  
+  ✓ db import sql fails when file path does not exist                    0.01s  
+  ✓ db import sql fails when file is empty                               0.01s  
+  ✓ db import sql dry run fails when file only contains comments and wh… 0.01s  
+  ✓ db import sql dry run allows select setval statements                0.01s  
+  ✓ db import sql dry run rejects unsupported statements                 0.01s  
+  ✓ db import sql surfaces stdout when process exits non-zero without s… 0.01s  
+  ✓ db import sql recognizes windows style psql missing message          0.02s  
+  ✓ db import sql handles non-psql throwables from process execution     0.02s  
+  ✓ db import sql maps throwable psql launch errors to missing binary g… 0.02s  
+
+   PASS  Tests\Feature\IncidentUpdateMigrationTest
+  ✓ incident updates table exists with expected columns and indexes      0.03s  
+  ✓ incident updates are deleted when parent fire incident is deleted    0.01s  
+
+   PASS  Tests\Feature\Jobs\FetchFireIncidentsJobTest
+  ✓ it calls the fire fetch-incidents artisan command                    0.01s  
+  ✓ it throws when the fire command fails so the job can retry           0.01s  
+  ✓ it has correct retry configuration                                   0.01s  
+  ✓ it uses without overlapping job middleware                           0.01s  
+
+   PASS  Tests\Feature\Jobs\FetchGoTransitAlertsJobTest
+  ✓ it calls the go transit fetch-alerts artisan command                 0.01s  
+  ✓ it throws when the go transit command fails so the job can retry     0.01s  
+  ✓ it has correct retry configuration                                   0.01s  
+  ✓ it uses without overlapping job middleware                           0.01s  
+
+   PASS  Tests\Feature\Jobs\FetchPoliceCallsJobTest
+  ✓ it calls the police fetch-calls artisan command                      0.01s  
+  ✓ it throws when the police command fails so the job can retry         0.01s  
+  ✓ it has correct retry configuration                                   0.01s  
+  ✓ it uses without overlapping job middleware                           0.01s  
+
+   PASS  Tests\Feature\Jobs\FetchTransitAlertsJobTest
+  ✓ it calls the transit fetch-alerts artisan command                    0.01s  
+  ✓ it throws when the transit command fails so the job can retry        0.01s  
+  ✓ it has correct retry configuration                                   0.01s  
+  ✓ it uses without overlapping job middleware                           0.01s  
+
+   PASS  Tests\Feature\NotificationMigrationsTest
+  ✓ notification tables exist with expected columns                      0.01s  
+  ✓ notification logs include high-read indexes                          0.01s  
+  ✓ geofence drop migration backfills saved places before removing lega… 0.01s  
+  ✓ subscription rename migration copies subscribed routes into subscri… 0.02s  
+
+   PASS  Tests\Feature\Notifications\AlertCreatedMatchingTest
+  ✓ alert created queues a fan-out job with alert payload                0.02s  
+  ✓ fan-out pipeline queues notification jobs only for matching prefere… 0.02s  
+  ✓ transit alerts respect subscribed route matching when provided       0.01s  
+  ✓ geofence matching includes alerts exactly on the saved-place bounda… 0.01s  
+  ✓ alerts with missing coordinates do not match users with saved place… 0.01s  
+  ✓ geofence matching succeeds when at least one saved place is within…  0.01s  
+  ✓ accessibility preferences match ttc accessibility source alerts      0.01s  
+  ✓ accessibility preferences match transit and go alerts by accessibil… 0.01s  
+  ✓ transit subscription matching normalizes route ids and deduplicates… 0.01s  
+  ✓ go transit alerts with subscriptions configured do not match when n… 0.01s  
+  ✓ notification matcher uses per-run saved-place cache consistently fo… 0.01s  
+
+   PASS  Tests\Feature\Notifications\DeliverAlertNotificationJobTest
+  ✓ it retries broadcast for existing sent notification log and marks d… 0.02s  
+  ✓ it skips rebroadcast when notification log is already delivered      0.01s  
+  ✓ it has correct retry configuration                                   0.01s  
+  ✓ it exits early when user has no notification preference              0.01s  
+  ✓ it exits early when push notifications are disabled                  0.01s  
+  ✓ it exits early when payload cannot produce a valid alert id or sour… 0.01s  
+  ✓ it exits safely when notification log claim update affects zero row… 0.01s  
+  ✓ it resets processing status to sent when event dispatch throws       0.01s  
+  ✓ it stores expected metadata shape when creating a notification log…  0.01s  
+
+   PASS  Tests\Feature\Notifications\FanOutAlertNotificationsJobTest
+  ✓ fan-out job splits high-volume recipients into chunk jobs            0.30s  
+  ✓ fan-out job suppresses a second run for the same alert state within… 0.02s  
+  ✓ fan-out job re-fans-out when alert state fingerprint changes         0.01s  
+  ✓ chunk job queues one delivery job per unique valid user id           0.01s  
+
+   PASS  Tests\Feature\Notifications\GenerateDailyDigestJobTest
+  ✓ daily digest aggregates only prior day notifications and prevents d… 0.02s  
+
+   PASS  Tests\Feature\Notifications\NotificationInboxControllerTest
+  ✓ notification inbox endpoints require authentication                  0.02s  
+  ✓ authenticated user can list their own inbox logs including digest e… 0.02s  
+  ✓ pagination links preserve applied inbox query filters                0.01s  
+  ✓ pagination previous link preserves applied inbox query filters       0.02s  
+  ✓ authenticated user can mark their inbox log as read                  0.01s  
+  ✓ mark as read preserves dismissed status and existing timestamps      0.01s  
+  ✓ mark as read enforces ownership boundaries                           0.01s  
+  ✓ authenticated user can mark all unread undismissed logs as read      0.01s  
+  ✓ mark all read uses application clock for read timestamp              0.01s  
+  ✓ authenticated user can dismiss an inbox log                          0.02s  
+  ✓ dismiss enforces ownership boundaries                                0.01s  
+  ✓ authenticated user can clear all undismissed inbox logs              0.03s  
+  ✓ clear all uses application clock for read and dismissed timestamps   0.01s  
+
+   PASS  Tests\Feature\Notifications\NotificationSystemIntegrationTest
+  ✓ matching alert flows through dispatch, delivery, broadcast, inbox,…  0.02s  
+  ✓ non-matching geofence alert does not dispatch notification job       0.01s  
+  ✓ digest user receives daily digest entry in inbox                     0.01s  
+
+   PASS  Tests\Feature\Notifications\SavedPlaceControllerTest
+  ✓ saved places endpoints require authentication                        0.02s  
+  ✓ authenticated user can list, create, update, and delete saved place… 0.02s  
+  ✓ saved places validation enforces gta bounds                          0.02s  
+  ✓ saved places validation enforces radius boundaries                   0.02s  
+  ✓ saved places validation enforces maximum name length                 0.01s  
+  ✓ saved places allow duplicate names for the same user                 0.01s  
+  ✓ saved places update and delete are scoped to the owner               0.02s  
+
+   PASS  Tests\Feature\Notifications\SavedPlaceLimitTest
+  ✓ user cannot create more than maximum allowed saved places            0.02s  
+  ✓ user can create saved places up to the limit                         0.03s  
+
+   PASS  Tests\Feature\Notifications\SubscriptionOptionsControllerTest
+  ✓ subscriptions options endpoint requires authentication               0.01s  
+  ✓ subscriptions options endpoint returns route, station, and line dat… 0.01s  
+  ✓ subscriptions options endpoint does not error when transit_data con… 0.01s  
+
+   PASS  Tests\Feature\SceneIntel\IncidentUpdatePruningTest
+  ✓ it prunes incident updates older than 90 days                        0.02s  
+
+   PASS  Tests\Feature\SceneIntel\SceneIntelControllerTest
+  ✓ public timeline endpoint returns chronological scene intel for an i… 0.02s  
+  ✓ public timeline endpoint returns not found for unknown incident      0.02s  
+  ✓ manual intel entry endpoint requires authentication                  0.01s  
+  ✓ manual intel entry endpoint requires verified users                  0.01s  
+  ✓ verified user is denied when allowlist is empty                      0.01s  
+  ✓ manual intel entry endpoint validates payload                        0.01s  
+  ✓ manual intel entry endpoint returns validation error for non-string… 0.01s  
+  ✓ manual intel entry endpoint returns not found when incident does no… 0.01s  
+  ✓ manual intel entry gate can deny users when allowlist is configured  0.01s  
+  ✓ manual intel entry gate allows configured allowlist users            0.02s  
+  ✓ manual intel entry strips html tags from content                     0.02s  
+
+   PASS  Tests\Feature\Security\NotificationPreferenceSanitizationTest
+  ✓ notification settings sanitizes geofence names to prevent Stored XS… 0.02s  
+  ✓ notification settings sanitizes subscriptions to prevent Stored XSS  0.02s  
+
+   PASS  Tests\Feature\Security\ProfileSanitizationTest
+  ✓ profile name is sanitized on update                                  0.02s  
+  ✓ profile name with tags is sanitized but keeps content                0.01s  
+
+   PASS  Tests\Feature\Security\RateLimitingTest
+  ✓ public timeline endpoint is rate limited                             0.08s  
+
+   PASS  Tests\Feature\Security\RegistrationSanitizationArrayTest
+  ✓ registration name handles array                                      0.02s  
+
+   PASS  Tests\Feature\Security\RegistrationSanitizationTest
+  ✓ registration name is sanitized                                       0.02s  
+
+   PASS  Tests\Feature\Security\SavedPlaceSanitizationArrayTest
+  ✓ saved place name array payload does not crash                        0.02s  
+
+   PASS  Tests\Feature\Security\SavedPlaceSanitizationTest
+  ✓ saved place name is sanitized on create                              0.02s  
+  ✓ saved place name is sanitized on update                              0.01s  
+
+   PASS  Tests\Feature\Security\SceneIntelSanitizationTest
+  ✓ manual intel entry sanitizes metadata to prevent Stored XSS          0.03s  
+
+   PASS  Tests\Feature\Security\SecurityHeadersTest
+  ✓ security headers use strict runtime-aware csp without hot mode       0.02s  
+  ✓ security headers allow vite hot origins only when hot mode is activ… 0.01s  
+  ✓ security headers keep frontend broadcast websocket hosts in connect… 0.02s  
+  ✓ existing security headers are preserved                              0.02s  
+  ✓ hsts header is present when secure                                   0.02s  
+
+   PASS  Tests\Feature\Services\FeedCircuitBreakerTest
+  ✓ it does nothing when the circuit breaker is disabled                 0.01s  
+  ✓ it logs and throws when the breaker is open                          0.01s  
+  ✓ it tolerates cache failures when checking breaker state              0.01s  
+  ✓ it tolerates cache failures when recording breaker success           0.01s  
+  ✓ it tolerates cache failures when recording breaker failure           0.01s  
+  ✓ it treats non-int cache values as zero when recording failures       0.01s  
+  ✓ it clamps invalid threshold and ttl configuration values             0.01s  
+  ✓ it trims feed names when building cache keys                         0.01s  
+  ✓ circuit breaker opens after threshold and recovers after ttl (fire…  0.42s  
+  ✓ circuit breaker blocks repeated failures (police feed)               0.22s  
+  ✓ circuit breaker blocks repeated failures (go transit feed)           0.42s  
+  ✓ circuit breaker blocks repeated failures (ttc alerts feed)           0.42s  
+
+   PASS  Tests\Feature\Services\FeedDataSanityTest
+  ✓ it warns when a timestamp is beyond the configured grace window      0.03s  
+  ✓ it does not warn when a timestamp is within the grace window or exa… 0.01s  
+  ✓ it clamps a negative grace window to zero                            0.01s  
+  ✓ it warns when coordinates fall outside GTA bounds and no-ops on nul… 0.01s  
+  ✓ it falls back to default GTA bounds when config is missing or inval… 0.01s  
+
+   PASS  Tests\Feature\Services\GoTransitFeedServiceTest
+  ✓ it parses a valid json response with trains buses and stations       0.01s  
+  ✓ it strips html from message body                                     0.01s  
+  ✓ it strips embedded style blocks and decodes html entities from mess… 0.01s  
+  ✓ it skips notifications without message subject                       0.01s  
+  ✓ it skips saag notifications without trip numbers                     0.01s  
+  ✓ it returns empty alerts for empty feed sections                      0.01s  
+  ✓ it throws exception on http error                                    0.21s  
+  ✓ it throws exception on invalid json                                  0.01s  
+  ✓ it throws exception when LastUpdated is missing                      0.01s  
+  ✓ it handles missing feed sections gracefully                          0.01s  
+  ✓ it throws exception on empty alerts when empty feeds are not allowe… 0.01s  
+
+   PASS  Tests\Feature\Services\TorontoFireFeedServiceTest
+  ✓ it parses a valid xml response into normalized records               0.02s  
+  ✓ it throws exception on http error                                    0.21s  
+  ✓ it throws exception on empty response body                           0.02s  
+  ✓ it throws exception on invalid xml                                   0.01s  
+  ✓ it throws exception on connection timeout                            0.21s  
+  ✓ it throws exception when update_from_db_time is missing              0.01s  
+  ✓ it handles missing optional fields                                   0.01s  
+  ✓ it returns empty array for empty events                              0.01s  
+  ✓ it throws exception on empty events when empty feeds are not allowe… 0.02s  
+
+   PASS  Tests\Feature\Services\TorontoPoliceFeedServiceTest
+  ✓ it parses a valid arcgis response into normalized records            0.01s  
+  ✓ it handles pagination when exceededTransferLimit is true             0.01s  
+  ✓ it throws exception on http error                                    0.11s  
+  ✓ it throws exception on missing features key                          0.01s  
+  ✓ it handles missing optional fields                                   0.01s  
+  ✓ it returns empty array for empty features                            0.01s  
+  ✓ it throws exception on empty features when empty feeds are not allo… 0.01s  
+  ✓ it returns partial results when pagination fails mid-stream          0.11s  
+  ✓ it enforces a safety max record limit to avoid unbounded pagination… 0.01s  
+  ✓ it throws when the features key is not an array                      0.01s  
+  ✓ it skips features with missing attributes and logs a warning         0.01s  
+  ✓ it treats later empty pages as the end of pagination                 0.01s  
+  ✓ it returns partial results when pagination returns an empty page wh… 0.01s  
+  ✓ it allows max_records boundary without throwing                      0.01s  
+
+   PASS  Tests\Feature\Services\TtcAlertsFeedServiceTest
+  ✓ it fetches and normalizes TTC alerts from live API, SXA, and static… 0.02s  
+  ✓ it ignores non advisory static sections when parsing streetcar page  0.01s  
+  ✓ it throws when the TTC live API source fails                         0.21s  
+  ✓ it throws when the TTC live API returns a sentinel lastUpdated time… 0.01s  
+  ✓ it logs warnings and continues when SXA or static sources fail       0.21s  
+  ✓ it correctly parses "Not in Service" as OUT_OF_SERVICE               0.01s  
+
+   PASS  Tests\Feature\Settings\NotificationPreferenceControllerTest
+  ✓ notification settings endpoints require authentication               0.03s  
+  ✓ authenticated user can fetch notification settings defaults          0.01s  
+  ✓ authenticated user can update notification settings                  0.02s  
+  ✓ notification settings update validates payload                       0.02s  
+  ✓ notification settings updates only affect the authenticated user     0.01s  
+  ✓ notification settings update rejects invalid alert type and push to… 0.01s  
+  ✓ notification settings update enforces geofence coordinate and radiu… 0.02s  
+  ✓ notification settings update requires complete geofence coordinates… 0.01s  
+  ✓ partial notification settings patch preserves untouched fields       0.01s  
+  ✓ notification settings update accepts empty arrays for geofences and… 0.01s  
+  ✓ notification settings update rejects null scalar preference fields   0.01s  
+  ✓ notification settings update rejects unknown geofence keys           0.01s  
+  ✓ notification settings update accepts legacy subscribed_routes paylo… 0.01s  
+  ✓ notification settings update validates legacy subscribed_routes pay… 0.01s  
+  ✓ repeated notification settings fetch and update do not create dupli… 0.02s  
+  ✓ notification settings geofences are synced to legacy saved places    0.02s  
+
+   PASS  Tests\Feature\Settings\PasswordUpdateTest
+  ✓ password update page is displayed                                    0.02s  
+  ✓ password can be updated                                              0.02s  
+  ✓ correct password must be provided to update password                 0.01s  
+
+   PASS  Tests\Feature\Settings\ProfileUpdateTest
+  ✓ profile page is displayed                                            0.02s  
+  ✓ profile information can be updated                                   0.02s  
+  ✓ email verification status is unchanged when the email address is un… 0.02s  
+  ✓ user can delete their account                                        0.01s  
+  ✓ correct password must be provided to delete account                  0.01s  
+
+   PASS  Tests\Feature\Settings\TwoFactorAuthenticationTest
+  ✓ two factor settings page can be rendered                             0.02s  
+  ✓ two factor settings page requires password confirmation when enable… 0.01s  
+  ✓ two factor settings page does not requires password confirmation wh… 0.01s  
+  ✓ two factor settings page returns forbidden response when two factor… 0.02s  
+
+   PASS  Tests\Feature\TransitAlertMigrationTest
+  ✓ transit_alerts table exists and has expected columns                 0.05s  
+
+   PASS  Tests\Feature\UnifiedAlerts\Providers\GoTransitAlertSelectProviderTest
+  ✓ go transit provider returns source name                              0.01s  
+  ✓ go transit provider selects active alerts by default                 0.01s  
+  ✓ go transit provider selects cleared alerts                           0.01s  
+  ✓ go transit provider filters by since date                            0.01s  
+  ✓ go transit provider handles source filtering                         0.01s  
+  ✓ go transit provider constructs correct meta json expression          0.01s  
+  ✓ go transit provider generates mysql fulltext search query            0.01s  
+
+   PASS  Tests\Feature\UnifiedAlerts\Providers\PoliceAlertSelectProviderTest
+  ✓ police provider returns source name                                  0.01s  
+  ✓ police provider selects active alerts by default                     0.01s  
+  ✓ police provider selects cleared alerts                               0.01s  
+  ✓ police provider filters by since date                                0.01s  
+  ✓ police provider handles source filtering                             0.01s  
+  ✓ police provider constructs correct meta json expression              0.01s  
+  ✓ police provider generates mysql fulltext search query                0.01s  
+
+   PASS  Tests\Feature\UnifiedAlerts\TestDataPreparationTest
+  ✓ fire incident factory supports inactive state                        0.01s  
+  ✓ unified alerts test seeder seeds mixed history data for fire police… 0.02s  
+
+   PASS  Tests\Feature\UnifiedAlerts\UnifiedAlertsFrontendContractFixtureTest
+  ✓ unified alert resource payload matches the frontend contract fixtur… 0.02s  
+
+   WARN  Tests\Feature\UnifiedAlerts\UnifiedAlertsMySqlDriverTest
+  - mysql fire provider returns formatted location and decodable meta →… 0.02s  
+  - mysql police provider returns decodable meta and coordinates → MySQ… 0.02s  
+  - mysql unified alerts query returns a deterministic mixed feed → MyS… 0.01s  
+  - mysql providers use fulltext predicates when q is provided → MySQL…  0.01s  
+
+   WARN  Tests\Feature\UnifiedAlerts\UnifiedAlertsPgsqlDriverTest
+  - pgsql feed keeps fire intel_summary as array and intel_last_updated… 0.01s  
+  - pgsql feed emits iso-8601 offset intel_last_updated when incident u… 0.01s  
+  - pgsql q filtering reduces result set for fire provider without quer… 0.01s  
+
+   PASS  Tests\Feature\UnifiedAlerts\UnifiedAlertsQueryTaggedInjectionTest
+  ✓ unified alerts query resolves tagged providers and includes custom…  0.01s  
+
+   PASS  Tests\Feature\UnifiedAlerts\UnifiedAlertsQueryTest
+  ✓ unified alerts query returns empty results when there are no source… 0.01s  
+  ✓ unified alerts query returns empty results when providers list is e… 0.01s  
+  ✓ unified alerts query throws when provider is invalid type            0.01s  
+  ✓ unified alerts query throws when provider is invalid object          0.01s  
+  ✓ unified alerts query returns a mixed feed ordered by timestamp desc  0.02s  
+  ✓ unified alerts query returns a mixed feed ordered by timestamp asc   0.02s  
+  ✓ unified alerts query filters by status                               0.02s  
+  ✓ unified alerts query filters by source across the full dataset       0.02s  
+  ✓ unified alerts query skips irrelevant providers when source is spec… 0.02s  
+  ✓ unified alerts query filters by since cutoff using test now          0.02s  
+  ✓ unified alerts query filters by q across title and location_name (s… 0.02s  
+  ✓ unified alerts query combines status, source, since, and q filters   0.03s  
+  ✓ unified alerts query maps dto fields for each source                 0.02s  
+  ✓ unified alerts query creates a location dto when any location field… 0.01s  
+  ✓ unified alerts query paginates deterministically                     0.02s  
+  ✓ unified alerts query uses deterministic tie-breakers for identical…  0.02s  
+  ✓ unified alerts query stays stable when ties cross a page boundary    0.02s  
+  ✓ unified alerts query cursor pagination returns deterministic batche… 0.02s  
+  ✓ unified alerts query cursor pagination respects ascending sort orde… 0.02s  
+  ✓ unified alerts query throws for invalid status values                0.01s  
+  ✓ unified alerts query decodes meta to an array and never leaks json…  0.01s  
+  ✓ unified alerts query decodes meta to an array and never leaks json…  0.01s  
+  ✓ unified alerts query decodes meta to an array and never leaks json…  0.01s  
+  ✓ unified alerts query decodes meta to an array and never leaks json…  0.01s  
+  ✓ unified alerts query decodes meta to an array and never leaks json…  0.01s  
+  ✓ unified alerts query throws when timestamp is missing                0.01s  
+  ✓ unified alerts query throws when timestamp is not parseable          0.01s  
+
+  Tests:    7 skipped, 630 passed (3098 assertions)
+  Duration: 13.78s
+
+\n=== exit code: 0 ===
