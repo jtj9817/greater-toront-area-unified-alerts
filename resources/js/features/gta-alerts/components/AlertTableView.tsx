@@ -66,19 +66,30 @@ export const AlertTableView: React.FC<AlertTableViewProps> = ({
                 className="incident-table w-full min-w-[780px] border-collapse"
             >
                 <thead>
-                    <tr>
-                        <th>Timestamp</th>
-                        <th>Incident Type</th>
-                        <th>Location</th>
-                        <th>Status</th>
-                        <th>Severity</th>
-                        <th>Source</th>
-                        <th className="w-10">
+                    <tr id="gta-alerts-alert-table-header-row">
+                        <th id="gta-alerts-alert-table-th-timestamp">
+                            Timestamp
+                        </th>
+                        <th id="gta-alerts-alert-table-th-type">
+                            Incident Type
+                        </th>
+                        <th id="gta-alerts-alert-table-th-location">
+                            Location
+                        </th>
+                        <th id="gta-alerts-alert-table-th-status">Status</th>
+                        <th id="gta-alerts-alert-table-th-severity">
+                            Severity
+                        </th>
+                        <th id="gta-alerts-alert-table-th-source">Source</th>
+                        <th id="gta-alerts-alert-table-th-expand" className="w-10">
                             <span className="sr-only">Expand</span>
                         </th>
                     </tr>
                 </thead>
-                <tbody className="bg-background-dark">
+                <tbody
+                    id="gta-alerts-alert-table-body"
+                    className="bg-background-dark"
+                >
                     {rows.map(({ alert, presentation }) => {
                         const isExpanded = expandedRowId === presentation.id;
                         const isActive = alert.isActive;
@@ -93,19 +104,31 @@ export const AlertTableView: React.FC<AlertTableViewProps> = ({
                                     }
                                     className={`expandable-row ${isExpanded ? 'active-row' : ''} ${!isActive ? 'opacity-80 grayscale-[0.35]' : ''}`}
                                 >
-                                    <td className="font-black">
+                                    <td
+                                        id={`gta-alerts-alert-table-row-${presentation.id}-timestamp`}
+                                        className="font-black"
+                                    >
                                         {formatTimestampEST(
                                             presentation.timestamp,
                                         )}
                                     </td>
-                                    <td className="tracking-tight uppercase">
+                                    <td
+                                        id={`gta-alerts-alert-table-row-${presentation.id}-title`}
+                                        className="tracking-tight uppercase"
+                                    >
                                         {presentation.title}
                                     </td>
-                                    <td className="underline decoration-primary decoration-2">
+                                    <td
+                                        id={`gta-alerts-alert-table-row-${presentation.id}-location`}
+                                        className="underline decoration-primary decoration-2"
+                                    >
                                         {presentation.location}
                                     </td>
-                                    <td>
+                                    <td
+                                        id={`gta-alerts-alert-table-row-${presentation.id}-status`}
+                                    >
                                         <span
+                                            id={`gta-alerts-alert-table-row-${presentation.id}-status-badge`}
                                             className={`px-2 py-1 text-[10px] font-black uppercase ${
                                                 isActive
                                                     ? 'bg-black text-primary'
@@ -115,8 +138,11 @@ export const AlertTableView: React.FC<AlertTableViewProps> = ({
                                             {isActive ? 'Active' : 'Cleared'}
                                         </span>
                                     </td>
-                                    <td>
+                                    <td
+                                        id={`gta-alerts-alert-table-row-${presentation.id}-severity`}
+                                    >
                                         <span
+                                            id={`gta-alerts-alert-table-row-${presentation.id}-severity-badge`}
                                             className={`font-black uppercase ${severityStyles[presentation.severity]}`}
                                         >
                                             {formatSeverityLabel(
@@ -124,15 +150,25 @@ export const AlertTableView: React.FC<AlertTableViewProps> = ({
                                             )}
                                         </span>
                                     </td>
-                                    <td className="text-xs tracking-wide uppercase">
-                                        {sourceLabel}
+                                    <td
+                                        id={`gta-alerts-alert-table-row-${presentation.id}-source`}
+                                        className="text-xs tracking-wide uppercase"
+                                    >
+                                        <span id={`gta-alerts-alert-table-row-${presentation.id}-source-label`}>
+                                            {sourceLabel}
+                                        </span>
                                         {savedIds.has(presentation.id) && (
-                                            <span className="ml-2 bg-[#FF7F00] px-2 py-1 text-[10px] font-black text-black uppercase">
+                                            <span
+                                                id={`gta-alerts-alert-table-row-${presentation.id}-saved-badge`}
+                                                className="ml-2 bg-[#FF7F00] px-2 py-1 text-[10px] font-black text-black uppercase"
+                                            >
                                                 Saved
                                             </span>
                                         )}
                                     </td>
-                                    <td>
+                                    <td
+                                        id={`gta-alerts-alert-table-row-${presentation.id}-actions`}
+                                    >
                                         <button
                                             id={`gta-alerts-alert-table-row-${presentation.id}-expand-btn`}
                                             type="button"
@@ -146,6 +182,7 @@ export const AlertTableView: React.FC<AlertTableViewProps> = ({
                                             className="flex h-8 w-8 items-center justify-center transition-colors hover:bg-black hover:text-primary"
                                         >
                                             <Icon
+                                                id={`gta-alerts-alert-table-row-${presentation.id}-expand-icon`}
                                                 name={
                                                     isExpanded
                                                         ? 'expand_less'
@@ -156,22 +193,39 @@ export const AlertTableView: React.FC<AlertTableViewProps> = ({
                                     </td>
                                 </tr>
                                 {isExpanded && (
-                                    <tr className="bg-panel-light text-black">
+                                    <tr
+                                        id={`gta-alerts-alert-table-row-${presentation.id}-expanded`}
+                                        className="bg-panel-light text-black"
+                                    >
                                         <td
+                                            id={`gta-alerts-alert-table-row-${presentation.id}-expanded-cell`}
                                             colSpan={7}
                                             className="border-b-4 border-black p-0"
                                         >
                                             <div
+                                                id={`gta-alerts-alert-table-row-${presentation.id}-expanded-content`}
                                                 className={`m-4 border-l-[12px] bg-panel-light p-6 ${presentation.severity === 'high' ? 'border-critical' : 'border-warning'}`}
                                             >
-                                                <p className="mb-3 text-xs font-black tracking-widest text-critical uppercase">
+                                                <p
+                                                    id={`gta-alerts-alert-table-row-${presentation.id}-expanded-summary-label`}
+                                                    className="mb-3 text-xs font-black tracking-widest text-critical uppercase"
+                                                >
                                                     Incident Summary
                                                 </p>
-                                                <p className="text-base leading-relaxed font-bold">
+                                                <p
+                                                    id={`gta-alerts-alert-table-row-${presentation.id}-expanded-summary-text`}
+                                                    className="text-base leading-relaxed font-bold"
+                                                >
                                                     {presentation.description}
                                                 </p>
-                                                <div className="mt-4 flex flex-wrap gap-3 text-[10px] font-black uppercase">
-                                                    <span className="border-2 border-black bg-panel-light px-3 py-1">
+                                                <div
+                                                    id={`gta-alerts-alert-table-row-${presentation.id}-expanded-footer`}
+                                                    className="mt-4 flex flex-wrap gap-3 text-[10px] font-black uppercase"
+                                                >
+                                                    <span
+                                                        id={`gta-alerts-alert-table-row-${presentation.id}-expanded-event-ref`}
+                                                        className="border-2 border-black bg-panel-light px-3 py-1"
+                                                    >
                                                         Event #
                                                         {
                                                             presentation
@@ -181,8 +235,12 @@ export const AlertTableView: React.FC<AlertTableViewProps> = ({
                                                     </span>
                                                     {presentation.metadata
                                                         ?.unitsDispatched && (
-                                                        <span className="flex items-center gap-1 border-2 border-black bg-panel-light px-3 py-1">
+                                                        <span
+                                                            id={`gta-alerts-alert-table-row-${presentation.id}-expanded-units`}
+                                                            className="flex items-center gap-1 border-2 border-black bg-panel-light px-3 py-1"
+                                                        >
                                                             <Icon
+                                                                id={`gta-alerts-alert-table-row-${presentation.id}-expanded-units-icon`}
                                                                 name="fire_truck"
                                                                 className="text-sm"
                                                             />
