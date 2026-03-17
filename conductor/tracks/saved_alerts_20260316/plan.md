@@ -94,18 +94,31 @@
 - [x] Task: Conductor - User Manual Verification 'Phase 4: UI Integration Across Existing Views' (Protocol in `conductor/workflow.md`). <!-- bd240af -->
 
 
-## Phase 5: Quality Gates, Documentation & Closeout (GTA-105)
+## Phase 5: Quality Gates (GTA-105)
 
 - [ ] Task: Execute automated quality gates.
     - [ ] Run `composer test`.
     - [ ] Run `pnpm run quality:check`.
     - [ ] Attempt `php artisan test --coverage --min=90` or `./vendor/bin/sail artisan test --coverage --min=90` depending on the available coverage driver/runtime, and document any environment blocker if strict coverage cannot run.
-- [ ] Task: Add manual verification artifacts.
+    - [ ] Run `composer audit` and resolve or document any flagged advisories.
+    - [ ] Run `pnpm audit` and resolve or document any flagged advisories.
+- [ ] Task: Execute and confirm manual verification scripts.
     - [ ] Add/update manual verification scripts for guest save flows, authenticated save flows, saved-view rendering, and unresolved saved IDs.
-    - [ ] Record which architectural option was chosen for hydration and unresolved records.
-- [ ] Task: Update technical documentation.
-    - [ ] Update `README.md`, `CLAUDE.md`, and any relevant `docs/` references with the saved-alert API contract, guest/local behavior, and known limitations.
-    - [ ] Document the chosen table/model naming if it differs from the earlier draft.
+    - [ ] Run all saved-alerts manual verification scripts via `./scripts/run-manual-test.sh` and confirm each passes.
+- [ ] Task: Conductor - User Manual Verification 'Phase 5: Quality Gates' (Protocol in `conductor/workflow.md`).
+
+## Phase 6: Documentation & Closeout (GTA-106)
+
+- [ ] Task: Create saved-alerts architecture document.
+    - [ ] Add `docs/backend/saved-alerts.md` covering the API contract (`GET`/`POST`/`DELETE /api/saved-alerts`), guest localStorage behavior, auth persistence, hydration path, and unresolved-ID handling.
+    - [ ] Record which architectural option was chosen for hydration and unresolved records in this document.
+- [ ] Task: Update existing documentation.
+    - [ ] Update `CLAUDE.md` `SavedView` description (currently "client-side storage") to reflect the full guest/auth implementation.
+    - [ ] Update `CLAUDE.md` to reference `docs/backend/saved-alerts.md` in the Architecture Documentation section.
+    - [ ] Review `README.md` and any other `docs/` files that referenced the placeholder `SavedView` state and update as needed.
+- [ ] Task: Mark spec acceptance criteria complete.
+    - [ ] Tick off all satisfied acceptance criteria checkboxes in `conductor/tracks/saved_alerts_20260316/spec.md`.
 - [ ] Task: Registry maintenance.
-    - [ ] Update conductor registry status and archive bookkeeping once implementation and verification are complete.
-- [ ] Task: Conductor - User Manual Verification 'Phase 5: Quality Gates, Documentation & Closeout' (Protocol in `conductor/workflow.md`).
+    - [ ] Update the track status in `conductor/tracks.md` and move the entry to the archive section.
+    - [ ] Confirm all phase checkpoint SHAs are recorded in `plan.md` headings.
+- [ ] Task: Conductor - User Manual Verification 'Phase 6: Documentation & Closeout' (Protocol in `conductor/workflow.md`).

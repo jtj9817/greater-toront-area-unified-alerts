@@ -153,7 +153,13 @@ This feature is a bookmark system for existing unified alerts. It is not a histo
     - `pnpm run quality:check`
     - coverage command if a coverage driver/runtime is available
 
-## 5. Acceptance Criteria
+## 5. Documentation & Closeout Requirements
+
+- `README.md`, `CLAUDE.md`, and relevant `docs/` files must be updated to reflect the saved-alert API contract, guest/local storage behavior, and any known limitations.
+- The chosen persistence naming (`saved_alerts`, `SavedAlert`, `SavedAlertController`) and hydration/unresolved-ID approach must be documented if not already captured in `CLAUDE.md`.
+- The conductor registry status must be updated and track bookkeeping archived once all phases are verified complete.
+
+## 6. Acceptance Criteria
 
 - [ ] Saved alerts use the existing canonical alert ID format and validate against the current alert identity contract.
 - [ ] Auth-only saved-alert routes follow the repository’s current routing/controller conventions instead of assuming `routes/api.php`.
@@ -164,7 +170,7 @@ This feature is a bookmark system for existing unified alerts. It is not a histo
 - [ ] The chosen unresolved-ID behavior is implemented and documented.
 - [ ] Tests and quality gates are updated to cover the new backend and frontend contracts.
 
-## 6. Out of Scope
+## 7. Out of Scope
 
 - Automatic migration of guest-saved alerts into an authenticated account on login.
 - Immutable snapshotting/archival of alert payloads at the time of save.
@@ -172,7 +178,7 @@ This feature is a bookmark system for existing unified alerts. It is not a histo
 - Push/email notifications triggered specifically by saving an alert.
 - Sharing saved alerts with other users.
 
-## 7. Locked Product Decisions
+## 8. Locked Product Decisions
 
 - [x] Persistence layer naming uses `saved_alerts`.
 - [x] `GET /api/saved-alerts` returns hydrated alert resources.
