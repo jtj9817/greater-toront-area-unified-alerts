@@ -2,6 +2,7 @@
 
 use App\Models\NotificationLog;
 use App\Models\NotificationPreference;
+use App\Models\SavedAlert;
 use App\Models\SavedPlace;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -61,4 +62,18 @@ test('user model relationships are configured correctly', function () {
     expect($user->savedPlaces)->toHaveCount(3);
     expect($user->savedPlaces->first())->toBeInstanceOf(SavedPlace::class);
     expect($user->savedPlaces->pluck('user_id')->unique()->all())->toBe([$user->id]);
+});
+
+test('user savedAlerts relationship is configured correctly', function () {
+    $user = User::factory()->create();
+    $otherUser = User::factory()->create();
+
+    SavedAlert::factory()->count(2)->create(['user_id' => $user->id]);
+    SavedAlert::factory()->create(['user_id' => $otherUser->id]);
+
+    $user = $user->fresh();
+
+    expect($user->savedAlerts)->toHaveCount(2);
+    expect($user->savedAlerts->first())->toBeInstanceOf(SavedAlert::class);
+    expect($user->savedAlerts->pluck('user_id')->unique()->all())->toBe([$user->id]);
 });

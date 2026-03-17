@@ -66,4 +66,9 @@ class User extends Authenticatable
     {
         return $this->hasMany(SavedPlace::class);
     }
+
+    public function savedAlerts(): HasMany
+    {
+        return $this->hasMany(SavedAlert::class);
+    }
 }

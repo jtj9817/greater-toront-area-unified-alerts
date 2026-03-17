@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Geocoding\LocalGeocodingSearchController;
 use App\Http\Controllers\Notifications\NotificationInboxController;
+use App\Http\Controllers\Notifications\SavedAlertController;
 use App\Http\Controllers\Notifications\SavedPlaceController;
 use App\Http\Controllers\Notifications\SubscriptionOptionsController;
 use App\Http\Controllers\SceneIntelController;
@@ -30,6 +31,9 @@ Route::middleware(['auth'])->group(function () {
     Route::post('api/saved-places', [SavedPlaceController::class, 'store'])->name('api.saved-places.store');
     Route::patch('api/saved-places/{savedPlace}', [SavedPlaceController::class, 'update'])->name('api.saved-places.update');
     Route::delete('api/saved-places/{savedPlace}', [SavedPlaceController::class, 'destroy'])->name('api.saved-places.destroy');
+    Route::get('api/saved-alerts', [SavedAlertController::class, 'index'])->name('api.saved-alerts.index');
+    Route::post('api/saved-alerts', [SavedAlertController::class, 'store'])->name('api.saved-alerts.store');
+    Route::delete('api/saved-alerts/{alertId}', [SavedAlertController::class, 'destroy'])->name('api.saved-alerts.destroy');
 });
 
 Route::middleware(['auth', 'verified'])->group(function () {
