@@ -57,20 +57,20 @@
 
 ## Phase 3: Frontend Saved Alert State (GTA-103)
 
-- [ ] Task: Implement a dedicated saved-alert state layer [TDD].
-    - [ ] Add `resources/js/features/gta-alerts/hooks/useSavedAlerts.ts`.
-    - [ ] Make the hook SSR-safe and branch on `auth.user` / initial props instead of assuming browser-only state.
-    - [ ] Store guest data in a versioned `localStorage` key and keep a deterministic oldest-first order for eviction.
-    - [ ] Support `saveAlert`, `removeAlert`, `toggleAlert`, `isSaved`, and the guest eviction helper selected in the final UX decision.
-- [ ] Task: Add a small API client/service for auth flows [TDD].
-    - [ ] Create `resources/js/features/gta-alerts/services/SavedAlertService.ts` following the same fetch/error conventions as `SavedPlaceService.ts`.
-    - [ ] Normalize backend payloads and expose typed error states for duplicate save, auth failure, validation failure, and unresolved-item handling.
-- [ ] Task: Decide and implement user feedback behavior.
-    - [ ] Either add a reusable action-feedback layer for save/unsave/limit events or intentionally use an inline/status-message pattern.
-    - [ ] Keep the implementation separate from the realtime `NotificationToastLayer`, which serves a different backend event stream.
-- [ ] Task: Frontend unit coverage.
-    - [ ] Add `resources/js/features/gta-alerts/hooks/useSavedAlerts.test.ts` for guest storage, auth API branching, bootstrap state, eviction, and duplicate handling.
-    - [ ] Add service tests if the saved-alert API client contains non-trivial normalization/error logic.
+- [~] Task: Implement a dedicated saved-alert state layer [TDD].
+    - [~] Add `resources/js/features/gta-alerts/hooks/useSavedAlerts.ts`.
+    - [~] Make the hook SSR-safe and branch on `auth.user` / initial props instead of assuming browser-only state.
+    - [~] Store guest data in a versioned `localStorage` key and keep a deterministic oldest-first order for eviction.
+    - [~] Support `saveAlert`, `removeAlert`, `toggleAlert`, `isSaved`, and the guest eviction helper selected in the final UX decision.
+- [~] Task: Add a small API client/service for auth flows [TDD].
+    - [~] Create `resources/js/features/gta-alerts/services/SavedAlertService.ts` following the same fetch/error conventions as `SavedPlaceService.ts`.
+    - [~] Normalize backend payloads and expose typed error states for duplicate save, auth failure, validation failure, and unresolved-item handling.
+- [~] Task: Decide and implement user feedback behavior.
+    - [~] Either add a reusable action-feedback layer for save/unsave/limit events or intentionally use an inline/status-message pattern.
+    - [~] Keep the implementation separate from the realtime `NotificationToastLayer`, which serves a different backend event stream.
+- [~] Task: Frontend unit coverage.
+    - [~] Add `resources/js/features/gta-alerts/hooks/useSavedAlerts.test.ts` for guest storage, auth API branching, bootstrap state, eviction, and duplicate handling.
+    - [~] Add service tests if the saved-alert API client contains non-trivial normalization/error logic.
 - [ ] Task: Conductor - User Manual Verification 'Phase 3: Frontend Saved Alert State' (Protocol in `conductor/workflow.md`).
 
 ## Phase 4: UI Integration Across Existing Views (GTA-104)
