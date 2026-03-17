@@ -182,7 +182,6 @@ export const AlertTableView: React.FC<AlertTableViewProps> = ({
                                             className="flex h-8 w-8 items-center justify-center transition-colors hover:bg-black hover:text-primary"
                                         >
                                             <Icon
-                                                id={`gta-alerts-alert-table-row-${presentation.id}-expand-icon`}
                                                 name={
                                                     isExpanded
                                                         ? 'expand_less'
@@ -240,7 +239,6 @@ export const AlertTableView: React.FC<AlertTableViewProps> = ({
                                                             className="flex items-center gap-1 border-2 border-black bg-panel-light px-3 py-1"
                                                         >
                                                             <Icon
-                                                                id={`gta-alerts-alert-table-row-${presentation.id}-expanded-units-icon`}
                                                                 name="fire_truck"
                                                                 className="text-sm"
                                                             />

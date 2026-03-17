@@ -25,12 +25,12 @@ test('geocoding search endpoint is rate limited', function () {
     // Make 60 requests which should all succeed
     for ($i = 0; $i < 60; $i++) {
         $this->actingAs($user)
-            ->getJson("/api/geocoding/search?q=Toronto")
+            ->getJson('/api/geocoding/search?q=Toronto')
             ->assertOk();
     }
 
     // The 61st request should be rate limited (429 Too Many Requests)
     $this->actingAs($user)
-        ->getJson("/api/geocoding/search?q=Toronto")
+        ->getJson('/api/geocoding/search?q=Toronto')
         ->assertStatus(429);
 });

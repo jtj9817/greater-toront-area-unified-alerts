@@ -146,7 +146,6 @@ export const AlertCard: React.FC<AlertCardProps> = ({
                         {hasLocation && (
                             <>
                                 <Icon
-                                    id={`gta-alerts-alert-card-${item.id}-location-icon`}
                                     name="location_on"
                                     className={`text-base ${item.iconColor}`}
                                 />
@@ -165,7 +164,6 @@ export const AlertCard: React.FC<AlertCardProps> = ({
                             </>
                         )}
                         <Icon
-                            id={`gta-alerts-alert-card-${item.id}-time-icon`}
                             name="schedule"
                             className={`text-base ${item.iconColor}`}
                         />
@@ -201,7 +199,6 @@ export const AlertCard: React.FC<AlertCardProps> = ({
                             className="flex items-center gap-1 border-2 border-black bg-panel-light px-2 py-1"
                         >
                             <Icon
-                                id={`gta-alerts-alert-card-${item.id}-event-icon`}
                                 name={item.iconName}
                                 className={item.iconColor}
                             />
@@ -213,7 +210,6 @@ export const AlertCard: React.FC<AlertCardProps> = ({
                                 className="flex items-center gap-1 border-2 border-black bg-panel-light px-2 py-1"
                             >
                                 <Icon
-                                    id={`gta-alerts-alert-card-${item.id}-units-icon`}
                                     name="fire_truck"
                                     className="text-sm"
                                 />
@@ -226,7 +222,6 @@ export const AlertCard: React.FC<AlertCardProps> = ({
                         >
                             View Details
                             <Icon
-                                id={`gta-alerts-alert-card-${item.id}-view-details-icon`}
                                 name="arrow_forward"
                                 className="text-sm transition-transform group-hover:translate-x-1"
                             />
