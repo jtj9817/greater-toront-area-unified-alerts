@@ -1,6 +1,5 @@
 import { act, renderHook, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { SavedAlertServiceError } from '../services/SavedAlertService';
 import { useSavedAlerts } from './useSavedAlerts';
 
 const GUEST_STORAGE_KEY = 'gta_saved_alerts_v1';
@@ -29,6 +28,8 @@ const mockFetchError = (status: number, message: string): Response =>
 // ------------------------------------------------------------------
 
 describe('useSavedAlerts', () => {
+    type HookProps = Parameters<typeof useSavedAlerts>[0];
+
     beforeEach(() => {
         localStorage.clear();
         vi.restoreAllMocks();
@@ -189,6 +190,46 @@ describe('useSavedAlerts', () => {
             expect(result.current.feedback?.kind).toBe('duplicate');
         });
 
+        it('prevents duplicate IDs when saveAlert is called rapidly', async () => {
+            const { result } = renderHook(() =>
+                useSavedAlerts({ authUserId: null, initialSavedIds: [] }),
+            );
+
+            await act(async () => {
+                const p1 = result.current.saveAlert('fire:F1');
+                const p2 = result.current.saveAlert('fire:F1');
+                await Promise.all([p1, p2]);
+            });
+
+            expect(
+                result.current.savedIds.filter((id) => id === 'fire:F1'),
+            ).toHaveLength(1);
+            expect(result.current.feedback?.kind).toBe('duplicate');
+        });
+
+        it('does not exceed the guest cap when saves happen rapidly', async () => {
+            const ids = Array.from(
+                { length: GUEST_CAP - 1 },
+                (_, i) => `fire:F${i}`,
+            );
+            localStorage.setItem(GUEST_STORAGE_KEY, JSON.stringify(ids));
+
+            const { result } = renderHook(() =>
+                useSavedAlerts({ authUserId: null, initialSavedIds: [] }),
+            );
+
+            await act(async () => {
+                const p1 = result.current.saveAlert('fire:CAP_LAST');
+                const p2 = result.current.saveAlert('fire:CAP_OVER');
+                await Promise.all([p1, p2]);
+            });
+
+            expect(result.current.savedIds).toHaveLength(GUEST_CAP);
+            expect(result.current.savedIds).toContain('fire:CAP_LAST');
+            expect(result.current.savedIds).not.toContain('fire:CAP_OVER');
+            expect(result.current.feedback?.kind).toBe('limit');
+        });
+
         it('guestCapReached is true when 10 alerts are saved', () => {
             const ids = Array.from(
                 { length: GUEST_CAP },
@@ -224,13 +265,7 @@ describe('useSavedAlerts', () => {
         });
 
         it('evictOldestThree removes the first 3 IDs (insertion-order oldest)', () => {
-            const ids = [
-                'fire:F0',
-                'fire:F1',
-                'fire:F2',
-                'fire:F3',
-                'fire:F4',
-            ];
+            const ids = ['fire:F0', 'fire:F1', 'fire:F2', 'fire:F3', 'fire:F4'];
             localStorage.setItem(GUEST_STORAGE_KEY, JSON.stringify(ids));
 
             const { result } = renderHook(() =>
@@ -604,10 +639,7 @@ describe('useSavedAlerts', () => {
         });
 
         it('guestCapReached is always false in auth mode regardless of count', () => {
-            const many = Array.from(
-                { length: 20 },
-                (_, i) => `fire:F${i}`,
-            );
+            const many = Array.from({ length: 20 }, (_, i) => `fire:F${i}`);
 
             const { result } = renderHook(() =>
                 useSavedAlerts({ authUserId: 1, initialSavedIds: many }),
@@ -682,6 +714,105 @@ describe('useSavedAlerts', () => {
 
             expect(global.fetch).not.toHaveBeenCalled();
             expect(result.current.feedback?.kind).toBe('duplicate');
+        });
+
+        it('prevents duplicate IDs and duplicate API calls when saveAlert is called rapidly', async () => {
+            vi.mocked(global.fetch).mockResolvedValue(
+                mockFetchSuccess({ data: { id: 1 } }),
+            );
+
+            const { result } = renderHook(() =>
+                useSavedAlerts({ authUserId: 1, initialSavedIds: [] }),
+            );
+
+            await act(async () => {
+                const p1 = result.current.saveAlert('fire:F1');
+                const p2 = result.current.saveAlert('fire:F1');
+                await Promise.all([p1, p2]);
+            });
+
+            expect(global.fetch).toHaveBeenCalledTimes(1);
+            expect(
+                result.current.savedIds.filter((id) => id === 'fire:F1'),
+            ).toHaveLength(1);
+        });
+    });
+
+    describe('state reconciliation when auth/props change', () => {
+        it('switches from guest mode to auth mode when authUserId becomes non-null', async () => {
+            localStorage.setItem(
+                GUEST_STORAGE_KEY,
+                JSON.stringify(['fire:GUEST']),
+            );
+
+            const initialGuestProps: HookProps = {
+                authUserId: null,
+                initialSavedIds: [],
+            };
+
+            const { result, rerender } = renderHook(
+                (props: HookProps) => useSavedAlerts(props),
+                {
+                    initialProps: initialGuestProps,
+                },
+            );
+
+            expect(result.current.savedIds).toEqual(['fire:GUEST']);
+
+            rerender({ authUserId: 1, initialSavedIds: ['fire:AUTH'] });
+
+            await waitFor(() => {
+                expect(result.current.savedIds).toEqual(['fire:AUTH']);
+            });
+        });
+
+        it('switches from auth mode to guest mode when authUserId becomes null', async () => {
+            localStorage.setItem(
+                GUEST_STORAGE_KEY,
+                JSON.stringify(['fire:GUEST']),
+            );
+
+            const initialAuthProps: HookProps = {
+                authUserId: 1,
+                initialSavedIds: ['fire:AUTH'],
+            };
+
+            const { result, rerender } = renderHook(
+                (props: HookProps) => useSavedAlerts(props),
+                {
+                    initialProps: initialAuthProps,
+                },
+            );
+
+            expect(result.current.savedIds).toEqual(['fire:AUTH']);
+
+            rerender({ authUserId: null, initialSavedIds: [] });
+
+            await waitFor(() => {
+                expect(result.current.savedIds).toEqual(['fire:GUEST']);
+            });
+        });
+
+        it('updates savedIds when initialSavedIds changes in auth mode without remount', async () => {
+            const initialAuthProps: HookProps = {
+                authUserId: 1,
+                initialSavedIds: ['fire:A'],
+            };
+
+            const { result, rerender } = renderHook(
+                (props: HookProps) => useSavedAlerts(props),
+                {
+                    initialProps: initialAuthProps,
+                },
+            );
+
+            expect(result.current.savedIds).toEqual(['fire:A']);
+
+            rerender({ authUserId: 1, initialSavedIds: ['fire:B'] });
+
+            await waitFor(() => {
+                expect(result.current.savedIds).toEqual(['fire:B']);
+            });
         });
     });
 });

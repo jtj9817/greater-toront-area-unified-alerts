@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
     SavedAlertServiceError,
     removeAlert as apiRemoveAlert,
@@ -29,6 +29,7 @@ export type SavedAlertFeedbackKind =
     | 'limit'
     | 'auth'
     | 'validation'
+    | 'unknown'
     | 'error';
 
 /**
@@ -119,6 +120,30 @@ function writeGuestIds(ids: string[]): void {
     }
 }
 
+function uniquePreserveOrder(ids: string[]): string[] {
+    const seen = new Set<string>();
+    const next: string[] = [];
+
+    for (const id of ids) {
+        if (seen.has(id)) continue;
+        seen.add(id);
+        next.push(id);
+    }
+
+    return next;
+}
+
+function arraysEqual(a: string[], b: string[]): boolean {
+    if (a === b) return true;
+    if (a.length !== b.length) return false;
+
+    for (let i = 0; i < a.length; i++) {
+        if (a[i] !== b[i]) return false;
+    }
+
+    return true;
+}
+
 // ---------------------------------------------------------------------------
 // Hook
 // ---------------------------------------------------------------------------
@@ -140,27 +165,87 @@ export function useSavedAlerts({
     initialSavedIds,
 }: UseSavedAlertsOptions): UseSavedAlertsReturn {
     const isGuest = authUserId === null;
+    const wasGuestRef = useRef(isGuest);
 
     const [savedIds, setSavedIds] = useState<string[]>(() => {
         if (isGuest) {
             // SSR returns [] here; client hydrates correctly from localStorage.
-            return readGuestIds();
+            return uniquePreserveOrder(readGuestIds());
         }
 
-        return initialSavedIds;
+        return uniquePreserveOrder(initialSavedIds);
     });
 
     const [pendingIds, setPendingIds] = useState<Set<string>>(new Set());
     const [feedback, setFeedback] = useState<SavedAlertFeedback | null>(null);
 
+    const savedIdsRef = useRef<string[]>(savedIds);
+    const pendingIdsRef = useRef<Set<string>>(pendingIds);
+
+    useEffect(() => {
+        savedIdsRef.current = savedIds;
+    }, [savedIds]);
+
+    useEffect(() => {
+        pendingIdsRef.current = pendingIds;
+    }, [pendingIds]);
+
     // Keep guest localStorage in sync whenever savedIds changes.
     useEffect(() => {
-        if (isGuest) {
-            writeGuestIds(savedIds);
-        }
+        const wasGuest = wasGuestRef.current;
+        wasGuestRef.current = isGuest;
+
+        if (!isGuest) return;
+
+        // On auth → guest transitions, savedIds still reflects the auth state
+        // until the reconciliation effect runs. Avoid overwriting localStorage
+        // with the stale auth-mode IDs during that transition.
+        if (!wasGuest) return;
+
+        writeGuestIds(savedIds);
     }, [isGuest, savedIds]);
 
     const guestCapReached = isGuest && savedIds.length >= GUEST_CAP;
+
+    const setSavedIdsSync = useCallback((next: string[]): void => {
+        savedIdsRef.current = next;
+        setSavedIds(next);
+    }, []);
+
+    const setPendingIdsSync = useCallback((next: Set<string>): void => {
+        pendingIdsRef.current = next;
+        setPendingIds(next);
+    }, []);
+
+    const previousAuthUserIdRef = useRef<number | null>(authUserId);
+    const previousInitialSavedIdsRef = useRef<string[]>(initialSavedIds);
+
+    useEffect(() => {
+        const authUserIdChanged = previousAuthUserIdRef.current !== authUserId;
+        const initialSavedIdsChanged =
+            !isGuest &&
+            !arraysEqual(previousInitialSavedIdsRef.current, initialSavedIds);
+
+        if (!authUserIdChanged && !initialSavedIdsChanged) {
+            return;
+        }
+
+        const nextSavedIds = isGuest
+            ? uniquePreserveOrder(readGuestIds())
+            : uniquePreserveOrder(initialSavedIds);
+
+        setSavedIdsSync(nextSavedIds);
+        setPendingIdsSync(new Set());
+
+        previousAuthUserIdRef.current = authUserId;
+        previousInitialSavedIdsRef.current = initialSavedIds;
+    }, [
+        authUserId,
+        initialSavedIds,
+        isGuest,
+        setPendingIdsSync,
+        setSavedIdsSync,
+    ]);
 
     const isSaved = useCallback(
         (alertId: string): boolean => savedIds.includes(alertId),
@@ -180,8 +265,10 @@ export function useSavedAlerts({
 
     const saveAlert = useCallback(
         async (alertId: string): Promise<void> => {
+            const currentSavedIds = savedIdsRef.current;
+
             // Idempotent — no API call needed for a locally-known duplicate.
-            if (savedIds.includes(alertId)) {
+            if (currentSavedIds.includes(alertId)) {
                 setFeedback({
                     kind: 'duplicate',
                     message: 'This alert is already saved.',
@@ -191,7 +278,7 @@ export function useSavedAlerts({
             }
 
             if (isGuest) {
-                if (savedIds.length >= GUEST_CAP) {
+                if (currentSavedIds.length >= GUEST_CAP) {
                     setFeedback({
                         kind: 'limit',
                         message: `You can save up to ${GUEST_CAP} alerts. Remove some to continue.`,
@@ -200,18 +287,26 @@ export function useSavedAlerts({
                     return;
                 }
 
-                setSavedIds((current) => [...current, alertId]);
-                setFeedback({ kind: 'saved', message: 'Alert saved.', alertId });
+                setSavedIdsSync([...currentSavedIds, alertId]);
+                setFeedback({
+                    kind: 'saved',
+                    message: 'Alert saved.',
+                    alertId,
+                });
                 return;
             }
 
             // Auth mode — optimistic update then API call.
-            setSavedIds((current) => [...current, alertId]);
-            setPendingIds((current) => new Set([...current, alertId]));
+            setSavedIdsSync([...currentSavedIds, alertId]);
+            setPendingIdsSync(new Set([...pendingIdsRef.current, alertId]));
 
             try {
                 await apiSaveAlert(alertId);
-                setFeedback({ kind: 'saved', message: 'Alert saved.', alertId });
+                setFeedback({
+                    kind: 'saved',
+                    message: 'Alert saved.',
+                    alertId,
+                });
             } catch (err) {
                 if (
                     err instanceof SavedAlertServiceError &&
@@ -225,8 +320,8 @@ export function useSavedAlerts({
                     });
                 } else {
                     // Roll back the optimistic add.
-                    setSavedIds((current) =>
-                        current.filter((id) => id !== alertId),
+                    setSavedIdsSync(
+                        savedIdsRef.current.filter((id) => id !== alertId),
                     );
 
                     if (err instanceof SavedAlertServiceError) {
@@ -244,14 +339,12 @@ export function useSavedAlerts({
                     }
                 }
             } finally {
-                setPendingIds((current) => {
-                    const next = new Set(current);
-                    next.delete(alertId);
-                    return next;
-                });
+                const next = new Set(pendingIdsRef.current);
+                next.delete(alertId);
+                setPendingIdsSync(next);
             }
         },
-        [isGuest, savedIds],
+        [isGuest, setPendingIdsSync, setSavedIdsSync],
     );
 
     // -----------------------------------------------------------------------
@@ -260,13 +353,13 @@ export function useSavedAlerts({
 
     const removeAlert = useCallback(
         async (alertId: string): Promise<void> => {
-            if (!savedIds.includes(alertId)) {
+            if (!savedIdsRef.current.includes(alertId)) {
                 return;
             }
 
             if (isGuest) {
-                setSavedIds((current) =>
-                    current.filter((id) => id !== alertId),
+                setSavedIdsSync(
+                    savedIdsRef.current.filter((id) => id !== alertId),
                 );
                 setFeedback({
                     kind: 'removed',
@@ -277,8 +370,8 @@ export function useSavedAlerts({
             }
 
             // Auth mode — optimistic update then API call.
-            setSavedIds((current) => current.filter((id) => id !== alertId));
-            setPendingIds((current) => new Set([...current, alertId]));
+            setSavedIdsSync(savedIdsRef.current.filter((id) => id !== alertId));
+            setPendingIdsSync(new Set([...pendingIdsRef.current, alertId]));
 
             try {
                 await apiRemoveAlert(alertId);
@@ -289,11 +382,9 @@ export function useSavedAlerts({
                 });
             } catch (err) {
                 // Roll back the optimistic remove.
-                setSavedIds((current) =>
-                    current.includes(alertId)
-                        ? current
-                        : [...current, alertId],
-                );
+                if (!savedIdsRef.current.includes(alertId)) {
+                    setSavedIdsSync([...savedIdsRef.current, alertId]);
+                }
 
                 if (err instanceof SavedAlertServiceError) {
                     setFeedback({
@@ -309,14 +400,12 @@ export function useSavedAlerts({
                     });
                 }
             } finally {
-                setPendingIds((current) => {
-                    const next = new Set(current);
-                    next.delete(alertId);
-                    return next;
-                });
+                const next = new Set(pendingIdsRef.current);
+                next.delete(alertId);
+                setPendingIdsSync(next);
             }
         },
-        [isGuest, savedIds],
+        [isGuest, setPendingIdsSync, setSavedIdsSync],
     );
 
     // -----------------------------------------------------------------------
@@ -325,13 +414,13 @@ export function useSavedAlerts({
 
     const toggleAlert = useCallback(
         async (alertId: string): Promise<void> => {
-            if (savedIds.includes(alertId)) {
+            if (savedIdsRef.current.includes(alertId)) {
                 await removeAlert(alertId);
             } else {
                 await saveAlert(alertId);
             }
         },
-        [saveAlert, removeAlert, savedIds],
+        [saveAlert, removeAlert],
     );
 
     // -----------------------------------------------------------------------
@@ -343,9 +432,9 @@ export function useSavedAlerts({
             return;
         }
 
-        setSavedIds((current) => current.slice(EVICT_COUNT));
+        setSavedIdsSync(savedIdsRef.current.slice(EVICT_COUNT));
         setFeedback({ kind: 'removed', message: 'Oldest 3 alerts removed.' });
-    }, [isGuest]);
+    }, [isGuest, setSavedIdsSync]);
 
     return {
         savedIds,
