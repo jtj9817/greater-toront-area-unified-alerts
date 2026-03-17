@@ -17,26 +17,26 @@
 
 ## Phase 1: Persistence Contract & Backend API (GTA-101)
 
-- [ ] Task: Define the persistence shape and naming.
-    - [ ] Implement the locked `saved_alerts` naming across migration, model, controller, routes, and tests.
-    - [ ] Implement the locked hydrated read contract for `GET /api/saved-alerts`.
-- [ ] Task: Create the persistence layer [TDD].
-    - [ ] Add migration for the saved-alert table with `id`, `user_id`, `alert_id`, timestamps, a unique index on `user_id + alert_id`, and an index supporting newest-first retrieval.
-    - [ ] Create the corresponding Eloquent model with minimal fillable state.
-    - [ ] Add `savedAlerts()` to `app/Models/User.php` and extend `tests/Unit/Models/UserTest.php`.
-- [ ] Task: Add request validation and ID normalization [TDD].
-    - [ ] Create a form request for create operations under `app/Http/Requests/Notifications/`.
-    - [ ] Validate `alert_id` against the existing `AlertId` contract rather than only checking `string`.
-    - [ ] Strip/normalize user input before validation to match the repository’s sanitization pattern.
-- [ ] Task: Implement auth-only saved-alert endpoints [TDD].
-    - [ ] Add routes in `routes/settings.php` under the existing `auth` group.
-    - [ ] Implement index/store/destroy actions in `App\Http\Controllers\Notifications\SavedAlertController`.
-    - [ ] Match existing JSON response conventions: `data` for resources and `meta.deleted` for deletion acknowledgements.
-    - [ ] Handle duplicate saves with a deterministic application response and preserve the database unique constraint as the race-condition backstop.
-- [ ] Task: Backend feature coverage.
-    - [ ] Add `tests/Feature/Notifications/SavedAlertControllerTest.php` covering auth requirements, create, duplicate create, list, delete, owner scoping, and invalid `alert_id` input.
-    - [ ] Add a limit/behavior test file if authenticated-user caps are introduced later; otherwise document that auth saves are uncapped in this iteration.
-- [ ] Task: Conductor - User Manual Verification 'Phase 1: Persistence Contract & Backend API' (Protocol in `conductor/workflow.md`).
+- [x] Task: Define the persistence shape and naming. <!-- 86163e6 -->
+    - [x] Implement the locked `saved_alerts` naming across migration, model, controller, routes, and tests.
+    - [x] Implement the locked hydrated read contract for `GET /api/saved-alerts`.
+- [x] Task: Create the persistence layer [TDD]. <!-- 86163e6 -->
+    - [x] Add migration for the saved-alert table with `id`, `user_id`, `alert_id`, timestamps, a unique index on `user_id + alert_id`, and an index supporting newest-first retrieval.
+    - [x] Create the corresponding Eloquent model with minimal fillable state.
+    - [x] Add `savedAlerts()` to `app/Models/User.php` and extend `tests/Unit/Models/UserTest.php`.
+- [x] Task: Add request validation and ID normalization [TDD]. <!-- 86163e6 -->
+    - [x] Create a form request for create operations under `app/Http/Requests/Notifications/`.
+    - [x] Validate `alert_id` against the existing `AlertId` contract rather than only checking `string`.
+    - [x] Strip/normalize user input before validation to match the repository’s sanitization pattern.
+- [x] Task: Implement auth-only saved-alert endpoints [TDD]. <!-- 86163e6 -->
+    - [x] Add routes in `routes/settings.php` under the existing `auth` group.
+    - [x] Implement index/store/destroy actions in `App\Http\Controllers\Notifications\SavedAlertController`.
+    - [x] Match existing JSON response conventions: `data` for resources and `meta.deleted` for deletion acknowledgements.
+    - [x] Handle duplicate saves with a deterministic application response and preserve the database unique constraint as the race-condition backstop.
+- [x] Task: Backend feature coverage. <!-- 86163e6 -->
+    - [x] Add `tests/Feature/Notifications/SavedAlertControllerTest.php` covering auth requirements, create, duplicate create, list, delete, owner scoping, and invalid `alert_id` input.
+    - [x] Add a limit/behavior test file if authenticated-user caps are introduced later; otherwise document that auth saves are uncapped in this iteration. <!-- Auth saves are intentionally uncapped in this iteration; documented via the "authenticated saves are uncapped" test -->
+- [ ] Task: Conductor - User Manual Verification ‘Phase 1: Persistence Contract & Backend API’ (Protocol in `conductor/workflow.md`).
 
 ## Phase 2: Saved Alert Read Model & Feed Hydration (GTA-102)
 
