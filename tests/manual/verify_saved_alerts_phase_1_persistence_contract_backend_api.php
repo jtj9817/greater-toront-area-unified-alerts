@@ -37,7 +37,8 @@ $kernel = $app->make(Illuminate\Contracts\Console\Kernel::class);
 $kernel->bootstrap();
 
 if (app()->environment('production')) {
-    exit("Error: Cannot run manual tests in production!\n");
+    fwrite(STDERR, "Error: Cannot run manual tests in production!\n");
+    exit(1);
 }
 
 if (function_exists('posix_geteuid') && posix_geteuid() === 0 && getenv('ALLOW_ROOT_MANUAL_TESTS') !== '1') {
@@ -51,11 +52,13 @@ $connection = config('database.default');
 $currentDatabase = config("database.connections.{$connection}.database");
 
 if (! app()->environment('testing')) {
-    exit("Error: Manual tests must run with APP_ENV=testing. Destructive test operations are disabled outside the testing environment and cannot be overridden.\n");
+    fwrite(STDERR, "Error: Manual tests must run with APP_ENV=testing. Destructive test operations are disabled outside the testing environment and cannot be overridden.\n");
+    exit(1);
 }
 
 if ($currentDatabase !== $expectedDatabase) {
-    exit("Error: Manual tests must use the '{$expectedDatabase}' database (current: {$currentDatabase}). Destructive test operations are disabled and cannot be overridden.\n");
+    fwrite(STDERR, "Error: Manual tests must use the '{$expectedDatabase}' database (current: {$currentDatabase}). Destructive test operations are disabled and cannot be overridden.\n");
+    exit(1);
 }
 
 umask(002);
@@ -235,7 +238,7 @@ try {
 
     // Verify the unique constraint on (user_id, alert_id)
     assertTrue(
-        Schema::hasIndex('saved_alerts', ['user_id', 'alert_id']),
+        Schema::hasIndex('saved_alerts', ['user_id', 'alert_id'], 'unique'),
         'saved_alerts has unique index on user_id + alert_id'
     );
 
@@ -386,9 +389,9 @@ try {
 
     // 4b. Valid store for all sources
     $testAlerts = [
-        'fire'       => 'fire:F26011111',
-        'police'     => 'police:P12340001',
-        'transit'    => 'transit:T99880001',
+        'fire' => 'fire:F26011111',
+        'police' => 'police:P12340001',
+        'transit' => 'transit:T99880001',
         'go_transit' => 'go_transit:GT000001',
     ];
 
@@ -442,8 +445,8 @@ try {
     try {
         // Force a raw insert to trigger the DB constraint
         DB::table('saved_alerts')->insert([
-            'user_id'    => $userC->id,
-            'alert_id'   => $raceAlertId,
+            'user_id' => $userC->id,
+            'alert_id' => $raceAlertId,
             'created_at' => now(),
             'updated_at' => now(),
         ]);
@@ -611,8 +614,8 @@ try {
     $exitCode = 1;
     logError('Manual Test Failed', [
         'message' => $e->getMessage(),
-        'file'    => $e->getFile(),
-        'line'    => $e->getLine(),
+        'file' => $e->getFile(),
+        'line' => $e->getLine(),
     ]);
 } finally {
     if ($txStarted && DB::transactionLevel() > 0) {
