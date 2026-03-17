@@ -1,57 +1,110 @@
 # Implementation Plan: Saved Alerts Feature
 
-## Phase 1: Backend Infrastructure & API (GTA-101)
+## Architecture Alignment
 
-- [ ] Task: Database Schema & Models [TDD]
-    - [ ] Create migration for `user_alerts` table (`id`, `user_id`, `alert_id`, `timestamps`).
-    - [ ] Create `UserAlert` model with `user_id` and `alert_id` fillable.
-    - [ ] Add `savedAlerts()` relationship to `User` model.
-- [ ] Task: User Alerts REST API [TDD]
-    - [ ] Implement `POST /api/user/alerts` in `UserAlertController@store`.
-    - [ ] Implement `GET /api/user/alerts` in `UserAlertController@index`.
-    - [ ] Implement `DELETE /api/user/alerts/{alertId}` in `UserAlertController@destroy`.
-    - [ ] Add auth-protected routes in `routes/api.php`.
-- [ ] Task: Backend Feature Tests
-    - [ ] Write `tests/Feature/UserAlertTest.php` covering index, store (including 409 conflict), and destroy.
-- [ ] Task: Conductor - User Manual Verification 'Phase 1: Backend Infrastructure & API' (Protocol in workflow.md)
+- The GTA Alerts UI already has a `saved` navigation slot via `resources/js/features/gta-alerts/App.tsx`, `Sidebar.tsx`, `BottomNav.tsx`, and a placeholder `SavedView.tsx`; this work should fill that existing shell rather than introduce a new page or route.
+- Auth-protected JSON endpoints in this repository are currently registered in `routes/settings.php` under the `auth` middleware group, not in `routes/api.php`.
+- Existing notification-adjacent APIs live under `App\Http\Controllers\Notifications\*` and use `data` / `meta` JSON envelopes. Saved alerts should follow that pattern.
+- Canonical alert identifiers already exist as `{source}:{externalId}` strings and are validated in `App\Services\Alerts\DTOs\AlertId`; reuse that contract instead of inventing a new ID format.
+- The frontend currently has no generic action-toast primitive. If save/unsave feedback must be transient, that UX needs to be explicitly designed and implemented as part of this track.
 
-## Phase 2: Frontend State & Storage Hooks (GTA-102)
+## Locked Decisions
 
-- [ ] Task: Implement `useSavedAlerts` Custom Hook [TDD]
-    - [ ] Implement logic to detect `auth.user` and route save/delete to API or `localStorage`.
-    - [ ] Implement `localStorage` handling with a 10-item cap.
-    - [ ] Implement `clearOldestThree()` method for guest eviction.
-- [ ] Task: Frontend Hook Unit Tests
-    - [ ] Write `resources/js/features/gta-alerts/hooks/useSavedAlerts.test.ts` to verify local and API branching.
-- [ ] Task: Conductor - User Manual Verification 'Phase 2: Frontend State & Hooks' (Protocol in workflow.md)
+- [x] Persistence naming convention: use `saved_alerts`, `SavedAlert`, `SavedAlertController`, and `/api/saved-alerts` for parity with `saved_places`.
+- [x] `SavedView` hydration contract: `GET /api/saved-alerts` returns hydrated alert resources, not IDs only.
+- [x] Guest cap UX: present a one-click action to clear the oldest three saved IDs when the 10-item guest cap is reached.
+- [x] Unresolved saved IDs: keep the saved record and surface unavailable rows with a remove action.
 
-## Phase 3: UI Integration (GTA-103)
+## Phase 1: Persistence Contract & Backend API (GTA-101)
 
-- [ ] Task: Implement "Saved" Toggle in Feed Cards
-    - [ ] Update `AlertCard.tsx` to include a save toggle with appropriate Radix UI/Lucide icons.
-    - [ ] Apply "Saved" badge/styling when bookmarked.
-- [ ] Task: Implement "Saved" Toggle in Table Rows
-    - [ ] Update `AlertTableView.tsx` to include a save toggle/button in each row.
-- [ ] Task: Wire Save Action in Alert Details
-    - [ ] Update `AlertDetailsView.tsx` with the save button and handle limit-reached toasts.
-- [ ] Task: Implement "Saved" Tab Filtering
-    - [ ] Add a "Saved" filter to the `FeedView.tsx` view toggle or tab list.
-    - [ ] Update `AlertService.ts` to filter the unified feed based on the saved state.
-- [ ] Task: Conductor - User Manual Verification 'Phase 3: UI Integration' (Protocol in workflow.md)
+- [ ] Task: Define the persistence shape and naming.
+    - [ ] Implement the locked `saved_alerts` naming across migration, model, controller, routes, and tests.
+    - [ ] Implement the locked hydrated read contract for `GET /api/saved-alerts`.
+- [ ] Task: Create the persistence layer [TDD].
+    - [ ] Add migration for the saved-alert table with `id`, `user_id`, `alert_id`, timestamps, a unique index on `user_id + alert_id`, and an index supporting newest-first retrieval.
+    - [ ] Create the corresponding Eloquent model with minimal fillable state.
+    - [ ] Add `savedAlerts()` to `app/Models/User.php` and extend `tests/Unit/Models/UserTest.php`.
+- [ ] Task: Add request validation and ID normalization [TDD].
+    - [ ] Create a form request for create operations under `app/Http/Requests/Notifications/`.
+    - [ ] Validate `alert_id` against the existing `AlertId` contract rather than only checking `string`.
+    - [ ] Strip/normalize user input before validation to match the repository’s sanitization pattern.
+- [ ] Task: Implement auth-only saved-alert endpoints [TDD].
+    - [ ] Add routes in `routes/settings.php` under the existing `auth` group.
+    - [ ] Implement index/store/destroy actions in `App\Http\Controllers\Notifications\SavedAlertController`.
+    - [ ] Match existing JSON response conventions: `data` for resources and `meta.deleted` for deletion acknowledgements.
+    - [ ] Handle duplicate saves with a deterministic application response and preserve the database unique constraint as the race-condition backstop.
+- [ ] Task: Backend feature coverage.
+    - [ ] Add `tests/Feature/Notifications/SavedAlertControllerTest.php` covering auth requirements, create, duplicate create, list, delete, owner scoping, and invalid `alert_id` input.
+    - [ ] Add a limit/behavior test file if authenticated-user caps are introduced later; otherwise document that auth saves are uncapped in this iteration.
+- [ ] Task: Conductor - User Manual Verification 'Phase 1: Persistence Contract & Backend API' (Protocol in `conductor/workflow.md`).
 
-## Phase 4: QA Gating (GTA-104)
+## Phase 2: Saved Alert Read Model & Feed Hydration (GTA-102)
 
-- [ ] Task: Execute Quality & Coverage Gates
-    - [ ] Run `./vendor/bin/sail artisan test --coverage --min=90` to verify full backend coverage.
-    - [ ] Run `pnpm run quality:check` (Linting, Types, Tests).
-    - [ ] Perform a security audit: `./vendor/bin/sail composer audit` & `pnpm audit`.
-- [ ] Task: Conductor - User Manual Verification 'Phase 4: QA Gating' (Protocol in workflow.md)
+- [ ] Task: Define how saved IDs become renderable alerts.
+    - [ ] Extend backend read logic so saved alerts can be resolved into `UnifiedAlertResource` payloads.
+    - [ ] Include unavailable saved-alert records in response metadata so the UI can render unresolved rows and removal actions.
+- [ ] Task: Implement the saved-alert read model [TDD].
+    - [ ] Add the backend query path needed to fetch saved alerts in a deterministic order (typically newest saved first).
+    - [ ] Decide how unresolved IDs are represented (`missing_alert_ids`, omitted records, or unavailable stubs).
+    - [ ] Ensure the response shape is compatible with the existing frontend domain mappers in `resources/js/features/gta-alerts/domain/alerts/`.
+- [ ] Task: Bootstrap saved IDs into the app shell [TDD].
+    - [ ] Update `app/Http/Controllers/GtaAlertsController.php` so authenticated users can arrive with initial saved-alert state instead of requiring a second request before badges render.
+    - [ ] Update `resources/js/pages/gta-alerts.tsx` and `resources/js/features/gta-alerts/App.tsx` props to carry the initial saved IDs.
+- [ ] Task: Backend/query coverage.
+    - [ ] Add tests for the saved-alert hydration path, including mixed-source IDs and unresolved IDs.
+    - [ ] Add regression tests for the initial Inertia payload when the request is authenticated versus guest.
+- [ ] Task: Conductor - User Manual Verification 'Phase 2: Saved Alert Read Model & Feed Hydration' (Protocol in `conductor/workflow.md`).
 
-## Phase 5: Documentation & Closeout (GTA-105)
+## Phase 3: Frontend Saved Alert State (GTA-103)
 
-- [ ] Task: Update Technical Documentation
-    - [ ] Update `README.md` and `CLAUDE.md` with details on the Saved Alerts feature.
-    - [ ] Create/Update documentation in `docs/` for the new API and frontend hook.
-- [ ] Task: Registry Maintenance
-    - [ ] Move the track to the archive in `conductor/tracks.md` and update its status.
-- [ ] Task: Conductor - User Manual Verification 'Phase 5: Documentation & Closeout' (Protocol in workflow.md)
+- [ ] Task: Implement a dedicated saved-alert state layer [TDD].
+    - [ ] Add `resources/js/features/gta-alerts/hooks/useSavedAlerts.ts`.
+    - [ ] Make the hook SSR-safe and branch on `auth.user` / initial props instead of assuming browser-only state.
+    - [ ] Store guest data in a versioned `localStorage` key and keep a deterministic oldest-first order for eviction.
+    - [ ] Support `saveAlert`, `removeAlert`, `toggleAlert`, `isSaved`, and the guest eviction helper selected in the final UX decision.
+- [ ] Task: Add a small API client/service for auth flows [TDD].
+    - [ ] Create `resources/js/features/gta-alerts/services/SavedAlertService.ts` following the same fetch/error conventions as `SavedPlaceService.ts`.
+    - [ ] Normalize backend payloads and expose typed error states for duplicate save, auth failure, validation failure, and unresolved-item handling.
+- [ ] Task: Decide and implement user feedback behavior.
+    - [ ] Either add a reusable action-feedback layer for save/unsave/limit events or intentionally use an inline/status-message pattern.
+    - [ ] Keep the implementation separate from the realtime `NotificationToastLayer`, which serves a different backend event stream.
+- [ ] Task: Frontend unit coverage.
+    - [ ] Add `resources/js/features/gta-alerts/hooks/useSavedAlerts.test.ts` for guest storage, auth API branching, bootstrap state, eviction, and duplicate handling.
+    - [ ] Add service tests if the saved-alert API client contains non-trivial normalization/error logic.
+- [ ] Task: Conductor - User Manual Verification 'Phase 3: Frontend Saved Alert State' (Protocol in `conductor/workflow.md`).
+
+## Phase 4: UI Integration Across Existing Views (GTA-104)
+
+- [ ] Task: Wire saved state into the GTA Alerts shell.
+    - [ ] Lift saved-alert state high enough in `resources/js/features/gta-alerts/App.tsx` so `FeedView`, `SavedView`, and `AlertDetailsView` all use the same source of truth.
+    - [ ] Revisit the current ID-only detail navigation contract if the saved view needs to open alerts that were hydrated outside the initial feed payload.
+- [ ] Task: Integrate save toggles into feed cards and table rows.
+    - [ ] Update `AlertCard.tsx` to add a dedicated save control without breaking the existing card click-to-open behavior.
+    - [ ] Update `AlertTableView.tsx` to add a save action in both collapsed and expanded states as needed.
+    - [ ] Reuse the existing `Icon` component and current design language instead of introducing a separate Lucide-only icon system.
+- [ ] Task: Integrate save state into alert details.
+    - [ ] Update `AlertDetailsView.tsx` to render real saved state, pending state, and save/remove actions.
+    - [ ] Prevent duplicate submissions while the save action is in flight.
+- [ ] Task: Replace the placeholder saved view.
+    - [ ] Update `SavedView.tsx` to render real saved alerts instead of the current empty placeholder list.
+    - [ ] Remove or replace the out-of-scope “Create Watchlist” affordance unless watchlists are intentionally being added to the scope.
+    - [ ] Add empty, loading, and unresolved-alert states, with a remove action for unresolved rows.
+- [ ] Task: Frontend component coverage.
+    - [ ] Update/add tests for `AlertCard`, `AlertTableView`, `AlertDetailsView`, `SavedView`, and `App.tsx` to cover saved-state rendering and interactions.
+- [ ] Task: Conductor - User Manual Verification 'Phase 4: UI Integration Across Existing Views' (Protocol in `conductor/workflow.md`).
+
+## Phase 5: Quality Gates, Documentation & Closeout (GTA-105)
+
+- [ ] Task: Execute automated quality gates.
+    - [ ] Run `composer test`.
+    - [ ] Run `pnpm run quality:check`.
+    - [ ] Attempt `php artisan test --coverage --min=90` or `./vendor/bin/sail artisan test --coverage --min=90` depending on the available coverage driver/runtime, and document any environment blocker if strict coverage cannot run.
+- [ ] Task: Add manual verification artifacts.
+    - [ ] Add/update manual verification scripts for guest save flows, authenticated save flows, saved-view rendering, and unresolved saved IDs.
+    - [ ] Record which architectural option was chosen for hydration and unresolved records.
+- [ ] Task: Update technical documentation.
+    - [ ] Update `README.md`, `CLAUDE.md`, and any relevant `docs/` references with the saved-alert API contract, guest/local behavior, and known limitations.
+    - [ ] Document the chosen table/model naming if it differs from the earlier draft.
+- [ ] Task: Registry maintenance.
+    - [ ] Update conductor registry status and archive bookkeeping once implementation and verification are complete.
+- [ ] Task: Conductor - User Manual Verification 'Phase 5: Quality Gates, Documentation & Closeout' (Protocol in `conductor/workflow.md`).
