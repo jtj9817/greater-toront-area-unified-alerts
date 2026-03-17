@@ -53,7 +53,6 @@ const App: React.FC<AppProps> = ({
     latestFeedUpdatedAt,
     authUserId,
     subscriptionRouteOptions,
-    initialSavedAlertIds = [],
 }) => {
     const [currentView, setCurrentView] = useState('feed');
     const [searchQuery, setSearchQuery] = useState(filters.q || '');

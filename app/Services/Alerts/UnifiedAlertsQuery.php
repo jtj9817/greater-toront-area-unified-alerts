@@ -135,15 +135,17 @@ class UnifiedAlertsQuery
             return ['items' => [], 'missing_ids' => $alertIds];
         }
 
-        $rows = DB::query()
-            ->fromSub($union, 'unified_alerts')
-            ->whereIn('id', $alertIds)
-            ->get();
-
         $mappedById = [];
-        foreach ($rows as $row) {
-            $alert = $this->mapper->fromRow($row);
-            $mappedById[$alert->id] = $alert;
+        foreach (array_chunk($alertIds, 500) as $chunk) {
+            $rows = DB::query()
+                ->fromSub($union, 'unified_alerts')
+                ->whereIn('id', $chunk)
+                ->get();
+
+            foreach ($rows as $row) {
+                $alert = $this->mapper->fromRow($row);
+                $mappedById[$alert->id] = $alert;
+            }
         }
 
         $items = [];

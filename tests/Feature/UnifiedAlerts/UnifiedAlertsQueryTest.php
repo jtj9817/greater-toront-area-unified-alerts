@@ -867,3 +867,35 @@ test('unified alerts query throws when timestamp is not parseable', function () 
     expect(fn () => $query->paginate(new UnifiedAlertsCriteria(status: 'all', perPage: 50)))
         ->toThrow(\InvalidArgumentException::class);
 });
+
+test('fetchByIds chunks large ID lists to avoid sqlite parameter limits', function () {
+    $query = new UnifiedAlertsQuery(
+        providers: [
+            new class implements AlertSelectProvider
+            {
+                public function source(): string
+                {
+                    return 'test';
+                }
+
+                public function select(UnifiedAlertsCriteria $criteria): Builder
+                {
+                    return emptyUnifiedSelect($this->source());
+                }
+            },
+        ],
+        mapper: new UnifiedAlertMapper,
+    );
+
+    $alertIds = array_map(
+        fn (int $i): string => "test:ID{$i}",
+        range(1, 1200),
+    );
+
+    $results = $query->fetchByIds($alertIds);
+
+    expect($results['items'])->toBe([]);
+    expect($results['missing_ids'])->toHaveCount(1200);
+    expect($results['missing_ids'][0])->toBe('test:ID1');
+    expect($results['missing_ids'][1199])->toBe('test:ID1200');
+});
