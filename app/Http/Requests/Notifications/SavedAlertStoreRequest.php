@@ -28,9 +28,14 @@ class SavedAlertStoreRequest extends FormRequest
                 'string',
                 'max:120',
                 function (string $attribute, mixed $value, \Closure $fail): void {
+                    if (! is_string($value)) {
+                        // Let the built-in 'string' rule report the validation error.
+                        return;
+                    }
+
                     try {
                         AlertId::fromString($value);
-                    } catch (\InvalidArgumentException) {
+                    } catch (\InvalidArgumentException|\TypeError) {
                         $fail('The alert_id must be a valid alert identifier in the format {source}:{externalId}.');
                     }
                 },

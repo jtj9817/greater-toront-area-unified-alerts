@@ -1,5 +1,5 @@
 import { Link } from '@inertiajs/react';
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { login, register } from '@/routes';
 import {
     clearNotificationInbox,

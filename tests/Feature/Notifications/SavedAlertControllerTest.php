@@ -69,8 +69,11 @@ test('authenticated user can list saved alerts', function () {
     $response = $this->actingAs($user)
         ->getJson('/api/saved-alerts')
         ->assertOk()
+        ->assertJsonCount(2, 'data')
         ->assertJsonStructure([
-            'data',
+            'data' => [
+                ['id', 'alert_id', 'saved_at'],
+            ],
             'meta' => ['saved_ids', 'missing_alert_ids'],
         ]);
 
@@ -78,6 +81,10 @@ test('authenticated user can list saved alerts', function () {
     expect($savedIds)->toContain('fire:F26018618');
     expect($savedIds)->toContain('police:P12345678');
     expect($response->json('meta.missing_alert_ids'))->toBe([]);
+
+    // `index()` returns results in descending ID order.
+    expect($response->json('data.0.alert_id'))->toBe('police:P12345678');
+    expect($response->json('data.1.alert_id'))->toBe('fire:F26018618');
 });
 
 test('list returns empty data and meta for user with no saved alerts', function () {
@@ -180,6 +187,15 @@ test('store rejects alert_id with empty externalId', function () {
 
     $this->actingAs($user)
         ->postJson('/api/saved-alerts', ['alert_id' => 'fire:'])
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors(['alert_id']);
+});
+
+test('store rejects non-string alert_id values', function () {
+    $user = User::factory()->create();
+
+    $this->actingAs($user)
+        ->postJson('/api/saved-alerts', ['alert_id' => []])
         ->assertUnprocessable()
         ->assertJsonValidationErrors(['alert_id']);
 });

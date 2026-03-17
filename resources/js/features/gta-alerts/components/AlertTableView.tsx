@@ -81,7 +81,10 @@ export const AlertTableView: React.FC<AlertTableViewProps> = ({
                             Severity
                         </th>
                         <th id="gta-alerts-alert-table-th-source">Source</th>
-                        <th id="gta-alerts-alert-table-th-expand" className="w-10">
+                        <th
+                            id="gta-alerts-alert-table-th-expand"
+                            className="w-10"
+                        >
                             <span className="sr-only">Expand</span>
                         </th>
                     </tr>
@@ -154,7 +157,9 @@ export const AlertTableView: React.FC<AlertTableViewProps> = ({
                                         id={`gta-alerts-alert-table-row-${presentation.id}-source`}
                                         className="text-xs tracking-wide uppercase"
                                     >
-                                        <span id={`gta-alerts-alert-table-row-${presentation.id}-source-label`}>
+                                        <span
+                                            id={`gta-alerts-alert-table-row-${presentation.id}-source-label`}
+                                        >
                                             {sourceLabel}
                                         </span>
                                         {savedIds.has(presentation.id) && (

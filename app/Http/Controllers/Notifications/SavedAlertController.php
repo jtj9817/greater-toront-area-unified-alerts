@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Notifications;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Notifications\SavedAlertStoreRequest;
 use App\Models\SavedAlert;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -20,7 +21,14 @@ class SavedAlertController extends Controller
         $savedIds = $savedAlerts->pluck('alert_id')->values()->all();
 
         return response()->json([
-            'data' => [],
+            'data' => $savedAlerts
+                ->map(fn (SavedAlert $saved): array => [
+                    'id' => $saved->id,
+                    'alert_id' => $saved->alert_id,
+                    'saved_at' => $saved->created_at->toIso8601String(),
+                ])
+                ->values()
+                ->all(),
             'meta' => [
                 'saved_ids' => $savedIds,
                 'missing_alert_ids' => [],
@@ -44,10 +52,16 @@ class SavedAlertController extends Controller
             ], 409);
         }
 
-        $saved = SavedAlert::query()->create([
-            'user_id' => $userId,
-            'alert_id' => $alertId,
-        ]);
+        try {
+            $saved = SavedAlert::query()->create([
+                'user_id' => $userId,
+                'alert_id' => $alertId,
+            ]);
+        } catch (UniqueConstraintViolationException) {
+            return response()->json([
+                'message' => 'This alert has already been saved.',
+            ], 409);
+        }
 
         return response()->json([
             'data' => [
