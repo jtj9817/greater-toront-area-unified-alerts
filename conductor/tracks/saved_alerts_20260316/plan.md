@@ -38,7 +38,7 @@
     - [x] Add a limit/behavior test file if authenticated-user caps are introduced later; otherwise document that auth saves are uncapped in this iteration. <!-- Auth saves are intentionally uncapped in this iteration; documented via the "authenticated saves are uncapped" test -->
 - [x] Task: Conductor - User Manual Verification ‘Phase 1: Persistence Contract & Backend API’ (Protocol in `conductor/workflow.md`). <!-- dc6e9f3 -->
 
-## Phase 2: Saved Alert Read Model & Feed Hydration (GTA-102)
+## Phase 2: Saved Alert Read Model & Feed Hydration (GTA-102) [checkpoint: 00e4bd7]
 
 - [x] Task: Define how saved IDs become renderable alerts. <!-- ae500bb -->
     - [x] Extend backend read logic so saved alerts can be resolved into `UnifiedAlertResource` payloads.
@@ -53,7 +53,7 @@
 - [x] Task: Backend/query coverage. <!-- ae500bb -->
     - [x] Add tests for the saved-alert hydration path, including mixed-source IDs and unresolved IDs.
     - [x] Add regression tests for the initial Inertia payload when the request is authenticated versus guest.
-- [ ] Task: Conductor - User Manual Verification 'Phase 2: Saved Alert Read Model & Feed Hydration' (Protocol in `conductor/workflow.md`).
+- [x] Task: Conductor - User Manual Verification 'Phase 2: Saved Alert Read Model & Feed Hydration' (Protocol in `conductor/workflow.md`).
 
 ## Phase 3: Frontend Saved Alert State (GTA-103)
 
