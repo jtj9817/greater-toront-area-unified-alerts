@@ -91,7 +91,7 @@
     - [x] Add empty, loading, and unresolved-alert states, with a remove action for unresolved rows.
 - [x] Task: Frontend component coverage. <!-- 0ebeb53 -->
     - [x] Update/add tests for `AlertCard`, `AlertTableView`, `AlertDetailsView`, `SavedView`, and `App.tsx` to cover saved-state rendering and interactions.
-- [x] Task: Conductor - User Manual Verification 'Phase 4: UI Integration Across Existing Views' (Protocol in `conductor/workflow.md`). <!-- 0ebeb53 -->
+- [x] Task: Conductor - User Manual Verification 'Phase 4: UI Integration Across Existing Views' (Protocol in `conductor/workflow.md`). <!-- bd240af -->
 
 
 ## Phase 5: Quality Gates, Documentation & Closeout (GTA-105)
