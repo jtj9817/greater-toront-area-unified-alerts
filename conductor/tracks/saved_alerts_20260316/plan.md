@@ -73,25 +73,26 @@
     - [x] Add service tests if the saved-alert API client contains non-trivial normalization/error logic.
 - [x] Task: Conductor - User Manual Verification 'Phase 3: Frontend Saved Alert State' (Protocol in `conductor/workflow.md`).
 
-## Phase 4: UI Integration Across Existing Views (GTA-104)
+## Phase 4: UI Integration Across Existing Views (GTA-104) [checkpoint: 0ebeb53]
 
-- [ ] Task: Wire saved state into the GTA Alerts shell.
-    - [ ] Lift saved-alert state high enough in `resources/js/features/gta-alerts/App.tsx` so `FeedView`, `SavedView`, and `AlertDetailsView` all use the same source of truth.
-    - [ ] Revisit the current ID-only detail navigation contract if the saved view needs to open alerts that were hydrated outside the initial feed payload.
-- [ ] Task: Integrate save toggles into feed cards and table rows.
-    - [ ] Update `AlertCard.tsx` to add a dedicated save control without breaking the existing card click-to-open behavior.
-    - [ ] Update `AlertTableView.tsx` to add a save action in both collapsed and expanded states as needed.
-    - [ ] Reuse the existing `Icon` component and current design language instead of introducing a separate Lucide-only icon system.
-- [ ] Task: Integrate save state into alert details.
-    - [ ] Update `AlertDetailsView.tsx` to render real saved state, pending state, and save/remove actions.
-    - [ ] Prevent duplicate submissions while the save action is in flight.
-- [ ] Task: Replace the placeholder saved view.
-    - [ ] Update `SavedView.tsx` to render real saved alerts instead of the current empty placeholder list.
-    - [ ] Remove or replace the out-of-scope “Create Watchlist” affordance unless watchlists are intentionally being added to the scope.
-    - [ ] Add empty, loading, and unresolved-alert states, with a remove action for unresolved rows.
-- [ ] Task: Frontend component coverage.
-    - [ ] Update/add tests for `AlertCard`, `AlertTableView`, `AlertDetailsView`, `SavedView`, and `App.tsx` to cover saved-state rendering and interactions.
-- [ ] Task: Conductor - User Manual Verification 'Phase 4: UI Integration Across Existing Views' (Protocol in `conductor/workflow.md`).
+- [x] Task: Wire saved state into the GTA Alerts shell. <!-- 0ebeb53 -->
+    - [x] Lift saved-alert state high enough in `resources/js/features/gta-alerts/App.tsx` so `FeedView`, `SavedView`, and `AlertDetailsView` all use the same source of truth.
+    - [x] Revisit the current ID-only detail navigation contract if the saved view needs to open alerts that were hydrated outside the initial feed payload.
+- [x] Task: Integrate save toggles into feed cards and table rows. <!-- 0ebeb53 -->
+    - [x] Update `AlertCard.tsx` to add a dedicated save control without breaking the existing card click-to-open behavior.
+    - [x] Update `AlertTableView.tsx` to add a save action in both collapsed and expanded states as needed.
+    - [x] Reuse the existing `Icon` component and current design language instead of introducing a separate Lucide-only icon system.
+- [x] Task: Integrate save state into alert details. <!-- 0ebeb53 -->
+    - [x] Update `AlertDetailsView.tsx` to render real saved state, pending state, and save/remove actions.
+    - [x] Prevent duplicate submissions while the save action is in flight.
+- [x] Task: Replace the placeholder saved view. <!-- 0ebeb53 -->
+    - [x] Update `SavedView.tsx` to render real saved alerts instead of the current empty placeholder list.
+    - [x] Remove or replace the out-of-scope “Create Watchlist” affordance unless watchlists are intentionally being added to the scope.
+    - [x] Add empty, loading, and unresolved-alert states, with a remove action for unresolved rows.
+- [x] Task: Frontend component coverage. <!-- 0ebeb53 -->
+    - [x] Update/add tests for `AlertCard`, `AlertTableView`, `AlertDetailsView`, `SavedView`, and `App.tsx` to cover saved-state rendering and interactions.
+- [x] Task: Conductor - User Manual Verification 'Phase 4: UI Integration Across Existing Views' (Protocol in `conductor/workflow.md`). <!-- 0ebeb53 -->
+
 
 ## Phase 5: Quality Gates, Documentation & Closeout (GTA-105)
 
