@@ -1,0 +1,8 @@
+{
+  "track_id": "saved_alerts_20260316",
+  "type": "feature",
+  "status": "new",
+  "created_at": "2026-03-16T00:00:00Z",
+  "updated_at": "2026-03-16T00:00:00Z",
+  "description": "Implement the Saved Alerts feature based on @docs/plans/saved-alerts-feature-plan.md, ensuring the last two phases are QA Gating and Documentation."
+}

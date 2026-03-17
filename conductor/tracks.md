@@ -6,6 +6,9 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ## Active Tracks
 
+- [ ] **Track: Implement the Saved Alerts feature based on @docs/plans/saved-alerts-feature-plan.md, ensuring the last two phases are QA Gating and Documentation.**
+      *Link: [./tracks/saved_alerts_20260316/](./tracks/saved_alerts_20260316/)*
+
 ## Archived Tracks
 
 - [x] **Track: UI Design Revamp (Prototype Two)**
