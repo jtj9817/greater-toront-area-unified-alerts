@@ -18,6 +18,9 @@ interface FeedViewProps {
     sort?: 'asc' | 'desc';
     source?: string | null;
     since?: string | null;
+    savedIds: Set<string>;
+    isPending: (id: string) => boolean;
+    onToggleSave: (id: string) => Promise<void>;
 }
 
 export const FeedView: React.FC<FeedViewProps> = ({
@@ -30,6 +33,9 @@ export const FeedView: React.FC<FeedViewProps> = ({
     sort = 'desc',
     source = null,
     since = null,
+    savedIds,
+    isPending,
+    onToggleSave,
 }) => {
     // State for Filters
     const [viewMode, setViewMode] = useState<'feed' | 'table'>('feed');
@@ -80,9 +86,6 @@ export const FeedView: React.FC<FeedViewProps> = ({
 
     const activeCategory = source || 'all';
     const sortQueryValue = sort === 'asc' ? sort : null;
-
-    // Get Set of Saved IDs for efficient lookup
-    const savedIds = useMemo(() => new Set<string>([]), []); // Temporary empty until saved logic implemented
 
     // Handler for Reset
     const handleReset = () => {
@@ -480,6 +483,8 @@ export const FeedView: React.FC<FeedViewProps> = ({
                                 alert={item}
                                 onViewDetails={() => onSelectAlert(item.id)}
                                 isSaved={savedIds.has(item.id)}
+                                isPending={isPending(item.id)}
+                                onToggleSave={() => onToggleSave(item.id)}
                             />
                         ))
                     ) : (
@@ -487,6 +492,8 @@ export const FeedView: React.FC<FeedViewProps> = ({
                             items={allAlerts}
                             onSelectAlert={onSelectAlert}
                             savedIds={savedIds}
+                            isPending={isPending}
+                            onToggleSave={onToggleSave}
                         />
                     )}
 

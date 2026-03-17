@@ -13,6 +13,7 @@ import { SettingsView } from './components/SettingsView';
 import { Sidebar } from './components/Sidebar';
 import { ZonesView } from './components/ZonesView';
 import type { UnifiedAlertResource } from './domain/alerts';
+import { useSavedAlerts } from './hooks/useSavedAlerts';
 import { AlertService } from './services/AlertService';
 
 interface AppProps {
@@ -53,12 +54,26 @@ const App: React.FC<AppProps> = ({
     latestFeedUpdatedAt,
     authUserId,
     subscriptionRouteOptions,
+    initialSavedAlertIds = [],
 }) => {
     const [currentView, setCurrentView] = useState('feed');
     const [searchQuery, setSearchQuery] = useState(filters.q || '');
     const [activeAlertId, setActiveAlertId] = useState<string | null>(null);
     const [isRefreshingFeed, setIsRefreshingFeed] = useState(false);
     const [inboxUnreadCount, setInboxUnreadCount] = useState(0);
+
+    // Centralised saved-alert state
+    const {
+        savedIds,
+        isSaved,
+        isPending,
+        toggleAlert,
+        guestCapReached,
+        evictOldestThree,
+    } = useSavedAlerts({
+        authUserId,
+        initialSavedIds: initialSavedAlertIds,
+    });
 
     // Sync local search query with URL state (e.g., back button, Reset All Filters).
     const syncSearchQueryFromUrl = useCallback(() => {
@@ -227,6 +242,9 @@ const App: React.FC<AppProps> = ({
                 <AlertDetailsView
                     alert={activeAlert}
                     onBack={() => setActiveAlertId(null)}
+                    isSaved={isSaved(activeAlert.id)}
+                    isPending={isPending(activeAlert.id)}
+                    onToggleSave={() => toggleAlert(activeAlert.id)}
                 />
             );
         }
@@ -235,8 +253,15 @@ const App: React.FC<AppProps> = ({
             case 'saved':
                 return (
                     <SavedView
+                        authUserId={authUserId}
                         onSelectAlert={setActiveAlertId}
                         allAlerts={initialDomainAlerts}
+                        savedIds={savedIds}
+                        isSaved={isSaved}
+                        isPending={isPending}
+                        onToggleSave={toggleAlert}
+                        guestCapReached={guestCapReached}
+                        onEvictOldest={evictOldestThree}
                     />
                 );
             case 'zones':
@@ -269,6 +294,9 @@ const App: React.FC<AppProps> = ({
                         sort={filters.sort}
                         source={filters.source ?? null}
                         since={filters.since ?? null}
+                        savedIds={new Set(savedIds)}
+                        isPending={isPending}
+                        onToggleSave={toggleAlert}
                     />
                 );
         }

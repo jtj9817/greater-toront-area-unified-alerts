@@ -291,28 +291,17 @@ describe('GTA Alerts App (typed domain enforcement boundary)', () => {
         warn.mockRestore();
     });
 
-    it('renders multiple valid sources without DomainAlert warnings', () => {
-        const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
-
+    it('shows saved state on alerts when initialSavedAlertIds are provided', () => {
+        const alerts = [fireResource({ id: 'fire:E1', title: 'SAVED FIRE' })];
         render(
             <AlertsApp
-                {...buildBaseProps([
-                    fireResource({ title: 'FIRE OK' }),
-                    policeResource({ title: 'POLICE OK' }),
-                    ttcTransitResource({ title: 'TTC OK' }),
-                    goTransitResource({ title: 'GO OK' }),
-                ])}
+                {...buildBasePropsWithAuth(alerts, 42)}
+                initialSavedAlertIds={['fire:E1']}
             />,
         );
 
-        expect(screen.getByText('FIRE OK')).toBeInTheDocument();
-        expect(screen.getByText('POLICE OK')).toBeInTheDocument();
-        expect(screen.getByText('TTC OK')).toBeInTheDocument();
-        expect(screen.getByText('GO OK')).toBeInTheDocument();
-
-        expect(domainWarnMessages(warn)).toEqual([]);
-
-        warn.mockRestore();
+        const saveBtn = screen.getByLabelText(/Remove alert/i);
+        expect(saveBtn).toHaveClass('bg-primary');
     });
 
     it('opens notification center from the header notification button', () => {

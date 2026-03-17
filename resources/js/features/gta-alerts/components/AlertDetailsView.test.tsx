@@ -20,6 +20,12 @@ function toDomainAlert(resource: UnifiedAlertResource) {
 describe('AlertDetailsView', () => {
     const timestamp = new Date('2026-02-03T12:00:00Z').toISOString();
 
+    const defaultProps = {
+        isSaved: false,
+        isPending: false,
+        onToggleSave: vi.fn(),
+    };
+
     it('renders fire detail branch and supports back navigation', () => {
         const onBack = vi.fn();
         const fireAlert = toDomainAlert({
@@ -38,12 +44,18 @@ describe('AlertDetailsView', () => {
             },
         });
 
-        render(<AlertDetailsView alert={fireAlert} onBack={onBack} />);
+        render(
+            <AlertDetailsView
+                alert={fireAlert}
+                onBack={onBack}
+                {...defaultProps}
+            />,
+        );
 
         expect(screen.getByText('High Severity Response')).toBeInTheDocument();
         expect(screen.getByText('Response Tier')).toBeInTheDocument();
 
-        fireEvent.click(screen.getAllByRole('button')[0]);
+        fireEvent.click(screen.getByRole('button', { name: /arrow_back/i }));
         expect(onBack).toHaveBeenCalledTimes(1);
     });
 
@@ -63,7 +75,13 @@ describe('AlertDetailsView', () => {
             },
         });
 
-        render(<AlertDetailsView alert={policeAlert} onBack={() => {}} />);
+        render(
+            <AlertDetailsView
+                alert={policeAlert}
+                onBack={() => {}}
+                {...defaultProps}
+            />,
+        );
 
         expect(screen.getByText('Tactical Operation')).toBeInTheDocument();
         expect(screen.getByText('Public Safety Advisory')).toBeInTheDocument();
@@ -94,7 +112,13 @@ describe('AlertDetailsView', () => {
             },
         });
 
-        render(<AlertDetailsView alert={transitAlert} onBack={() => {}} />);
+        render(
+            <AlertDetailsView
+                alert={transitAlert}
+                onBack={() => {}}
+                {...defaultProps}
+            />,
+        );
 
         expect(screen.getByText('Service Notice')).toBeInTheDocument();
         expect(screen.getByText('TTC Control')).toBeInTheDocument();
@@ -122,9 +146,91 @@ describe('AlertDetailsView', () => {
             },
         });
 
-        render(<AlertDetailsView alert={goAlert} onBack={() => {}} />);
+        render(
+            <AlertDetailsView
+                alert={goAlert}
+                onBack={() => {}}
+                {...defaultProps}
+            />,
+        );
 
         expect(screen.getByText('GO Service Notice')).toBeInTheDocument();
         expect(screen.getByText('Operations Note')).toBeInTheDocument();
+    });
+
+    it('handles save toggle and displays saved state', () => {
+        const fireAlert = toDomainAlert({
+            id: 'fire:E1',
+            source: 'fire',
+            external_id: 'E1',
+            is_active: true,
+            timestamp,
+            title: 'STRUCTURE FIRE',
+            location: { name: 'Main St', lat: null, lng: null },
+            meta: {
+                event_num: 'E1',
+                alarm_level: 1,
+                units_dispatched: 'P1',
+                beat: 'B1',
+            },
+        });
+
+        const { rerender } = render(
+            <AlertDetailsView
+                alert={fireAlert}
+                onBack={() => {}}
+                {...defaultProps}
+            />,
+        );
+
+        const saveBtn = screen.getByRole('button', { name: /Save Alert/i });
+        fireEvent.click(saveBtn);
+        expect(defaultProps.onToggleSave).toHaveBeenCalledTimes(1);
+
+        rerender(
+            <AlertDetailsView
+                alert={fireAlert}
+                onBack={() => {}}
+                {...defaultProps}
+                isSaved={true}
+            />,
+        );
+
+        expect(screen.getByText('Saved')).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: /Saved/i })).toHaveClass(
+            'bg-white/10',
+        );
+    });
+
+    it('shows loading state when isPending is true', () => {
+        const fireAlert = toDomainAlert({
+            id: 'fire:E1',
+            source: 'fire',
+            external_id: 'E1',
+            is_active: true,
+            timestamp,
+            title: 'STRUCTURE FIRE',
+            location: { name: 'Main St', lat: null, lng: null },
+            meta: {
+                event_num: 'E1',
+                alarm_level: 1,
+                units_dispatched: 'P1',
+                beat: 'B1',
+            },
+        });
+
+        render(
+            <AlertDetailsView
+                alert={fireAlert}
+                onBack={() => {}}
+                {...defaultProps}
+                isPending={true}
+                />,
+                );
+
+                const saveBtnActual = screen.getAllByRole('button')[2];
+
+        expect(saveBtnActual).toBeDisabled();
+        expect(saveBtnActual.querySelector('.animate-spin')).toBeInTheDocument();
     });
 });

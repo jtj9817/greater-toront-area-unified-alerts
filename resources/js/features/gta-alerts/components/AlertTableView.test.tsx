@@ -41,14 +41,16 @@ describe('AlertTableView', () => {
 
     const rows = AlertService.mapUnifiedAlertsToDomainAlerts(mockUnified);
 
+    const defaultProps = {
+        items: rows,
+        onSelectAlert: vi.fn(),
+        savedIds: new Set<string>(),
+        isPending: vi.fn(() => false),
+        onToggleSave: vi.fn(),
+    };
+
     it('renders table headers and row statuses', () => {
-        render(
-            <AlertTableView
-                items={rows}
-                onSelectAlert={() => {}}
-                savedIds={new Set()}
-            />,
-        );
+        render(<AlertTableView {...defaultProps} />);
 
         expect(screen.getByText('Timestamp')).toBeInTheDocument();
         expect(screen.getByText('Incident Type')).toBeInTheDocument();
@@ -61,15 +63,7 @@ describe('AlertTableView', () => {
     });
 
     it('expands and collapses summary rows from the expand affordance', () => {
-        const onSelectAlert = vi.fn();
-
-        render(
-            <AlertTableView
-                items={rows}
-                onSelectAlert={onSelectAlert}
-                savedIds={new Set()}
-            />,
-        );
+        render(<AlertTableView {...defaultProps} />);
 
         const expandButton = screen.getByRole('button', {
             name: /Expand summary for STRUCTURE FIRE/i,
@@ -79,7 +73,7 @@ describe('AlertTableView', () => {
 
         expect(screen.getByText('Incident Summary')).toBeInTheDocument();
         expect(screen.getAllByText(/Event #E1/).length).toBeGreaterThan(0);
-        expect(onSelectAlert).not.toHaveBeenCalled();
+        expect(defaultProps.onSelectAlert).not.toHaveBeenCalled();
 
         fireEvent.click(
             screen.getByRole('button', {
@@ -91,32 +85,16 @@ describe('AlertTableView', () => {
     });
 
     it('expands summary on row click without selecting details', () => {
-        const onSelectAlert = vi.fn();
-
-        render(
-            <AlertTableView
-                items={rows}
-                onSelectAlert={onSelectAlert}
-                savedIds={new Set()}
-            />,
-        );
+        render(<AlertTableView {...defaultProps} />);
 
         fireEvent.click(screen.getByText('STRUCTURE FIRE'));
 
         expect(screen.getByText('Incident Summary')).toBeInTheDocument();
-        expect(onSelectAlert).not.toHaveBeenCalled();
+        expect(defaultProps.onSelectAlert).not.toHaveBeenCalled();
     });
 
     it('allows selecting details from the expanded summary action', () => {
-        const onSelectAlert = vi.fn();
-
-        render(
-            <AlertTableView
-                items={rows}
-                onSelectAlert={onSelectAlert}
-                savedIds={new Set()}
-            />,
-        );
+        render(<AlertTableView {...defaultProps} />);
 
         fireEvent.click(
             screen.getByRole('button', {
@@ -126,6 +104,52 @@ describe('AlertTableView', () => {
 
         fireEvent.click(screen.getByRole('button', { name: /View Details/i }));
 
-        expect(onSelectAlert).toHaveBeenCalledWith('fire:E1');
+        expect(defaultProps.onSelectAlert).toHaveBeenCalledWith('fire:E1');
+    });
+
+    it('calls onToggleSave and stops propagation when row save button is clicked', () => {
+        render(<AlertTableView {...defaultProps} />);
+
+        const saveBtn = screen.getByLabelText(/Save STRUCTURE FIRE/i);
+        fireEvent.click(saveBtn);
+
+        expect(defaultProps.onToggleSave).toHaveBeenCalledWith('fire:E1');
+        // Ensure the row didn't expand (which would happen if propagation wasn't stopped)
+        expect(screen.queryByText('Incident Summary')).not.toBeInTheDocument();
+    });
+
+    it('shows saved state and handles toggle in expanded view', () => {
+        const props = {
+            ...defaultProps,
+            savedIds: new Set(['fire:E1']),
+        };
+        render(<AlertTableView {...props} />);
+
+        // Check row save button state
+        const rowSaveBtn = screen.getByLabelText(
+            /Remove STRUCTURE FIRE from saved/i,
+        );
+        expect(rowSaveBtn).toHaveClass('text-primary');
+
+        // Expand and check expanded save button
+        fireEvent.click(rowSaveBtn.closest('tr')!); // Row click to expand
+        const expandedSaveBtn = screen.getByText('Saved').closest('button');
+        if (!expandedSaveBtn) throw new Error('Expanded save button not found');
+        expect(expandedSaveBtn).toHaveClass('bg-primary');
+
+        fireEvent.click(expandedSaveBtn);
+        expect(defaultProps.onToggleSave).toHaveBeenCalledWith('fire:E1');
+    });
+
+    it('shows loading state when isPending is true', () => {
+        const props = {
+            ...defaultProps,
+            isPending: vi.fn((id) => id === 'fire:E1'),
+        };
+        render(<AlertTableView {...props} />);
+
+        const saveBtn = screen.getByLabelText(/Save STRUCTURE FIRE/i);
+        expect(saveBtn).toBeDisabled();
+        expect(saveBtn.querySelector('.animate-spin')).toBeInTheDocument();
     });
 });

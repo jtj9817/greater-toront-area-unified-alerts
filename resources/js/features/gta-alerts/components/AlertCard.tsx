@@ -10,6 +10,8 @@ interface AlertCardProps {
     alert: DomainAlert;
     onViewDetails?: () => void;
     isSaved?: boolean;
+    isPending?: boolean;
+    onToggleSave?: () => void;
 }
 
 function getSourceLabel(alert: DomainAlert): string {
@@ -29,6 +31,8 @@ export const AlertCard: React.FC<AlertCardProps> = ({
     alert,
     onViewDetails,
     isSaved = false,
+    isPending = false,
+    onToggleSave,
 }) => {
     const item = useMemo(() => mapDomainAlertToPresentation(alert), [alert]);
     const sourceLabel = getSourceLabel(alert);
@@ -110,6 +114,33 @@ export const AlertCard: React.FC<AlertCardProps> = ({
                             >
                                 {item.title}
                             </h4>
+                            <button
+                                id={`gta-alerts-alert-card-${item.id}-save-btn`}
+                                type="button"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    onToggleSave?.();
+                                }}
+                                disabled={isPending}
+                                className={`flex h-10 w-10 items-center justify-center border-2 border-black bg-white transition-all hover:bg-black hover:text-primary active:translate-x-0.5 active:translate-y-0.5 active:shadow-none ${isSaved ? 'bg-primary text-black' : 'text-black shadow-[3px_3px_0_#000]'} ${isPending ? 'cursor-wait opacity-70' : ''}`}
+                                aria-label={
+                                    isSaved ? 'Remove alert' : 'Save alert'
+                                }
+                            >
+                                <Icon
+                                    name={
+                                        isPending
+                                            ? 'sync'
+                                            : isSaved
+                                              ? 'bookmark'
+                                              : 'bookmark_border'
+                                    }
+                                    className={
+                                        isPending ? 'animate-spin' : 'text-xl'
+                                    }
+                                    fill={isSaved}
+                                />
+                            </button>
                         </div>
                         <div
                             id={`gta-alerts-alert-card-${item.id}-meta-wrap`}
@@ -121,14 +152,6 @@ export const AlertCard: React.FC<AlertCardProps> = ({
                             >
                                 {sourceLabel}
                             </span>
-                            {isSaved && (
-                                <span
-                                    id={`gta-alerts-alert-card-${item.id}-saved-label`}
-                                    className="border-2 border-black bg-[#FF7F00] px-2 py-1 text-black"
-                                >
-                                    SAVED
-                                </span>
-                            )}
                             <span
                                 id={`gta-alerts-alert-card-${item.id}-severity-label`}
                                 className={`px-3 py-1 text-[10px] font-black tracking-wider uppercase ${severityClasses}`}

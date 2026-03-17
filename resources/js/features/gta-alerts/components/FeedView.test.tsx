@@ -78,33 +78,27 @@ describe('FeedView', () => {
         },
     ];
 
+    const defaultProps = {
+        searchQuery: '',
+        onSelectAlert: vi.fn(),
+        initialAlerts: mockUnified,
+        initialNextCursor: null,
+        latestFeedUpdatedAt: timestamp,
+        status: 'all' as const,
+        savedIds: new Set<string>(),
+        isPending: vi.fn(() => false),
+        onToggleSave: vi.fn(),
+    };
+
     it('renders a list of alerts', () => {
-        render(
-            <FeedView
-                searchQuery=""
-                onSelectAlert={() => {}}
-                initialAlerts={mockUnified}
-                initialNextCursor={null}
-                latestFeedUpdatedAt={new Date().toISOString()}
-                status="all"
-            />,
-        );
+        render(<FeedView {...defaultProps} />);
 
         expect(screen.getByText('STRUCTURE FIRE')).toBeInTheDocument();
         expect(screen.getByText('THEFT')).toBeInTheDocument();
     });
 
     it('shows data freshness indicator when latestFeedUpdatedAt is provided', () => {
-        render(
-            <FeedView
-                searchQuery=""
-                onSelectAlert={() => {}}
-                initialAlerts={mockUnified}
-                initialNextCursor={null}
-                latestFeedUpdatedAt={new Date().toISOString()}
-                status="all"
-            />,
-        );
+        render(<FeedView {...defaultProps} />);
 
         expect(screen.getByText('Live Feed Active')).toBeInTheDocument();
         expect(screen.getByText(/Updated:/)).toBeInTheDocument();
@@ -113,12 +107,9 @@ describe('FeedView', () => {
     it('shows empty state when no alerts match', () => {
         render(
             <FeedView
+                {...defaultProps}
                 searchQuery="NoMatch"
-                onSelectAlert={() => {}}
                 initialAlerts={[]}
-                initialNextCursor={null}
-                latestFeedUpdatedAt={null}
-                status="all"
             />,
         );
 
@@ -128,16 +119,7 @@ describe('FeedView', () => {
     });
 
     it('renders status filter options (all, active, cleared)', () => {
-        render(
-            <FeedView
-                searchQuery=""
-                onSelectAlert={() => {}}
-                initialAlerts={mockUnified}
-                initialNextCursor={null}
-                latestFeedUpdatedAt={new Date().toISOString()}
-                status="all"
-            />,
-        );
+        render(<FeedView {...defaultProps} />);
 
         expect(screen.getByText('All', { selector: 'a' })).toBeInTheDocument();
         expect(
@@ -149,17 +131,7 @@ describe('FeedView', () => {
     });
 
     it('renders source category filters', () => {
-        render(
-            <FeedView
-                searchQuery=""
-                onSelectAlert={() => {}}
-                initialAlerts={mockUnified}
-                initialNextCursor={null}
-                latestFeedUpdatedAt={new Date().toISOString()}
-                status="all"
-                source={null}
-            />,
-        );
+        render(<FeedView {...defaultProps} />);
 
         expect(screen.getByText('All Alerts')).toBeInTheDocument();
         expect(screen.getByText('Fire')).toBeInTheDocument();
@@ -169,17 +141,7 @@ describe('FeedView', () => {
     });
 
     it('renders time window selector with options', () => {
-        render(
-            <FeedView
-                searchQuery=""
-                onSelectAlert={() => {}}
-                initialAlerts={mockUnified}
-                initialNextCursor={null}
-                latestFeedUpdatedAt={new Date().toISOString()}
-                status="all"
-                since={null}
-            />,
-        );
+        render(<FeedView {...defaultProps} />);
 
         const select = screen.getByRole('combobox');
         expect(select).toBeInTheDocument();
@@ -187,31 +149,13 @@ describe('FeedView', () => {
     });
 
     it('renders loaded count when alerts are provided', () => {
-        render(
-            <FeedView
-                searchQuery=""
-                onSelectAlert={() => {}}
-                initialAlerts={mockUnified}
-                initialNextCursor={null}
-                latestFeedUpdatedAt={new Date().toISOString()}
-                status="all"
-            />,
-        );
+        render(<FeedView {...defaultProps} />);
 
         expect(screen.getByText('2 loaded')).toBeInTheDocument();
     });
 
     it('renders loaded count when no alerts are present', () => {
-        render(
-            <FeedView
-                searchQuery=""
-                onSelectAlert={() => {}}
-                initialAlerts={[]}
-                initialNextCursor={null}
-                latestFeedUpdatedAt={new Date().toISOString()}
-                status="all"
-            />,
-        );
+        render(<FeedView {...defaultProps} initialAlerts={[]} />);
 
         expect(screen.getByText('0 loaded')).toBeInTheDocument();
     });
@@ -219,12 +163,7 @@ describe('FeedView', () => {
     it('shows Reset button when filters are active', () => {
         render(
             <FeedView
-                searchQuery=""
-                onSelectAlert={() => {}}
-                initialAlerts={mockUnified}
-                initialNextCursor={null}
-                latestFeedUpdatedAt={new Date().toISOString()}
-                status="all"
+                {...defaultProps}
                 source="fire"
                 since="1h"
             />,
@@ -236,12 +175,7 @@ describe('FeedView', () => {
     it('does not show Reset button when no filters are active', () => {
         render(
             <FeedView
-                searchQuery=""
-                onSelectAlert={() => {}}
-                initialAlerts={mockUnified}
-                initialNextCursor={null}
-                latestFeedUpdatedAt={new Date().toISOString()}
-                status="all"
+                {...defaultProps}
                 source={null}
                 since={null}
             />,
@@ -253,12 +187,7 @@ describe('FeedView', () => {
     it('shows Reset button when oldest-first sort is active', () => {
         render(
             <FeedView
-                searchQuery=""
-                onSelectAlert={() => {}}
-                initialAlerts={mockUnified}
-                initialNextCursor={null}
-                latestFeedUpdatedAt={new Date().toISOString()}
-                status="all"
+                {...defaultProps}
                 sort="asc"
                 source={null}
                 since={null}
@@ -269,32 +198,14 @@ describe('FeedView', () => {
     });
 
     it('renders view mode toggle (Feed/Table)', () => {
-        render(
-            <FeedView
-                searchQuery=""
-                onSelectAlert={() => {}}
-                initialAlerts={mockUnified}
-                initialNextCursor={null}
-                latestFeedUpdatedAt={new Date().toISOString()}
-                status="all"
-            />,
-        );
+        render(<FeedView {...defaultProps} />);
 
         expect(screen.getByText('Feed')).toBeInTheDocument();
         expect(screen.getByText('Table')).toBeInTheDocument();
     });
 
     it('keeps cards/table toggle client-side and does not trigger navigation', () => {
-        render(
-            <FeedView
-                searchQuery=""
-                onSelectAlert={() => {}}
-                initialAlerts={mockUnified}
-                initialNextCursor={null}
-                latestFeedUpdatedAt={new Date().toISOString()}
-                status="all"
-            />,
-        );
+        render(<FeedView {...defaultProps} />);
 
         const callsBeforeToggle = inertiaRouterMocks.get.mock.calls.length;
 
@@ -307,12 +218,7 @@ describe('FeedView', () => {
     it('toggles sort direction and omits desc from the generated URL', () => {
         render(
             <FeedView
-                searchQuery=""
-                onSelectAlert={() => {}}
-                initialAlerts={mockUnified}
-                initialNextCursor={null}
-                latestFeedUpdatedAt={new Date().toISOString()}
-                status="all"
+                {...defaultProps}
                 sort="desc"
             />,
         );
@@ -325,5 +231,13 @@ describe('FeedView', () => {
         const [url] = inertiaRouterMocks.get.mock.calls[0] as [string];
         expect(url).toContain('sort=asc');
         expect(url).not.toContain('sort=desc');
+    });
+
+    it('passes saved state to AlertCard', () => {
+        const savedIds = new Set(['fire:E1']);
+        render(<FeedView {...defaultProps} savedIds={savedIds} />);
+
+        const saveBtn = screen.getByLabelText(/Remove alert/i);
+        expect(saveBtn).toHaveClass('bg-primary');
     });
 });

@@ -10,6 +10,8 @@ interface AlertTableViewProps {
     items: DomainAlert[];
     onSelectAlert: (id: string) => void;
     savedIds: Set<string>;
+    isPending: (id: string) => boolean;
+    onToggleSave: (id: string) => Promise<void>;
 }
 
 const severityStyles: Record<'high' | 'medium' | 'low', string> = {
@@ -41,6 +43,8 @@ export const AlertTableView: React.FC<AlertTableViewProps> = ({
     items,
     onSelectAlert,
     savedIds,
+    isPending,
+    onToggleSave,
 }) => {
     const [expandedRowId, setExpandedRowId] = useState<string | null>(null);
     const toggleExpandedRow = (rowId: string) => {
@@ -83,9 +87,9 @@ export const AlertTableView: React.FC<AlertTableViewProps> = ({
                         <th id="gta-alerts-alert-table-th-source">Source</th>
                         <th
                             id="gta-alerts-alert-table-th-expand"
-                            className="w-10"
+                            className="w-20"
                         >
-                            <span className="sr-only">Expand</span>
+                            <span className="sr-only">Actions</span>
                         </th>
                     </tr>
                 </thead>
@@ -97,6 +101,8 @@ export const AlertTableView: React.FC<AlertTableViewProps> = ({
                         const isExpanded = expandedRowId === presentation.id;
                         const isActive = alert.isActive;
                         const sourceLabel = getSourceLabel(alert);
+                        const isSaved = savedIds.has(presentation.id);
+                        const pending = isPending(presentation.id);
 
                         return (
                             <React.Fragment key={presentation.id}>
@@ -162,39 +168,67 @@ export const AlertTableView: React.FC<AlertTableViewProps> = ({
                                         >
                                             {sourceLabel}
                                         </span>
-                                        {savedIds.has(presentation.id) && (
-                                            <span
-                                                id={`gta-alerts-alert-table-row-${presentation.id}-saved-badge`}
-                                                className="ml-2 bg-[#FF7F00] px-2 py-1 text-[10px] font-black text-black uppercase"
-                                            >
-                                                Saved
-                                            </span>
-                                        )}
                                     </td>
                                     <td
                                         id={`gta-alerts-alert-table-row-${presentation.id}-actions`}
                                     >
-                                        <button
-                                            id={`gta-alerts-alert-table-row-${presentation.id}-expand-btn`}
-                                            type="button"
-                                            onClick={(event) => {
-                                                event.stopPropagation();
-                                                toggleExpandedRow(
-                                                    presentation.id,
-                                                );
-                                            }}
-                                            aria-label={`${isExpanded ? 'Collapse' : 'Expand'} summary for ${presentation.title}`}
-                                            className="flex h-8 w-8 items-center justify-center transition-colors hover:bg-black hover:text-primary"
-                                        >
-                                            <Icon
-                                                id={`gta-alerts-alert-table-row-${presentation.id}-expand-icon`}
-                                                name={
-                                                    isExpanded
-                                                        ? 'expand_less'
-                                                        : 'expand_more'
+                                        <div className="flex items-center gap-1">
+                                            <button
+                                                id={`gta-alerts-alert-table-row-${presentation.id}-save-btn`}
+                                                type="button"
+                                                onClick={(event) => {
+                                                    event.stopPropagation();
+                                                    onToggleSave(
+                                                        presentation.id,
+                                                    );
+                                                }}
+                                                disabled={pending}
+                                                aria-label={
+                                                    isSaved
+                                                        ? `Remove ${presentation.title} from saved`
+                                                        : `Save ${presentation.title}`
                                                 }
-                                            />
-                                        </button>
+                                                className={`flex h-8 w-8 items-center justify-center transition-colors hover:bg-black hover:text-primary ${isSaved ? 'text-primary' : 'text-text-secondary'}`}
+                                            >
+                                                <Icon
+                                                    id={`gta-alerts-alert-table-row-${presentation.id}-save-icon`}
+                                                    name={
+                                                        pending
+                                                            ? 'sync'
+                                                            : isSaved
+                                                              ? 'bookmark'
+                                                              : 'bookmark_border'
+                                                    }
+                                                    className={
+                                                        pending
+                                                            ? 'animate-spin'
+                                                            : ''
+                                                    }
+                                                    fill={isSaved}
+                                                />
+                                            </button>
+                                            <button
+                                                id={`gta-alerts-alert-table-row-${presentation.id}-expand-btn`}
+                                                type="button"
+                                                onClick={(event) => {
+                                                    event.stopPropagation();
+                                                    toggleExpandedRow(
+                                                        presentation.id,
+                                                    );
+                                                }}
+                                                aria-label={`${isExpanded ? 'Collapse' : 'Expand'} summary for ${presentation.title}`}
+                                                className="flex h-8 w-8 items-center justify-center transition-colors hover:bg-black hover:text-primary"
+                                            >
+                                                <Icon
+                                                    id={`gta-alerts-alert-table-row-${presentation.id}-expand-icon`}
+                                                    name={
+                                                        isExpanded
+                                                            ? 'expand_less'
+                                                            : 'expand_more'
+                                                    }
+                                                />
+                                            </button>
+                                        </div>
                                     </td>
                                 </tr>
                                 {isExpanded && (
@@ -268,6 +302,37 @@ export const AlertTableView: React.FC<AlertTableViewProps> = ({
                                                         className="border-2 border-black bg-primary px-3 py-1 text-black transition-colors hover:bg-black hover:text-primary"
                                                     >
                                                         View Details
+                                                    </button>
+                                                    <button
+                                                        id={`gta-alerts-alert-table-row-${presentation.id}-expanded-save-btn`}
+                                                        type="button"
+                                                        onClick={(event) => {
+                                                            event.stopPropagation();
+                                                            onToggleSave(
+                                                                presentation.id,
+                                                            );
+                                                        }}
+                                                        disabled={pending}
+                                                        className={`flex items-center gap-2 border-2 border-black px-3 py-1 transition-colors hover:bg-black hover:text-primary ${isSaved ? 'bg-primary text-black' : 'bg-panel-light text-black'}`}
+                                                    >
+                                                        <Icon
+                                                            name={
+                                                                pending
+                                                                    ? 'sync'
+                                                                    : isSaved
+                                                                      ? 'bookmark'
+                                                                      : 'bookmark_border'
+                                                            }
+                                                            className={
+                                                                pending
+                                                                    ? 'animate-spin'
+                                                                    : ''
+                                                            }
+                                                            fill={isSaved}
+                                                        />
+                                                        {isSaved
+                                                            ? 'Saved'
+                                                            : 'Save Alert'}
                                                     </button>
                                                 </div>
                                             </div>

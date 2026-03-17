@@ -45,8 +45,34 @@ describe('AlertCard', () => {
         expect(onViewDetails).toHaveBeenCalledTimes(1);
     });
 
-    it('shows saved badge when isSaved is true', () => {
+    it('calls onToggleSave and stops propagation when save button is clicked', () => {
+        const onToggleSave = vi.fn();
+        const onViewDetails = vi.fn();
+        render(
+            <AlertCard
+                alert={mockAlert}
+                onToggleSave={onToggleSave}
+                onViewDetails={onViewDetails}
+            />,
+        );
+
+        const saveBtn = screen.getByLabelText('Save alert');
+        fireEvent.click(saveBtn);
+
+        expect(onToggleSave).toHaveBeenCalledTimes(1);
+        expect(onViewDetails).not.toHaveBeenCalled();
+    });
+
+    it('shows saved state correctly', () => {
         render(<AlertCard alert={mockAlert} isSaved={true} />);
-        expect(screen.getByText('SAVED')).toBeInTheDocument();
+        const saveBtn = screen.getByLabelText('Remove alert');
+        expect(saveBtn).toHaveClass('bg-primary');
+    });
+
+    it('shows loading state when isPending is true', () => {
+        render(<AlertCard alert={mockAlert} isPending={true} />);
+        const saveBtn = screen.getByLabelText('Save alert');
+        expect(saveBtn).toBeDisabled();
+        expect(saveBtn.querySelector('.animate-spin')).toBeInTheDocument();
     });
 });

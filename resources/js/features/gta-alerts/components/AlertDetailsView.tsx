@@ -10,6 +10,9 @@ import { SceneIntelTimeline } from './SceneIntelTimeline';
 interface DetailsProps {
     alert: DomainAlert;
     onBack: () => void;
+    isSaved: boolean;
+    isPending: boolean;
+    onToggleSave: () => void;
 }
 
 type PresentationAlert = ReturnType<typeof mapDomainAlertToPresentation>;
@@ -24,15 +27,19 @@ interface DetailLayoutProps {
     alert: PresentationAlert;
     onBack: () => void;
     sections: DetailSections;
+    isSaved: boolean;
+    isPending: boolean;
+    onToggleSave: () => void;
 }
 
 const AlertDetailsLayout: React.FC<DetailLayoutProps> = ({
     alert,
     onBack,
     sections,
+    isSaved,
+    isPending,
+    onToggleSave,
 }) => {
-    const isSaved = false;
-
     return (
         <section
             id={`gta-alerts-alert-details-${alert.id}`}
@@ -128,19 +135,32 @@ const AlertDetailsLayout: React.FC<DetailLayoutProps> = ({
                         </button>
                         <button
                             id={`gta-alerts-alert-details-${alert.id}-save-btn`}
+                            onClick={onToggleSave}
+                            disabled={isPending}
                             className={`flex items-center justify-center gap-2 rounded-xl border px-6 transition-all ${
                                 isSaved
                                     ? 'border-white/20 bg-white/10 text-white shadow-lg'
                                     : 'border-white/10 text-white hover:border-white/20'
-                            }`}
+                            } ${isPending ? 'cursor-wait opacity-70' : ''}`}
                         >
                             <Icon
-                                name={isSaved ? 'bookmark' : 'bookmark_border'}
+                                name={
+                                    isPending
+                                        ? 'sync'
+                                        : isSaved
+                                          ? 'bookmark'
+                                          : 'bookmark_border'
+                                }
+                                className={isPending ? 'animate-spin' : ''}
                                 fill={isSaved}
                             />
-                            {isSaved && (
+                            {isSaved ? (
                                 <span className="hidden text-sm font-bold sm:inline">
                                     Saved
+                                </span>
+                            ) : (
+                                <span className="hidden text-sm font-bold sm:inline">
+                                    Save Alert
                                 </span>
                             )}
                         </button>
@@ -454,7 +474,13 @@ function buildGoTransitSections(alert: PresentationAlert): DetailSections {
     };
 }
 
-export const AlertDetailsView: React.FC<DetailsProps> = ({ alert, onBack }) => {
+export const AlertDetailsView: React.FC<DetailsProps> = ({
+    alert,
+    onBack,
+    isSaved,
+    isPending,
+    onToggleSave,
+}) => {
     const presentation = useMemo(
         () => mapDomainAlertToPresentation(alert),
         [alert],
@@ -478,6 +504,9 @@ export const AlertDetailsView: React.FC<DetailsProps> = ({ alert, onBack }) => {
             alert={presentation}
             onBack={onBack}
             sections={sections}
+            isSaved={isSaved}
+            isPending={isPending}
+            onToggleSave={onToggleSave}
         />
     );
 };
