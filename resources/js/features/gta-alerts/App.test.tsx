@@ -132,34 +132,6 @@ function policeResource(overrides: Partial<UnifiedAlertResource> = {}) {
     return { ...base, ...overrides };
 }
 
-function ttcTransitResource(overrides: Partial<UnifiedAlertResource> = {}) {
-    const timestamp = new Date('2026-02-03T12:02:00Z').toISOString();
-    const base: UnifiedAlertResource = {
-        id: 'transit:api:61748',
-        source: 'transit',
-        external_id: 'api:61748',
-        is_active: true,
-        timestamp,
-        title: 'Line 1 delay',
-        location: { name: 'St Clair Station', lat: 43.7, lng: -79.4 },
-        meta: {
-            route_type: 'Subway',
-            route: '1',
-            severity: 'Critical',
-            effect: 'REDUCED_SERVICE',
-            source_feed: 'live-api',
-            alert_type: 'advisory',
-            description: null,
-            url: null,
-            direction: 'Both Ways',
-            cause: null,
-            stop_start: null,
-            stop_end: null,
-        },
-    };
-    return { ...base, ...overrides };
-}
-
 function goTransitResource(overrides: Partial<UnifiedAlertResource> = {}) {
     const timestamp = new Date('2026-02-03T12:03:00Z').toISOString();
     const base: UnifiedAlertResource = {

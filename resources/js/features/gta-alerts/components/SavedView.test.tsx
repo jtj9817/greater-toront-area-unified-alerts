@@ -1,6 +1,7 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 import type { DomainAlert } from '../domain/alerts';
+import type { SavedAlertsResponse } from '../services/SavedAlertService';
 import { fetchSavedAlerts } from '../services/SavedAlertService';
 import { SavedView } from './SavedView';
 
@@ -15,18 +16,18 @@ describe('SavedView', () => {
             kind: 'fire',
             externalId: 'E1',
             isActive: true,
-            timestamp: new Date().toISOString(),
+            timestamp: new Date('2026-02-03T12:00:00Z').toISOString(),
             title: 'STRUCTURE FIRE',
             location: { name: '123 Fire St', lat: null, lng: null },
-            description: 'Fire reported',
-            type: 'fire',
             meta: {
                 alarm_level: 1,
                 event_num: 'E1',
                 units_dispatched: 'P1',
                 beat: 'B1',
+                intel_summary: [],
+                intel_last_updated: null,
             },
-        } as any,
+        },
     ];
 
     const defaultProps = {
@@ -34,9 +35,9 @@ describe('SavedView', () => {
         onSelectAlert: vi.fn(),
         allAlerts: mockAlerts,
         savedIds: ['fire:E1'],
-        isSaved: vi.fn((id) => id === 'fire:E1'),
+        isSaved: vi.fn((id: string) => id === 'fire:E1'),
         isPending: vi.fn(() => false),
-        onToggleSave: vi.fn(),
+        onToggleSave: vi.fn(async () => {}),
     };
 
     beforeEach(() => {
@@ -51,11 +52,13 @@ describe('SavedView', () => {
     it('renders saved alerts for guest user', () => {
         render(<SavedView {...defaultProps} />);
         expect(screen.getByText('STRUCTURE FIRE')).toBeInTheDocument();
-        expect(screen.getByText(/Your alerts are saved locally/)).toBeInTheDocument();
+        expect(
+            screen.getByText(/Your alerts are saved locally/),
+        ).toBeInTheDocument();
     });
 
     it('renders saved alerts for authenticated user', async () => {
-        const mockResponse = {
+        const mockResponse: SavedAlertsResponse = {
             data: [
                 {
                     id: 'fire:E1',
@@ -78,16 +81,21 @@ describe('SavedView', () => {
                 missing_alert_ids: [],
             },
         };
-        (fetchSavedAlerts as any).mockResolvedValue(mockResponse);
+        const mockedFetchSavedAlerts = vi.mocked(fetchSavedAlerts);
+        mockedFetchSavedAlerts.mockResolvedValue(mockResponse);
 
         render(<SavedView {...defaultProps} authUserId={42} />);
 
-        expect(screen.getByText(/Loading your saved alerts/)).toBeInTheDocument();
+        expect(
+            screen.getByText(/Loading your saved alerts/),
+        ).toBeInTheDocument();
 
         await waitFor(() => {
             expect(screen.getByText('API FIRE')).toBeInTheDocument();
         });
-        expect(screen.getByText(/Review incidents you've flagged/)).toBeInTheDocument();
+        expect(
+            screen.getByText(/Review incidents you've flagged/),
+        ).toBeInTheDocument();
     });
 
     it('shows missing alerts as unavailable', () => {
@@ -104,7 +112,7 @@ describe('SavedView', () => {
                 {...defaultProps}
                 guestCapReached={true}
                 onEvictOldest={onEvictOldest}
-            />
+            />,
         );
 
         expect(screen.getByText(/Guest limit reached/)).toBeInTheDocument();

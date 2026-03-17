@@ -225,12 +225,14 @@ describe('AlertDetailsView', () => {
                 onBack={() => {}}
                 {...defaultProps}
                 isPending={true}
-                />,
-                );
+            />,
+        );
 
-                const saveBtnActual = screen.getAllByRole('button')[2];
+        const saveBtnActual = screen.getAllByRole('button')[2];
 
         expect(saveBtnActual).toBeDisabled();
-        expect(saveBtnActual.querySelector('.animate-spin')).toBeInTheDocument();
+        expect(
+            saveBtnActual.querySelector('.animate-spin'),
+        ).toBeInTheDocument();
     });
 });

@@ -252,6 +252,9 @@ describe(designRevampPhase4Spec.scenarios[1].id, () => {
                     '2026-02-03T12:05:00Z',
                 ).toISOString(),
                 status: 'all',
+                savedIds: new Set<string>(),
+                isPending: () => false,
+                onToggleSave: async () => {},
             }),
         );
 
@@ -327,6 +330,9 @@ describe(designRevampPhase4Spec.scenarios[3].id, () => {
                 initialNextCursor: null,
                 latestFeedUpdatedAt: null,
                 status: 'all',
+                savedIds: new Set<string>(),
+                isPending: () => false,
+                onToggleSave: async () => {},
             }),
         );
 

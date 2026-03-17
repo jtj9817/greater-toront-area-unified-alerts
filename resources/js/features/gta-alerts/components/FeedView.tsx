@@ -1,5 +1,5 @@
 import { Link, router } from '@inertiajs/react';
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { formatTimeAgo } from '@/lib/utils';
 import { home } from '@/routes';
 import type { UnifiedAlertResource } from '../domain/alerts';

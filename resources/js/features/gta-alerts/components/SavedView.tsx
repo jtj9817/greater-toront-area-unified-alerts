@@ -1,6 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { formatTimeAgo } from '@/lib/utils';
-import type { DomainAlert, UnifiedAlertResource } from '../domain/alerts';
+import type { DomainAlert } from '../domain/alerts';
 import { AlertService } from '../services/AlertService';
 import { fetchSavedAlerts } from '../services/SavedAlertService';
 import { AlertCard } from './AlertCard';
@@ -57,7 +56,7 @@ export const SavedView: React.FC<SavedViewProps> = ({
                     );
                     setMissingIds(response.meta.missing_alert_ids);
                 }
-            } catch (err) {
+            } catch {
                 if (isMounted) {
                     setError('Failed to load saved alerts.');
                 }
@@ -84,7 +83,12 @@ export const SavedView: React.FC<SavedViewProps> = ({
             .filter((a): a is DomainAlert => a !== undefined);
     }, [isGuest, savedIds, allAlerts]);
 
-    const displayAlerts = isGuest ? guestSavedAlerts : authSavedAlerts;
+    const authDisplayAlerts = useMemo(() => {
+        if (isGuest) return [];
+        return authSavedAlerts.filter((item) => isSaved(item.id));
+    }, [authSavedAlerts, isGuest, isSaved]);
+
+    const displayAlerts = isGuest ? guestSavedAlerts : authDisplayAlerts;
 
     // Filter missing IDs for guest mode (saved but not in current feed)
     const guestMissingIds = useMemo(() => {
@@ -92,10 +96,18 @@ export const SavedView: React.FC<SavedViewProps> = ({
         return savedIds.filter((id) => !allAlerts.some((a) => a.id === id));
     }, [isGuest, savedIds, allAlerts]);
 
-    const activeMissingIds = isGuest ? guestMissingIds : missingIds;
+    const authMissingIds = useMemo(() => {
+        if (isGuest) return [];
+        return missingIds.filter((id) => isSaved(id));
+    }, [isGuest, isSaved, missingIds]);
+
+    const activeMissingIds = isGuest ? guestMissingIds : authMissingIds;
 
     const isEmpty =
-        !isLoading && displayAlerts.length === 0 && activeMissingIds.length === 0;
+        !isLoading &&
+        error === null &&
+        displayAlerts.length === 0 &&
+        activeMissingIds.length === 0;
 
     return (
         <section id="gta-alerts-saved-view" className="p-4 md:p-6">
@@ -116,7 +128,7 @@ export const SavedView: React.FC<SavedViewProps> = ({
                 >
                     {isGuest
                         ? 'Your alerts are saved locally on this device.'
-                        : 'Review incidents you\'ve flagged for monitoring.'}
+                        : "Review incidents you've flagged for monitoring."}
                 </p>
             </div>
 
@@ -155,6 +167,21 @@ export const SavedView: React.FC<SavedViewProps> = ({
                             Loading your saved alerts...
                         </p>
                     </div>
+                ) : error ? (
+                    <div className="flex flex-col items-center justify-center py-20 text-center">
+                        <div className="mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-white/5">
+                            <Icon
+                                name="warning"
+                                className="text-4xl text-text-secondary opacity-30"
+                            />
+                        </div>
+                        <h3 className="mb-2 text-xl font-bold text-white">
+                            Unable to load saved alerts
+                        </h3>
+                        <p className="max-w-xs text-sm text-text-secondary">
+                            {error}
+                        </p>
+                    </div>
                 ) : isEmpty ? (
                     <div className="flex flex-col items-center justify-center py-20 text-center">
                         <div className="mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-white/5">
@@ -178,7 +205,7 @@ export const SavedView: React.FC<SavedViewProps> = ({
                                 key={`saved-${item.id}`}
                                 alert={item}
                                 onViewDetails={() => onSelectAlert(item.id)}
-                                isSaved={true}
+                                isSaved={isSaved(item.id)}
                                 isPending={isPending(item.id)}
                                 onToggleSave={() => onToggleSave(item.id)}
                             />
@@ -188,7 +215,7 @@ export const SavedView: React.FC<SavedViewProps> = ({
                             <div
                                 key={`missing-${id}`}
                                 id={`gta-alerts-missing-alert-${id}`}
-                                className="panel-shadow flex items-center justify-between border-4 border-black bg-panel-light p-4 grayscale opacity-60"
+                                className="panel-shadow flex items-center justify-between border-4 border-black bg-panel-light p-4 opacity-60 grayscale"
                             >
                                 <div className="flex items-center gap-3">
                                     <Icon

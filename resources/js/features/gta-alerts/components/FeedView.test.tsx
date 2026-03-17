@@ -35,11 +35,19 @@ vi.mock('laravel-vite-plugin/inertia-helpers', () => ({
 }));
 
 vi.mock('@/wayfinder', () => ({
-    home: vi.fn((opts) => {
-        let url = '/?';
-        if (opts?.query?.sort) url += `sort=${opts.query.sort}&`;
-        return { url };
-    }),
+    queryParams: (options?: { query?: Record<string, unknown> }) => {
+        const query = options?.query;
+        if (!query) return '';
+
+        const params = new URLSearchParams();
+        Object.entries(query).forEach(([key, value]) => {
+            if (value === null || value === undefined) return;
+            params.set(key, String(value));
+        });
+
+        const str = params.toString();
+        return str.length > 0 ? `?${str}` : '';
+    },
 }));
 
 describe('FeedView', () => {
@@ -87,7 +95,7 @@ describe('FeedView', () => {
         status: 'all' as const,
         savedIds: new Set<string>(),
         isPending: vi.fn(() => false),
-        onToggleSave: vi.fn(),
+        onToggleSave: vi.fn(async () => {}),
     };
 
     it('renders a list of alerts', () => {
@@ -161,25 +169,13 @@ describe('FeedView', () => {
     });
 
     it('shows Reset button when filters are active', () => {
-        render(
-            <FeedView
-                {...defaultProps}
-                source="fire"
-                since="1h"
-            />,
-        );
+        render(<FeedView {...defaultProps} source="fire" since="1h" />);
 
         expect(screen.getByText('Reset')).toBeInTheDocument();
     });
 
     it('does not show Reset button when no filters are active', () => {
-        render(
-            <FeedView
-                {...defaultProps}
-                source={null}
-                since={null}
-            />,
-        );
+        render(<FeedView {...defaultProps} source={null} since={null} />);
 
         expect(screen.queryByText('Reset')).not.toBeInTheDocument();
     });
@@ -216,12 +212,7 @@ describe('FeedView', () => {
     });
 
     it('toggles sort direction and omits desc from the generated URL', () => {
-        render(
-            <FeedView
-                {...defaultProps}
-                sort="desc"
-            />,
-        );
+        render(<FeedView {...defaultProps} sort="desc" />);
 
         fireEvent.click(
             screen.getByRole('button', { name: 'Switch to oldest first' }),
