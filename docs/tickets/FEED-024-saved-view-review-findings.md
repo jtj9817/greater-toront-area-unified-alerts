@@ -61,6 +61,10 @@ Fixes user-visible correctness regressions in `SavedView` (saved list not updati
 - `pnpm exec vitest run resources/js/features/gta-alerts/App.test.tsx`
 - `pnpm exec vitest run tests/e2e/design-revamp-phase-4.spec.ts`
 
+**Test harness fixes required for pass**
+- `resources/js/features/gta-alerts/components/FeedView.test.tsx`: mock `@/wayfinder` needed a `queryParams` export (routes generator depends on it).
+- `tests/e2e/design-revamp-phase-4.spec.ts`: direct `FeedView` renders required `savedIds`, `isPending`, and `onToggleSave` props to match the component contract.
+
 **Full suite**
 - `composer test`
 
@@ -78,4 +82,3 @@ Fixes user-visible correctness regressions in `SavedView` (saved list not updati
 - [x] Full suite passes (`composer test`)
 
 These fixes are part of Phase 3: Frontend Saved Alert State (GTA-101).
-
