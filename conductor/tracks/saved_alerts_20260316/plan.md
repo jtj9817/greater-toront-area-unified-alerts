@@ -40,19 +40,19 @@
 
 ## Phase 2: Saved Alert Read Model & Feed Hydration (GTA-102)
 
-- [ ] Task: Define how saved IDs become renderable alerts.
-    - [ ] Extend backend read logic so saved alerts can be resolved into `UnifiedAlertResource` payloads.
-    - [ ] Include unavailable saved-alert records in response metadata so the UI can render unresolved rows and removal actions.
-- [ ] Task: Implement the saved-alert read model [TDD].
-    - [ ] Add the backend query path needed to fetch saved alerts in a deterministic order (typically newest saved first).
-    - [ ] Decide how unresolved IDs are represented (`missing_alert_ids`, omitted records, or unavailable stubs).
-    - [ ] Ensure the response shape is compatible with the existing frontend domain mappers in `resources/js/features/gta-alerts/domain/alerts/`.
-- [ ] Task: Bootstrap saved IDs into the app shell [TDD].
-    - [ ] Update `app/Http/Controllers/GtaAlertsController.php` so authenticated users can arrive with initial saved-alert state instead of requiring a second request before badges render.
-    - [ ] Update `resources/js/pages/gta-alerts.tsx` and `resources/js/features/gta-alerts/App.tsx` props to carry the initial saved IDs.
-- [ ] Task: Backend/query coverage.
-    - [ ] Add tests for the saved-alert hydration path, including mixed-source IDs and unresolved IDs.
-    - [ ] Add regression tests for the initial Inertia payload when the request is authenticated versus guest.
+- [x] Task: Define how saved IDs become renderable alerts. <!-- ae500bb -->
+    - [x] Extend backend read logic so saved alerts can be resolved into `UnifiedAlertResource` payloads.
+    - [x] Include unavailable saved-alert records in response metadata so the UI can render unresolved rows and removal actions.
+- [x] Task: Implement the saved-alert read model [TDD]. <!-- ae500bb -->
+    - [x] Add the backend query path needed to fetch saved alerts in a deterministic order (typically newest saved first).
+    - [x] Decide how unresolved IDs are represented (`missing_alert_ids`, omitted records, or unavailable stubs). <!-- Chose: omit from `data`, list in `meta.missing_alert_ids` -->
+    - [x] Ensure the response shape is compatible with the existing frontend domain mappers in `resources/js/features/gta-alerts/domain/alerts/`.
+- [x] Task: Bootstrap saved IDs into the app shell [TDD]. <!-- ae500bb -->
+    - [x] Update `app/Http/Controllers/GtaAlertsController.php` so authenticated users can arrive with initial saved-alert state instead of requiring a second request before badges render.
+    - [x] Update `resources/js/pages/gta-alerts.tsx` and `resources/js/features/gta-alerts/App.tsx` props to carry the initial saved IDs.
+- [x] Task: Backend/query coverage. <!-- ae500bb -->
+    - [x] Add tests for the saved-alert hydration path, including mixed-source IDs and unresolved IDs.
+    - [x] Add regression tests for the initial Inertia payload when the request is authenticated versus guest.
 - [ ] Task: Conductor - User Manual Verification 'Phase 2: Saved Alert Read Model & Feed Hydration' (Protocol in `conductor/workflow.md`).
 
 ## Phase 3: Frontend Saved Alert State (GTA-103)
