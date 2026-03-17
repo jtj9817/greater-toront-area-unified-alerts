@@ -116,6 +116,50 @@ class UnifiedAlertsQuery
         return ['items' => $items, 'next_cursor' => $nextCursor];
     }
 
+    /**
+     * Fetch specific alerts by their canonical IDs, preserving the caller's ordering.
+     *
+     * @param  array<int, string>  $alertIds  Alert IDs in `{source}:{externalId}` format, ordered as desired.
+     * @return array{items: array<int, UnifiedAlert>, missing_ids: array<int, string>}
+     */
+    public function fetchByIds(array $alertIds): array
+    {
+        if ($alertIds === []) {
+            return ['items' => [], 'missing_ids' => []];
+        }
+
+        $criteria = new UnifiedAlertsCriteria;
+        $union = $this->unionSelect($criteria);
+
+        if ($union === null) {
+            return ['items' => [], 'missing_ids' => $alertIds];
+        }
+
+        $rows = DB::query()
+            ->fromSub($union, 'unified_alerts')
+            ->whereIn('id', $alertIds)
+            ->get();
+
+        $mappedById = [];
+        foreach ($rows as $row) {
+            $alert = $this->mapper->fromRow($row);
+            $mappedById[$alert->id] = $alert;
+        }
+
+        $items = [];
+        foreach ($alertIds as $id) {
+            if (isset($mappedById[$id])) {
+                $items[] = $mappedById[$id];
+            }
+        }
+
+        $missingIds = array_values(
+            array_filter($alertIds, fn (string $id): bool => ! isset($mappedById[$id]))
+        );
+
+        return ['items' => $items, 'missing_ids' => $missingIds];
+    }
+
     private function baseQuery(Builder $union, UnifiedAlertsCriteria $criteria): \Illuminate\Database\Query\Builder
     {
         $query = DB::query()->fromSub($union, 'unified_alerts');

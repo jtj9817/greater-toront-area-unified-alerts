@@ -8,6 +8,7 @@ use App\Http\Resources\UnifiedAlertResource;
 use App\Models\FireIncident;
 use App\Models\GoTransitAlert;
 use App\Models\PoliceCall;
+use App\Models\SavedAlert;
 use App\Models\TransitAlert;
 use App\Rules\UnifiedAlertsCursorRule;
 use App\Services\Alerts\DTOs\UnifiedAlertsCriteria;
@@ -63,7 +64,25 @@ class GtaAlertsController extends Controller
             ],
             'latest_feed_updated_at' => $latestFeedUpdatedAt?->toIso8601String(),
             'subscription_route_options' => $this->subscriptionRouteOptions(),
+            'saved_alert_ids' => $this->savedAlertIds($request),
         ]);
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    private function savedAlertIds(Request $request): array
+    {
+        if (! $request->user()) {
+            return [];
+        }
+
+        return SavedAlert::query()
+            ->where('user_id', $request->user()->id)
+            ->orderByDesc('id')
+            ->pluck('alert_id')
+            ->values()
+            ->all();
     }
 
     /**

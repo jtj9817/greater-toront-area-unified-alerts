@@ -4,14 +4,16 @@ namespace App\Http\Controllers\Notifications;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Notifications\SavedAlertStoreRequest;
+use App\Http\Resources\UnifiedAlertResource;
 use App\Models\SavedAlert;
+use App\Services\Alerts\UnifiedAlertsQuery;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class SavedAlertController extends Controller
 {
-    public function index(Request $request): JsonResponse
+    public function index(Request $request, UnifiedAlertsQuery $alertsQuery): JsonResponse
     {
         $savedAlerts = SavedAlert::query()
             ->where('user_id', $request->user()->id)
@@ -20,18 +22,35 @@ class SavedAlertController extends Controller
 
         $savedIds = $savedAlerts->pluck('alert_id')->values()->all();
 
+        if ($savedIds === []) {
+            return response()->json([
+                'data' => [],
+                'meta' => [
+                    'saved_ids' => [],
+                    'missing_alert_ids' => [],
+                ],
+            ]);
+        }
+
+        $hydrated = $alertsQuery->fetchByIds($savedIds);
+
+        $hydratedById = [];
+        foreach ($hydrated['items'] as $alert) {
+            $hydratedById[$alert->id] = $alert;
+        }
+
+        $resources = [];
+        foreach ($savedIds as $alertId) {
+            if (isset($hydratedById[$alertId])) {
+                $resources[] = (new UnifiedAlertResource($hydratedById[$alertId]))->resolve();
+            }
+        }
+
         return response()->json([
-            'data' => $savedAlerts
-                ->map(fn (SavedAlert $saved): array => [
-                    'id' => $saved->id,
-                    'alert_id' => $saved->alert_id,
-                    'saved_at' => $saved->created_at->toIso8601String(),
-                ])
-                ->values()
-                ->all(),
+            'data' => $resources,
             'meta' => [
                 'saved_ids' => $savedIds,
-                'missing_alert_ids' => [],
+                'missing_alert_ids' => $hydrated['missing_ids'],
             ],
         ]);
     }

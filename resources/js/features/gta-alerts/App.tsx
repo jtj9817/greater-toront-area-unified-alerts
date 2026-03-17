@@ -30,6 +30,7 @@ interface AppProps {
     latestFeedUpdatedAt: string | null;
     authUserId: number | null;
     subscriptionRouteOptions?: string[];
+    initialSavedAlertIds?: string[];
 }
 
 const normalizeRouteOptions = (options: string[] | undefined): string[] => {
@@ -52,6 +53,7 @@ const App: React.FC<AppProps> = ({
     latestFeedUpdatedAt,
     authUserId,
     subscriptionRouteOptions,
+    initialSavedAlertIds = [],
 }) => {
     const [currentView, setCurrentView] = useState('feed');
     const [searchQuery, setSearchQuery] = useState(filters.q || '');

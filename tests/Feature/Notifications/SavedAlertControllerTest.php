@@ -1,5 +1,7 @@
 <?php
 
+use App\Models\FireIncident;
+use App\Models\PoliceCall;
 use App\Models\SavedAlert;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -60,11 +62,15 @@ test('duplicate save returns 409 conflict', function () {
     expect(SavedAlert::query()->where('user_id', $user->id)->count())->toBe(1);
 });
 
-test('authenticated user can list saved alerts', function () {
+test('authenticated user can list saved alerts with hydrated resources', function () {
     $user = User::factory()->create();
 
+    FireIncident::factory()->create(['event_num' => 'F26018618']);
+    PoliceCall::factory()->create(['object_id' => 12345678]);
+
+    // Insert fire first, then police — so police is newer saved
     SavedAlert::factory()->create(['user_id' => $user->id, 'alert_id' => 'fire:F26018618']);
-    SavedAlert::factory()->create(['user_id' => $user->id, 'alert_id' => 'police:P12345678']);
+    SavedAlert::factory()->create(['user_id' => $user->id, 'alert_id' => 'police:12345678']);
 
     $response = $this->actingAs($user)
         ->getJson('/api/saved-alerts')
@@ -72,19 +78,19 @@ test('authenticated user can list saved alerts', function () {
         ->assertJsonCount(2, 'data')
         ->assertJsonStructure([
             'data' => [
-                ['id', 'alert_id', 'saved_at'],
+                ['id', 'source', 'external_id', 'is_active', 'timestamp', 'title', 'location', 'meta'],
             ],
             'meta' => ['saved_ids', 'missing_alert_ids'],
         ]);
 
     $savedIds = $response->json('meta.saved_ids');
     expect($savedIds)->toContain('fire:F26018618');
-    expect($savedIds)->toContain('police:P12345678');
+    expect($savedIds)->toContain('police:12345678');
     expect($response->json('meta.missing_alert_ids'))->toBe([]);
 
-    // `index()` returns results in descending ID order.
-    expect($response->json('data.0.alert_id'))->toBe('police:P12345678');
-    expect($response->json('data.1.alert_id'))->toBe('fire:F26018618');
+    // `index()` returns results in newest-saved-first order (police saved last → first in response).
+    expect($response->json('data.0.id'))->toBe('police:12345678');
+    expect($response->json('data.1.id'))->toBe('fire:F26018618');
 });
 
 test('list returns empty data and meta for user with no saved alerts', function () {

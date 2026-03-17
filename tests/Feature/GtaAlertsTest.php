@@ -3,7 +3,9 @@
 use App\Models\FireIncident;
 use App\Models\GoTransitAlert;
 use App\Models\PoliceCall;
+use App\Models\SavedAlert;
 use App\Models\TransitAlert;
+use App\Models\User;
 use App\Services\Alerts\DTOs\UnifiedAlertsCursor;
 use Illuminate\Support\Carbon;
 use Inertia\Testing\AssertableInertia as Assert;
@@ -520,5 +522,59 @@ test('the home page sanitizes search query', function () {
     $this->get(route('home', ['q' => '<script>alert(1)</script>']))
         ->assertInertia(fn (Assert $page) => $page
             ->where('filters.q', 'alert(1)')
+        );
+});
+
+// --- saved_alert_ids bootstrap ---
+
+test('guest receives empty saved_alert_ids in Inertia payload', function () {
+    $this->get(route('home'))
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('gta-alerts')
+            ->where('saved_alert_ids', [])
+        );
+});
+
+test('authenticated user receives their saved_alert_ids in Inertia payload', function () {
+    $user = User::factory()->create();
+
+    // Insert fire first, police second — so police has a higher id (newest saved first).
+    SavedAlert::factory()->create(['user_id' => $user->id, 'alert_id' => 'fire:F26018618']);
+    SavedAlert::factory()->create(['user_id' => $user->id, 'alert_id' => 'police:12345']);
+
+    $this->actingAs($user)
+        ->get(route('home'))
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('gta-alerts')
+            ->has('saved_alert_ids', 2)
+            ->where('saved_alert_ids.0', 'police:12345')
+            ->where('saved_alert_ids.1', 'fire:F26018618')
+        );
+});
+
+test('authenticated user with no saved alerts receives empty saved_alert_ids', function () {
+    $user = User::factory()->create();
+
+    $this->actingAs($user)
+        ->get(route('home'))
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('gta-alerts')
+            ->where('saved_alert_ids', [])
+        );
+});
+
+test('saved_alert_ids from other users are not included in the payload', function () {
+    $user = User::factory()->create();
+    $otherUser = User::factory()->create();
+
+    SavedAlert::factory()->create(['user_id' => $otherUser->id, 'alert_id' => 'fire:OTHER111']);
+    SavedAlert::factory()->create(['user_id' => $user->id, 'alert_id' => 'fire:MINE222']);
+
+    $this->actingAs($user)
+        ->get(route('home'))
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('gta-alerts')
+            ->has('saved_alert_ids', 1)
+            ->where('saved_alert_ids.0', 'fire:MINE222')
         );
 });
