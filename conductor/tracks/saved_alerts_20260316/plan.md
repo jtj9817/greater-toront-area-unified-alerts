@@ -36,7 +36,7 @@
 - [x] Task: Backend feature coverage. <!-- 86163e6 -->
     - [x] Add `tests/Feature/Notifications/SavedAlertControllerTest.php` covering auth requirements, create, duplicate create, list, delete, owner scoping, and invalid `alert_id` input.
     - [x] Add a limit/behavior test file if authenticated-user caps are introduced later; otherwise document that auth saves are uncapped in this iteration. <!-- Auth saves are intentionally uncapped in this iteration; documented via the "authenticated saves are uncapped" test -->
-- [ ] Task: Conductor - User Manual Verification ‘Phase 1: Persistence Contract & Backend API’ (Protocol in `conductor/workflow.md`).
+- [x] Task: Conductor - User Manual Verification ‘Phase 1: Persistence Contract & Backend API’ (Protocol in `conductor/workflow.md`). <!-- dc6e9f3 -->
 
 ## Phase 2: Saved Alert Read Model & Feed Hydration (GTA-102)
 
