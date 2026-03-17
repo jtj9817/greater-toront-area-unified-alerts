@@ -55,7 +55,7 @@
     - [x] Add regression tests for the initial Inertia payload when the request is authenticated versus guest.
 - [x] Task: Conductor - User Manual Verification 'Phase 2: Saved Alert Read Model & Feed Hydration' (Protocol in `conductor/workflow.md`).
 
-## Phase 3: Frontend Saved Alert State (GTA-103)
+## Phase 3: Frontend Saved Alert State (GTA-103) [checkpoint: 85b0947]
 
 - [x] Task: Implement a dedicated saved-alert state layer [TDD]. <!-- b767d1c -->
     - [x] Add `resources/js/features/gta-alerts/hooks/useSavedAlerts.ts`.
