@@ -73,7 +73,7 @@
     - [x] Add service tests if the saved-alert API client contains non-trivial normalization/error logic.
 - [x] Task: Conductor - User Manual Verification 'Phase 3: Frontend Saved Alert State' (Protocol in `conductor/workflow.md`).
 
-## Phase 4: UI Integration Across Existing Views (GTA-104) [checkpoint: 0ebeb53]
+## Phase 4: UI Integration Across Existing Views (GTA-104) [checkpoint: dfc5990]
 
 - [x] Task: Wire saved state into the GTA Alerts shell. <!-- 0ebeb53 -->
     - [x] Lift saved-alert state high enough in `resources/js/features/gta-alerts/App.tsx` so `FeedView`, `SavedView`, and `AlertDetailsView` all use the same source of truth.
