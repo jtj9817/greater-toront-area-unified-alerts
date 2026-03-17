@@ -395,8 +395,8 @@ try {
     }
 
     // Ensure the OLD shape fields are NOT present (phase 1 returned alert_id, saved_at)
-    assertTrue(! isset($resource['alert_id']), 'hydrated resource does NOT have alert_id field (old shape)');
-    assertTrue(! isset($resource['saved_at']), 'hydrated resource does NOT have saved_at field (old shape)');
+    assertTrue(! array_key_exists('alert_id', $resource), 'hydrated resource does NOT include alert_id key (old shape)');
+    assertTrue(! array_key_exists('saved_at', $resource), 'hydrated resource does NOT include saved_at key (old shape)');
 
     // Field values
     assertEqual($resource['id'], $savedAlertId, 'hydrated resource id matches saved alert_id');
