@@ -71,7 +71,7 @@
 - [x] Task: Frontend unit coverage. <!-- b767d1c -->
     - [x] Add `resources/js/features/gta-alerts/hooks/useSavedAlerts.test.ts` for guest storage, auth API branching, bootstrap state, eviction, and duplicate handling.
     - [x] Add service tests if the saved-alert API client contains non-trivial normalization/error logic.
-- [ ] Task: Conductor - User Manual Verification 'Phase 3: Frontend Saved Alert State' (Protocol in `conductor/workflow.md`).
+- [x] Task: Conductor - User Manual Verification 'Phase 3: Frontend Saved Alert State' (Protocol in `conductor/workflow.md`).
 
 ## Phase 4: UI Integration Across Existing Views (GTA-104)
 
