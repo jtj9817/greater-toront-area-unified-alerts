@@ -94,7 +94,7 @@
 - [x] Task: Conductor - User Manual Verification 'Phase 4: UI Integration Across Existing Views' (Protocol in `conductor/workflow.md`). <!-- bd240af -->
 
 
-## Phase 5: Quality Gates (GTA-105)
+## Phase 5: Quality Gates (GTA-105) [checkpoint: fa770d4]
 
 - [x] Task: Execute automated quality gates.
     - [x] Run `composer test`. <!-- 663 tests, Pint clean -->
@@ -105,7 +105,7 @@
 - [x] Task: Execute and confirm manual verification scripts.
     - [x] Add/update manual verification scripts for guest save flows, authenticated save flows, saved-view rendering, and unresolved saved IDs. <!-- tests/manual/verify_phase_5_saved_alerts_quality_gates.php — 8 tests covering guest props, POST 201/409, DELETE 200, ownership scoping, hydration, missing IDs, and validation -->
     - [x] Run all saved-alerts manual verification scripts via `./scripts/run-manual-test.sh` and confirm each passes. <!-- 8/8 PASS -->
-- [ ] Task: Conductor - User Manual Verification 'Phase 5: Quality Gates' (Protocol in `conductor/workflow.md`).
+- [x] Task: Conductor - User Manual Verification 'Phase 5: Quality Gates' (Protocol in `conductor/workflow.md`). <!-- fa770d4 -->
 
 ## Phase 6: Documentation & Closeout (GTA-106)
 
