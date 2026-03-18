@@ -150,20 +150,22 @@ describe('useInfiniteScroll', () => {
             }),
         } as Response);
 
-        const { result } = renderHook(() =>
-            useInfiniteScroll({
-                initialAlerts: [fireResource('F1', '2026-02-03T11:59:00Z')],
-                initialNextCursor: 'cursor-1',
-                filters: {
-                    status: 'all',
-                    sort: 'asc',
-                    source: null,
-                    q: null,
-                    since: null,
-                },
-                apiUrl: '/api/feed',
-            }),
-        );
+        const initialProps = {
+            initialAlerts: [fireResource('F1', '2026-02-03T11:59:00Z')],
+            initialNextCursor: 'cursor-1',
+            filters: {
+                status: 'all' as const,
+                sort: 'asc' as const,
+                source: null,
+                q: null,
+                since: null,
+            },
+            apiUrl: '/api/feed',
+        };
+
+        const { result } = renderHook((props) => useInfiniteScroll(props), {
+            initialProps,
+        });
 
         await act(async () => {
             await result.current.loadMore();
