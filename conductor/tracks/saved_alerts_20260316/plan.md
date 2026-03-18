@@ -97,11 +97,11 @@
 ## Phase 5: Quality Gates (GTA-105)
 
 - [~] Task: Execute automated quality gates.
-    - [ ] Run `composer test`.
-    - [ ] Run `pnpm run quality:check`.
+    - [x] Run `composer test`. <!-- 663 tests, Pint clean -->
+    - [~] Run `pnpm run quality:check`. <!-- Vitest OOM resolved (aa54a46, 6535c93); blocked by pre-existing SettingsView test failures — see FEED-025 -->
     - [ ] Attempt `php artisan test --coverage --min=90` or `./vendor/bin/sail artisan test --coverage --min=90` depending on the available coverage driver/runtime, and document any environment blocker if strict coverage cannot run.
-    - [ ] Run `composer audit` and resolve or document any flagged advisories.
-    - [ ] Run `pnpm audit` and resolve or document any flagged advisories.
+    - [x] Run `composer audit` and resolve or document any flagged advisories. <!-- league/commonmark CVE-2026-30838 resolved in f59d386 -->
+    - [x] Run `pnpm audit` and resolve or document any flagged advisories. <!-- flatted override in pnpm.overrides; no unresolved advisories -->
 - [~] Task: Execute and confirm manual verification scripts.
     - [ ] Add/update manual verification scripts for guest save flows, authenticated save flows, saved-view rendering, and unresolved saved IDs.
     - [ ] Run all saved-alerts manual verification scripts via `./scripts/run-manual-test.sh` and confirm each passes.
