@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import React from 'react';
-import { describe, expect, it, vi, beforeEach } from 'vitest';
+import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest';
 import type { SceneIntelItem } from '../domain/alerts/fire/scene-intel';
 import * as useSceneIntelHook from '../hooks/useSceneIntel';
 import { SceneIntelTimeline } from './SceneIntelTimeline';
