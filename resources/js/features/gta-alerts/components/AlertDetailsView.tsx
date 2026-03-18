@@ -1,6 +1,11 @@
 import React, { useMemo } from 'react';
 import { formatTimestampEST } from '@/lib/utils';
 import {
+    Tooltip,
+    TooltipContent,
+    TooltipTrigger,
+} from '@/components/ui/tooltip';
+import {
     mapDomainAlertToPresentation,
     type DomainAlert,
 } from '../domain/alerts';
@@ -133,37 +138,50 @@ const AlertDetailsLayout: React.FC<DetailLayoutProps> = ({
                             <Icon name="share" />
                             Broadcast Alert
                         </button>
-                        <button
-                            id={`gta-alerts-alert-details-${alert.id}-save-btn`}
-                            onClick={onToggleSave}
-                            disabled={isPending}
-                            className={`flex items-center justify-center gap-2 rounded-xl border px-6 transition-all ${
-                                isSaved
-                                    ? 'border-white/20 bg-white/10 text-white shadow-lg'
-                                    : 'border-white/10 text-white hover:border-white/20'
-                            } ${isPending ? 'cursor-wait opacity-70' : ''}`}
-                        >
-                            <Icon
-                                name={
-                                    isPending
-                                        ? 'sync'
-                                        : isSaved
-                                          ? 'bookmark'
-                                          : 'bookmark_border'
-                                }
-                                className={isPending ? 'animate-spin' : ''}
-                                fill={isSaved}
-                            />
-                            {isSaved ? (
-                                <span className="hidden text-sm font-bold sm:inline">
-                                    Saved
-                                </span>
-                            ) : (
-                                <span className="hidden text-sm font-bold sm:inline">
-                                    Save Alert
-                                </span>
-                            )}
-                        </button>
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <button
+                                    id={`gta-alerts-alert-details-${alert.id}-save-btn`}
+                                    onClick={onToggleSave}
+                                    disabled={isPending}
+                                    className={`flex items-center justify-center gap-2 rounded-xl border px-6 py-4 font-bold transition-all ${
+                                        isSaved
+                                            ? 'border-primary bg-primary text-black shadow-lg hover:border-red-500 hover:bg-red-500/20 hover:text-red-400'
+                                            : 'border-white/10 text-white hover:border-white/20 hover:bg-white/10'
+                                    } ${isPending ? 'cursor-wait opacity-70' : ''}`}
+                                >
+                                    <Icon
+                                        name={
+                                            isPending
+                                                ? 'sync'
+                                                : isSaved
+                                                  ? 'bookmark'
+                                                  : 'bookmark_border'
+                                        }
+                                        className={
+                                            isPending ? 'animate-spin' : ''
+                                        }
+                                        fill={isSaved}
+                                    />
+                                    {isSaved ? (
+                                        <span className="hidden text-sm font-bold sm:inline">
+                                            Saved
+                                        </span>
+                                    ) : (
+                                        <span className="hidden text-sm font-bold sm:inline">
+                                            Save Alert
+                                        </span>
+                                    )}
+                                </button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                                {isPending
+                                    ? 'Processing…'
+                                    : isSaved
+                                      ? 'Remove from saved alerts'
+                                      : 'Save this alert for later'}
+                            </TooltipContent>
+                        </Tooltip>
                     </div>
                 </div>
             </div>

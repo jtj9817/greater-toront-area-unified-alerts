@@ -1,6 +1,11 @@
 import React, { useMemo } from 'react';
 import { formatTimestampEST } from '@/lib/utils';
 import {
+    Tooltip,
+    TooltipContent,
+    TooltipTrigger,
+} from '@/components/ui/tooltip';
+import {
     mapDomainAlertToPresentation,
     type DomainAlert,
 } from '../domain/alerts';
@@ -68,7 +73,7 @@ export const AlertCard: React.FC<AlertCardProps> = ({
         <article
             id={`gta-alerts-alert-card-${item.id}`}
             onClick={onViewDetails}
-            className={`group panel-shadow cursor-pointer border-4 border-black bg-panel-light p-5 text-black transition-all duration-150 hover:-translate-x-[1px] hover:-translate-y-[1px] hover:shadow-[9px_9px_0_#000] ${isActive ? '' : 'opacity-80 grayscale'} ${isSaved ? 'ring-2 ring-primary' : ''}`}
+            className={`group panel-shadow cursor-pointer border-4 border-black bg-panel-light p-5 text-black transition-all duration-150 hover:-translate-x-[1px] hover:-translate-y-[1px] hover:shadow-[9px_9px_0_#000] ${isActive ? '' : 'opacity-80 grayscale'} ${isSaved ? 'ring-4 ring-primary ring-offset-2 ring-offset-panel-light' : ''}`}
         >
             <div
                 id={`gta-alerts-alert-card-${item.id}-inner-wrap`}
@@ -114,33 +119,59 @@ export const AlertCard: React.FC<AlertCardProps> = ({
                             >
                                 {item.title}
                             </h4>
-                            <button
-                                id={`gta-alerts-alert-card-${item.id}-save-btn`}
-                                type="button"
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    onToggleSave?.();
-                                }}
-                                disabled={isPending}
-                                className={`flex h-10 w-10 items-center justify-center border-2 border-black bg-white transition-all hover:bg-black hover:text-primary active:translate-x-0.5 active:translate-y-0.5 active:shadow-none ${isSaved ? 'bg-primary text-black' : 'text-black shadow-[3px_3px_0_#000]'} ${isPending ? 'cursor-wait opacity-70' : ''}`}
-                                aria-label={
-                                    isSaved ? 'Remove alert' : 'Save alert'
-                                }
-                            >
-                                <Icon
-                                    name={
-                                        isPending
-                                            ? 'sync'
-                                            : isSaved
-                                              ? 'bookmark'
-                                              : 'bookmark_border'
-                                    }
-                                    className={
-                                        isPending ? 'animate-spin' : 'text-xl'
-                                    }
-                                    fill={isSaved}
-                                />
-                            </button>
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <button
+                                        id={`gta-alerts-alert-card-${item.id}-save-btn`}
+                                        type="button"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            onToggleSave?.();
+                                        }}
+                                        disabled={isPending}
+                                        className={`flex h-10 items-center justify-center gap-1.5 border-2 border-black transition-all active:translate-x-0.5 active:translate-y-0.5 active:shadow-none ${
+                                            isSaved
+                                                ? 'w-auto px-3 bg-primary text-black font-black hover:bg-black hover:text-primary'
+                                                : 'w-10 bg-white text-black shadow-[3px_3px_0_#000] hover:bg-black hover:text-primary'
+                                        } ${isPending ? 'cursor-wait opacity-70' : ''}`}
+                                        aria-label={
+                                            isPending
+                                                ? 'Processing…'
+                                                : isSaved
+                                                  ? 'Remove from saved'
+                                                  : 'Save alert'
+                                        }
+                                    >
+                                        <Icon
+                                            name={
+                                                isPending
+                                                    ? 'sync'
+                                                    : isSaved
+                                                      ? 'bookmark'
+                                                      : 'bookmark_border'
+                                            }
+                                            className={
+                                                isPending
+                                                    ? 'animate-spin'
+                                                    : 'text-xl'
+                                            }
+                                            fill={isSaved}
+                                        />
+                                        {isSaved && !isPending && (
+                                            <span className="text-[10px] font-black tracking-widest uppercase">
+                                                Saved
+                                            </span>
+                                        )}
+                                    </button>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                    {isPending
+                                        ? 'Processing…'
+                                        : isSaved
+                                          ? 'Remove from saved'
+                                          : 'Save alert'}
+                                </TooltipContent>
+                            </Tooltip>
                         </div>
                         <div
                             id={`gta-alerts-alert-card-${item.id}-meta-wrap`}
