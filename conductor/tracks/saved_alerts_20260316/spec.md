@@ -161,14 +161,14 @@ This feature is a bookmark system for existing unified alerts. It is not a histo
 
 ## 6. Acceptance Criteria
 
-- [ ] Saved alerts use the existing canonical alert ID format and validate against the current alert identity contract.
-- [ ] Auth-only saved-alert routes follow the repository’s current routing/controller conventions instead of assuming `routes/api.php`.
-- [ ] Guest users can save up to 10 alerts locally and receive explicit feedback when the cap is reached.
-- [ ] Authenticated users can save and remove alerts and see that state persist across sessions.
-- [ ] Feed cards, table rows, alert details, and the saved view all render consistent saved state from one source of truth.
-- [ ] `SavedView` renders real saved alerts instead of the current placeholder empty list.
-- [ ] The chosen unresolved-ID behavior is implemented and documented.
-- [ ] Tests and quality gates are updated to cover the new backend and frontend contracts.
+- [x] Saved alerts use the existing canonical alert ID format and validate against the current alert identity contract.
+- [x] Auth-only saved-alert routes follow the repository’s current routing/controller conventions instead of assuming `routes/api.php`.
+- [x] Guest users can save up to 10 alerts locally and receive explicit feedback when the cap is reached.
+- [x] Authenticated users can save and remove alerts and see that state persist across sessions.
+- [x] Feed cards, table rows, alert details, and the saved view all render consistent saved state from one source of truth.
+- [x] `SavedView` renders real saved alerts instead of the current placeholder empty list.
+- [x] The chosen unresolved-ID behavior is implemented and documented.
+- [x] Tests and quality gates are updated to cover the new backend and frontend contracts.
 
 ## 7. Out of Scope
 

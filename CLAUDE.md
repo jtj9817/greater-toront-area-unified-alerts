@@ -176,7 +176,7 @@ Inertia.js renders React pages from `resources/js/pages/`. The main public page 
 **Views:**
 - `FeedView` - Server-filtered feed with cursor-based infinite scroll and URL-driven filters
 - `ZonesView` - Geographic zone statistics (hard-coded, awaiting backend service)
-- `SavedView` - Saved alerts (client-side storage)
+- `SavedView` - Saved alerts (guest: `localStorage` capped at 10; auth: `/api/saved-alerts` with server persistence, uncapped)
 - `SettingsView` - User settings
 - `AlertDetailsView` - Detail view for individual alerts
 
@@ -257,4 +257,5 @@ See `docs/` for detailed architecture:
 - `docs/sources/` - Individual data source documentation (Toronto Fire, Police, TTC, GO Transit)
 - `docs/architecture/provider-adapter-pattern.md` - Provider pattern explanation
 - `docs/backend/notification-system.md` - In-app notification system (IMPLEMENTED)
+- `docs/backend/saved-alerts.md` - Saved Alerts system: API contract, guest/auth storage, hydration path, unresolved-ID handling (IMPLEMENTED)
 - `docs/architecture/dynamic-zones.md` - Dynamic zones feature (PLANNED)

@@ -15,7 +15,7 @@
 - [x] Guest cap UX: present a one-click action to clear the oldest three saved IDs when the 10-item guest cap is reached.
 - [x] Unresolved saved IDs: keep the saved record and surface unavailable rows with a remove action.
 
-## Phase 1: Persistence Contract & Backend API (GTA-101)
+## Phase 1: Persistence Contract & Backend API (GTA-101) [checkpoint: dbabe59]
 
 - [x] Task: Define the persistence shape and naming. <!-- 86163e6 -->
     - [x] Implement the locked `saved_alerts` naming across migration, model, controller, routes, and tests.
@@ -109,16 +109,16 @@
 
 ## Phase 6: Documentation & Closeout (GTA-106)
 
-- [ ] Task: Create saved-alerts architecture document.
-    - [ ] Add `docs/backend/saved-alerts.md` covering the API contract (`GET`/`POST`/`DELETE /api/saved-alerts`), guest localStorage behavior, auth persistence, hydration path, and unresolved-ID handling.
-    - [ ] Record which architectural option was chosen for hydration and unresolved records in this document.
-- [ ] Task: Update existing documentation.
-    - [ ] Update `CLAUDE.md` `SavedView` description (currently "client-side storage") to reflect the full guest/auth implementation.
-    - [ ] Update `CLAUDE.md` to reference `docs/backend/saved-alerts.md` in the Architecture Documentation section.
-    - [ ] Review `README.md` and any other `docs/` files that referenced the placeholder `SavedView` state and update as needed.
-- [ ] Task: Mark spec acceptance criteria complete.
-    - [ ] Tick off all satisfied acceptance criteria checkboxes in `conductor/tracks/saved_alerts_20260316/spec.md`.
-- [ ] Task: Registry maintenance.
-    - [ ] Update the track status in `conductor/tracks.md` and move the entry to the archive section.
-    - [ ] Confirm all phase checkpoint SHAs are recorded in `plan.md` headings.
+- [x] Task: Create saved-alerts architecture document. <!-- GTA-106 -->
+    - [x] Add `docs/backend/saved-alerts.md` covering the API contract (`GET`/`POST`/`DELETE /api/saved-alerts`), guest localStorage behavior, auth persistence, hydration path, and unresolved-ID handling.
+    - [x] Record which architectural option was chosen for hydration and unresolved records in this document.
+- [x] Task: Update existing documentation. <!-- GTA-106 -->
+    - [x] Update `CLAUDE.md` `SavedView` description (currently "client-side storage") to reflect the full guest/auth implementation.
+    - [x] Update `CLAUDE.md` to reference `docs/backend/saved-alerts.md` in the Architecture Documentation section.
+    - [x] Review `README.md` and any other `docs/` files that referenced the placeholder `SavedView` state and update as needed. <!-- README had no saved-view references; no stale docs found -->
+- [x] Task: Mark spec acceptance criteria complete. <!-- GTA-106 -->
+    - [x] Tick off all satisfied acceptance criteria checkboxes in `conductor/tracks/saved_alerts_20260316/spec.md`.
+- [x] Task: Registry maintenance. <!-- GTA-106 -->
+    - [x] Update the track status in `conductor/tracks.md` and move the entry to the archive section.
+    - [x] Confirm all phase checkpoint SHAs are recorded in `plan.md` headings. <!-- Ph1: dbabe59, Ph2: 00e4bd7, Ph3: 85b0947, Ph4: dfc5990, Ph5: fa770d4 -->
 - [ ] Task: Conductor - User Manual Verification 'Phase 6: Documentation & Closeout' (Protocol in `conductor/workflow.md`).

@@ -6,10 +6,12 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ## Active Tracks
 
-- [ ] **Track: Implement the Saved Alerts feature based on @docs/plans/saved-alerts-feature-plan.md, ensuring the last two phases are QA Gating and Documentation.**
-      *Link: [./tracks/saved_alerts_20260316/](./tracks/saved_alerts_20260316/)*
+*(none)*
 
 ## Archived Tracks
+
+- [x] **Track: Implement the Saved Alerts feature (GTA-101 – GTA-106)**
+      _Link: [./tracks/saved_alerts_20260316/](./tracks/saved_alerts_20260316/)_
 
 - [x] **Track: UI Design Revamp (Prototype Two)**
       _Link: [./archive/design_revamp_20260303/](./archive/design_revamp_20260303/)_
