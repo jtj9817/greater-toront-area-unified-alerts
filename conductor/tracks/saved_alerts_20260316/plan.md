@@ -107,7 +107,7 @@
     - [x] Run all saved-alerts manual verification scripts via `./scripts/run-manual-test.sh` and confirm each passes. <!-- 8/8 PASS -->
 - [x] Task: Conductor - User Manual Verification 'Phase 5: Quality Gates' (Protocol in `conductor/workflow.md`). <!-- fa770d4 -->
 
-## Phase 6: Documentation & Closeout (GTA-106)
+## Phase 6: Documentation & Closeout (GTA-106) [checkpoint: f279f59]
 
 - [x] Task: Create saved-alerts architecture document. <!-- 4c7e068 -->
     - [x] Add `docs/backend/saved-alerts.md` covering the API contract (`GET`/`POST`/`DELETE /api/saved-alerts`), guest localStorage behavior, auth persistence, hydration path, and unresolved-ID handling.
@@ -121,4 +121,4 @@
 - [x] Task: Registry maintenance. <!-- 4c7e068 -->
     - [x] Update the track status in `conductor/tracks.md` and move the entry to the archive section.
     - [x] Confirm all phase checkpoint SHAs are recorded in `plan.md` headings. <!-- Ph1: dbabe59, Ph2: 00e4bd7, Ph3: 85b0947, Ph4: dfc5990, Ph5: fa770d4 -->
-- [ ] Task: Conductor - User Manual Verification 'Phase 6: Documentation & Closeout' (Protocol in `conductor/workflow.md`).
+- [x] Task: Conductor - User Manual Verification 'Phase 6: Documentation & Closeout' (Protocol in `conductor/workflow.md`). <!-- f279f59 -->
