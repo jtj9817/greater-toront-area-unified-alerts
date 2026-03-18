@@ -40,6 +40,7 @@ php artisan test --filter=AuthenticationTest  # Run a single test file
 ./scripts/run-manual-test.sh tests/manual/verify_scheduler_resilience_phase_1_critical_fixes_foundation.php
 ./scripts/run-manual-test.sh tests/manual/verify_scheduler_resilience_phase_2_resilience_architecture_upgrade.php
 ./scripts/run-manual-test.sh tests/manual/verify_scheduler_resilience_phase_3_data_integrity_maintenance.php
+./scripts/run-manual-test.sh tests/manual/verify_phase_5_saved_alerts_quality_gates.php
 ```
 
 ### Linting & Formatting

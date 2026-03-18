@@ -102,9 +102,9 @@
     - [x] Attempt `php artisan test --coverage --min=90` or `./vendor/bin/sail artisan test --coverage --min=90` depending on the available coverage driver/runtime, and document any environment blocker if strict coverage cannot run. <!-- 94.0% total, 660 passed, 10 skipped — threshold met; Models/SavedAlert at 0.0% individually but overall gate passes -->
     - [x] Run `composer audit` and resolve or document any flagged advisories. <!-- league/commonmark CVE-2026-30838 resolved in f59d386 -->
     - [x] Run `pnpm audit` and resolve or document any flagged advisories. <!-- flatted override in pnpm.overrides; no unresolved advisories -->
-- [~] Task: Execute and confirm manual verification scripts.
-    - [ ] Add/update manual verification scripts for guest save flows, authenticated save flows, saved-view rendering, and unresolved saved IDs.
-    - [ ] Run all saved-alerts manual verification scripts via `./scripts/run-manual-test.sh` and confirm each passes.
+- [x] Task: Execute and confirm manual verification scripts.
+    - [x] Add/update manual verification scripts for guest save flows, authenticated save flows, saved-view rendering, and unresolved saved IDs. <!-- tests/manual/verify_phase_5_saved_alerts_quality_gates.php — 8 tests covering guest props, POST 201/409, DELETE 200, ownership scoping, hydration, missing IDs, and validation -->
+    - [x] Run all saved-alerts manual verification scripts via `./scripts/run-manual-test.sh` and confirm each passes. <!-- 8/8 PASS -->
 - [ ] Task: Conductor - User Manual Verification 'Phase 5: Quality Gates' (Protocol in `conductor/workflow.md`).
 
 ## Phase 6: Documentation & Closeout (GTA-106)
