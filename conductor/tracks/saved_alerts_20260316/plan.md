@@ -98,7 +98,7 @@
 
 - [~] Task: Execute automated quality gates.
     - [x] Run `composer test`. <!-- 663 tests, Pint clean -->
-    - [~] Run `pnpm run quality:check`. <!-- Vitest OOM resolved (aa54a46, 6535c93); blocked by pre-existing SettingsView test failures — see FEED-025 -->
+    - [x] Run `pnpm run quality:check`. <!-- 28 files, 215/215 tests, clean exit (aa54a46, 6535c93) -->
     - [ ] Attempt `php artisan test --coverage --min=90` or `./vendor/bin/sail artisan test --coverage --min=90` depending on the available coverage driver/runtime, and document any environment blocker if strict coverage cannot run.
     - [x] Run `composer audit` and resolve or document any flagged advisories. <!-- league/commonmark CVE-2026-30838 resolved in f59d386 -->
     - [x] Run `pnpm audit` and resolve or document any flagged advisories. <!-- flatted override in pnpm.overrides; no unresolved advisories -->
