@@ -32,11 +32,10 @@ export default defineConfig({
             'resources/js/**/*.test.{ts,tsx}',
             'tests/e2e/**/*.spec.{ts,tsx}',
         ],
-        pool: 'threads',
-        threads: {
-            isolate: false,
-            execArgv: ['--max-old-space-size=4096'],
-        },
+        pool: 'forks',
+        maxWorkers: 1,
+        isolate: false,
+        teardownTimeout: 60000,
         coverage: {
             provider: 'v8',
             reporter: ['text', 'json', 'html'],
