@@ -125,6 +125,7 @@ describe('App URL search state synchronization', () => {
 
     it('syncs search input from URL after gta-alerts router success events', async () => {
         window.history.replaceState({}, '', '/?q=initial');
+        vi.spyOn(window.location, 'search', 'get').mockReturnValue('?q=initial');
 
         render(<AlertsApp {...buildProps('initial')} />);
 
@@ -134,6 +135,7 @@ describe('App URL search state synchronization', () => {
         expect(input).toHaveValue('initial');
 
         window.history.replaceState({}, '', '/?q=assault');
+        vi.spyOn(window.location, 'search', 'get').mockReturnValue('?q=assault');
 
         act(() => {
             inertiaRouterMocks.emit('success', {
@@ -152,6 +154,7 @@ describe('App URL search state synchronization', () => {
 
     it('ignores router success events from other pages', () => {
         window.history.replaceState({}, '', '/?q=active');
+        vi.spyOn(window.location, 'search', 'get').mockReturnValue('?q=active');
 
         render(<AlertsApp {...buildProps('active')} />);
 
@@ -161,6 +164,7 @@ describe('App URL search state synchronization', () => {
         expect(input).toHaveValue('active');
 
         window.history.replaceState({}, '', '/?q=fire');
+        vi.spyOn(window.location, 'search', 'get').mockReturnValue('?q=fire');
 
         act(() => {
             inertiaRouterMocks.emit('success', {

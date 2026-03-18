@@ -5,11 +5,6 @@ import type { SceneIntelItem } from '../domain/alerts/fire/scene-intel';
 import * as useSceneIntelHook from '../hooks/useSceneIntel';
 import { SceneIntelTimeline } from './SceneIntelTimeline';
 
-// Mock the hook
-vi.mock('../hooks/useSceneIntel', () => ({
-    useSceneIntel: vi.fn(),
-}));
-
 describe('SceneIntelTimeline', () => {
     const mockItems: SceneIntelItem[] = [
         {
@@ -32,6 +27,16 @@ describe('SceneIntelTimeline', () => {
 
     beforeEach(() => {
         vi.clearAllMocks();
+        vi.spyOn(useSceneIntelHook, 'useSceneIntel').mockReturnValue({
+            items: [],
+            loading: false,
+            error: null,
+            refresh: vi.fn(),
+        });
+    });
+
+    afterEach(() => {
+        vi.restoreAllMocks();
     });
 
     it('renders list of items', () => {

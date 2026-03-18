@@ -351,9 +351,10 @@ const App: React.FC<AppProps> = ({
                                         name="crisis_alert"
                                         style={{ fontSize: '22px' }}
                                     />
-                                    {authUserId !== null && inboxUnreadCount > 0 && (
-                                        <span className="absolute top-1.5 right-1.5 h-2 w-2 bg-critical"></span>
-                                    )}
+                                    {authUserId !== null &&
+                                        inboxUnreadCount > 0 && (
+                                            <span className="absolute top-1.5 right-1.5 h-2 w-2 bg-critical"></span>
+                                        )}
                                 </button>
                                 <button
                                     id="gta-alerts-header-mobile-settings-btn"
@@ -412,9 +413,10 @@ const App: React.FC<AppProps> = ({
                                     aria-label="Open notification center"
                                 >
                                     <Icon name="crisis_alert" />
-                                    {authUserId !== null && inboxUnreadCount > 0 && (
-                                        <span className="absolute top-1.5 right-1.5 h-2 w-2 bg-critical"></span>
-                                    )}
+                                    {authUserId !== null &&
+                                        inboxUnreadCount > 0 && (
+                                            <span className="absolute top-1.5 right-1.5 h-2 w-2 bg-critical"></span>
+                                        )}
                                 </button>
                                 <button
                                     id="gta-alerts-header-desktop-settings-btn"
