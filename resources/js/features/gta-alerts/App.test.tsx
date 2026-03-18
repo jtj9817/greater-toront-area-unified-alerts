@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import React from 'react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
@@ -158,6 +158,12 @@ function goTransitResource(overrides: Partial<UnifiedAlertResource> = {}) {
 }
 
 describe('GTA Alerts App (typed domain enforcement boundary)', () => {
+    afterEach(() => {
+        vi.unstubAllGlobals();
+        vi.useRealTimers();
+        localStorage.clear();
+    });
+
     it('renders valid alerts and discards invalid meta (warns instead of crashing)', () => {
         const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
 
@@ -407,6 +413,55 @@ describe('GTA Alerts App (typed domain enforcement boundary)', () => {
         } finally {
             vi.unstubAllGlobals();
         }
+    });
+
+    it('shows a saved-alert action toast for guest saves', async () => {
+        render(<AlertsApp {...buildBaseProps([fireResource()])} />);
+
+        fireEvent.click(screen.getByLabelText('Save alert'));
+
+        expect(await screen.findByText('Alert saved.')).toBeInTheDocument();
+        expect(screen.getByText('Saved Alert')).toBeInTheDocument();
+    });
+
+    it('shows a saved-alert action toast for authenticated saves', async () => {
+        const fetchMock = vi.fn().mockResolvedValue(
+            mockJsonResponse({
+                data: {
+                    id: 1,
+                    alert_id: 'fire:E1',
+                    saved_at: '2026-03-18T12:00:00Z',
+                },
+            }, true, 201),
+        );
+
+        vi.stubGlobal('fetch', fetchMock);
+
+        render(<AlertsApp {...buildBasePropsWithAuth([fireResource()], 42)} />);
+
+        fireEvent.click(screen.getByLabelText('Save alert'));
+
+        expect(await screen.findByText('Alert saved.')).toBeInTheDocument();
+        expect(fetchMock).toHaveBeenCalledWith(
+            '/api/saved-alerts',
+            expect.objectContaining({ method: 'POST' }),
+        );
+    });
+
+    it('auto-dismisses the saved-alert action toast', async () => {
+        vi.useFakeTimers();
+
+        render(<AlertsApp {...buildBaseProps([fireResource()])} />);
+
+        fireEvent.click(screen.getByLabelText('Save alert'));
+
+        expect(screen.getByText('Alert saved.')).toBeInTheDocument();
+
+        act(() => {
+            vi.advanceTimersByTime(4500);
+        });
+
+        expect(screen.queryByText('Alert saved.')).not.toBeInTheDocument();
     });
 });
 

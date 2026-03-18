@@ -9,6 +9,7 @@ import { Icon } from './components/Icon';
 import { NotificationInboxView } from './components/NotificationInboxView';
 import { NotificationToastLayer } from './components/NotificationToastLayer';
 import { SavedView } from './components/SavedView';
+import { SavedAlertActionToast } from './components/SavedAlertActionToast';
 import { SettingsView } from './components/SettingsView';
 import { Sidebar } from './components/Sidebar';
 import { ZonesView } from './components/ZonesView';
@@ -70,6 +71,8 @@ const App: React.FC<AppProps> = ({
         toggleAlert,
         guestCapReached,
         evictOldestThree,
+        feedback,
+        clearFeedback,
     } = useSavedAlerts({
         authUserId,
         initialSavedIds: initialSavedAlertIds,
@@ -490,6 +493,10 @@ const App: React.FC<AppProps> = ({
                     />
                 </button>
             )}
+            <SavedAlertActionToast
+                feedback={feedback}
+                onDismiss={clearFeedback}
+            />
             <NotificationToastLayer authUserId={authUserId} />
         </div>
     );
