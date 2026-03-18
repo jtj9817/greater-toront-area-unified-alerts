@@ -96,10 +96,10 @@
 
 ## Phase 5: Quality Gates (GTA-105)
 
-- [~] Task: Execute automated quality gates.
+- [x] Task: Execute automated quality gates.
     - [x] Run `composer test`. <!-- 663 tests, Pint clean -->
     - [x] Run `pnpm run quality:check`. <!-- 28 files, 215/215 tests, clean exit (aa54a46, 6535c93) -->
-    - [ ] Attempt `php artisan test --coverage --min=90` or `./vendor/bin/sail artisan test --coverage --min=90` depending on the available coverage driver/runtime, and document any environment blocker if strict coverage cannot run.
+    - [x] Attempt `php artisan test --coverage --min=90` or `./vendor/bin/sail artisan test --coverage --min=90` depending on the available coverage driver/runtime, and document any environment blocker if strict coverage cannot run. <!-- 94.0% total, 660 passed, 10 skipped — threshold met; Models/SavedAlert at 0.0% individually but overall gate passes -->
     - [x] Run `composer audit` and resolve or document any flagged advisories. <!-- league/commonmark CVE-2026-30838 resolved in f59d386 -->
     - [x] Run `pnpm audit` and resolve or document any flagged advisories. <!-- flatted override in pnpm.overrides; no unresolved advisories -->
 - [~] Task: Execute and confirm manual verification scripts.
