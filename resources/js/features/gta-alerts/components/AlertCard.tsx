@@ -34,8 +34,7 @@ export const AlertCard: React.FC<AlertCardProps> = ({
     const sourceLabel = getSourceLabel(alert);
     const isActive = alert.isActive;
     const eventReference = item.metadata?.eventNum ?? alert.externalId;
-    const hasLocation =
-        !!item.location && item.location !== 'Unknown location';
+    const hasLocation = !!item.location && item.location !== 'Unknown location';
     const truncatedEventRef =
         eventReference.length > 20
             ? `${eventReference.slice(0, 20)}…`
@@ -77,7 +76,7 @@ export const AlertCard: React.FC<AlertCardProps> = ({
                 >
                     <span
                         id={`gta-alerts-alert-card-${item.id}-timestamp`}
-                        className={`whitespace-nowrap text-sm font-black uppercase ${isActive ? 'text-black' : 'text-text-secondary'}`}
+                        className={`text-sm font-black whitespace-nowrap uppercase ${isActive ? 'text-black' : 'text-text-secondary'}`}
                     >
                         {formatTimestampEST(item.timestamp)}
                     </span>

@@ -34,7 +34,7 @@ vi.mock('laravel-vite-plugin/inertia-helpers', () => ({
     resolvePageComponent: vi.fn(),
 }));
 
-vi.mock('@/wayfinder', () => ({
+vi.mock('@/routes', () => ({
     home: vi.fn((opts) => {
         let url = '/?';
         if (opts?.query?.sort) url += `sort=${opts.query.sort}&`;

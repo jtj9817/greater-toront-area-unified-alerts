@@ -92,7 +92,9 @@ describe('presentationStyles', () => {
     });
 
     it('derives go_transit and transit route-specific icon names', () => {
-        expect(deriveIconName(makeGoAlert(), 'go_transit')).toBe('directions_transit');
+        expect(deriveIconName(makeGoAlert(), 'go_transit')).toBe(
+            'directions_transit',
+        );
         expect(deriveIconName(makeTransitAlert('Bus'), 'transit')).toBe(
             'directions_bus',
         );

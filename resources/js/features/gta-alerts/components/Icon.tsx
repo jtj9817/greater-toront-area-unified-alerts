@@ -2,6 +2,7 @@ import React from 'react';
 
 interface IconProps {
     name: string;
+    id?: string;
     className?: string;
     fill?: boolean;
     style?: React.CSSProperties;
@@ -9,6 +10,7 @@ interface IconProps {
 
 export const Icon: React.FC<IconProps> = ({
     name,
+    id,
     className = '',
     fill = false,
     style,
@@ -19,6 +21,7 @@ export const Icon: React.FC<IconProps> = ({
     // but for the font version, we rely on the class.
     return (
         <span
+            id={id}
             className={`material-symbols-outlined ${className}`}
             style={{
                 ...(fill ? { fontVariationSettings: "'FILL' 1" } : {}),
