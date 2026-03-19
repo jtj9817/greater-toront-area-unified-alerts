@@ -131,7 +131,7 @@ export const AlertCard: React.FC<AlertCardProps> = ({
                                         disabled={isPending}
                                         className={`flex h-10 items-center justify-center gap-1.5 border-2 border-black transition-all active:translate-x-0.5 active:translate-y-0.5 active:shadow-none ${
                                             isSaved
-                                                ? 'w-auto px-3 bg-primary text-black font-black hover:bg-black hover:text-primary'
+                                                ? 'w-auto bg-primary px-3 font-black text-black hover:bg-black hover:text-primary'
                                                 : 'w-10 bg-white text-black shadow-[3px_3px_0_#000] hover:bg-black hover:text-primary'
                                         } ${isPending ? 'cursor-wait opacity-70' : ''}`}
                                         aria-label={

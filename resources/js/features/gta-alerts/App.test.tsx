@@ -426,13 +426,17 @@ describe('GTA Alerts App (typed domain enforcement boundary)', () => {
 
     it('shows a saved-alert action toast for authenticated saves', async () => {
         const fetchMock = vi.fn().mockResolvedValue(
-            mockJsonResponse({
-                data: {
-                    id: 1,
-                    alert_id: 'fire:E1',
-                    saved_at: '2026-03-18T12:00:00Z',
+            mockJsonResponse(
+                {
+                    data: {
+                        id: 1,
+                        alert_id: 'fire:E1',
+                        saved_at: '2026-03-18T12:00:00Z',
+                    },
                 },
-            }, true, 201),
+                true,
+                201,
+            ),
         );
 
         vi.stubGlobal('fetch', fetchMock);
