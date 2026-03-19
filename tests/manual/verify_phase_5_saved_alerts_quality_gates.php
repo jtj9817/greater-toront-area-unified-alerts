@@ -343,7 +343,7 @@ try {
     // -----------------------------------------------------------------------
     // SUMMARY
     // -----------------------------------------------------------------------
-    logInfo("=== Phase 5 Verification Summary ===", [
+    logInfo('=== Phase 5 Verification Summary ===', [
         'passed' => $passCount,
         'failed' => $failCount,
         'total' => $passCount + $failCount,
