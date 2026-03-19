@@ -109,7 +109,7 @@ export const SavedAlertActionToast: React.FC<SavedAlertActionToastProps> = ({
             <article
                 key={feedback.kind + feedback.message}
                 id="gta-alerts-saved-alert-action-toast"
-                className={`animate-in fade-in slide-in-from-top-2 pointer-events-auto rounded-xl border p-3 shadow-xl backdrop-blur duration-200 ${appearance.className}`}
+                className={`pointer-events-auto animate-in rounded-xl border p-3 shadow-xl backdrop-blur duration-200 fade-in slide-in-from-top-2 ${appearance.className}`}
                 role="status"
                 aria-live="polite"
             >
