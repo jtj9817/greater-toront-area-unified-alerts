@@ -198,7 +198,7 @@ describe('AlertDetailsView', () => {
 
         expect(screen.getByText('Saved')).toBeInTheDocument();
         expect(screen.getByRole('button', { name: /Saved/i })).toHaveClass(
-            'bg-white/10',
+            'bg-primary',
         );
     });
 

@@ -278,7 +278,7 @@ describe('GTA Alerts App (typed domain enforcement boundary)', () => {
             />,
         );
 
-        const saveBtn = screen.getByLabelText(/Remove alert/i);
+        const saveBtn = screen.getByLabelText(/Remove from saved/i);
         expect(saveBtn).toHaveClass('bg-primary');
     });
 

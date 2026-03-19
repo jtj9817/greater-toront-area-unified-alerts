@@ -122,7 +122,7 @@ describe('SavedView', () => {
 
     it('calls onToggleSave when removing an alert', () => {
         render(<SavedView {...defaultProps} />);
-        const saveBtn = screen.getByLabelText(/Remove alert/i);
+        const saveBtn = screen.getByLabelText(/Remove from saved/i);
         fireEvent.click(saveBtn);
         expect(defaultProps.onToggleSave).toHaveBeenCalledWith('fire:E1');
     });

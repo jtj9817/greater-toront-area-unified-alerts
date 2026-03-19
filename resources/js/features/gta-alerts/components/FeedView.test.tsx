@@ -228,7 +228,7 @@ describe('FeedView', () => {
         const savedIds = new Set(['fire:E1']);
         render(<FeedView {...defaultProps} savedIds={savedIds} />);
 
-        const saveBtn = screen.getByLabelText(/Remove alert/i);
+        const saveBtn = screen.getByLabelText(/Remove from saved/i);
         expect(saveBtn).toHaveClass('bg-primary');
     });
 });

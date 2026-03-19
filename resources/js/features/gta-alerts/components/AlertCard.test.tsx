@@ -65,13 +65,13 @@ describe('AlertCard', () => {
 
     it('shows saved state correctly', () => {
         render(<AlertCard alert={mockAlert} isSaved={true} />);
-        const saveBtn = screen.getByLabelText('Remove alert');
+        const saveBtn = screen.getByLabelText('Remove from saved');
         expect(saveBtn).toHaveClass('bg-primary');
     });
 
     it('shows loading state when isPending is true', () => {
         render(<AlertCard alert={mockAlert} isPending={true} />);
-        const saveBtn = screen.getByLabelText('Save alert');
+        const saveBtn = screen.getByLabelText('Processing…');
         expect(saveBtn).toBeDisabled();
         expect(saveBtn.querySelector('.animate-spin')).toBeInTheDocument();
     });
