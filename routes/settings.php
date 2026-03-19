@@ -28,12 +28,22 @@ Route::middleware(['auth'])->group(function () {
     Route::get('api/geocoding/search', LocalGeocodingSearchController::class)->name('api.geocoding.search');
     Route::get('api/subscriptions/options', SubscriptionOptionsController::class)->name('api.subscriptions.options');
     Route::get('api/saved-places', [SavedPlaceController::class, 'index'])->name('api.saved-places.index');
-    Route::post('api/saved-places', [SavedPlaceController::class, 'store'])->name('api.saved-places.store');
-    Route::patch('api/saved-places/{savedPlace}', [SavedPlaceController::class, 'update'])->name('api.saved-places.update');
-    Route::delete('api/saved-places/{savedPlace}', [SavedPlaceController::class, 'destroy'])->name('api.saved-places.destroy');
+    Route::post('api/saved-places', [SavedPlaceController::class, 'store'])
+        ->middleware('throttle:60,1')
+        ->name('api.saved-places.store');
+    Route::patch('api/saved-places/{savedPlace}', [SavedPlaceController::class, 'update'])
+        ->middleware('throttle:60,1')
+        ->name('api.saved-places.update');
+    Route::delete('api/saved-places/{savedPlace}', [SavedPlaceController::class, 'destroy'])
+        ->middleware('throttle:60,1')
+        ->name('api.saved-places.destroy');
     Route::get('api/saved-alerts', [SavedAlertController::class, 'index'])->name('api.saved-alerts.index');
-    Route::post('api/saved-alerts', [SavedAlertController::class, 'store'])->name('api.saved-alerts.store');
-    Route::delete('api/saved-alerts/{alertId}', [SavedAlertController::class, 'destroy'])->name('api.saved-alerts.destroy');
+    Route::post('api/saved-alerts', [SavedAlertController::class, 'store'])
+        ->middleware('throttle:60,1')
+        ->name('api.saved-alerts.store');
+    Route::delete('api/saved-alerts/{alertId}', [SavedAlertController::class, 'destroy'])
+        ->middleware('throttle:60,1')
+        ->name('api.saved-alerts.destroy');
 });
 
 Route::middleware(['auth', 'verified'])->group(function () {
@@ -53,6 +63,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('two-factor.show');
 
     Route::post('api/incidents/{eventNum}/intel', [SceneIntelController::class, 'store'])
-        ->middleware('can:scene-intel.create-manual-entry')
+        ->middleware(['can:scene-intel.create-manual-entry', 'throttle:60,1'])
         ->name('api.incidents.intel.store');
 });
