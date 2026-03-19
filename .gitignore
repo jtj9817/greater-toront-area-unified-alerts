@@ -28,6 +28,7 @@ yarn-error.log
 /.claude
 /.playwright-mcp
 /coverage
+/logs
 .DS_Store
 docker-compose.override.yml
 *_audit_results.log
