@@ -134,13 +134,13 @@ describe('presentationStyles', () => {
     });
 
     it('derives icon color for all severities and categories', () => {
-        expect(deriveIconColor('fire', 'high')).toBe('text-primary');
-        expect(deriveIconColor('fire', 'medium')).toBe('text-primary');
-        expect(deriveIconColor('police', 'medium')).toBe('text-primary');
-        expect(deriveIconColor('hazard', 'medium')).toBe('text-primary');
-        expect(deriveIconColor('transit', 'medium')).toBe('text-primary');
-        expect(deriveIconColor('go_transit', 'medium')).toBe('text-primary');
-        expect(deriveIconColor('medical', 'medium')).toBe('text-primary');
-        expect(deriveIconColor('unknown' as never, 'low')).toBe('text-primary');
+        expect(deriveIconColor('fire', 'high')).toBe('text-hazard');
+        expect(deriveIconColor('fire', 'medium')).toBe('text-hazard');
+        expect(deriveIconColor('police', 'medium')).toBe('text-hazard');
+        expect(deriveIconColor('hazard', 'medium')).toBe('text-hazard');
+        expect(deriveIconColor('transit', 'medium')).toBe('text-hazard');
+        expect(deriveIconColor('go_transit', 'medium')).toBe('text-hazard');
+        expect(deriveIconColor('medical', 'medium')).toBe('text-hazard');
+        expect(deriveIconColor('unknown' as never, 'low')).toBe('text-hazard');
     });
 });

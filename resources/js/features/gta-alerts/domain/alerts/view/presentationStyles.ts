@@ -46,5 +46,7 @@ export function deriveIconColor(
 ): string {
     void type;
     void severity;
-    return 'text-primary';
+    // Use 'text-hazard' instead of 'text-primary' to ensure
+    // brand-consistent orange (#ff7f00) regardless of mode.
+    return 'text-hazard';
 }

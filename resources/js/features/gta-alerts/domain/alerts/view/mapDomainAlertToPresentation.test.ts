@@ -101,7 +101,7 @@ describe('mapDomainAlertToPresentation', () => {
         expect(alertItem.severity).toBe('high');
         expect(alertItem.iconName).toBe('warning');
         expect(alertItem.accentColor).toBe('bg-critical');
-        expect(alertItem.iconColor).toBe('text-primary');
+        expect(alertItem.iconColor).toBe('text-hazard');
         expect(alertItem.timeAgo).toBe(
             formatTimeAgo(makeFireAlert().timestamp),
         );
