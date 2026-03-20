@@ -25,7 +25,9 @@ Route::middleware(['auth'])->group(function () {
     Route::patch('notifications/inbox/{notificationLog}/read', [NotificationInboxController::class, 'markRead'])->name('notifications.inbox.read');
     Route::patch('notifications/inbox/{notificationLog}/dismiss', [NotificationInboxController::class, 'dismiss'])->name('notifications.inbox.dismiss');
     Route::delete('notifications/inbox', [NotificationInboxController::class, 'clearAll'])->name('notifications.inbox.clear');
-    Route::get('api/geocoding/search', LocalGeocodingSearchController::class)->name('api.geocoding.search');
+    Route::get('api/geocoding/search', LocalGeocodingSearchController::class)
+        ->middleware('throttle:60,1')
+        ->name('api.geocoding.search');
     Route::get('api/subscriptions/options', SubscriptionOptionsController::class)->name('api.subscriptions.options');
     Route::get('api/saved-places', [SavedPlaceController::class, 'index'])->name('api.saved-places.index');
     Route::post('api/saved-places', [SavedPlaceController::class, 'store'])->name('api.saved-places.store');

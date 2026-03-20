@@ -34,20 +34,15 @@ vi.mock('laravel-vite-plugin/inertia-helpers', () => ({
     resolvePageComponent: vi.fn(),
 }));
 
-vi.mock('@/wayfinder', () => ({
-    queryParams: (options?: { query?: Record<string, unknown> }) => {
-        const query = options?.query;
-        if (!query) return '';
-
-        const params = new URLSearchParams();
-        Object.entries(query).forEach(([key, value]) => {
-            if (value === null || value === undefined) return;
-            params.set(key, String(value));
-        });
-
-        const str = params.toString();
-        return str.length > 0 ? `?${str}` : '';
-    },
+vi.mock('@/routes', () => ({
+    home: vi.fn((opts) => {
+        let url = '/?';
+        if (opts?.query?.sort) url += `sort=${opts.query.sort}&`;
+        if (opts?.query?.status) url += `status=${opts.query.status}&`;
+        if (opts?.query?.q) url += `q=${opts.query.q}&`;
+        if (opts?.query?.view) url += `view=${opts.query.view}&`;
+        return { url: url.endsWith('&') ? url.slice(0, -1) : url.endsWith('?') ? url.slice(0, -1) : url };
+    }),
 }));
 
 describe('FeedView', () => {

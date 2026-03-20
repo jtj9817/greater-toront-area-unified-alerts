@@ -134,6 +134,7 @@ describe('App URL search state synchronization', () => {
         expect(input).toHaveValue('initial');
 
         window.history.replaceState({}, '', '/?q=assault');
+        vi.stubGlobal('location', { ...window.location, search: '?q=assault' });
 
         act(() => {
             inertiaRouterMocks.emit('success', {
@@ -161,6 +162,7 @@ describe('App URL search state synchronization', () => {
         expect(input).toHaveValue('active');
 
         window.history.replaceState({}, '', '/?q=fire');
+        vi.stubGlobal('location', { ...window.location, search: '?q=fire' });
 
         act(() => {
             inertiaRouterMocks.emit('success', {
