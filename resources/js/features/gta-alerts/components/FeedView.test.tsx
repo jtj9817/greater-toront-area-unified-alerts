@@ -41,7 +41,13 @@ vi.mock('@/routes', () => ({
         if (opts?.query?.status) url += `status=${opts.query.status}&`;
         if (opts?.query?.q) url += `q=${opts.query.q}&`;
         if (opts?.query?.view) url += `view=${opts.query.view}&`;
-        return { url: url.endsWith('&') ? url.slice(0, -1) : url.endsWith('?') ? url.slice(0, -1) : url };
+        return {
+            url: url.endsWith('&')
+                ? url.slice(0, -1)
+                : url.endsWith('?')
+                  ? url.slice(0, -1)
+                  : url,
+        };
     }),
 }));
 

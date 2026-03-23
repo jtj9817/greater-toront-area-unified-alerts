@@ -251,7 +251,7 @@ export const AlertCard: React.FC<AlertCardProps> = ({
                     >
                         <span
                             id={`gta-alerts-alert-card-${item.id}-event-ref`}
-                            className="flex items-center gap-1 border-2 border-black bg-panel-light pl-1 pr-2 py-1"
+                            className="flex items-center gap-1 border-2 border-black bg-panel-light py-1 pr-2 pl-1"
                         >
                             <Icon
                                 id={`gta-alerts-alert-card-${item.id}-event-icon`}
