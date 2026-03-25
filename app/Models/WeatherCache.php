@@ -36,7 +36,7 @@ class WeatherCache extends Model
         return static::query()
             ->where('fsa', $fsa)
             ->where('provider', $provider)
-            ->where('fetched_at', '>=', now()->subMinutes($ttlMinutes))
+            ->where('fetched_at', '>', now()->subMinutes($ttlMinutes))
             ->orderByDesc('fetched_at')
             ->first();
     }

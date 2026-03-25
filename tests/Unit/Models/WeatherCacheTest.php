@@ -97,6 +97,23 @@ test('findValid returns null for expired cache entry', function () {
     Carbon::setTestNow();
 });
 
+test('findValid returns null exactly at ttl boundary', function () {
+    Carbon::setTestNow(now());
+
+    WeatherCache::create([
+        'fsa' => 'M5V',
+        'provider' => 'environment_canada',
+        'payload' => ['temperature' => 18.0],
+        'fetched_at' => now()->subMinutes(WeatherCache::TTL_MINUTES),
+    ]);
+
+    $result = WeatherCache::findValid('M5V', 'environment_canada');
+
+    expect($result)->toBeNull();
+
+    Carbon::setTestNow();
+});
+
 test('findValid returns null when no entry exists for fsa', function () {
     $result = WeatherCache::findValid('M5V', 'environment_canada');
 
