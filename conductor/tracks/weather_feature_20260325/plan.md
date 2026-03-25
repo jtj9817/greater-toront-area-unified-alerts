@@ -2,19 +2,19 @@
 
 ## Phase 1: Database Foundation & Domain
 
-- [ ] Task: Set up `gta_postal_codes` reference table and model
-    - [ ] Write tests for `GtaPostalCode` model covering FSA normalization, search logic across drivers, and nearest-FSA resolution.
-    - [ ] Create data file `database/data/gta_postal_codes.php` with approx 200 rows.
-    - [ ] Create migration for `gta_postal_codes` and configure it to insert the data file contents.
-    - [ ] Implement `App\Models\GtaPostalCode`.
-- [ ] Task: Set up `weather_caches` durable cache table and model
-    - [ ] Write tests for `WeatherCache` model (e.g. `isFresh()`, `findValid()`).
-    - [ ] Create migration for `weather_caches` table.
-    - [ ] Implement `App\Models\WeatherCache`.
-- [ ] Task: Define Weather Data Contracts
-    - [ ] Create `App\Services\Weather\DTOs\WeatherData` struct.
-    - [ ] Create `App\Services\Weather\Contracts\WeatherProvider` interface.
-    - [ ] Create `App\Services\Weather\Exceptions\WeatherFetchException`.
+- [x] Task: Set up `gta_postal_codes` reference table and model [5cfe724]
+    - [x] Write tests for `GtaPostalCode` model covering FSA normalization, search logic across drivers, and nearest-FSA resolution.
+    - [x] Create data file `database/data/gta_postal_codes.php` with approx 200 rows.
+    - [x] Create migration for `gta_postal_codes` and configure it to insert the data file contents.
+    - [x] Implement `App\Models\GtaPostalCode`.
+- [x] Task: Set up `weather_caches` durable cache table and model [5cfe724]
+    - [x] Write tests for `WeatherCache` model (e.g. `isFresh()`, `findValid()`).
+    - [x] Create migration for `weather_caches` table.
+    - [x] Implement `App\Models\WeatherCache`.
+- [x] Task: Define Weather Data Contracts [5cfe724]
+    - [x] Create `App\Services\Weather\DTOs\WeatherData` struct.
+    - [x] Create `App\Services\Weather\Contracts\WeatherProvider` interface.
+    - [x] Create `App\Services\Weather\Exceptions\WeatherFetchException`.
 - [ ] Task: Conductor - User Manual Verification 'Phase 1: Database Foundation & Domain' (Protocol in workflow.md)
 
 ## Phase 2: Weather Provider & Cache Service
