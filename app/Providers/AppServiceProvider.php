@@ -7,6 +7,7 @@ use App\Services\Alerts\Providers\FireAlertSelectProvider;
 use App\Services\Alerts\Providers\GoTransitAlertSelectProvider;
 use App\Services\Alerts\Providers\PoliceAlertSelectProvider;
 use App\Services\Alerts\Providers\TransitAlertSelectProvider;
+use App\Services\Weather\WeatherFetchService;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
@@ -27,6 +28,15 @@ class AppServiceProvider extends ServiceProvider
             TransitAlertSelectProvider::class,
             GoTransitAlertSelectProvider::class,
         ], 'alerts.select-providers');
+
+        $this->app->singleton(WeatherFetchService::class, function ($app) {
+            $providers = array_map(
+                fn (string $class) => $app->make($class),
+                config('weather.providers', []),
+            );
+
+            return new WeatherFetchService($providers);
+        });
     }
 
     /**
