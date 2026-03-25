@@ -1,0 +1,27 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    public function up(): void
+    {
+        Schema::create('weather_caches', function (Blueprint $table) {
+            $table->id();
+            $table->string('fsa', 3);
+            $table->string('provider');
+            $table->json('payload');
+            $table->timestamp('fetched_at');
+            $table->timestamps();
+
+            $table->index(['fsa', 'provider', 'fetched_at']);
+        });
+    }
+
+    public function down(): void
+    {
+        Schema::dropIfExists('weather_caches');
+    }
+};
