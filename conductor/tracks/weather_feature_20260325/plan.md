@@ -19,10 +19,10 @@
 
 ## Phase 2: Weather Provider & Cache Service
 
-- [ ] Task: Implement `EnvironmentCanadaWeatherProvider`
-    - [ ] Add `config/weather.php` and `.env` properties for providers and timeouts.
-    - [ ] Write `EnvironmentCanadaWeatherProviderTest` using HTML fixtures to extract temperature, humidity, wind, and attempt to parse color-coded alert badges.
-    - [ ] Implement the provider using `Http` and `DOMDocument` to fulfill the `WeatherProvider` interface.
+- [x] Task: Implement `EnvironmentCanadaWeatherProvider` [bcd8b2b]
+    - [x] Add `config/weather.php` and `.env` properties for providers and timeouts.
+    - [x] Write `EnvironmentCanadaWeatherProviderTest` using HTML fixtures to extract temperature, humidity, wind, and attempt to parse color-coded alert badges.
+    - [x] Implement the provider using `Http` and `DOMDocument` to fulfill the `WeatherProvider` interface.
 - [ ] Task: Implement `WeatherFetchService`
     - [ ] Write `WeatherFetchServiceTest` to ensure it respects provider order and throws when all fail.
     - [ ] Implement `App\Services\Weather\WeatherFetchService` to resolve and execute providers.
