@@ -15,7 +15,7 @@
     - [x] Create `App\Services\Weather\DTOs\WeatherData` struct.
     - [x] Create `App\Services\Weather\Contracts\WeatherProvider` interface.
     - [x] Create `App\Services\Weather\Exceptions\WeatherFetchException`.
-- [ ] Task: Conductor - User Manual Verification 'Phase 1: Database Foundation & Domain' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 1: Database Foundation & Domain' (Protocol in workflow.md) [09a5da6]
 
 ## Phase 2: Weather Provider & Cache Service
 
