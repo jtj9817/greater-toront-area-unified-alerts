@@ -26,7 +26,7 @@
 - [x] Task: Implement `WeatherFetchService` [1cb6faf]
     - [x] Write `WeatherFetchServiceTest` to ensure it respects provider order and throws when all fail.
     - [x] Implement `App\Services\Weather\WeatherFetchService` to resolve and execute providers.
-- [x] Task: Implement `WeatherCacheService` [TBD]
+- [x] Task: Implement `WeatherCacheService` [63331d4]
     - [x] Write `WeatherCacheServiceTest` to verify fast cache hits, durable cache fallback, and upstream fetching on full miss.
     - [x] Implement `App\Services\Weather\WeatherCacheService` using both Laravel Cache and `WeatherCache`.
 - [ ] Task: Conductor - User Manual Verification 'Phase 2: Weather Provider & Cache Service' (Protocol in workflow.md)
