@@ -1,0 +1,25 @@
+{
+    "observation": {
+        "temperature": {
+            "metricUnrounded": 25.123,
+            "metric": 25
+        },
+        "humidity": 75,
+        "windDirection": "S",
+        "windSpeed": {
+            "metric": 15,
+            "label": "15 km/h"
+        },
+        "condition": "Thunderstorms"
+    },
+    "alert": {
+        "mostSevere": "red",
+        "alerts": [
+            {
+                "bannerText": "TORNADO WARNING IN EFFECT",
+                "alertHeaderText": "A tornado warning has been issued. Seek shelter immediately.",
+                "severity": "red"
+            }
+        ]
+    }
+}

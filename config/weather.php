@@ -30,22 +30,24 @@ return [
         'base_url' => env('WEATHER_EC_BASE_URL', 'https://weather.gc.ca'),
 
         /*
-         * Maps the first two characters of an FSA to an EC Ontario city-page station ID.
-         * FSAs not in this table fall back to 'default_station'.
+         * API endpoint path (relative to base_url) for the location-based weather JSON API.
          */
-        'station_map' => [
-            // Toronto (M-prefix)
-            'M1' => 'on-143', 'M2' => 'on-143', 'M3' => 'on-143',
-            'M4' => 'on-143', 'M5' => 'on-143', 'M6' => 'on-143',
-            'M7' => 'on-143', 'M8' => 'on-143', 'M9' => 'on-143',
-            // GTA surroundings (L-prefix)
-            'L3' => 'on-143',
-            'L4' => 'on-143',
-            'L5' => 'on-113', // Mississauga
-            'L6' => 'on-27',  // Brampton / Burlington
-            'L7' => 'on-143',
+        'api_path' => '/api/app/v3/en/Location',
+
+        /*
+         * Default coordinates (lat, lng) used when an FSA is not found in the
+         * gta_postal_codes table. Falls back to Toronto core coordinates.
+         */
+        'default_coords' => [
+            'lat' => env('WEATHER_EC_DEFAULT_LAT', 43.6532),
+            'lng' => env('WEATHER_EC_DEFAULT_LNG', -79.3832),
         ],
 
-        'default_station' => env('WEATHER_EC_DEFAULT_STATION', 'on-143'),
+        /*
+         * DEPRECATED: Station-based URLs are no longer used.
+         * Kept for backward compatibility during transition.
+         */
+        'station_map' => [],
+        'default_station' => null,
     ],
 ];

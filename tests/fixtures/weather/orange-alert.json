@@ -1,0 +1,25 @@
+{
+    "observation": {
+        "temperature": {
+            "metricUnrounded": 8.234,
+            "metric": 8
+        },
+        "humidity": 90,
+        "windDirection": "SW",
+        "windSpeed": {
+            "metric": 65,
+            "label": "65 km/h"
+        },
+        "condition": "Heavy Rain"
+    },
+    "alert": {
+        "mostSevere": "orange",
+        "alerts": [
+            {
+                "bannerText": "WIND WARNING IN EFFECT",
+                "alertHeaderText": "Strong winds expected with gusts up to 90 km/h.",
+                "severity": "orange"
+            }
+        ]
+    }
+}

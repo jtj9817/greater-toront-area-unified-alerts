@@ -1,0 +1,25 @@
+{
+    "observation": {
+        "temperature": {
+            "metricUnrounded": 15.789,
+            "metric": 16
+        },
+        "humidity": 82,
+        "windDirection": "E",
+        "windSpeed": {
+            "metric": 35,
+            "label": "35 km/h"
+        },
+        "condition": "Rain"
+    },
+    "alert": {
+        "mostSevere": "yellow",
+        "alerts": [
+            {
+                "bannerText": "SPECIAL WEATHER STATEMENT IN EFFECT",
+                "alertHeaderText": "A special weather statement has been issued for the GTA area.",
+                "severity": "yellow"
+            }
+        ]
+    }
+}

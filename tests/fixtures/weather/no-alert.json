@@ -1,0 +1,16 @@
+{
+    "observation": {
+        "temperature": {
+            "metricUnrounded": 22.456,
+            "metric": 22
+        },
+        "humidity": 65,
+        "windDirection": "NW",
+        "windSpeed": {
+            "metric": 20,
+            "label": "20 km/h"
+        },
+        "condition": "Mostly Cloudy"
+    },
+    "alert": []
+}
