@@ -29,7 +29,7 @@
 - [x] Task: Implement `WeatherCacheService` [63331d4]
     - [x] Write `WeatherCacheServiceTest` to verify fast cache hits, durable cache fallback, and upstream fetching on full miss.
     - [x] Implement `App\Services\Weather\WeatherCacheService` using both Laravel Cache and `WeatherCache`.
-- [ ] Task: Conductor - User Manual Verification 'Phase 2: Weather Provider & Cache Service' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 2: Weather Provider & Cache Service' (Protocol in workflow.md) [7db62b2]
 
 ## Phase 3: Backend API Endpoints
 
