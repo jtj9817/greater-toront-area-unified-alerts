@@ -1,10 +1,10 @@
 import React, { useMemo } from 'react';
-import { formatTimestampEST } from '@/lib/utils';
 import {
     Tooltip,
     TooltipContent,
     TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { formatTimestampEST } from '@/lib/utils';
 import {
     mapDomainAlertToPresentation,
     type DomainAlert,
