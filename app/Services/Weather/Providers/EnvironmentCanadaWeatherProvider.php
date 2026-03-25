@@ -90,21 +90,38 @@ class EnvironmentCanadaWeatherProvider implements WeatherProvider
             throw new WeatherFetchException($fsa, self::NAME, 'API returned empty object');
         }
 
+        $payload = $data;
+
+        // Environment Canada currently returns a top-level list with one payload object.
         if (array_is_list($data)) {
-            throw new WeatherFetchException($fsa, self::NAME, 'Expected JSON object, got array');
+            $first = $data[0] ?? null;
+
+            if (! is_array($first)) {
+                throw new WeatherFetchException(
+                    $fsa,
+                    self::NAME,
+                    'Expected JSON object at array index 0, got '.gettype($first),
+                );
+            }
+
+            $payload = $first;
         }
 
-        if (isset($data['error']) && is_string($data['error'])) {
-            throw new WeatherFetchException($fsa, self::NAME, "API error: {$data['error']}");
+        if (empty($payload)) {
+            throw new WeatherFetchException($fsa, self::NAME, 'API returned empty object');
         }
 
-        if (isset($data['error']) && is_array($data['error'])) {
-            $errorMsg = $data['error']['message'] ?? json_encode($data['error']);
+        if (isset($payload['error']) && is_string($payload['error'])) {
+            throw new WeatherFetchException($fsa, self::NAME, "API error: {$payload['error']}");
+        }
+
+        if (isset($payload['error']) && is_array($payload['error'])) {
+            $errorMsg = $payload['error']['message'] ?? json_encode($payload['error']);
             throw new WeatherFetchException($fsa, self::NAME, "API error: {$errorMsg}");
         }
 
-        $observation = $data['observation'] ?? [];
-        $alert = $data['alert'] ?? [];
+        $observation = $payload['observation'] ?? [];
+        $alert = $payload['alert'] ?? [];
         $alertLevel = $this->parseAlertLevel($alert);
 
         return new WeatherData(

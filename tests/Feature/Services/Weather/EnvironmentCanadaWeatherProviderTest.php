@@ -81,6 +81,22 @@ test('parses full weather data from no-alert payload', function () {
     expect($data->fetchedAt)->toBeInstanceOf(DateTimeImmutable::class);
 });
 
+test('parses list-root payload by using first item', function () {
+    $payload = json_encode([json_decode(ecJsonFixture('no-alert'), true)]);
+    Http::fake(['*' => Http::response($payload, 200)]);
+
+    GtaPostalCode::firstOrCreate(['fsa' => 'M5V'], ['municipality' => 'Toronto', 'neighbourhood' => 'Liberty Village', 'lat' => 43.6406, 'lng' => -79.3961]);
+
+    $provider = new EnvironmentCanadaWeatherProvider;
+    $data = $provider->fetch('M5V');
+
+    expect($data->temperature)->toBe(22.456);
+    expect($data->humidity)->toBe(65.0);
+    expect($data->windSpeed)->toBe('20 km/h');
+    expect($data->windDirection)->toBe('NW');
+    expect($data->condition)->toBe('Mostly Cloudy');
+});
+
 test('uses metric fallback when metricUnrounded is not available', function () {
     $payload = json_decode(ecJsonFixture('no-alert'), true);
     unset($payload['observation']['temperature']['metricUnrounded']);
