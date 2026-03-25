@@ -23,7 +23,7 @@
     - [x] Add `config/weather.php` and `.env` properties for providers and timeouts.
     - [x] Write `EnvironmentCanadaWeatherProviderTest` using HTML fixtures to extract temperature, humidity, wind, and attempt to parse color-coded alert badges.
     - [x] Implement the provider using `Http` and `DOMDocument` to fulfill the `WeatherProvider` interface.
-- [x] Task: Implement `WeatherFetchService` [TBD]
+- [x] Task: Implement `WeatherFetchService` [1cb6faf]
     - [x] Write `WeatherFetchServiceTest` to ensure it respects provider order and throws when all fail.
     - [x] Implement `App\Services\Weather\WeatherFetchService` to resolve and execute providers.
 - [ ] Task: Implement `WeatherCacheService`
