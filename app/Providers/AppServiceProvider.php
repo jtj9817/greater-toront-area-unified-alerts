@@ -7,6 +7,7 @@ use App\Services\Alerts\Providers\FireAlertSelectProvider;
 use App\Services\Alerts\Providers\GoTransitAlertSelectProvider;
 use App\Services\Alerts\Providers\PoliceAlertSelectProvider;
 use App\Services\Alerts\Providers\TransitAlertSelectProvider;
+use App\Services\Weather\WeatherCacheService;
 use App\Services\Weather\WeatherFetchService;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Date;
@@ -37,6 +38,8 @@ class AppServiceProvider extends ServiceProvider
 
             return new WeatherFetchService($providers);
         });
+
+        $this->app->singleton(WeatherCacheService::class);
     }
 
     /**
