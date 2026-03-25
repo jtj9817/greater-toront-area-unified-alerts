@@ -218,7 +218,7 @@ try {
     $waterfrontResults = GtaPostalCode::search('Waterfront')->get();
     assert_gt($waterfrontResults->count(), 0, 'search("Waterfront") returns results');
     $waterfrontFsas = $waterfrontResults->pluck('fsa')->toArray();
-    logInfo("  Waterfront FSAs: ".implode(', ', $waterfrontFsas));
+    logInfo('  Waterfront FSAs: '.implode(', ', $waterfrontFsas));
 
     // Brampton search
     $bramptonResults = GtaPostalCode::search('Brampton')->get();

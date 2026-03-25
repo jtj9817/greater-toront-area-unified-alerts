@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Log;
 class WeatherFetchService
 {
     /**
-     * @param WeatherProvider[] $providers Ordered list; first that succeeds wins.
+     * @param  WeatherProvider[]  $providers  Ordered list; first that succeeds wins.
      */
     public function __construct(
         private readonly array $providers,
