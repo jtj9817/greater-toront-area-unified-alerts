@@ -6,7 +6,8 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ## Active Tracks
 
-*(none)*
+- [ ] **Track: Weather Feature (GTA Alerts)**
+      _Link: [./tracks/weather_feature_20260325/](./tracks/weather_feature_20260325/)_
 
 ## Archived Tracks
 

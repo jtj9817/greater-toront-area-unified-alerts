@@ -1,0 +1,77 @@
+# Implementation Plan: Weather Feature (GTA Alerts)
+
+## Phase 1: Database Foundation & Domain
+
+- [ ] Task: Set up `gta_postal_codes` reference table and model
+    - [ ] Write tests for `GtaPostalCode` model covering FSA normalization, search logic across drivers, and nearest-FSA resolution.
+    - [ ] Create data file `database/data/gta_postal_codes.php` with approx 200 rows.
+    - [ ] Create migration for `gta_postal_codes` and configure it to insert the data file contents.
+    - [ ] Implement `App\Models\GtaPostalCode`.
+- [ ] Task: Set up `weather_caches` durable cache table and model
+    - [ ] Write tests for `WeatherCache` model (e.g. `isFresh()`, `findValid()`).
+    - [ ] Create migration for `weather_caches` table.
+    - [ ] Implement `App\Models\WeatherCache`.
+- [ ] Task: Define Weather Data Contracts
+    - [ ] Create `App\Services\Weather\DTOs\WeatherData` struct.
+    - [ ] Create `App\Services\Weather\Contracts\WeatherProvider` interface.
+    - [ ] Create `App\Services\Weather\Exceptions\WeatherFetchException`.
+- [ ] Task: Conductor - User Manual Verification 'Phase 1: Database Foundation & Domain' (Protocol in workflow.md)
+
+## Phase 2: Weather Provider & Cache Service
+
+- [ ] Task: Implement `EnvironmentCanadaWeatherProvider`
+    - [ ] Add `config/weather.php` and `.env` properties for providers and timeouts.
+    - [ ] Write `EnvironmentCanadaWeatherProviderTest` using HTML fixtures to extract temperature, humidity, wind, and attempt to parse color-coded alert badges.
+    - [ ] Implement the provider using `Http` and `DOMDocument` to fulfill the `WeatherProvider` interface.
+- [ ] Task: Implement `WeatherFetchService`
+    - [ ] Write `WeatherFetchServiceTest` to ensure it respects provider order and throws when all fail.
+    - [ ] Implement `App\Services\Weather\WeatherFetchService` to resolve and execute providers.
+- [ ] Task: Implement `WeatherCacheService`
+    - [ ] Write `WeatherCacheServiceTest` to verify fast cache hits, durable cache fallback, and upstream fetching on full miss.
+    - [ ] Implement `App\Services\Weather\WeatherCacheService` using both Laravel Cache and `WeatherCache`.
+- [ ] Task: Conductor - User Manual Verification 'Phase 2: Weather Provider & Cache Service' (Protocol in workflow.md)
+
+## Phase 3: Backend API Endpoints
+
+- [ ] Task: Implement `PostalCodeSearchController`
+    - [ ] Write `PostalCodeSearchControllerTest` for valid and invalid queries.
+    - [ ] Implement `GET /api/postal-codes` endpoint and route.
+- [ ] Task: Implement `PostalCodeResolveCoordsController`
+    - [ ] Write `PostalCodeResolveCoordsControllerTest` for bounds checking and resolving.
+    - [ ] Implement `POST /api/postal-codes/resolve-coords` endpoint and route.
+- [ ] Task: Implement `WeatherController`
+    - [ ] Write `WeatherControllerTest` for successful responses (`WeatherResource`), 422s, and 503s.
+    - [ ] Create `App\Http\Resources\WeatherResource`.
+    - [ ] Implement `GET /api/weather` endpoint and route.
+- [ ] Task: Conductor - User Manual Verification 'Phase 3: Backend API Endpoints' (Protocol in workflow.md)
+
+## Phase 4: Frontend State & Components
+
+- [ ] Task: Define Frontend Domain Types
+    - [ ] Create `resources/js/features/gta-alerts/domain/weather/resource.ts`, `types.ts`, and `fromResource.ts`.
+- [ ] Task: Implement `useWeather` Hook
+    - [ ] Write `useWeather.test.ts` to test `localStorage` interaction, API fetching, keeping stale data visible during fetch, and empty default state.
+    - [ ] Implement `resources/js/features/gta-alerts/hooks/useWeather.ts`.
+- [ ] Task: Implement `LocationPicker` Component
+    - [ ] Write `LocationPicker.test.tsx` testing search, geolocation trigger, and bounding box rejection.
+    - [ ] Implement `resources/js/features/gta-alerts/components/LocationPicker.tsx`.
+- [ ] Task: Integrate Footer & App UI
+    - [ ] Write `Footer.test.tsx` verifying current conditions display and the parsed color-coded alert badges (if present).
+    - [ ] Update `resources/js/features/gta-alerts/components/Footer.tsx` to receive weather props.
+    - [ ] Update `resources/js/features/gta-alerts/App.tsx` to host `useWeather` state and render `LocationPicker`.
+- [ ] Task: Conductor - User Manual Verification 'Phase 4: Frontend State & Components' (Protocol in workflow.md)
+
+## Phase 5: QA Phase
+
+- [ ] Task: Execute automated quality gates
+    - [ ] Run `pnpm run types`, `pnpm run lint`, and `pnpm run format`.
+    - [ ] Run `./vendor/bin/sail artisan test --coverage` and verify >90% coverage for new modules.
+    - [ ] Run dependency security audits.
+- [ ] Task: Conductor - User Manual Verification 'Phase 5: QA Phase' (Protocol in workflow.md)
+
+## Phase 6: Documentation Phase
+
+- [ ] Task: Final Documentation
+    - [ ] Update `docs/backend/weather.md` or similar to document the finalized architecture.
+    - [ ] Ensure `CLAUDE.md` is updated if new key patterns were introduced.
+- [ ] Task: Conductor - User Manual Verification 'Phase 6: Documentation Phase' (Protocol in workflow.md)
