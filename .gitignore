@@ -26,6 +26,9 @@ yarn-error.log
 /.vscode
 /.zed
 /.claude
+/.codex
+/.factory
+/.gemini
 /.playwright-mcp
 /coverage
 /logs
@@ -51,3 +54,6 @@ pest_suite_results.log
 # Playwright MCP root-level screenshots
 current-state-*.png
 fixed-*.png
+
+# Local Bun lockfile is not used by this pnpm-managed project
+/bun.lock
