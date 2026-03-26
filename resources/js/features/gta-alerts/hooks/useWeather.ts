@@ -111,6 +111,7 @@ export function useWeather(): UseWeatherReturn {
     // -----------------------------------------------------------------------
 
     const fetchWeather = useCallback((fsa: string): void => {
+        const requestFsa = fsa;
         abortControllerRef.current?.abort();
         const controller = new AbortController();
         abortControllerRef.current = controller;
@@ -135,11 +136,16 @@ export function useWeather(): UseWeatherReturn {
                     throw new Error('Received malformed weather data from API');
                 }
 
+                if (locationRef.current?.fsa !== requestFsa) {
+                    return;
+                }
+
                 setWeather(mapped);
                 setError(null);
             })
             .catch((err: unknown) => {
                 if (err instanceof Error && err.name === 'AbortError') return;
+                if (locationRef.current?.fsa !== requestFsa) return;
                 setError(
                     err instanceof Error ? err.message : 'Weather fetch failed',
                 );

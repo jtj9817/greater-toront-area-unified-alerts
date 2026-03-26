@@ -312,6 +312,64 @@ describe('useWeather', () => {
         expect(result.current.weather).toBeNull();
     });
 
+    it('ignores late success responses from a previously selected location', async () => {
+        let resolveFirst!: (value: Response) => void;
+        let resolveSecond!: (value: Response) => void;
+
+        const firstPending = new Promise<Response>((resolve) => {
+            resolveFirst = resolve;
+        });
+        const secondPending = new Promise<Response>((resolve) => {
+            resolveSecond = resolve;
+        });
+
+        vi.spyOn(global, 'fetch')
+            .mockReturnValueOnce(firstPending as Promise<Response>)
+            .mockReturnValueOnce(secondPending as Promise<Response>);
+
+        const { result } = renderHook(() => useWeather());
+
+        act(() => {
+            result.current.setLocation(mockLocation);
+        });
+
+        act(() => {
+            result.current.setLocation({
+                ...mockLocation,
+                fsa: 'M4B',
+                label: 'M4B — East York, Toronto',
+            });
+        });
+
+        await act(async () => {
+            resolveSecond(
+                mockFetchOk(
+                    makeWeatherResponse({ fsa: 'M4B', temperature: 2.4 }),
+                ),
+            );
+        });
+
+        await waitFor(() => {
+            expect(result.current.weather?.fsa).toBe('M4B');
+        });
+
+        await act(async () => {
+            resolveFirst(
+                mockFetchOk(
+                    makeWeatherResponse({ fsa: 'M5V', temperature: 19.9 }),
+                ),
+            );
+        });
+
+        await waitFor(() => {
+            expect(result.current.location?.fsa).toBe('M4B');
+            expect(result.current.weather?.fsa).toBe('M4B');
+        });
+
+        expect(result.current.weather?.temperature).toBe(2.4);
+        expect(result.current.error).toBeNull();
+    });
+
     // -----------------------------------------------------------------------
     // Error handling
     // -----------------------------------------------------------------------
