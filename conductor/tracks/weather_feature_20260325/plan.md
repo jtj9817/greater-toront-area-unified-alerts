@@ -43,7 +43,7 @@
     - [x] Write `WeatherControllerTest` for successful responses (`WeatherResource`), 422s, and 503s.
     - [x] Create `App\Http\Resources\WeatherResource`.
     - [x] Implement `GET /api/weather` endpoint and route.
-- [ ] Task: Conductor - User Manual Verification 'Phase 3: Backend API Endpoints' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 3: Backend API Endpoints' (Protocol in workflow.md)
 
 ## Phase 4: Frontend State & Components
 

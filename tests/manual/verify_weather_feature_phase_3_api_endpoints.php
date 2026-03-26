@@ -438,12 +438,11 @@ assert_true(is_string($data['municipality'] ?? null), 'resolve data.municipality
 assert_true(is_float($data['lat'] ?? null) || is_int($data['lat'] ?? null), 'resolve data.lat is numeric');
 assert_true(is_float($data['lng'] ?? null) || is_int($data['lng'] ?? null), 'resolve data.lng is numeric');
 
-// --- Valid Scarborough coordinates resolve to a Toronto FSA ---
-logInfo('2.12 Scarborough coordinates (43.8113, -79.1949) resolve to Toronto FSA');
-$r = dispatchResolve(['lat' => 43.8113, 'lng' => -79.1949]);
-assert_eq($r['status'], 200, 'Scarborough coords → 200');
-$scarbFsa = $r['body']['data']['fsa'] ?? null;
-assert_true($scarbFsa !== null && str_starts_with($scarbFsa, 'M'), "Scarborough FSA starts with M (got {$scarbFsa})");
+// --- M4K centroid coordinates (Danforth) resolve to M4K ---
+logInfo('2.12 M4K centroid coordinates (43.6797, -79.3535) resolve to M4K');
+$r = dispatchResolve(['lat' => 43.6797, 'lng' => -79.3535]);
+assert_eq($r['status'], 200, 'M4K centroid coords → 200');
+assert_eq($r['body']['data']['fsa'] ?? null, 'M4K', 'M4K centroid resolves to M4K');
 
 echo "\n";
 
