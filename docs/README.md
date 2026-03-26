@@ -30,7 +30,8 @@ docs/
 │   ├── scene-intel.md
 │   ├── security-headers.md
 │   ├── unified-alerts-qa.md
-│   └── unified-alerts-system.md
+│   ├── unified-alerts-system.md
+│   └── weather.md
 ├── frontend/
 │   ├── alert-service.md
 │   └── types.md
@@ -113,7 +114,10 @@ Active work items and feature proposals:
 
 - **[tickets/FEED-002-real-time-push.md](tickets/FEED-002-real-time-push.md)** - Real-time push updates for the alert feed (depends on FEED-001)
 - **[tickets/FEED-003-saved-filter-presets.md](tickets/FEED-003-saved-filter-presets.md)** - Saved filter presets for quick-access filter combinations (depends on FEED-001)
-- **[tickets/FEED-015-footer-weather-stats-hardcoded-placeholder.md](tickets/FEED-015-footer-weather-stats-hardcoded-placeholder.md)** - Replace hardcoded footer weather placeholder with real data source or remove weather panel (design revamp tech debt)
+
+## Resolved Tickets
+
+- **[tickets/FEED-015-footer-weather-stats-hardcoded-placeholder.md](tickets/FEED-015-footer-weather-stats-hardcoded-placeholder.md)** - Replace hardcoded footer weather placeholder with real data source (resolved by Weather feature implementation)
 
 ## Historical Docs Notes
 
@@ -138,6 +142,7 @@ Active work items and feature proposals:
 | Content Security Policy (hot-mode aware) | Implemented | [backend/security-headers.md](backend/security-headers.md) |
 | In-App Notifications | Implemented | [backend/notification-system.md](backend/notification-system.md) |
 | Scene Intel (Fire) | Implemented | [backend/scene-intel.md](backend/scene-intel.md) |
+| Weather Feature | Implemented | [backend/weather.md](backend/weather.md) |
 | Real-Time Feed Push | Planned | [tickets/FEED-002-real-time-push.md](tickets/FEED-002-real-time-push.md) |
 | Dynamic Zones | Planned | [architecture/dynamic-zones.md](architecture/dynamic-zones.md) |
 

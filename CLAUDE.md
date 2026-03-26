@@ -11,6 +11,7 @@ GTA Alerts is a real-time dashboard for emergency services and transit alerts ac
 - **Toronto Police Services** - ArcGIS FeatureServer scraping (every 10 minutes)
 - **TTC Transit Alerts** - Composite feed (live API + SXA + static pages, every 5 minutes)
 - **GO Transit** - Metrolinx JSON API (`api.metrolinx.com/external/go/serviceupdate/en/all`, every 5 minutes)
+- **Weather (Environment Canada)** - Live weather data by FSA (30-min cache, location picker)
 
 ## Commands
 
@@ -164,6 +165,30 @@ AlertCreated event → DispatchAlertNotifications listener → FanOutAlertNotifi
 
 See `docs/backend/notification-system.md` for full documentation.
 
+### Weather Feature
+
+Live weather conditions displayed in the footer, location-aware via Forward Sortation Area (FSA) lookup.
+
+**Architecture:**
+- Two-layer caching: fast Laravel Cache (30 min) + durable DB cache for historical data
+- Location selection: Postal code search or browser geolocation → nearest FSA centroid
+- Data source: Environment Canada weather API
+
+**Key Components:**
+- `App\Services\Weather\DTOs\WeatherData` - Weather data DTO (temp, conditions, alerts, metadata)
+- `App\Services\Weather\Contracts\WeatherProvider` - Interface for weather data sources
+- `App\Services\Weather\Providers\EnvironmentCanadaWeatherProvider` - Environment Canada API adapter
+- `App\Services\Weather\WeatherFetchService` - Orchestrates fetch with caching strategy
+- `App\Services\Weather\WeatherCacheService` - Dual-layer cache management
+- `App\Models\GtaPostalCode` - Postal code → FSA mapping with centroid coordinates
+- `App\Models\WeatherCache` - Durable database cache for weather data
+- `useWeather` hook - Frontend reactive weather state management
+- `WeatherController` - API endpoint for current weather by FSA
+- `PostalCodeSearchController` - Postal code lookup endpoint
+- `PostalCodeResolveCoordsController` - Geolocation → nearest FSA resolution
+
+See `docs/backend/weather.md` for full documentation.
+
 ### Frontend Structure
 
 Inertia.js renders React pages from `resources/js/pages/`. The main public page is `gta-alerts.tsx` which mounts the feature module at `resources/js/features/gta-alerts/`.
@@ -258,4 +283,5 @@ See `docs/` for detailed architecture:
 - `docs/architecture/provider-adapter-pattern.md` - Provider pattern explanation
 - `docs/backend/notification-system.md` - In-app notification system (IMPLEMENTED)
 - `docs/backend/saved-alerts.md` - Saved Alerts system: API contract, guest/auth storage, hydration path, unresolved-ID handling (IMPLEMENTED)
+- `docs/backend/weather.md` - Weather feature architecture (IMPLEMENTED)
 - `docs/architecture/dynamic-zones.md` - Dynamic zones feature (PLANNED)
