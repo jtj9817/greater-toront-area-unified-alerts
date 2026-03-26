@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Icon } from './Icon';
 import type { MinimalModeSection } from '../hooks/useMinimalMode';
+import { Icon } from './Icon';
 
 interface MinimalModeToggleProps {
     isHidden: (section: MinimalModeSection) => boolean;
@@ -95,7 +95,7 @@ export const MinimalModeToggle: React.FC<MinimalModeToggleProps> = ({
                 <div
                     ref={menuRef}
                     id="gta-alerts-minimal-mode-menu"
-                    className="absolute bottom-16 right-0 mb-2 w-48 overflow-hidden rounded-lg border-2 border-black bg-[#1a1a1a] shadow-[5px_5px_0_#000] animate-in slide-in-from-bottom-2 fade-in duration-200"
+                    className="absolute right-0 bottom-16 mb-2 w-48 animate-in overflow-hidden rounded-lg border-2 border-black bg-[#1a1a1a] shadow-[5px_5px_0_#000] duration-200 fade-in slide-in-from-bottom-2"
                 >
                     <div className="border-b border-[#333333] px-3 py-2">
                         <span className="text-[10px] font-bold tracking-widest text-text-secondary uppercase">
@@ -156,7 +156,13 @@ export const MinimalModeToggle: React.FC<MinimalModeToggleProps> = ({
                 } ${isOpen ? 'translate-x-[1px] translate-y-[1px] shadow-none' : ''}`}
             >
                 <Icon
-                    name={isOpen ? 'close' : isMinimalMode ? 'expand_more' : 'expand_less'}
+                    name={
+                        isOpen
+                            ? 'close'
+                            : isMinimalMode
+                              ? 'expand_more'
+                              : 'expand_less'
+                    }
                     className="text-xl"
                 />
             </button>

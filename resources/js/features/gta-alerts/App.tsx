@@ -7,6 +7,7 @@ import { FeedView } from './components/FeedView';
 import { Footer } from './components/Footer';
 import { Icon } from './components/Icon';
 import { LocationPicker } from './components/LocationPicker';
+import { MinimalModeToggle } from './components/MinimalModeToggle';
 import { NotificationInboxView } from './components/NotificationInboxView';
 import { NotificationToastLayer } from './components/NotificationToastLayer';
 import { SavedAlertActionToast } from './components/SavedAlertActionToast';
@@ -19,7 +20,6 @@ import { useMinimalMode } from './hooks/useMinimalMode';
 import { useSavedAlerts } from './hooks/useSavedAlerts';
 import { useWeather } from './hooks/useWeather';
 import { AlertService } from './services/AlertService';
-import { MinimalModeToggle } from './components/MinimalModeToggle';
 
 interface AppProps {
     alerts: {
@@ -90,12 +90,8 @@ const App: React.FC<AppProps> = ({
     });
 
     // Minimal mode state for feed view
-    const {
-        isHidden,
-        toggleSection,
-        isMinimalMode,
-        toggleMinimalMode,
-    } = useMinimalMode();
+    const { isHidden, toggleSection, isMinimalMode, toggleMinimalMode } =
+        useMinimalMode();
 
     // Sync local search query with URL state (e.g., back button, Reset All Filters).
     const syncSearchQueryFromUrl = useCallback(() => {
