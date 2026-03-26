@@ -180,15 +180,15 @@ export const FeedView: React.FC<FeedViewProps> = ({
                 {/* Row 0: Status */}
                 <div
                     id="gta-alerts-feed-status-row"
-                    className="border-b border-[#333333] bg-background-dark px-4 py-2 md:px-6"
+                    className={`bg-background-dark px-4 transition-all duration-300 ease-in-out md:px-6 ${
+                        hiddenSections.status
+                            ? 'h-0 overflow-hidden border-transparent py-0 opacity-0'
+                            : 'border-b border-[#333333] py-2 opacity-100'
+                    }`}
                 >
                     <div
                         id="gta-alerts-feed-status-row-content"
-                        className={`flex items-center gap-2 transition-all duration-300 ease-in-out ${
-                            hiddenSections.status
-                                ? 'h-0 overflow-hidden opacity-0 py-0'
-                                : 'opacity-100'
-                        }`}
+                        className="flex items-center gap-2"
                     >
                         <span className="mr-1 text-[10px] font-bold tracking-widest text-text-secondary/70 uppercase">
                             Status
@@ -239,15 +239,15 @@ export const FeedView: React.FC<FeedViewProps> = ({
                 {/* Row 1: Categories */}
                 <div
                     id="gta-alerts-feed-category-row"
-                    className="border-b border-[#333333] bg-background-dark px-4 py-3 md:px-6"
+                    className={`bg-background-dark px-4 transition-all duration-300 ease-in-out md:px-6 ${
+                        hiddenSections.category
+                            ? 'h-0 overflow-hidden border-transparent py-0 opacity-0'
+                            : 'border-b border-[#333333] py-3 opacity-100'
+                    }`}
                 >
                     <div
                         id="gta-alerts-feed-category-links"
-                        className={`no-scrollbar mask-linear-fade flex w-full justify-start gap-2 overflow-x-auto pb-1 transition-all duration-300 ease-in-out ${
-                            hiddenSections.category
-                                ? 'h-0 overflow-hidden opacity-0 py-0 pb-0'
-                                : 'opacity-100'
-                        }`}
+                        className="no-scrollbar mask-linear-fade flex w-full justify-start gap-2 overflow-x-auto pb-1"
                     >
                         {categories.map((cat) => {
                             const isSelected = activeCategory === cat.id;
@@ -309,10 +309,10 @@ export const FeedView: React.FC<FeedViewProps> = ({
                 {/* Row 2: Time Window + View Toggle */}
                 <div
                     id="gta-alerts-feed-filter-row"
-                    className={`flex flex-wrap items-center gap-3 border-b bg-background-dark px-4 py-2 md:px-6 transition-all duration-300 ease-in-out ${
+                    className={`flex flex-wrap items-center gap-3 border-b bg-background-dark px-4 py-2 transition-all duration-300 ease-in-out md:px-6 ${
                         hiddenSections.filter
-                            ? 'h-0 overflow-hidden opacity-0 py-0 border-transparent'
-                            : 'opacity-100 border-[#333333]'
+                            ? 'h-0 overflow-hidden border-transparent py-0 opacity-0'
+                            : 'border-[#333333] opacity-100'
                     }`}
                 >
                     <div

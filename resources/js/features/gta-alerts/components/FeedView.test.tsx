@@ -41,7 +41,13 @@ vi.mock('@/routes', () => ({
         if (opts?.query?.status) url += `status=${opts.query.status}&`;
         if (opts?.query?.q) url += `q=${opts.query.q}&`;
         if (opts?.query?.view) url += `view=${opts.query.view}&`;
-        return { url: url.endsWith('&') ? url.slice(0, -1) : url.endsWith('?') ? url.slice(0, -1) : url };
+        return {
+            url: url.endsWith('&')
+                ? url.slice(0, -1)
+                : url.endsWith('?')
+                  ? url.slice(0, -1)
+                  : url,
+        };
     }),
 }));
 
@@ -141,6 +147,35 @@ describe('FeedView', () => {
         expect(screen.getByText('Police')).toBeInTheDocument();
         expect(screen.getByText('TTC')).toBeInTheDocument();
         expect(screen.getByText('GO Transit')).toBeInTheDocument();
+    });
+
+    it('collapses status and category wrapper rows in minimal mode', () => {
+        const { container } = render(
+            <FeedView
+                {...defaultProps}
+                hiddenSections={{ status: true, category: true, filter: false }}
+            />,
+        );
+
+        const statusRow = container.querySelector(
+            '#gta-alerts-feed-status-row',
+        );
+        const categoryRow = container.querySelector(
+            '#gta-alerts-feed-category-row',
+        );
+
+        expect(statusRow).toHaveClass(
+            'h-0',
+            'overflow-hidden',
+            'py-0',
+            'border-transparent',
+        );
+        expect(categoryRow).toHaveClass(
+            'h-0',
+            'overflow-hidden',
+            'py-0',
+            'border-transparent',
+        );
     });
 
     it('renders time window selector with options', () => {
