@@ -61,13 +61,13 @@
     - [x] Update `resources/js/features/gta-alerts/App.tsx` to host `useWeather` state and render `LocationPicker`.
 - [x] Task: Conductor - User Manual Verification 'Phase 4: Frontend State & Components' (Protocol in workflow.md) [5aeafc8]
 
-## Phase 5: QA Phase
+## Phase 5: QA Phase [checkpoint: c25c16f]
 
-- [x] Task: Execute automated quality gates [~]
+- [x] Task: Execute automated quality gates [c25c16f]
     - [x] Run `pnpm run types`, `pnpm run lint`, and `pnpm run format`. ✅ All passing
     - [x] Run `./vendor/bin/sail artisan test --coverage` and verify >90% coverage for new modules. ✅ 94.1% overall, all weather modules >90%
     - [x] Run dependency security audits. ⚠️ 1 PHP moderate (league/commonmark), 3 JS high (flatted, picomatch) - pre-existing, not weather-related
-- [x] Task: Conductor - User Manual Verification 'Phase 5: QA Phase' (Protocol in workflow.md) ✅ 45/45 tests passed
+- [x] Task: Conductor - User Manual Verification 'Phase 5: QA Phase' (Protocol in workflow.md) [c25c16f] ✅ 45/45 tests passed
 
 ## Phase 6: Documentation Phase
 
