@@ -45,7 +45,7 @@
     - [x] Implement `GET /api/weather` endpoint and route.
 - [x] Task: Conductor - User Manual Verification 'Phase 3: Backend API Endpoints' (Protocol in workflow.md)
 
-## Phase 4: Frontend State & Components
+## Phase 4: Frontend State & Components [checkpoint: 5aeafc8]
 
 - [x] Task: Define Frontend Domain Types [798951b]
     - [x] Create `resources/js/features/gta-alerts/domain/weather/resource.ts`, `types.ts`, and `fromResource.ts`.
@@ -59,7 +59,7 @@
     - [x] Write `Footer.test.tsx` verifying current conditions display and the parsed color-coded alert badges (if present).
     - [x] Update `resources/js/features/gta-alerts/components/Footer.tsx` to receive weather props.
     - [x] Update `resources/js/features/gta-alerts/App.tsx` to host `useWeather` state and render `LocationPicker`.
-- [ ] Task: Conductor - User Manual Verification 'Phase 4: Frontend State & Components' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 4: Frontend State & Components' (Protocol in workflow.md) [5aeafc8]
 
 ## Phase 5: QA Phase
 
