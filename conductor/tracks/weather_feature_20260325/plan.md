@@ -31,7 +31,7 @@
     - [x] Implement `App\Services\Weather\WeatherCacheService` using both Laravel Cache and `WeatherCache`.
 - [x] Task: Conductor - User Manual Verification 'Phase 2: Weather Provider & Cache Service' (Protocol in workflow.md) [7db62b2]
 
-## Phase 3: Backend API Endpoints
+## Phase 3: Backend API Endpoints [checkpoint: 6a71e05]
 
 - [x] Task: Implement `PostalCodeSearchController` [528f927]
     - [x] Write `PostalCodeSearchControllerTest` for valid and invalid queries.
