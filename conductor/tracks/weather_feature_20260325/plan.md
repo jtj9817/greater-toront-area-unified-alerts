@@ -33,16 +33,16 @@
 
 ## Phase 3: Backend API Endpoints
 
-- [ ] Task: Implement `PostalCodeSearchController`
-    - [ ] Write `PostalCodeSearchControllerTest` for valid and invalid queries.
-    - [ ] Implement `GET /api/postal-codes` endpoint and route.
-- [ ] Task: Implement `PostalCodeResolveCoordsController`
-    - [ ] Write `PostalCodeResolveCoordsControllerTest` for bounds checking and resolving.
-    - [ ] Implement `POST /api/postal-codes/resolve-coords` endpoint and route.
-- [ ] Task: Implement `WeatherController`
-    - [ ] Write `WeatherControllerTest` for successful responses (`WeatherResource`), 422s, and 503s.
-    - [ ] Create `App\Http\Resources\WeatherResource`.
-    - [ ] Implement `GET /api/weather` endpoint and route.
+- [x] Task: Implement `PostalCodeSearchController` [528f927]
+    - [x] Write `PostalCodeSearchControllerTest` for valid and invalid queries.
+    - [x] Implement `GET /api/postal-codes` endpoint and route.
+- [x] Task: Implement `PostalCodeResolveCoordsController` [528f927]
+    - [x] Write `PostalCodeResolveCoordsControllerTest` for bounds checking and resolving.
+    - [x] Implement `POST /api/postal-codes/resolve-coords` endpoint and route.
+- [x] Task: Implement `WeatherController` [528f927]
+    - [x] Write `WeatherControllerTest` for successful responses (`WeatherResource`), 422s, and 503s.
+    - [x] Create `App\Http\Resources\WeatherResource`.
+    - [x] Implement `GET /api/weather` endpoint and route.
 - [ ] Task: Conductor - User Manual Verification 'Phase 3: Backend API Endpoints' (Protocol in workflow.md)
 
 ## Phase 4: Frontend State & Components
