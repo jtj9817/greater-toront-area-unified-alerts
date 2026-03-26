@@ -47,7 +47,7 @@
 
 ## Phase 4: Frontend State & Components
 
-- [x] Task: Define Frontend Domain Types
+- [x] Task: Define Frontend Domain Types [798951b]
     - [x] Create `resources/js/features/gta-alerts/domain/weather/resource.ts`, `types.ts`, and `fromResource.ts`.
 - [x] Task: Implement `useWeather` Hook
     - [x] Write `useWeather.test.ts` to test `localStorage` interaction, API fetching, keeping stale data visible during fetch, and empty default state.
