@@ -6,10 +6,11 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ## Active Tracks
 
-- [ ] **Track: Weather Feature (GTA Alerts)**
-      _Link: [./tracks/weather_feature_20260325/](./tracks/weather_feature_20260325/)_
 
 ## Archived Tracks
+- [x] **Track: Weather Feature (GTA Alerts)**
+      _Link: [./archive/weather_feature_20260325/](./archive/weather_feature_20260325/)_
+
 
 - [x] **Track: Implement the Saved Alerts feature (GTA-101 – GTA-106)**
       _Link: [./archive/saved_alerts_20260316/](./archive/saved_alerts_20260316/)_
