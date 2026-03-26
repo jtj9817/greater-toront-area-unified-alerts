@@ -38,6 +38,15 @@ test('returns 422 when fsa is not a valid GTA postal code', function () {
         ->assertJsonValidationErrors(['fsa']);
 });
 
+test('returns 422 when fsa has malformed postal format before normalization', function () {
+    $this->mock(WeatherCacheService::class)
+        ->shouldNotReceive('get');
+
+    $this->getJson('/api/weather?fsa=M5VXYZ')
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors(['fsa']);
+});
+
 test('returns 200 with weather resource for valid fsa', function () {
     $this->mock(WeatherCacheService::class)
         ->shouldReceive('get')

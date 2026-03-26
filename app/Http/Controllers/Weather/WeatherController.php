@@ -15,7 +15,7 @@ class WeatherController extends Controller
     public function __invoke(Request $request, WeatherCacheService $weatherCache): JsonResponse
     {
         $validated = $request->validate([
-            'fsa' => ['required', 'string', 'max:10'],
+            'fsa' => ['required', 'string', 'max:7', 'regex:/^[A-Za-z]\d[A-Za-z](?:[\s-]?\d[A-Za-z]\d)?$/'],
         ]);
 
         $fsa = GtaPostalCode::normalize($validated['fsa']);
