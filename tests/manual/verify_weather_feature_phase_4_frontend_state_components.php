@@ -113,6 +113,7 @@ function assert_file_contains($path, $needle, $label)
 {
     if (! file_exists($path)) {
         logFail("{$label}: file not found at {$path}");
+
         return;
     }
     $content = file_get_contents($path);
@@ -270,11 +271,11 @@ assert_file_contains("{$basePath}/resources/js/features/gta-alerts/components/Lo
 assert_file_contains("{$basePath}/resources/js/features/gta-alerts/components/LocationPicker.tsx", "'X-CSRF-TOKEN'", 'CSRF header');
 
 logInfo('3.5 Checking accessibility attributes');
-assert_file_contains("{$basePath}/resources/js/features/gta-alerts/components/LocationPicker.tsx", "aria-label=\"Search for a GTA location\"", 'Search input aria-label');
-assert_file_contains("{$basePath}/resources/js/features/gta-alerts/components/LocationPicker.tsx", "role=\"listbox\"", 'Results listbox role');
-assert_file_contains("{$basePath}/resources/js/features/gta-alerts/components/LocationPicker.tsx", "role=\"option\"", 'Result item option role');
-assert_file_contains("{$basePath}/resources/js/features/gta-alerts/components/LocationPicker.tsx", "aria-selected", 'aria-selected attribute');
-assert_file_contains("{$basePath}/resources/js/features/gta-alerts/components/LocationPicker.tsx", "aria-expanded", 'aria-expanded attribute');
+assert_file_contains("{$basePath}/resources/js/features/gta-alerts/components/LocationPicker.tsx", 'aria-label="Search for a GTA location"', 'Search input aria-label');
+assert_file_contains("{$basePath}/resources/js/features/gta-alerts/components/LocationPicker.tsx", 'role="listbox"', 'Results listbox role');
+assert_file_contains("{$basePath}/resources/js/features/gta-alerts/components/LocationPicker.tsx", 'role="option"', 'Result item option role');
+assert_file_contains("{$basePath}/resources/js/features/gta-alerts/components/LocationPicker.tsx", 'aria-selected', 'aria-selected attribute');
+assert_file_contains("{$basePath}/resources/js/features/gta-alerts/components/LocationPicker.tsx", 'aria-expanded', 'aria-expanded attribute');
 
 logInfo('3.6 Checking component props interface');
 assert_file_contains("{$basePath}/resources/js/features/gta-alerts/components/LocationPicker.tsx", 'interface LocationPickerProps', 'LocationPickerProps interface');
@@ -310,7 +311,7 @@ assert_file_contains("{$basePath}/resources/js/features/gta-alerts/components/Fo
 assert_file_contains("{$basePath}/resources/js/features/gta-alerts/components/Footer.tsx", "'yellow' | 'orange' | 'red'", 'Alert level types');
 assert_file_contains("{$basePath}/resources/js/features/gta-alerts/components/Footer.tsx", 'weather.alertLevel', 'Alert level check');
 assert_file_contains("{$basePath}/resources/js/features/gta-alerts/components/Footer.tsx", 'id="gta-alerts-footer-weather-alert"', 'Alert badge ID');
-assert_file_contains("{$basePath}/resources/js/features/gta-alerts/components/Footer.tsx", "role=\"status\"", 'Alert badge status role');
+assert_file_contains("{$basePath}/resources/js/features/gta-alerts/components/Footer.tsx", 'role="status"', 'Alert badge status role');
 
 logInfo('4.5 Checking empty state display');
 assert_file_contains("{$basePath}/resources/js/features/gta-alerts/components/Footer.tsx", 'id="gta-alerts-footer-weather-no-location"', 'No location message ID');
