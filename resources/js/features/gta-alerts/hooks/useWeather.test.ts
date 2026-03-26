@@ -269,6 +269,49 @@ describe('useWeather', () => {
         });
     });
 
+    it('aborts an in-flight request when switching to a different location', async () => {
+        let firstSignal: AbortSignal | undefined;
+        const firstPending = new Promise<Response>(() => {
+            // Intentionally left unresolved to assert abort-on-switch behavior.
+        });
+
+        vi.spyOn(global, 'fetch')
+            .mockImplementationOnce(
+                (_input: RequestInfo | URL, init?: RequestInit) => {
+                    firstSignal = init?.signal as AbortSignal | undefined;
+                    return firstPending;
+                },
+            )
+            .mockResolvedValueOnce(mockFetchError(503));
+
+        const { result } = renderHook(() => useWeather());
+
+        act(() => {
+            result.current.setLocation(mockLocation);
+        });
+
+        await waitFor(() => {
+            expect(global.fetch).toHaveBeenCalledTimes(1);
+        });
+
+        act(() => {
+            result.current.setLocation({
+                ...mockLocation,
+                fsa: 'M4B',
+                label: 'M4B — East York, Toronto',
+            });
+        });
+
+        expect(firstSignal?.aborted).toBe(true);
+
+        await waitFor(() => {
+            expect(result.current.error).toBe('Weather API error: 503');
+        });
+
+        expect(result.current.location?.fsa).toBe('M4B');
+        expect(result.current.weather).toBeNull();
+    });
+
     // -----------------------------------------------------------------------
     // Error handling
     // -----------------------------------------------------------------------

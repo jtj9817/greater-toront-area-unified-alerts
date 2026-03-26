@@ -53,6 +53,16 @@ function parseResultList(raw: unknown): PostalCodeResourceParsed[] {
     });
 }
 
+function csrfToken(): string | null {
+    if (typeof document === 'undefined') return null;
+
+    const value = document
+        .querySelector('meta[name="csrf-token"]')
+        ?.getAttribute('content');
+
+    return value && value.trim() !== '' ? value : null;
+}
+
 // ---------------------------------------------------------------------------
 // Component
 // ---------------------------------------------------------------------------
@@ -144,14 +154,19 @@ export const LocationPicker: React.FC<LocationPickerProps> = ({
         navigator.geolocation.getCurrentPosition(
             (position) => {
                 const { latitude, longitude } = position.coords;
+                const headers: Record<string, string> = {
+                    'Content-Type': 'application/json',
+                    Accept: 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                };
+                const token = csrfToken();
+                if (token) {
+                    headers['X-CSRF-TOKEN'] = token;
+                }
 
                 fetch('/api/postal-codes/resolve-coords', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        Accept: 'application/json',
-                        'X-Requested-With': 'XMLHttpRequest',
-                    },
+                    headers,
                     body: JSON.stringify({ lat: latitude, lng: longitude }),
                 })
                     .then(async (response) => {
@@ -240,6 +255,7 @@ export const LocationPicker: React.FC<LocationPickerProps> = ({
                                     className="cursor-pointer px-3 py-2 text-xs font-bold text-white uppercase hover:bg-primary hover:text-black"
                                     onClick={() => {
                                         onSelect(toWeatherLocation(result));
+                                        setGeoError(null);
                                         setQuery('');
                                         setResults([]);
                                     }}
@@ -268,7 +284,7 @@ export const LocationPicker: React.FC<LocationPickerProps> = ({
                 >
                     <Icon
                         name={isGeoLoading ? 'sync' : 'my_location'}
-                        className={`text-xs${isGeoLoading ? 'animate-spin' : ''}`}
+                        className={`text-xs ${isGeoLoading ? 'animate-spin' : ''}`}
                     />
                 </button>
             </div>

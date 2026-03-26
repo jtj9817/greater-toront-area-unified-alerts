@@ -167,16 +167,15 @@ export function useWeather(): UseWeatherReturn {
     // -----------------------------------------------------------------------
 
     const setLocation = useCallback((next: WeatherLocation | null): void => {
+        // Cancel any in-flight request immediately so older responses cannot
+        // race and overwrite state for the newly selected location.
+        abortControllerRef.current?.abort();
         writeStoredLocation(next);
         // Reset weather and error so the derived isLoading becomes true
         // immediately for the new location (or stays false when clearing).
         setWeather(null);
         setError(null);
         setLocationState(next);
-
-        if (next === null) {
-            abortControllerRef.current?.abort();
-        }
     }, []);
 
     const refresh = useCallback((): void => {

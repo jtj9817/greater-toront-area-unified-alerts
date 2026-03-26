@@ -326,7 +326,7 @@ assert_eq($r['body']['data'][0]['fsa'] ?? null, 'M5V', 'M5V ranked first');
 logInfo('1.6 Result row structure');
 $row = $r['body']['data'][0] ?? [];
 foreach (['fsa', 'municipality', 'neighbourhood', 'lat', 'lng'] as $field) {
-    assert_has_key($row, $field, "result row");
+    assert_has_key($row, $field, 'result row');
 }
 
 // --- Municipality partial match ---
@@ -428,7 +428,7 @@ assert_eq($r['body']['data']['fsa'] ?? null, 'M5V', 'M5V centroid resolves to M5
 logInfo('2.10 Resolve response structure');
 $data = $r['body']['data'] ?? [];
 foreach (['fsa', 'municipality', 'neighbourhood', 'lat', 'lng'] as $field) {
-    assert_has_key($data, $field, "resolve response data");
+    assert_has_key($data, $field, 'resolve response data');
 }
 
 // --- Data types in resolve response ---
@@ -478,7 +478,8 @@ assert_has_key($r['body']['errors'] ?? [], 'fsa', 'A9A (not in GTA) fsa errors')
 
 // --- Valid M5V with mock service → 200 ---
 logInfo('3.5 Valid FSA M5V with mock WeatherCacheService → 200');
-app()->instance(WeatherCacheService::class, new class extends WeatherCacheService {
+app()->instance(WeatherCacheService::class, new class extends WeatherCacheService
+{
     public function __construct() {}
 
     public function get(string $fsa): WeatherData
@@ -527,7 +528,8 @@ assert_true($fetchedAt !== '' && strtotime($fetchedAt) !== false, "data.fetched_
 
 // --- FSA normalization: lowercase 3-char input ---
 logInfo('3.10 FSA normalization: lowercase "m5v" → M5V');
-app()->instance(WeatherCacheService::class, new class extends WeatherCacheService {
+app()->instance(WeatherCacheService::class, new class extends WeatherCacheService
+{
     public function __construct() {}
 
     public function get(string $fsa): WeatherData
@@ -551,7 +553,8 @@ assert_eq($r['body']['data']['fsa'] ?? null, 'M5V', 'normalized M5V 1A1 → fsa=
 
 // --- Alert fields populated when provider returns alert data ---
 logInfo('3.12 Alert fields populated when provider returns orange alert');
-app()->instance(WeatherCacheService::class, new class extends WeatherCacheService {
+app()->instance(WeatherCacheService::class, new class extends WeatherCacheService
+{
     public function __construct() {}
 
     public function get(string $fsa): WeatherData
@@ -567,7 +570,8 @@ assert_eq($r['body']['data']['alert_text'] ?? null, 'Freezing rain warning in ef
 
 // --- Yellow alert ---
 logInfo('3.13 Yellow alert level');
-app()->instance(WeatherCacheService::class, new class extends WeatherCacheService {
+app()->instance(WeatherCacheService::class, new class extends WeatherCacheService
+{
     public function __construct() {}
 
     public function get(string $fsa): WeatherData
@@ -580,7 +584,8 @@ assert_eq($r['body']['data']['alert_level'] ?? null, 'yellow', 'data.alert_level
 
 // --- Red alert ---
 logInfo('3.14 Red alert level');
-app()->instance(WeatherCacheService::class, new class extends WeatherCacheService {
+app()->instance(WeatherCacheService::class, new class extends WeatherCacheService
+{
     public function __construct() {}
 
     public function get(string $fsa): WeatherData
@@ -593,7 +598,8 @@ assert_eq($r['body']['data']['alert_level'] ?? null, 'red', 'data.alert_level=re
 
 // --- Null fields are explicitly present and null (not absent) ---
 logInfo('3.15 Null optional fields are present as null (not absent)');
-app()->instance(WeatherCacheService::class, new class extends WeatherCacheService {
+app()->instance(WeatherCacheService::class, new class extends WeatherCacheService
+{
     public function __construct() {}
 
     public function get(string $fsa): WeatherData
@@ -622,7 +628,8 @@ assert_null_key($d, 'condition', 'null condition present as null');
 
 // --- 503 on WeatherFetchException ---
 logInfo('3.16 503 when WeatherCacheService throws WeatherFetchException');
-app()->instance(WeatherCacheService::class, new class extends WeatherCacheService {
+app()->instance(WeatherCacheService::class, new class extends WeatherCacheService
+{
     public function __construct() {}
 
     public function get(string $fsa): WeatherData
@@ -658,13 +665,13 @@ assert_not_null($routes->getByName('api.weather'), "route 'api.weather' register
 
 logInfo('4.2 Checking HTTP methods');
 $searchRoute = $routes->getByName('api.postal-codes.search');
-assert_contains($searchRoute?->methods() ?? [], 'GET', "api.postal-codes.search method");
+assert_contains($searchRoute?->methods() ?? [], 'GET', 'api.postal-codes.search method');
 
 $resolveRoute = $routes->getByName('api.postal-codes.resolve-coords');
-assert_contains($resolveRoute?->methods() ?? [], 'POST', "api.postal-codes.resolve-coords method");
+assert_contains($resolveRoute?->methods() ?? [], 'POST', 'api.postal-codes.resolve-coords method');
 
 $weatherRoute = $routes->getByName('api.weather');
-assert_contains($weatherRoute?->methods() ?? [], 'GET', "api.weather method");
+assert_contains($weatherRoute?->methods() ?? [], 'GET', 'api.weather method');
 
 echo "\n";
 

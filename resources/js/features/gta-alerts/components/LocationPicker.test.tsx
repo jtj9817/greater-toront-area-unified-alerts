@@ -52,6 +52,7 @@ function mockFetchError(status: number): Response {
 describe('LocationPicker', () => {
     beforeEach(() => {
         vi.restoreAllMocks();
+        document.head.querySelector('meta[name="csrf-token"]')?.remove();
     });
 
     // -----------------------------------------------------------------------
@@ -228,6 +229,10 @@ describe('LocationPicker', () => {
 
     it('resolves geolocation coordinates and calls onSelect', async () => {
         const onSelect = vi.fn();
+        const csrfMeta = document.createElement('meta');
+        csrfMeta.setAttribute('name', 'csrf-token');
+        csrfMeta.setAttribute('content', 'test-csrf-token');
+        document.head.appendChild(csrfMeta);
 
         const mockGetCurrentPosition = vi.fn((success: PositionCallback) => {
             success({
@@ -264,7 +269,12 @@ describe('LocationPicker', () => {
         await waitFor(() => {
             expect(global.fetch).toHaveBeenCalledWith(
                 expect.stringContaining('/api/postal-codes/resolve-coords'),
-                expect.objectContaining({ method: 'POST' }),
+                expect.objectContaining({
+                    method: 'POST',
+                    headers: expect.objectContaining({
+                        'X-CSRF-TOKEN': 'test-csrf-token',
+                    }),
+                }),
             );
         });
 
@@ -273,6 +283,78 @@ describe('LocationPicker', () => {
                 expect.objectContaining({ fsa: 'M5V' }),
             );
         });
+    });
+
+    it('clears geolocation error after successful manual selection', async () => {
+        const onSelect = vi.fn();
+        const mockGetCurrentPosition = vi.fn(
+            (_success: PositionCallback, error: PositionErrorCallback) => {
+                error({
+                    code: 1,
+                    message: 'User denied geolocation',
+                    PERMISSION_DENIED: 1,
+                    POSITION_UNAVAILABLE: 2,
+                    TIMEOUT: 3,
+                } as GeolocationPositionError);
+            },
+        );
+
+        Object.defineProperty(global.navigator, 'geolocation', {
+            value: { getCurrentPosition: mockGetCurrentPosition },
+            writable: true,
+            configurable: true,
+        });
+
+        vi.spyOn(global, 'fetch').mockResolvedValue(
+            mockFetchOk(makeSearchResponse([makePostalCodeResult()])),
+        );
+
+        render(<LocationPicker onSelect={onSelect} />);
+
+        await act(async () => {
+            fireEvent.click(
+                screen.getByRole('button', { name: /use my location/i }),
+            );
+        });
+
+        await waitFor(() => {
+            expect(
+                screen.getByText(/location access denied|denied|unavailable/i),
+            ).toBeInTheDocument();
+        });
+
+        fireEvent.change(screen.getByPlaceholderText(/postal code|search/i), {
+            target: { value: 'M5' },
+        });
+
+        await waitFor(() => {
+            expect(screen.getByText(/M5V/)).toBeInTheDocument();
+        });
+
+        fireEvent.click(screen.getByText(/M5V/));
+
+        expect(onSelect).toHaveBeenCalledWith(
+            expect.objectContaining({ fsa: 'M5V' }),
+        );
+        expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+    });
+
+    it('adds animate-spin class to the geolocation icon while loading', () => {
+        const mockGetCurrentPosition = vi.fn();
+        Object.defineProperty(global.navigator, 'geolocation', {
+            value: { getCurrentPosition: mockGetCurrentPosition },
+            writable: true,
+            configurable: true,
+        });
+
+        render(<LocationPicker onSelect={vi.fn()} />);
+
+        fireEvent.click(
+            screen.getByRole('button', { name: /use my location/i }),
+        );
+
+        const icon = screen.getByText('sync');
+        expect(icon).toHaveClass('animate-spin');
     });
 
     it('shows an error when geolocation is denied', async () => {
