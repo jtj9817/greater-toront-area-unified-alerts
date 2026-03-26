@@ -15,9 +15,11 @@ import { SettingsView } from './components/SettingsView';
 import { Sidebar } from './components/Sidebar';
 import { ZonesView } from './components/ZonesView';
 import type { UnifiedAlertResource } from './domain/alerts';
+import { useMinimalMode } from './hooks/useMinimalMode';
 import { useSavedAlerts } from './hooks/useSavedAlerts';
 import { useWeather } from './hooks/useWeather';
 import { AlertService } from './services/AlertService';
+import { MinimalModeToggle } from './components/MinimalModeToggle';
 
 interface AppProps {
     alerts: {
@@ -86,6 +88,14 @@ const App: React.FC<AppProps> = ({
         authUserId,
         initialSavedIds: initialSavedAlertIds,
     });
+
+    // Minimal mode state for feed view
+    const {
+        isHidden,
+        toggleSection,
+        isMinimalMode,
+        toggleMinimalMode,
+    } = useMinimalMode();
 
     // Sync local search query with URL state (e.g., back button, Reset All Filters).
     const syncSearchQueryFromUrl = useCallback(() => {
@@ -309,6 +319,11 @@ const App: React.FC<AppProps> = ({
                         savedIds={new Set(savedIds)}
                         isPending={isPending}
                         onToggleSave={toggleAlert}
+                        hiddenSections={{
+                            status: isHidden('status'),
+                            category: isHidden('category'),
+                            filter: isHidden('filter'),
+                        }}
                     />
                 );
         }
@@ -498,18 +513,29 @@ const App: React.FC<AppProps> = ({
             </div>
 
             {currentView === 'feed' && (
-                <button
-                    id="gta-alerts-feed-refresh-btn"
-                    onClick={handleRefreshFeed}
-                    disabled={isRefreshingFeed}
-                    aria-label="Refresh feed"
-                    className="fixed right-5 bottom-24 z-[95] flex h-12 w-12 items-center justify-center border-2 border-black bg-primary text-black shadow-[5px_5px_0_#000] transition-all hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-none disabled:cursor-not-allowed disabled:opacity-60 md:right-8 md:bottom-8"
-                >
-                    <Icon
-                        name={isRefreshingFeed ? 'sync' : 'refresh'}
-                        className={isRefreshingFeed ? 'animate-spin' : ''}
-                    />
-                </button>
+                <>
+                    {/* Minimal Mode Toggle FAB */}
+                    <div className="fixed right-5 bottom-40 z-[95] md:right-8 md:bottom-24">
+                        <MinimalModeToggle
+                            isHidden={isHidden}
+                            toggleSection={toggleSection}
+                            isMinimalMode={isMinimalMode}
+                            toggleMinimalMode={toggleMinimalMode}
+                        />
+                    </div>
+                    <button
+                        id="gta-alerts-feed-refresh-btn"
+                        onClick={handleRefreshFeed}
+                        disabled={isRefreshingFeed}
+                        aria-label="Refresh feed"
+                        className="fixed right-5 bottom-24 z-[95] flex h-12 w-12 items-center justify-center border-2 border-black bg-primary text-black shadow-[5px_5px_0_#000] transition-all hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-none disabled:cursor-not-allowed disabled:opacity-60 md:right-8 md:bottom-8"
+                    >
+                        <Icon
+                            name={isRefreshingFeed ? 'sync' : 'refresh'}
+                            className={isRefreshingFeed ? 'animate-spin' : ''}
+                        />
+                    </button>
+                </>
             )}
             <SavedAlertActionToast
                 feedback={feedback}

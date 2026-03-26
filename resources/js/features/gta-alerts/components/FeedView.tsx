@@ -21,6 +21,12 @@ interface FeedViewProps {
     savedIds: Set<string>;
     isPending: (id: string) => boolean;
     onToggleSave: (id: string) => Promise<void>;
+    /** Minimal mode hidden sections state */
+    hiddenSections?: {
+        status: boolean;
+        category: boolean;
+        filter: boolean;
+    };
 }
 
 export const FeedView: React.FC<FeedViewProps> = ({
@@ -36,6 +42,7 @@ export const FeedView: React.FC<FeedViewProps> = ({
     savedIds,
     isPending,
     onToggleSave,
+    hiddenSections = { status: false, category: false, filter: false },
 }) => {
     // State for Filters
     const [viewMode, setViewMode] = useState<'feed' | 'table'>('feed');
@@ -177,7 +184,11 @@ export const FeedView: React.FC<FeedViewProps> = ({
                 >
                     <div
                         id="gta-alerts-feed-status-row-content"
-                        className="flex items-center gap-2"
+                        className={`flex items-center gap-2 transition-all duration-300 ease-in-out ${
+                            hiddenSections.status
+                                ? 'h-0 overflow-hidden opacity-0 py-0'
+                                : 'opacity-100'
+                        }`}
                     >
                         <span className="mr-1 text-[10px] font-bold tracking-widest text-text-secondary/70 uppercase">
                             Status
@@ -232,7 +243,11 @@ export const FeedView: React.FC<FeedViewProps> = ({
                 >
                     <div
                         id="gta-alerts-feed-category-links"
-                        className="no-scrollbar mask-linear-fade flex w-full justify-start gap-2 overflow-x-auto pb-1"
+                        className={`no-scrollbar mask-linear-fade flex w-full justify-start gap-2 overflow-x-auto pb-1 transition-all duration-300 ease-in-out ${
+                            hiddenSections.category
+                                ? 'h-0 overflow-hidden opacity-0 py-0 pb-0'
+                                : 'opacity-100'
+                        }`}
                     >
                         {categories.map((cat) => {
                             const isSelected = activeCategory === cat.id;
@@ -294,7 +309,11 @@ export const FeedView: React.FC<FeedViewProps> = ({
                 {/* Row 2: Time Window + View Toggle */}
                 <div
                     id="gta-alerts-feed-filter-row"
-                    className="flex flex-wrap items-center gap-3 border-b border-[#333333] bg-background-dark px-4 py-2 md:px-6"
+                    className={`flex flex-wrap items-center gap-3 border-b bg-background-dark px-4 py-2 md:px-6 transition-all duration-300 ease-in-out ${
+                        hiddenSections.filter
+                            ? 'h-0 overflow-hidden opacity-0 py-0 border-transparent'
+                            : 'opacity-100 border-[#333333]'
+                    }`}
                 >
                     <div
                         id="gta-alerts-feed-filter-row-content"
