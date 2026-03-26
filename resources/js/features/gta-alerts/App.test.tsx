@@ -441,15 +441,21 @@ describe('GTA Alerts App (typed domain enforcement boundary)', () => {
 
         vi.stubGlobal('fetch', fetchMock);
 
-        render(<AlertsApp {...buildBasePropsWithAuth([fireResource()], 42)} />);
+        try {
+            render(
+                <AlertsApp {...buildBasePropsWithAuth([fireResource()], 42)} />,
+            );
 
-        fireEvent.click(screen.getByLabelText('Save alert'));
+            fireEvent.click(screen.getByLabelText('Save alert'));
 
-        expect(await screen.findByText('Alert saved.')).toBeInTheDocument();
-        expect(fetchMock).toHaveBeenCalledWith(
-            '/api/saved-alerts',
-            expect.objectContaining({ method: 'POST' }),
-        );
+            expect(await screen.findByText('Alert saved.')).toBeInTheDocument();
+            expect(fetchMock).toHaveBeenCalledWith(
+                '/api/saved-alerts',
+                expect.objectContaining({ method: 'POST' }),
+            );
+        } finally {
+            vi.unstubAllGlobals();
+        }
     });
 
     it('auto-dismisses the saved-alert action toast', async () => {

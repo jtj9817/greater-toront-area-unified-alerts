@@ -232,7 +232,7 @@ describe(designRevampPhase4Spec.scenarios[0].id, () => {
         expect(screen.getByText('Privacy Policy')).toBeInTheDocument();
         expect(screen.getByText('System Status')).toBeInTheDocument();
         expect(
-            screen.getByText('Temp: 24 C | Humidity: 65% | Wind: 15km/h W'),
+            document.getElementById('gta-alerts-footer-weather'),
         ).toBeInTheDocument();
         expect(
             screen.getByRole('button', { name: 'Refresh feed' }),

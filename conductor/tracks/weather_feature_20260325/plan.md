@@ -47,18 +47,18 @@
 
 ## Phase 4: Frontend State & Components
 
-- [ ] Task: Define Frontend Domain Types
-    - [ ] Create `resources/js/features/gta-alerts/domain/weather/resource.ts`, `types.ts`, and `fromResource.ts`.
-- [ ] Task: Implement `useWeather` Hook
-    - [ ] Write `useWeather.test.ts` to test `localStorage` interaction, API fetching, keeping stale data visible during fetch, and empty default state.
-    - [ ] Implement `resources/js/features/gta-alerts/hooks/useWeather.ts`.
-- [ ] Task: Implement `LocationPicker` Component
-    - [ ] Write `LocationPicker.test.tsx` testing search, geolocation trigger, and bounding box rejection.
-    - [ ] Implement `resources/js/features/gta-alerts/components/LocationPicker.tsx`.
-- [ ] Task: Integrate Footer & App UI
-    - [ ] Write `Footer.test.tsx` verifying current conditions display and the parsed color-coded alert badges (if present).
-    - [ ] Update `resources/js/features/gta-alerts/components/Footer.tsx` to receive weather props.
-    - [ ] Update `resources/js/features/gta-alerts/App.tsx` to host `useWeather` state and render `LocationPicker`.
+- [x] Task: Define Frontend Domain Types
+    - [x] Create `resources/js/features/gta-alerts/domain/weather/resource.ts`, `types.ts`, and `fromResource.ts`.
+- [x] Task: Implement `useWeather` Hook
+    - [x] Write `useWeather.test.ts` to test `localStorage` interaction, API fetching, keeping stale data visible during fetch, and empty default state.
+    - [x] Implement `resources/js/features/gta-alerts/hooks/useWeather.ts`.
+- [x] Task: Implement `LocationPicker` Component
+    - [x] Write `LocationPicker.test.tsx` testing search, geolocation trigger, and bounding box rejection.
+    - [x] Implement `resources/js/features/gta-alerts/components/LocationPicker.tsx`.
+- [x] Task: Integrate Footer & App UI
+    - [x] Write `Footer.test.tsx` verifying current conditions display and the parsed color-coded alert badges (if present).
+    - [x] Update `resources/js/features/gta-alerts/components/Footer.tsx` to receive weather props.
+    - [x] Update `resources/js/features/gta-alerts/App.tsx` to host `useWeather` state and render `LocationPicker`.
 - [ ] Task: Conductor - User Manual Verification 'Phase 4: Frontend State & Components' (Protocol in workflow.md)
 
 ## Phase 5: QA Phase

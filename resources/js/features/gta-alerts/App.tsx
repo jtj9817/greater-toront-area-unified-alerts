@@ -6,6 +6,7 @@ import { BottomNav } from './components/BottomNav';
 import { FeedView } from './components/FeedView';
 import { Footer } from './components/Footer';
 import { Icon } from './components/Icon';
+import { LocationPicker } from './components/LocationPicker';
 import { NotificationInboxView } from './components/NotificationInboxView';
 import { NotificationToastLayer } from './components/NotificationToastLayer';
 import { SavedAlertActionToast } from './components/SavedAlertActionToast';
@@ -15,6 +16,7 @@ import { Sidebar } from './components/Sidebar';
 import { ZonesView } from './components/ZonesView';
 import type { UnifiedAlertResource } from './domain/alerts';
 import { useSavedAlerts } from './hooks/useSavedAlerts';
+import { useWeather } from './hooks/useWeather';
 import { AlertService } from './services/AlertService';
 
 interface AppProps {
@@ -62,6 +64,13 @@ const App: React.FC<AppProps> = ({
     const [activeAlertId, setActiveAlertId] = useState<string | null>(null);
     const [isRefreshingFeed, setIsRefreshingFeed] = useState(false);
     const [inboxUnreadCount, setInboxUnreadCount] = useState(0);
+
+    // Weather state
+    const {
+        location: weatherLocation,
+        weather,
+        setLocation: setWeatherLocation,
+    } = useWeather();
 
     // Centralised saved-alert state
     const {
@@ -438,6 +447,15 @@ const App: React.FC<AppProps> = ({
                                 id="gta-alerts-header-desktop-actions"
                                 className="hidden items-center justify-center gap-3 pl-4 md:flex"
                             >
+                                <div
+                                    id="gta-alerts-header-location-picker"
+                                    className="w-48"
+                                >
+                                    <LocationPicker
+                                        onSelect={setWeatherLocation}
+                                        selectedLocation={weatherLocation}
+                                    />
+                                </div>
                                 <button
                                     id="gta-alerts-header-desktop-inbox-btn"
                                     className="relative flex items-center justify-center p-2 text-white transition-all hover:bg-white/10 hover:text-primary"
@@ -472,7 +490,7 @@ const App: React.FC<AppProps> = ({
                     </div>
                 </main>
 
-                <Footer />
+                <Footer weather={weather} />
                 <BottomNav
                     currentView={currentView}
                     onNavigate={handleNavigate}
