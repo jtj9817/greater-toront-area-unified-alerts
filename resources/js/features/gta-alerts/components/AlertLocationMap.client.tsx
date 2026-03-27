@@ -22,7 +22,7 @@ export function AlertLocationMapClient({
     return (
         <div
             id={`${idBase}-map-wrapper`}
-            className="relative overflow-hidden rounded-lg border border-white/10"
+            className="relative aspect-video overflow-hidden rounded-lg border border-white/10"
         >
             <MapContainer
                 center={[lat, lng]}

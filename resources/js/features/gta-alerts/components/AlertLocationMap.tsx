@@ -1,13 +1,12 @@
 import React, { lazy, Suspense } from 'react';
 
-const AlertLocationMapClient = lazy(
-    () =>
-        import(
-            /* @vite-ignore */
-            './AlertLocationMap.client'
-        ) as unknown as Promise<{
-            default: React.ComponentType<AlertLocationMapProps>;
-        }>,
+const AlertLocationMapClient = lazy(() =>
+    import(
+        /* @vite-ignore */
+        './AlertLocationMap.client'
+    ).then((module) => ({
+        default: module.AlertLocationMapClient,
+    })),
 );
 
 interface AlertLocationMapProps {
