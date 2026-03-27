@@ -1,19 +1,19 @@
 # Implementation Plan: Alert Location Map (Leaflet + OpenStreetMap)
 
-## Phase 1: Contract Guardrails and Runtime Foundation
+## Phase 1: Contract Guardrails and Runtime Foundation [checkpoint: 5210db6]
 
-- [~] Task: Lock down the existing location transport contract before UI work
-    - [ ] Extend `tests/Feature/GtaAlertsTest.php` with a fixture that includes real coordinates and assert `alerts.data.*.location` still exposes `name`, `lat`, and `lng`.
-    - [ ] Add an Inertia partial-reload assertion using `reloadOnly('alerts', ...)` to prove the feature rides the existing `alerts` prop instead of adding a new top-level page prop.
-    - [ ] Confirm the current `UnifiedAlertResource` contract is sufficient; do not change controllers/resources unless the new tests prove a gap.
-- [ ] Task: Add Leaflet runtime dependencies through Sail
-    - [ ] Add `leaflet` and `react-leaflet` to `package.json` dependencies.
-    - [ ] Add `@types/leaflet` to `package.json` devDependencies.
-    - [ ] Update the lockfile and ensure dependency installation is reproducible inside `vendor/bin/sail`.
-- [ ] Task: Define the SSR-safe loading seam before importing Leaflet
-    - [ ] Plan for `resources/js/features/gta-alerts/components/AlertLocationMap.tsx` to be the SSR-safe wrapper only.
-    - [ ] Plan for `resources/js/features/gta-alerts/components/AlertLocationMap.client.tsx` to own all `leaflet` / `react-leaflet` imports.
-    - [ ] Import `leaflet/dist/leaflet.css` only from the client-side module so CSS stays coupled to the lazy-loaded map chunk instead of the global app entry.
+- [x] Task: Lock down the existing location transport contract before UI work
+    - [x] Extend `tests/Feature/GtaAlertsTest.php` with a fixture that includes real coordinates and assert `alerts.data.*.location` still exposes `name`, `lat`, and `lng`.
+    - [x] Add an Inertia partial-reload assertion using `reloadOnly('alerts', ...)` to prove the feature rides the existing `alerts` prop instead of adding a new top-level page prop.
+    - [x] Confirm the current `UnifiedAlertResource` contract is sufficient; do not change controllers/resources unless the new tests prove a gap.
+- [x] Task: Add Leaflet runtime dependencies through Sail
+    - [x] Add `leaflet` and `react-leaflet` to `package.json` dependencies.
+    - [x] Add `@types/leaflet` to `package.json` devDependencies.
+    - [x] Update the lockfile and ensure dependency installation is reproducible inside `vendor/bin/sail`.
+- [x] Task: Define the SSR-safe loading seam before importing Leaflet
+    - [x] Plan for `resources/js/features/gta-alerts/components/AlertLocationMap.tsx` to be the SSR-safe wrapper only.
+    - [x] Plan for `resources/js/features/gta-alerts/components/AlertLocationMap.client.tsx` to own all `leaflet` / `react-leaflet` imports.
+    - [x] Import `leaflet/dist/leaflet.css` only from the client-side module so CSS stays coupled to the lazy-loaded map chunk instead of the global app entry.
 - [ ] Task: Conductor - User Manual Verification 'Phase 1: Contract Guardrails and Runtime Foundation' (Protocol in workflow.md)
 
 ## Phase 2: Presentation Boundary and Coordinate Eligibility
