@@ -142,4 +142,130 @@ describe('mapDomainAlertToPresentation', () => {
 
         expect(alertItem.location).toBe('Unknown location');
     });
+
+    it('preserves valid police coordinates as locationCoords', () => {
+        const police = makePoliceAlert();
+        police.location = { name: 'Yonge & Bloor', lat: 43.67, lng: -79.4 };
+
+        const alertItem = mapDomainAlertToPresentation(police);
+
+        expect(alertItem.locationCoords).toEqual({
+            lat: 43.67,
+            lng: -79.4,
+        });
+        expect(alertItem.location).toBe('Yonge & Bloor');
+    });
+
+    it('sets locationCoords to null when location is null', () => {
+        const fire = makeFireAlert();
+        fire.location = null;
+
+        const alertItem = mapDomainAlertToPresentation(fire);
+
+        expect(alertItem.locationCoords).toBeNull();
+    });
+
+    it('sets locationCoords to null when both lat and lng are null', () => {
+        const fire = makeFireAlert();
+        fire.location = { name: 'MAIN ST', lat: null, lng: null };
+
+        const alertItem = mapDomainAlertToPresentation(fire);
+
+        expect(alertItem.locationCoords).toBeNull();
+    });
+
+    it('sets locationCoords to null when lat is present but lng is null (partial)', () => {
+        const police = makePoliceAlert();
+        police.location = { name: 'Partial', lat: 43.67, lng: null };
+
+        const alertItem = mapDomainAlertToPresentation(police);
+
+        expect(alertItem.locationCoords).toBeNull();
+    });
+
+    it('sets locationCoords to null when lng is present but lat is null (partial)', () => {
+        const police = makePoliceAlert();
+        police.location = { name: 'Partial', lat: null, lng: -79.4 };
+
+        const alertItem = mapDomainAlertToPresentation(police);
+
+        expect(alertItem.locationCoords).toBeNull();
+    });
+
+    it('sets locationCoords to null for NaN coordinates (non-finite)', () => {
+        const police = makePoliceAlert();
+        police.location = { name: 'Bad', lat: Number.NaN, lng: -79.4 };
+
+        const alertItem = mapDomainAlertToPresentation(police);
+
+        expect(alertItem.locationCoords).toBeNull();
+    });
+
+    it('sets locationCoords to null for Infinity coordinates (non-finite)', () => {
+        const police = makePoliceAlert();
+        police.location = {
+            name: 'Inf',
+            lat: 43.67,
+            lng: Number.POSITIVE_INFINITY,
+        };
+
+        const alertItem = mapDomainAlertToPresentation(police);
+
+        expect(alertItem.locationCoords).toBeNull();
+    });
+
+    it('sets locationCoords to null for out-of-range latitude (too far north)', () => {
+        const police = makePoliceAlert();
+        police.location = { name: 'Arctic', lat: 55.0, lng: -79.4 };
+
+        const alertItem = mapDomainAlertToPresentation(police);
+
+        expect(alertItem.locationCoords).toBeNull();
+    });
+
+    it('sets locationCoords to null for out-of-range latitude (too far south)', () => {
+        const police = makePoliceAlert();
+        police.location = { name: 'Florida', lat: 25.0, lng: -79.4 };
+
+        const alertItem = mapDomainAlertToPresentation(police);
+
+        expect(alertItem.locationCoords).toBeNull();
+    });
+
+    it('sets locationCoords to null for out-of-range longitude (too far west)', () => {
+        const police = makePoliceAlert();
+        police.location = { name: 'Manitoba', lat: 43.67, lng: -100.0 };
+
+        const alertItem = mapDomainAlertToPresentation(police);
+
+        expect(alertItem.locationCoords).toBeNull();
+    });
+
+    it('sets locationCoords to null for out-of-range longitude (too far east)', () => {
+        const police = makePoliceAlert();
+        police.location = { name: 'Maritimes', lat: 43.67, lng: -60.0 };
+
+        const alertItem = mapDomainAlertToPresentation(police);
+
+        expect(alertItem.locationCoords).toBeNull();
+    });
+
+    it('sets locationCoords to null for Null Island (0, 0) coordinates', () => {
+        const police = makePoliceAlert();
+        police.location = { name: 'Null Island', lat: 0, lng: 0 };
+
+        const alertItem = mapDomainAlertToPresentation(police);
+
+        expect(alertItem.locationCoords).toBeNull();
+    });
+
+    it('preserves location label even when locationCoords is null', () => {
+        const fire = makeFireAlert();
+        fire.location = { name: '  MAIN ST  ', lat: null, lng: null };
+
+        const alertItem = mapDomainAlertToPresentation(fire);
+
+        expect(alertItem.locationCoords).toBeNull();
+        expect(alertItem.location).toBe('MAIN ST');
+    });
 });

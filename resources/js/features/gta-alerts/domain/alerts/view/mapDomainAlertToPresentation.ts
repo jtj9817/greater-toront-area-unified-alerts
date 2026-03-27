@@ -21,7 +21,28 @@ import {
     deriveIconColor,
     deriveIconName,
 } from './presentationStyles';
-import type { AlertPresentation } from './types';
+import type { AlertPresentation, AlertPresentationCoordinates } from './types';
+
+function normalizeCoordinates(
+    location: DomainAlert['location'],
+): AlertPresentationCoordinates | null {
+    const { lat, lng } = location ?? {};
+
+    if (
+        typeof lat !== 'number' ||
+        !Number.isFinite(lat) ||
+        typeof lng !== 'number' ||
+        !Number.isFinite(lng)
+    ) {
+        return null;
+    }
+
+    if (lat <= 40 || lat >= 50 || lng <= -90 || lng >= -70) {
+        return null;
+    }
+
+    return { lat, lng };
+}
 
 export function mapDomainAlertToPresentation(
     alert: DomainAlert,
@@ -61,6 +82,7 @@ export function mapDomainAlertToPresentation(
         id: alert.id,
         title: alert.title,
         location: alert.location?.name?.trim() || 'Unknown location',
+        locationCoords: normalizeCoordinates(alert.location),
         timeAgo: formatTimeAgo(alert.timestamp),
         timestamp: alert.timestamp,
         description: details.description,

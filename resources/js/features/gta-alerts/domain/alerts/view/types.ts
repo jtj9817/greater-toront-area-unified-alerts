@@ -10,6 +10,11 @@ export type AlertPresentationType =
 
 export type AlertPresentationSeverity = 'high' | 'medium' | 'low';
 
+export interface AlertPresentationCoordinates {
+    lat: number;
+    lng: number;
+}
+
 export interface AlertPresentationMetadata {
     eventNum: string;
     alarmLevel: number;
@@ -31,6 +36,7 @@ export interface AlertPresentation {
     id: string;
     title: string;
     location: string;
+    locationCoords: AlertPresentationCoordinates | null;
     timeAgo: string;
     timestamp: string;
     description: string;

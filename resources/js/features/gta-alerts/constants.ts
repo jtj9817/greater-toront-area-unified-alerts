@@ -19,6 +19,7 @@ export const ALERT_DATA: AlertSectionData[] = [
                 id: 'f1',
                 title: '2-Alarm Fire - Scarborough',
                 location: 'Kennedy & Eglinton',
+                locationCoords: null,
                 timeAgo: '4m ago',
                 timestamp: new Date(Date.now() - 4 * 60 * 1000).toISOString(),
                 description:
@@ -33,6 +34,7 @@ export const ALERT_DATA: AlertSectionData[] = [
                 id: 'f2',
                 title: 'Gas Leak - Downtown',
                 location: 'King St W',
+                locationCoords: null,
                 timeAgo: '12m ago',
                 timestamp: new Date(Date.now() - 12 * 60 * 1000).toISOString(),
                 description:
@@ -47,6 +49,7 @@ export const ALERT_DATA: AlertSectionData[] = [
                 id: 'f3',
                 title: 'Vehicle Fire - 401 Westbound',
                 location: 'Near Yonge St exit',
+                locationCoords: null,
                 timeAgo: '32m ago',
                 timestamp: new Date(Date.now() - 32 * 60 * 1000).toISOString(),
                 description:
@@ -69,6 +72,7 @@ export const ALERT_DATA: AlertSectionData[] = [
                 id: 'p1',
                 title: 'Person with a Weapon',
                 location: 'High Park',
+                locationCoords: null,
                 timeAgo: '25m ago',
                 timestamp: new Date(Date.now() - 25 * 60 * 1000).toISOString(),
                 description:
@@ -83,6 +87,7 @@ export const ALERT_DATA: AlertSectionData[] = [
                 id: 'p2',
                 title: 'Collision - Highway 400',
                 location: 'Near Finch Ave',
+                locationCoords: null,
                 timeAgo: '45m ago',
                 timestamp: new Date(Date.now() - 45 * 60 * 1000).toISOString(),
                 description:
@@ -105,6 +110,7 @@ export const ALERT_DATA: AlertSectionData[] = [
                 id: 't1',
                 title: 'Line 1 Yonge-University Delay',
                 location: 'St Clair to Lawrence',
+                locationCoords: null,
                 timeAgo: '1h ago',
                 timestamp: new Date(Date.now() - 60 * 60 * 1000).toISOString(),
                 description:
