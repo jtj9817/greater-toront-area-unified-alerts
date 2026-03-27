@@ -578,3 +578,92 @@ test('saved_alert_ids from other users are not included in the payload', functio
             ->where('saved_alert_ids.0', 'fire:MINE222')
         );
 });
+
+// --- Location Contract & Partial Reload Tests ---
+
+test('police alert with coordinates exposes name, lat, and lng in location object', function () {
+    Carbon::setTestNow(Carbon::parse('2026-02-03 12:00:00'));
+
+    PoliceCall::factory()->create([
+        'object_id' => 789,
+        'call_type' => 'ASSAULT IN PROGRESS',
+        'division' => 'D51',
+        'cross_streets' => 'Yonge St & Dundas St',
+        'latitude' => 43.6567,
+        'longitude' => -79.3789,
+        'is_active' => true,
+        'occurrence_time' => Carbon::now()->subMinutes(5),
+        'feed_updated_at' => Carbon::now()->subMinutes(4),
+    ]);
+
+    $this->get(route('home'))
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('gta-alerts')
+            ->has('alerts.data', 1)
+            ->where('alerts.data.0.id', 'police:789')
+            ->has('alerts.data.0.location')
+            ->where('alerts.data.0.location.name', 'Yonge St & Dundas St')
+            ->where('alerts.data.0.location.lat', 43.6567)
+            ->where('alerts.data.0.location.lng', -79.3789)
+        );
+});
+
+test('fire alert without coordinates exposes null lat and lng in location object', function () {
+    Carbon::setTestNow(Carbon::parse('2026-02-03 12:00:00'));
+
+    FireIncident::factory()->create([
+        'event_num' => 'E999',
+        'event_type' => 'FIRE ALARM',
+        'prime_street' => 'Main St',
+        'cross_streets' => 'King St',
+        'is_active' => true,
+        'dispatch_time' => Carbon::now()->subMinutes(3),
+        'feed_updated_at' => Carbon::now()->subMinutes(2),
+    ]);
+
+    $this->get(route('home'))
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('gta-alerts')
+            ->has('alerts.data', 1)
+            ->where('alerts.data.0.id', 'fire:E999')
+            ->has('alerts.data.0.location')
+            ->where('alerts.data.0.location.name', 'Main St / King St')
+            ->where('alerts.data.0.location.lat', null)
+            ->where('alerts.data.0.location.lng', null)
+        );
+});
+
+test('alerts prop supports partial reload via reloadOnly', function () {
+    Carbon::setTestNow(Carbon::parse('2026-02-03 12:00:00'));
+
+    FireIncident::factory()->create([
+        'event_num' => 'E555',
+        'is_active' => true,
+        'dispatch_time' => Carbon::now()->subMinutes(5),
+    ]);
+
+    // First, load the page normally to establish the Inertia version
+    $response = $this->get(route('home'));
+    $response->assertOk();
+
+    // Assert the full payload first
+    $response->assertInertia(fn (Assert $page) => $page
+        ->component('gta-alerts')
+        ->has('alerts')
+        ->has('filters')
+        ->has('latest_feed_updated_at')
+    );
+
+    // Assert partial reload of 'alerts' prop only returns alerts, not other props
+    $response->assertInertia(fn (Assert $page) => $page
+        ->has('alerts')
+        ->has('alerts.data', 1)
+        ->where('alerts.data.0.id', 'fire:E555')
+        ->reloadOnly('alerts', fn (Assert $reload) => $reload
+            ->has('alerts')
+            ->has('alerts.data', 1)
+            ->missing('filters')
+            ->missing('latest_feed_updated_at')
+        )
+    );
+});

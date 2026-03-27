@@ -2,7 +2,7 @@
 
 ## Phase 1: Contract Guardrails and Runtime Foundation
 
-- [ ] Task: Lock down the existing location transport contract before UI work
+- [~] Task: Lock down the existing location transport contract before UI work
     - [ ] Extend `tests/Feature/GtaAlertsTest.php` with a fixture that includes real coordinates and assert `alerts.data.*.location` still exposes `name`, `lat`, and `lng`.
     - [ ] Add an Inertia partial-reload assertion using `reloadOnly('alerts', ...)` to prove the feature rides the existing `alerts` prop instead of adding a new top-level page prop.
     - [ ] Confirm the current `UnifiedAlertResource` contract is sufficient; do not change controllers/resources unless the new tests prove a gap.
