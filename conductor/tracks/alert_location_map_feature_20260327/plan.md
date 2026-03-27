@@ -14,7 +14,7 @@
     - [x] Plan for `resources/js/features/gta-alerts/components/AlertLocationMap.tsx` to be the SSR-safe wrapper only.
     - [x] Plan for `resources/js/features/gta-alerts/components/AlertLocationMap.client.tsx` to own all `leaflet` / `react-leaflet` imports.
     - [x] Import `leaflet/dist/leaflet.css` only from the client-side module so CSS stays coupled to the lazy-loaded map chunk instead of the global app entry.
-- [ ] Task: Conductor - User Manual Verification 'Phase 1: Contract Guardrails and Runtime Foundation' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 1: Contract Guardrails and Runtime Foundation' (Protocol in workflow.md) [01c6300]
 
 ## Phase 2: Presentation Boundary and Coordinate Eligibility
 
