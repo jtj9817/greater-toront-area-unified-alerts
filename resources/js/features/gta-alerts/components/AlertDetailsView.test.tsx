@@ -24,6 +24,7 @@ describe('AlertDetailsView', () => {
         isSaved: false,
         isPending: false,
         onToggleSave: vi.fn(),
+        onShare: vi.fn(),
     };
 
     it('renders fire detail branch and supports back navigation', () => {
@@ -234,5 +235,38 @@ describe('AlertDetailsView', () => {
         expect(
             saveBtnActual.querySelector('.animate-spin'),
         ).toBeInTheDocument();
+    });
+
+    it('calls onShare when Share Alert is clicked', () => {
+        const fireAlert = toDomainAlert({
+            id: 'fire:E1',
+            source: 'fire',
+            external_id: 'E1',
+            is_active: true,
+            timestamp,
+            title: 'STRUCTURE FIRE',
+            location: { name: 'Main St', lat: null, lng: null },
+            meta: {
+                event_num: 'E1',
+                alarm_level: 1,
+                units_dispatched: 'P1',
+                beat: 'B1',
+            },
+        });
+
+        const onShare = vi.fn();
+
+        render(
+            <AlertDetailsView
+                alert={fireAlert}
+                onBack={() => {}}
+                {...defaultProps}
+                onShare={onShare}
+            />,
+        );
+
+        fireEvent.click(screen.getByRole('button', { name: /Share Alert/i }));
+
+        expect(onShare).toHaveBeenCalledTimes(1);
     });
 });

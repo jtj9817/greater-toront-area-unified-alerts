@@ -2,7 +2,7 @@
 
 **Type:** Enhancement  
 **Priority:** P3  
-**Status:** Open  
+**Status:** Closed  
 **Component:** GTA Alerts Frontend (Alert Details / URL State)
 
 ---
@@ -101,3 +101,76 @@ Rename the action to `Share Alert` and keep the implementation intentionally sma
 
 - This ticket intentionally favors a minimal utility feature over a broader distribution workflow.
 - If the team wants the absolute smallest implementation, the native share step can be omitted and the button can become `Copy Alert Link` instead.
+
+---
+
+## Boundary Check (Laravel -> Inertia -> React)
+
+- No Laravel payload shape changes were required.
+- No Inertia page prop contract changes were required.
+- No TypeScript transport type updates were required.
+- The implementation is frontend-only: URL query synchronization and share/copy interaction logic in React.
+
+---
+
+## Changes Applied
+
+1. Replaced the inert `Broadcast Alert` details action with a wired `Share Alert` action.
+2. Added URL-based detail deep-linking via `?alert=<id>`:
+- Opening an alert now writes `alert` into the current URL.
+- Closing detail view removes `alert` from the URL.
+- Initial page load with a valid `alert` query opens that alert detail view.
+- Invalid `alert` query values fail safe and are removed from the URL.
+3. Added share flow:
+- Uses `navigator.share()` when available.
+- Falls back to clipboard copy (`navigator.clipboard.writeText`) when native share is unavailable or fails.
+- Includes a legacy copy fallback using `document.execCommand('copy')` if Clipboard API is unavailable.
+4. Added visible user feedback toast messages for share outcomes (`Alert link shared.`, `Alert link copied.`, `Unable to share this alert.`).
+5. Updated/expanded test coverage for:
+- share button callback behavior in `AlertDetailsView`
+- URL deep-link open/close behavior in `App`
+- invalid `alert` query handling
+- native share path
+- clipboard fallback path
+
+---
+
+## Files Changed
+
+- `resources/js/features/gta-alerts/App.tsx`
+- `resources/js/features/gta-alerts/App.test.tsx`
+- `resources/js/features/gta-alerts/components/AlertDetailsView.tsx`
+- `resources/js/features/gta-alerts/components/AlertDetailsView.test.tsx`
+- `docs/tickets/FEED-035-alert-share-link.md`
+
+---
+
+## Verification
+
+### Targeted tests (changed frontend files)
+
+- `vendor/bin/sail pnpm exec vitest run resources/js/features/gta-alerts/components/AlertDetailsView.test.tsx resources/js/features/gta-alerts/App.test.tsx` -> **PASS**
+
+### Full suite
+
+- `vendor/bin/sail composer test` -> **PASS** (`753 passed`, `7 skipped`)
+
+### Required quality gates
+
+- `vendor/bin/sail bin pint` -> **PASS**
+- `vendor/bin/sail composer lint` -> **PASS**
+- `vendor/bin/sail pnpm run lint` -> **PASS**
+- `vendor/bin/sail pnpm run format` -> **PASS**
+- `vendor/bin/sail pnpm run types` -> **PASS**
+
+---
+
+## Acceptance Criteria
+
+- [x] The details action label is updated from `Broadcast Alert` to `Share Alert`.
+- [x] A selected alert can be reopened from a copied URL containing an alert query parameter.
+- [x] Clicking `Share Alert` triggers native share on supported devices.
+- [x] Unsupported browsers fall back to copying the alert URL to the clipboard.
+- [x] The user receives visible feedback after a successful share or copy action.
+- [x] Invalid `alert` query parameters fail safely without breaking feed navigation.
+- [x] No social-media-specific integrations are introduced.

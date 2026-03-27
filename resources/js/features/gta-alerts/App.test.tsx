@@ -1,4 +1,10 @@
-import { act, fireEvent, render, screen } from '@testing-library/react';
+import {
+    act,
+    fireEvent,
+    render,
+    screen,
+    waitFor,
+} from '@testing-library/react';
 import React from 'react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
@@ -86,6 +92,17 @@ function buildBaseProps(alerts: UnifiedAlertResource[]) {
     };
 }
 
+function setCurrentUrl(path: string) {
+    window.history.replaceState({}, '', path);
+}
+
+function openAlertDetailsFromFeed(title: string) {
+    const alertHeading = screen.getByText(title);
+    const alertCard = alertHeading.closest('article');
+    expect(alertCard).not.toBeNull();
+    fireEvent.click(alertCard as HTMLElement);
+}
+
 function domainWarnMessages(warnSpy: ReturnType<typeof vi.spyOn>): string[] {
     return warnSpy.mock.calls
         .map((args: unknown[]) => args[0])
@@ -165,6 +182,7 @@ describe('GTA Alerts App (typed domain enforcement boundary)', () => {
         vi.unstubAllGlobals();
         vi.useRealTimers();
         localStorage.clear();
+        setCurrentUrl('/');
     });
 
     it('renders valid alerts and discards invalid meta (warns instead of crashing)', () => {
@@ -499,6 +517,103 @@ describe('GTA Alerts App (typed domain enforcement boundary)', () => {
         } finally {
             vi.unstubAllGlobals();
         }
+    });
+
+    it('opens alert details from URL query when alert ID exists', () => {
+        setCurrentUrl('/?alert=fire%3AE1');
+
+        render(<AlertsApp {...buildBaseProps([fireResource()])} />);
+
+        expect(screen.getByText('Incident Details')).toBeInTheDocument();
+        expect(screen.getByText(/FIRE:E1/)).toBeInTheDocument();
+    });
+
+    it('clears invalid alert query parameter when alert ID is missing', async () => {
+        setCurrentUrl('/?alert=fire%3AMISSING');
+
+        render(<AlertsApp {...buildBaseProps([fireResource()])} />);
+
+        expect(screen.queryByText('Incident Details')).not.toBeInTheDocument();
+
+        await waitFor(() => {
+            expect(
+                new URL(window.location.href).searchParams.has('alert'),
+            ).toBe(false);
+        });
+    });
+
+    it('updates URL when opening details and removes alert param when leaving details', () => {
+        render(<AlertsApp {...buildBaseProps([fireResource()])} />);
+
+        openAlertDetailsFromFeed('STRUCTURE FIRE');
+
+        expect(screen.getByText('Incident Details')).toBeInTheDocument();
+        expect(new URL(window.location.href).searchParams.get('alert')).toBe(
+            'fire:E1',
+        );
+
+        fireEvent.click(screen.getByRole('button', { name: /arrow_back/i }));
+
+        expect(new URL(window.location.href).searchParams.has('alert')).toBe(
+            false,
+        );
+    });
+
+    it('uses native share when available from Share Alert action', async () => {
+        const nativeShare = vi.fn().mockResolvedValue(undefined);
+        Object.defineProperty(window.navigator, 'share', {
+            configurable: true,
+            value: nativeShare,
+        });
+
+        render(<AlertsApp {...buildBaseProps([fireResource()])} />);
+
+        openAlertDetailsFromFeed('STRUCTURE FIRE');
+        fireEvent.click(screen.getByRole('button', { name: /Share Alert/i }));
+
+        await waitFor(() => {
+            expect(nativeShare).toHaveBeenCalledTimes(1);
+        });
+
+        expect(nativeShare).toHaveBeenCalledWith(
+            expect.objectContaining({
+                title: 'GTA Alert',
+                text: 'STRUCTURE FIRE',
+                url: expect.stringContaining('alert=fire%3AE1'),
+            }),
+        );
+        expect(
+            await screen.findByText('Alert link shared.'),
+        ).toBeInTheDocument();
+    });
+
+    it('falls back to clipboard copy when native share is unavailable', async () => {
+        const clipboardWriteText = vi.fn().mockResolvedValue(undefined);
+        Object.defineProperty(window.navigator, 'share', {
+            configurable: true,
+            value: undefined,
+        });
+        Object.defineProperty(window.navigator, 'clipboard', {
+            configurable: true,
+            value: {
+                writeText: clipboardWriteText,
+            },
+        });
+
+        render(<AlertsApp {...buildBaseProps([fireResource()])} />);
+
+        openAlertDetailsFromFeed('STRUCTURE FIRE');
+        fireEvent.click(screen.getByRole('button', { name: /Share Alert/i }));
+
+        await waitFor(() => {
+            expect(clipboardWriteText).toHaveBeenCalledTimes(1);
+        });
+        expect(clipboardWriteText).toHaveBeenCalledWith(
+            expect.stringContaining('alert=fire%3AE1'),
+        );
+        expect(
+            await screen.findByText('Alert link copied.'),
+        ).toBeInTheDocument();
     });
 
     it('shows a saved-alert action toast for guest saves', async () => {

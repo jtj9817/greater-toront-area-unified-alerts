@@ -28,6 +28,9 @@ import { useSavedAlerts } from './hooks/useSavedAlerts';
 import { useWeather } from './hooks/useWeather';
 import { AlertService } from './services/AlertService';
 
+const ALERT_QUERY_PARAM = 'alert';
+const SHARE_FEEDBACK_DISMISS_MS = 4500;
+
 interface AppProps {
     alerts: {
         data: UnifiedAlertResource[];
@@ -60,6 +63,22 @@ const normalizeRouteOptions = (options: string[] | undefined): string[] => {
     );
 };
 
+const readAlertIdFromUrl = (): string | null => {
+    if (typeof window === 'undefined') {
+        return null;
+    }
+
+    const alertId = new URLSearchParams(window.location.search).get(
+        ALERT_QUERY_PARAM,
+    );
+    if (!alertId) {
+        return null;
+    }
+
+    const trimmed = alertId.trim();
+    return trimmed === '' ? null : trimmed;
+};
+
 const App: React.FC<AppProps> = ({
     alerts,
     filters,
@@ -70,9 +89,12 @@ const App: React.FC<AppProps> = ({
 }) => {
     const [currentView, setCurrentView] = useState('feed');
     const [searchQuery, setSearchQuery] = useState(filters.q || '');
-    const [activeAlertId, setActiveAlertId] = useState<string | null>(null);
+    const [activeAlertId, setActiveAlertId] = useState<string | null>(
+        readAlertIdFromUrl,
+    );
     const [isRefreshingFeed, setIsRefreshingFeed] = useState(false);
     const [inboxUnreadCount, setInboxUnreadCount] = useState(0);
+    const [shareFeedback, setShareFeedback] = useState<string | null>(null);
 
     // Weather state
     const {
@@ -237,25 +259,161 @@ const App: React.FC<AppProps> = ({
         [subscriptionRouteOptions],
     );
 
+    const updateAlertParamInUrl = useCallback((alertId: string | null) => {
+        if (typeof window === 'undefined') {
+            return;
+        }
+
+        const url = new URL(window.location.href);
+        if (alertId === null) {
+            url.searchParams.delete(ALERT_QUERY_PARAM);
+        } else {
+            url.searchParams.set(ALERT_QUERY_PARAM, alertId);
+        }
+
+        window.history.replaceState(window.history.state, '', url.toString());
+    }, []);
+
+    const openAlertDetails = useCallback(
+        (alertId: string): void => {
+            setActiveAlertId(alertId);
+            updateAlertParamInUrl(alertId);
+        },
+        [updateAlertParamInUrl],
+    );
+
+    const closeAlertDetails = useCallback((): void => {
+        setActiveAlertId(null);
+        updateAlertParamInUrl(null);
+    }, [updateAlertParamInUrl]);
+
+    const buildAlertShareUrl = useCallback((alertId: string): string | null => {
+        if (typeof window === 'undefined') {
+            return null;
+        }
+
+        const url = new URL(window.location.href);
+        url.searchParams.set(ALERT_QUERY_PARAM, alertId);
+        return url.toString();
+    }, []);
+
+    const showShareFeedback = useCallback((message: string): void => {
+        setShareFeedback(message);
+    }, []);
+
+    const handleShareAlert = useCallback(
+        async (alertId: string, alertTitle: string): Promise<void> => {
+            const shareUrl = buildAlertShareUrl(alertId);
+            if (!shareUrl || typeof window === 'undefined') {
+                showShareFeedback('Unable to share this alert.');
+                return;
+            }
+
+            const nativeShare = window.navigator.share?.bind(window.navigator);
+            if (nativeShare) {
+                try {
+                    await nativeShare({
+                        title: 'GTA Alert',
+                        text: alertTitle,
+                        url: shareUrl,
+                    });
+                    showShareFeedback('Alert link shared.');
+                    return;
+                } catch (error) {
+                    if (
+                        error instanceof DOMException &&
+                        error.name === 'AbortError'
+                    ) {
+                        return;
+                    }
+                }
+            }
+
+            try {
+                if (window.navigator.clipboard?.writeText) {
+                    await window.navigator.clipboard.writeText(shareUrl);
+                    showShareFeedback('Alert link copied.');
+                    return;
+                }
+            } catch {
+                // Fall through to legacy copy fallback.
+            }
+
+            try {
+                const textarea = document.createElement('textarea');
+                textarea.value = shareUrl;
+                textarea.setAttribute('readonly', '');
+                textarea.style.position = 'fixed';
+                textarea.style.left = '-9999px';
+                document.body.appendChild(textarea);
+                textarea.select();
+                const copied = document.execCommand('copy');
+                document.body.removeChild(textarea);
+
+                if (copied) {
+                    showShareFeedback('Alert link copied.');
+                    return;
+                }
+            } catch {
+                // No-op: final feedback handled below.
+            }
+
+            showShareFeedback('Unable to share this alert.');
+        },
+        [buildAlertShareUrl, showShareFeedback],
+    );
+
+    useEffect(() => {
+        if (shareFeedback === null) {
+            return;
+        }
+
+        const timeoutId = window.setTimeout(() => {
+            setShareFeedback(null);
+        }, SHARE_FEEDBACK_DISMISS_MS);
+
+        return () => {
+            window.clearTimeout(timeoutId);
+        };
+    }, [shareFeedback]);
+
     // Map initial alerts for SavedView (which needs static data)
     const initialDomainAlerts = useMemo(() => {
         return AlertService.mapUnifiedAlertsToDomainAlerts(alerts.data);
     }, [alerts.data]);
 
+    const resolvedActiveAlertId = useMemo(() => {
+        if (activeAlertId === null) {
+            return null;
+        }
+
+        const exists = initialDomainAlerts.some(
+            (alert) => alert.id === activeAlertId,
+        );
+        return exists ? activeAlertId : null;
+    }, [activeAlertId, initialDomainAlerts]);
+
     const activeAlert = useMemo(() => {
-        if (!activeAlertId) {
+        if (!resolvedActiveAlertId) {
             return null;
         }
 
         return (
-            initialDomainAlerts.find((alert) => alert.id === activeAlertId) ??
-            null
+            initialDomainAlerts.find(
+                (alert) => alert.id === resolvedActiveAlertId,
+            ) ?? null
         );
-    }, [activeAlertId, initialDomainAlerts]);
+    }, [resolvedActiveAlertId, initialDomainAlerts]);
+
+    useEffect(() => {
+        if (activeAlertId !== null && resolvedActiveAlertId === null) {
+            updateAlertParamInUrl(null);
+        }
+    }, [activeAlertId, resolvedActiveAlertId, updateAlertParamInUrl]);
 
     const handleNavigate = (view: string) => {
         setCurrentView(view);
-        setActiveAlertId(null);
+        closeAlertDetails();
         closeMobileMenu(); // Close mobile drawer on navigation
     };
 
@@ -285,14 +443,17 @@ const App: React.FC<AppProps> = ({
     };
 
     const renderView = () => {
-        if (activeAlertId && activeAlert) {
+        if (resolvedActiveAlertId && activeAlert) {
             return (
                 <AlertDetailsView
                     alert={activeAlert}
-                    onBack={() => setActiveAlertId(null)}
+                    onBack={closeAlertDetails}
                     isSaved={isSaved(activeAlert.id)}
                     isPending={isPending(activeAlert.id)}
                     onToggleSave={() => toggleAlert(activeAlert.id)}
+                    onShare={() =>
+                        void handleShareAlert(activeAlert.id, activeAlert.title)
+                    }
                 />
             );
         }
@@ -302,7 +463,7 @@ const App: React.FC<AppProps> = ({
                 return (
                     <SavedView
                         authUserId={authUserId}
-                        onSelectAlert={setActiveAlertId}
+                        onSelectAlert={openAlertDetails}
                         allAlerts={initialDomainAlerts}
                         savedIds={savedIds}
                         isSaved={isSaved}
@@ -325,7 +486,7 @@ const App: React.FC<AppProps> = ({
                 return (
                     <NotificationInboxView
                         authUserId={authUserId}
-                        onOpenAlert={setActiveAlertId}
+                        onOpenAlert={openAlertDetails}
                         onUnreadCountChange={setInboxUnreadCount}
                     />
                 );
@@ -334,7 +495,7 @@ const App: React.FC<AppProps> = ({
                 return (
                     <FeedView
                         searchQuery={searchQuery}
-                        onSelectAlert={setActiveAlertId}
+                        onSelectAlert={openAlertDetails}
                         initialAlerts={alerts.data}
                         initialNextCursor={alerts.next_cursor}
                         latestFeedUpdatedAt={latestFeedUpdatedAt}
@@ -614,6 +775,33 @@ const App: React.FC<AppProps> = ({
                 onDismiss={clearFeedback}
             />
             <NotificationToastLayer authUserId={authUserId} />
+            {shareFeedback !== null && (
+                <div
+                    id="gta-alerts-share-alert-toast-layer"
+                    className="pointer-events-none fixed top-4 left-4 z-[120] flex w-[min(92vw,360px)] flex-col gap-3"
+                >
+                    <article
+                        id="gta-alerts-share-alert-toast"
+                        className="pointer-events-auto animate-in rounded-xl border border-forest/50 bg-forest/15 p-3 shadow-xl backdrop-blur duration-200 fade-in slide-in-from-top-2"
+                        role="status"
+                        aria-live="polite"
+                    >
+                        <div className="mb-2 flex items-center gap-2">
+                            <Icon
+                                name="share"
+                                fill={true}
+                                className="text-forest"
+                            />
+                            <span className="text-xs font-semibold tracking-wide text-white uppercase">
+                                Share Alert
+                            </span>
+                        </div>
+                        <p className="text-sm leading-snug font-medium text-white">
+                            {shareFeedback}
+                        </p>
+                    </article>
+                </div>
+            )}
         </div>
     );
 };

@@ -18,6 +18,7 @@ interface DetailsProps {
     isSaved: boolean;
     isPending: boolean;
     onToggleSave: () => void;
+    onShare: () => void;
 }
 
 type PresentationAlert = ReturnType<typeof mapDomainAlertToPresentation>;
@@ -35,6 +36,7 @@ interface DetailLayoutProps {
     isSaved: boolean;
     isPending: boolean;
     onToggleSave: () => void;
+    onShare: () => void;
 }
 
 const AlertDetailsLayout: React.FC<DetailLayoutProps> = ({
@@ -44,6 +46,7 @@ const AlertDetailsLayout: React.FC<DetailLayoutProps> = ({
     isSaved,
     isPending,
     onToggleSave,
+    onShare,
 }) => {
     return (
         <section
@@ -132,11 +135,13 @@ const AlertDetailsLayout: React.FC<DetailLayoutProps> = ({
                         className="flex gap-4 pt-4"
                     >
                         <button
-                            id={`gta-alerts-alert-details-${alert.id}-broadcast-btn`}
+                            id={`gta-alerts-alert-details-${alert.id}-share-btn`}
+                            type="button"
+                            onClick={onShare}
                             className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-white/10 py-4 font-bold text-white shadow-lg transition-all hover:bg-white/20"
                         >
                             <Icon name="share" />
-                            Broadcast Alert
+                            Share Alert
                         </button>
                         <Tooltip>
                             <TooltipTrigger asChild>
@@ -498,6 +503,7 @@ export const AlertDetailsView: React.FC<DetailsProps> = ({
     isSaved,
     isPending,
     onToggleSave,
+    onShare,
 }) => {
     const presentation = useMemo(
         () => mapDomainAlertToPresentation(alert),
@@ -525,6 +531,7 @@ export const AlertDetailsView: React.FC<DetailsProps> = ({
             isSaved={isSaved}
             isPending={isPending}
             onToggleSave={onToggleSave}
+            onShare={onShare}
         />
     );
 };
