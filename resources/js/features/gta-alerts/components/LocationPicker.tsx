@@ -1,4 +1,9 @@
-import React, { useCallback, useRef, useState } from 'react';
+import React, {
+    useCallback,
+    useImperativeHandle,
+    useRef,
+    useState,
+} from 'react';
 import type { PostalCodeResourceParsed } from '../domain/weather/resource';
 import { PostalCodeResourceSchema } from '../domain/weather/resource';
 import type { WeatherLocation } from '../domain/weather/types';
@@ -13,6 +18,14 @@ interface LocationPickerProps {
     onSelect: (location: WeatherLocation) => void;
     /** The currently selected location, if any. */
     selectedLocation?: WeatherLocation | null;
+    /** Receives geolocation flow outcomes. */
+    onGeolocationResult?: (result: GeolocationRequestResult) => void;
+}
+
+export type GeolocationRequestResult = 'success' | 'denied' | 'error';
+
+export interface LocationPickerHandle {
+    requestGeolocation: () => void;
 }
 
 // ---------------------------------------------------------------------------
@@ -72,10 +85,13 @@ function csrfToken(): string | null {
  * municipality / neighbourhood, or resolve their position via browser
  * geolocation (constrained to the GTA bounding box).
  */
-export const LocationPicker: React.FC<LocationPickerProps> = ({
-    onSelect,
-    selectedLocation = null,
-}) => {
+export const LocationPicker = React.forwardRef<
+    LocationPickerHandle,
+    LocationPickerProps
+>(function LocationPicker(
+    { onSelect, selectedLocation = null, onGeolocationResult },
+    ref,
+) {
     const [query, setQuery] = useState('');
     const [results, setResults] = useState<PostalCodeResourceParsed[]>([]);
     const [geoError, setGeoError] = useState<string | null>(null);
@@ -146,6 +162,7 @@ export const LocationPicker: React.FC<LocationPickerProps> = ({
             setGeoError(
                 'Geolocation is not supported or unavailable in this browser.',
             );
+            onGeolocationResult?.('error');
             return;
         }
 
@@ -181,6 +198,7 @@ export const LocationPicker: React.FC<LocationPickerProps> = ({
                                     'Could not resolve your location. Please search instead.',
                                 );
                             }
+                            onGeolocationResult?.('error');
                             return;
                         }
 
@@ -197,15 +215,18 @@ export const LocationPicker: React.FC<LocationPickerProps> = ({
                             setGeoError(
                                 'Received an unexpected response. Please search instead.',
                             );
+                            onGeolocationResult?.('error');
                             return;
                         }
 
                         onSelect(toWeatherLocation(result));
+                        onGeolocationResult?.('success');
                     })
                     .catch(() => {
                         setGeoError(
                             'Failed to resolve your location. Please try again.',
                         );
+                        onGeolocationResult?.('error');
                     })
                     .finally(() => {
                         setIsGeoLoading(false);
@@ -213,10 +234,19 @@ export const LocationPicker: React.FC<LocationPickerProps> = ({
             },
             () => {
                 setGeoError('Location access denied. Please search manually.');
+                onGeolocationResult?.('denied');
                 setIsGeoLoading(false);
             },
         );
-    }, [onSelect]);
+    }, [onGeolocationResult, onSelect]);
+
+    useImperativeHandle(
+        ref,
+        () => ({
+            requestGeolocation: handleGeolocate,
+        }),
+        [handleGeolocate],
+    );
 
     // -----------------------------------------------------------------------
     // Render
@@ -309,4 +339,6 @@ export const LocationPicker: React.FC<LocationPickerProps> = ({
             )}
         </div>
     );
-};
+});
+
+LocationPicker.displayName = 'LocationPicker';

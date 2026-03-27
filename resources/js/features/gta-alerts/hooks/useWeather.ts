@@ -8,6 +8,9 @@ import type { WeatherData, WeatherLocation } from '../domain/weather/types';
 
 /** Versioned localStorage key for the user's selected weather location. */
 export const LOCATION_STORAGE_KEY = 'gta_weather_location_v1';
+/** Versioned localStorage key for first-visit weather onboarding handling. */
+export const LOCATION_PROMPT_STORAGE_KEY = 'gta_weather_location_prompt_v1';
+export type LocationPromptResult = 'accepted' | 'declined' | 'deferred';
 
 // ---------------------------------------------------------------------------
 // localStorage helpers (SSR-safe)
@@ -55,6 +58,52 @@ function writeStoredLocation(location: WeatherLocation | null): void {
     }
 }
 
+function readStoredPromptResult(): LocationPromptResult | null {
+    if (typeof window === 'undefined') return null;
+
+    try {
+        const raw = localStorage.getItem(LOCATION_PROMPT_STORAGE_KEY);
+        if (!raw) return null;
+
+        const parsed: unknown = JSON.parse(raw);
+        if (
+            typeof parsed === 'object' &&
+            parsed !== null &&
+            (parsed as Record<string, unknown>).handled === true &&
+            typeof (parsed as Record<string, unknown>).result === 'string'
+        ) {
+            const result = (parsed as Record<string, unknown>).result;
+            if (
+                result === 'accepted' ||
+                result === 'declined' ||
+                result === 'deferred'
+            ) {
+                return result;
+            }
+        }
+
+        return null;
+    } catch {
+        return null;
+    }
+}
+
+function writeStoredPromptResult(result: LocationPromptResult): void {
+    if (typeof window === 'undefined') return;
+
+    try {
+        localStorage.setItem(
+            LOCATION_PROMPT_STORAGE_KEY,
+            JSON.stringify({
+                handled: true,
+                result,
+            }),
+        );
+    } catch {
+        // localStorage may be unavailable (private browsing, quota exceeded).
+    }
+}
+
 // ---------------------------------------------------------------------------
 // Hook
 // ---------------------------------------------------------------------------
@@ -72,8 +121,12 @@ export interface UseWeatherReturn {
     isLoading: boolean;
     /** Error message if the last fetch failed, otherwise null. */
     error: string | null;
+    /** True when the first-visit weather onboarding prompt should be shown. */
+    shouldPromptForLocation: boolean;
     /** Update the selected location (persists to localStorage). Pass null to clear. */
     setLocation: (location: WeatherLocation | null) => void;
+    /** Mark first-visit prompt handling result so it is not repeatedly shown. */
+    markLocationPromptHandled: (result: LocationPromptResult) => void;
     /** Re-fetch weather for the current location (stale data remains visible). */
     refresh: () => void;
 }
@@ -93,12 +146,15 @@ export function useWeather(): UseWeatherReturn {
     );
     const [weather, setWeather] = useState<WeatherData | null>(null);
     const [error, setError] = useState<string | null>(null);
+    const [promptResult, setPromptResult] =
+        useState<LocationPromptResult | null>(() => readStoredPromptResult());
 
     const locationRef = useRef<WeatherLocation | null>(location);
     const abortControllerRef = useRef<AbortController | null>(null);
 
     // Derived loading indicator: true only on initial fetch (no stale data, no error).
     const isLoading = location !== null && weather === null && error === null;
+    const shouldPromptForLocation = location === null && promptResult === null;
 
     useEffect(() => {
         locationRef.current = location;
@@ -172,17 +228,31 @@ export function useWeather(): UseWeatherReturn {
     // Public API
     // -----------------------------------------------------------------------
 
-    const setLocation = useCallback((next: WeatherLocation | null): void => {
-        // Cancel any in-flight request immediately so older responses cannot
-        // race and overwrite state for the newly selected location.
-        abortControllerRef.current?.abort();
-        writeStoredLocation(next);
-        // Reset weather and error so the derived isLoading becomes true
-        // immediately for the new location (or stays false when clearing).
-        setWeather(null);
-        setError(null);
-        setLocationState(next);
-    }, []);
+    const markLocationPromptHandled = useCallback(
+        (result: LocationPromptResult): void => {
+            writeStoredPromptResult(result);
+            setPromptResult(result);
+        },
+        [],
+    );
+
+    const setLocation = useCallback(
+        (next: WeatherLocation | null): void => {
+            // Cancel any in-flight request immediately so older responses cannot
+            // race and overwrite state for the newly selected location.
+            abortControllerRef.current?.abort();
+            writeStoredLocation(next);
+            if (next !== null) {
+                markLocationPromptHandled('accepted');
+            }
+            // Reset weather and error so the derived isLoading becomes true
+            // immediately for the new location (or stays false when clearing).
+            setWeather(null);
+            setError(null);
+            setLocationState(next);
+        },
+        [markLocationPromptHandled],
+    );
 
     const refresh = useCallback((): void => {
         const current = locationRef.current;
@@ -191,5 +261,14 @@ export function useWeather(): UseWeatherReturn {
         fetchWeather(current.fsa);
     }, [fetchWeather]);
 
-    return { location, weather, isLoading, error, setLocation, refresh };
+    return {
+        location,
+        weather,
+        isLoading,
+        error,
+        shouldPromptForLocation,
+        setLocation,
+        markLocationPromptHandled,
+        refresh,
+    };
 }

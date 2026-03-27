@@ -8,6 +8,7 @@ import {
 import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import type { WeatherLocation } from '../domain/weather/types';
+import type { LocationPickerHandle } from './LocationPicker';
 import { LocationPicker } from './LocationPicker';
 
 // ---------------------------------------------------------------------------
@@ -227,8 +228,27 @@ describe('LocationPicker', () => {
         expect(mockGetCurrentPosition).toHaveBeenCalled();
     });
 
+    it('exposes requestGeolocation through component ref', () => {
+        const mockGetCurrentPosition = vi.fn();
+        Object.defineProperty(global.navigator, 'geolocation', {
+            value: { getCurrentPosition: mockGetCurrentPosition },
+            writable: true,
+            configurable: true,
+        });
+
+        const ref = React.createRef<LocationPickerHandle>();
+        render(<LocationPicker ref={ref} onSelect={vi.fn()} />);
+
+        act(() => {
+            ref.current?.requestGeolocation();
+        });
+
+        expect(mockGetCurrentPosition).toHaveBeenCalledTimes(1);
+    });
+
     it('resolves geolocation coordinates and calls onSelect', async () => {
         const onSelect = vi.fn();
+        const onGeolocationResult = vi.fn();
         const csrfMeta = document.createElement('meta');
         csrfMeta.setAttribute('name', 'csrf-token');
         csrfMeta.setAttribute('content', 'test-csrf-token');
@@ -258,7 +278,12 @@ describe('LocationPicker', () => {
             }),
         );
 
-        render(<LocationPicker onSelect={onSelect} />);
+        render(
+            <LocationPicker
+                onSelect={onSelect}
+                onGeolocationResult={onGeolocationResult}
+            />,
+        );
 
         await act(async () => {
             fireEvent.click(
@@ -283,6 +308,8 @@ describe('LocationPicker', () => {
                 expect.objectContaining({ fsa: 'M5V' }),
             );
         });
+
+        expect(onGeolocationResult).toHaveBeenCalledWith('success');
     });
 
     it('clears geolocation error after successful manual selection', async () => {
@@ -358,6 +385,7 @@ describe('LocationPicker', () => {
     });
 
     it('shows an error when geolocation is denied', async () => {
+        const onGeolocationResult = vi.fn();
         const mockGetCurrentPosition = vi.fn(
             (_success: PositionCallback, error: PositionErrorCallback) => {
                 error({
@@ -376,7 +404,12 @@ describe('LocationPicker', () => {
             configurable: true,
         });
 
-        render(<LocationPicker onSelect={vi.fn()} />);
+        render(
+            <LocationPicker
+                onSelect={vi.fn()}
+                onGeolocationResult={onGeolocationResult}
+            />,
+        );
 
         await act(async () => {
             fireEvent.click(
@@ -389,6 +422,8 @@ describe('LocationPicker', () => {
                 screen.getByText(/location access denied|denied|unavailable/i),
             ).toBeInTheDocument();
         });
+
+        expect(onGeolocationResult).toHaveBeenCalledWith('denied');
     });
 
     it('shows an error when resolve-coords returns 422 (out-of-GTA bounding box)', async () => {

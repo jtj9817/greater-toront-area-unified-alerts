@@ -1,5 +1,11 @@
 import { router } from '@inertiajs/react';
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, {
+    useCallback,
+    useEffect,
+    useMemo,
+    useRef,
+    useState,
+} from 'react';
 import { home } from '@/routes';
 import { AlertDetailsView } from './components/AlertDetailsView';
 import { BottomNav } from './components/BottomNav';
@@ -7,6 +13,7 @@ import { FeedView } from './components/FeedView';
 import { Footer } from './components/Footer';
 import { Icon } from './components/Icon';
 import { LocationPicker } from './components/LocationPicker';
+import type { LocationPickerHandle } from './components/LocationPicker';
 import { MinimalModeToggle } from './components/MinimalModeToggle';
 import { NotificationInboxView } from './components/NotificationInboxView';
 import { NotificationToastLayer } from './components/NotificationToastLayer';
@@ -71,8 +78,31 @@ const App: React.FC<AppProps> = ({
     const {
         location: weatherLocation,
         weather,
+        shouldPromptForLocation,
+        markLocationPromptHandled,
         setLocation: setWeatherLocation,
     } = useWeather();
+    const locationPickerRef = useRef<LocationPickerHandle | null>(null);
+
+    const handleFirstVisitUseMyLocation = useCallback(() => {
+        locationPickerRef.current?.requestGeolocation();
+    }, []);
+
+    const handleFirstVisitDismissLocationPrompt = useCallback(() => {
+        markLocationPromptHandled('deferred');
+    }, [markLocationPromptHandled]);
+
+    const handleLocationPickerGeolocationResult = useCallback(
+        (result: 'success' | 'denied' | 'error') => {
+            if (result === 'success') {
+                markLocationPromptHandled('accepted');
+                return;
+            }
+
+            markLocationPromptHandled('declined');
+        },
+        [markLocationPromptHandled],
+    );
 
     // Centralised saved-alert state
     const {
@@ -463,8 +493,12 @@ const App: React.FC<AppProps> = ({
                                     className="w-48"
                                 >
                                     <LocationPicker
+                                        ref={locationPickerRef}
                                         onSelect={setWeatherLocation}
                                         selectedLocation={weatherLocation}
+                                        onGeolocationResult={
+                                            handleLocationPickerGeolocationResult
+                                        }
                                     />
                                 </div>
                                 <button
@@ -489,6 +523,48 @@ const App: React.FC<AppProps> = ({
                                 </button>
                             </div>
                         </div>
+
+                        {shouldPromptForLocation && (
+                            <div
+                                id="gta-alerts-weather-first-visit-prompt"
+                                className="border-t border-[#333333] bg-[#121212] px-4 py-3 md:px-8"
+                            >
+                                <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                                    <p
+                                        id="gta-alerts-weather-first-visit-prompt-text"
+                                        className="text-[11px] font-bold tracking-widest text-white uppercase"
+                                    >
+                                        Enable local weather for your area?
+                                    </p>
+                                    <div className="flex items-center gap-2">
+                                        <button
+                                            id="gta-alerts-weather-first-visit-prompt-use-location"
+                                            type="button"
+                                            onClick={
+                                                handleFirstVisitUseMyLocation
+                                            }
+                                            className="inline-flex items-center gap-1 border border-[#333333] bg-primary px-3 py-1.5 text-[10px] font-black tracking-widest text-black uppercase transition-colors hover:bg-white"
+                                        >
+                                            <Icon
+                                                name="my_location"
+                                                className="text-xs"
+                                            />
+                                            Use my location
+                                        </button>
+                                        <button
+                                            id="gta-alerts-weather-first-visit-prompt-not-now"
+                                            type="button"
+                                            onClick={
+                                                handleFirstVisitDismissLocationPrompt
+                                            }
+                                            className="inline-flex items-center border border-[#333333] bg-[#1a1a1a] px-3 py-1.5 text-[10px] font-black tracking-widest text-white uppercase transition-colors hover:bg-[#2b2b2b]"
+                                        >
+                                            Not now
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
                     </div>
                 </header>
 

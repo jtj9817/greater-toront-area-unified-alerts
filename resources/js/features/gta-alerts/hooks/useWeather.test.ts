@@ -3,6 +3,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { useWeather } from './useWeather';
 
 const LOCATION_STORAGE_KEY = 'gta_weather_location_v1';
+const LOCATION_PROMPT_STORAGE_KEY = 'gta_weather_location_prompt_v1';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -74,6 +75,7 @@ describe('useWeather', () => {
         expect(result.current.weather).toBeNull();
         expect(result.current.isLoading).toBe(false);
         expect(result.current.error).toBeNull();
+        expect(result.current.shouldPromptForLocation).toBe(true);
     });
 
     // -----------------------------------------------------------------------
@@ -93,7 +95,40 @@ describe('useWeather', () => {
         const { result } = renderHook(() => useWeather());
 
         expect(result.current.location).toEqual(mockLocation);
+        expect(result.current.shouldPromptForLocation).toBe(false);
         fetchSpy.mockRestore();
+    });
+
+    it('does not prompt when onboarding state is already handled', () => {
+        localStorage.setItem(
+            LOCATION_PROMPT_STORAGE_KEY,
+            JSON.stringify({
+                handled: true,
+                result: 'deferred',
+            }),
+        );
+
+        const { result } = renderHook(() => useWeather());
+
+        expect(result.current.location).toBeNull();
+        expect(result.current.shouldPromptForLocation).toBe(false);
+    });
+
+    it('persists onboarding decision when markLocationPromptHandled is called', () => {
+        const { result } = renderHook(() => useWeather());
+
+        act(() => {
+            result.current.markLocationPromptHandled('declined');
+        });
+
+        const stored = JSON.parse(
+            localStorage.getItem(LOCATION_PROMPT_STORAGE_KEY) ?? 'null',
+        );
+        expect(stored).toEqual({
+            handled: true,
+            result: 'declined',
+        });
+        expect(result.current.shouldPromptForLocation).toBe(false);
     });
 
     it('ignores malformed localStorage data and falls back to null', () => {
@@ -119,6 +154,15 @@ describe('useWeather', () => {
             localStorage.getItem(LOCATION_STORAGE_KEY) ?? 'null',
         );
         expect(stored).toEqual(mockLocation);
+        expect(
+            JSON.parse(
+                localStorage.getItem(LOCATION_PROMPT_STORAGE_KEY) ?? 'null',
+            ),
+        ).toEqual({
+            handled: true,
+            result: 'accepted',
+        });
+        expect(result.current.shouldPromptForLocation).toBe(false);
     });
 
     it('removes location from localStorage when setLocation(null) is called', async () => {

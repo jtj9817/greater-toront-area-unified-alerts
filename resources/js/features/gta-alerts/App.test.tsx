@@ -9,6 +9,9 @@ vi.mock('./components/SceneIntelTimeline', () => ({
     SceneIntelTimeline: () => <div data-testid="scene-intel-timeline" />,
 }));
 
+const LOCATION_STORAGE_KEY = 'gta_weather_location_v1';
+const LOCATION_PROMPT_STORAGE_KEY = 'gta_weather_location_prompt_v1';
+
 type ToastHandler = (payload: Record<string, unknown>) => void;
 
 function mockJsonResponse(payload: unknown, ok = true, status = 200): Response {
@@ -294,6 +297,89 @@ describe('GTA Alerts App (typed domain enforcement boundary)', () => {
         expect(
             screen.getByText('Sign in to view your notification inbox'),
         ).toBeInTheDocument();
+    });
+
+    it('shows a first-visit weather location prompt when no weather location is stored', () => {
+        render(<AlertsApp {...buildBaseProps([fireResource()])} />);
+
+        expect(
+            screen.getByText('Enable local weather for your area?'),
+        ).toBeInTheDocument();
+    });
+
+    it('does not show first-visit weather prompt when onboarding was already handled', () => {
+        localStorage.setItem(
+            LOCATION_PROMPT_STORAGE_KEY,
+            JSON.stringify({
+                handled: true,
+                result: 'deferred',
+            }),
+        );
+
+        render(<AlertsApp {...buildBaseProps([fireResource()])} />);
+
+        expect(
+            screen.queryByText('Enable local weather for your area?'),
+        ).not.toBeInTheDocument();
+    });
+
+    it('hides the first-visit weather prompt when Not now is clicked and persists deferred state', () => {
+        render(<AlertsApp {...buildBaseProps([fireResource()])} />);
+
+        fireEvent.click(screen.getByRole('button', { name: 'Not now' }));
+
+        expect(
+            screen.queryByText('Enable local weather for your area?'),
+        ).not.toBeInTheDocument();
+        expect(
+            JSON.parse(
+                localStorage.getItem(LOCATION_PROMPT_STORAGE_KEY) ?? 'null',
+            ),
+        ).toEqual({
+            handled: true,
+            result: 'deferred',
+        });
+    });
+
+    it('triggers geolocation flow when first-visit prompt Use my location is clicked', () => {
+        const mockGetCurrentPosition = vi.fn();
+        Object.defineProperty(global.navigator, 'geolocation', {
+            value: { getCurrentPosition: mockGetCurrentPosition },
+            writable: true,
+            configurable: true,
+        });
+
+        render(<AlertsApp {...buildBaseProps([fireResource()])} />);
+
+        fireEvent.click(
+            screen.getByRole('button', { name: 'Use my location' }),
+        );
+
+        expect(mockGetCurrentPosition).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not show first-visit prompt when a weather location already exists', () => {
+        localStorage.setItem(
+            LOCATION_STORAGE_KEY,
+            JSON.stringify({
+                fsa: 'M5V',
+                label: 'M5V — Waterfront Communities, Toronto',
+                lat: 43.6406,
+                lng: -79.3961,
+            }),
+        );
+        vi.spyOn(global, 'fetch').mockReturnValue(
+            new Promise<Response>(() => {
+                // Keep request pending to avoid async setState warnings in this
+                // visibility-only assertion test.
+            }),
+        );
+
+        render(<AlertsApp {...buildBaseProps([fireResource()])} />);
+
+        expect(
+            screen.queryByText('Enable local weather for your area?'),
+        ).not.toBeInTheDocument();
     });
 
     it('keeps the mobile drawer closed by default and toggles open/closed from menu controls', () => {
