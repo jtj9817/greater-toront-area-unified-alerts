@@ -18,17 +18,17 @@
 
 ## Phase 2: Presentation Boundary and Coordinate Eligibility
 
-- [ ] Task: Write failing mapper tests for normalized coordinates first
-    - [ ] Update `resources/js/features/gta-alerts/domain/alerts/view/mapDomainAlertToPresentation.test.ts` to assert valid coordinates become `locationCoords`.
-    - [ ] Add failing cases for `null`, partial, non-finite, out-of-range, and `0,0` coordinates resolving to `locationCoords: null`.
-    - [ ] Keep an assertion that the human-readable `location` label still falls back to `Unknown location` when needed.
-- [ ] Task: Implement normalized presentation coordinates
-    - [ ] Add `AlertPresentationCoordinates` and `locationCoords` to `resources/js/features/gta-alerts/domain/alerts/view/types.ts`.
-    - [ ] Implement a single normalization/eligibility seam inside `resources/js/features/gta-alerts/domain/alerts/view/mapDomainAlertToPresentation.ts`.
-    - [ ] Ensure UI components consume `locationCoords` and never have to inspect raw `alert.location.lat/lng`.
-- [ ] Task: Protect the surrounding frontend contract
-    - [ ] Run and fix any impacted alert-domain tests so the new presentation field does not regress existing domain parsing.
-    - [ ] Only touch `resources/js/features/gta-alerts/domain/alerts/resource.ts` or related transport code if the contract tests expose a real mismatch.
+- [x] Task: Write failing mapper tests for normalized coordinates first [9f7debf]
+    - [x] Update `resources/js/features/gta-alerts/domain/alerts/view/mapDomainAlertToPresentation.test.ts` to assert valid coordinates become `locationCoords`.
+    - [x] Add failing cases for `null`, partial, non-finite, out-of-range, and `0,0` coordinates resolving to `locationCoords: null`.
+    - [x] Keep an assertion that the human-readable `location` label still falls back to `Unknown location` when needed.
+- [x] Task: Implement normalized presentation coordinates [9f7debf]
+    - [x] Add `AlertPresentationCoordinates` and `locationCoords` to `resources/js/features/gta-alerts/domain/alerts/view/types.ts`.
+    - [x] Implement a single normalization/eligibility seam inside `resources/js/features/gta-alerts/domain/alerts/view/mapDomainAlertToPresentation.ts`.
+    - [x] Ensure UI components consume `locationCoords` and never have to inspect raw `alert.location.lat/lng`.
+- [x] Task: Protect the surrounding frontend contract [9f7debf]
+    - [x] Run and fix any impacted alert-domain tests so the new presentation field does not regress existing domain parsing.
+    - [x] Only touch `resources/js/features/gta-alerts/domain/alerts/resource.ts` or related transport code if the contract tests expose a real mismatch.
 - [ ] Task: Conductor - User Manual Verification 'Phase 2: Presentation Boundary and Coordinate Eligibility' (Protocol in workflow.md)
 
 ## Phase 3: Shared Client-Only Map Components
