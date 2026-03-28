@@ -33,6 +33,7 @@ docs/
 │   ├── unified-alerts-system.md
 │   └── weather.md
 ├── frontend/
+│   ├── alert-location-map.md
 │   ├── alert-service.md
 │   └── types.md
 ├── reviews/
@@ -143,6 +144,7 @@ Active work items and feature proposals:
 | In-App Notifications | Implemented | [backend/notification-system.md](backend/notification-system.md) |
 | Scene Intel (Fire) | Implemented | [backend/scene-intel.md](backend/scene-intel.md) |
 | Weather Feature | Implemented | [backend/weather.md](backend/weather.md) |
+| Alert Location Map (Leaflet + OSM) | Implemented | [frontend/alert-location-map.md](frontend/alert-location-map.md) |
 | Real-Time Feed Push | Planned | [tickets/FEED-002-real-time-push.md](tickets/FEED-002-real-time-push.md) |
 | Dynamic Zones | Planned | [architecture/dynamic-zones.md](architecture/dynamic-zones.md) |
 

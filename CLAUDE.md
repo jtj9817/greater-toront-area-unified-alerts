@@ -197,6 +197,7 @@ Inertia.js renders React pages from `resources/js/pages/`. The main public page 
 - Backend sends `UnifiedAlertResource[]` (transport shape)
 - `fromResource(...)` validates and maps transport values to `DomainAlert`
 - Components consume `DomainAlert` and derive `AlertPresentation` with `mapDomainAlertToPresentation(...)`
+- `AlertPresentation.locationCoords` carries validated GTA-region coordinates (or `null`) so components never inspect raw transport location objects.
 
 **Views:**
 - `FeedView` - Server-filtered feed with cursor-based infinite scroll and URL-driven filters
@@ -285,6 +286,7 @@ See `docs/` for detailed architecture:
 - `docs/backend/saved-alerts.md` - Saved Alerts system: API contract, guest/auth storage, hydration path, unresolved-ID handling (IMPLEMENTED)
 - `docs/backend/weather.md` - Weather feature architecture (IMPLEMENTED)
 - `docs/architecture/dynamic-zones.md` - Dynamic zones feature (PLANNED)
+- `docs/frontend/alert-location-map.md` - Alert Location Map feature: coordinate eligibility, tile-provider seam, SSR-safe lazy loading (IMPLEMENTED)
 
 ===
 

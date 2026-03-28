@@ -28,6 +28,17 @@ Source-specific schema modules validate and map each source into its domain type
 
 Presentation-only categories (`hazard`, `medical`) are derived here and are not `DomainAlert.kind` values.
 
+### AlertPresentationCoordinates
+
+Added to `AlertPresentation` as `locationCoords: AlertPresentationCoordinates | null`.
+
+- Type: `resources/js/features/gta-alerts/domain/alerts/view/types.ts`
+- `AlertPresentationCoordinates { lat: number; lng: number }`
+- Computed at the presentation boundary in `mapDomainAlertToPresentation.ts`
+- Valid only when both coordinates are finite numbers within the GTA bounding box (lat 40–50, lng −90 to −70)
+- `null` when coordinates are absent, partial, non-finite, out-of-range, or `0,0`
+- UI components consume `locationCoords` exclusively; they never inspect raw `alert.location.lat/lng`
+
 ## Scene Intel Types
 
 Scene Intel provides real-time operational updates for fire incidents.

@@ -46,3 +46,26 @@ Replace the current placeholder-only location treatment in the GTA Alerts detail
 - Provider-side coordinate enrichment for fire, TTC, or GO data.
 - Backend API redesign, new Inertia prop keys, or schema changes for map support.
 - Advanced map features such as clustering, routing, multiple markers, or paid tile providers.
+
+## Implementation Notes (Post-Delivery)
+
+**Status:** All acceptance criteria met. Track completed 2026-03-28.
+
+### Deviations from Spec
+
+**Tile URL — subdomain variant used**
+The spec specified `https://tile.openstreetmap.org/{z}/{x}/{y}.png`. The implementation uses `https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png`, which is the subdomain-loadbalanced OSM URL (`a`, `b`, `c` subdomains). This is the standard recommended URL for clients that benefit from parallel tile requests and is compatible with the same OSM tile usage policy and attribution requirement.
+
+**`AlertLocationUnavailable` in its own file**
+The spec and plan described colocating or exporting `AlertLocationUnavailable` from `AlertLocationMap.tsx`. The implementation placed it in `AlertLocationUnavailable.tsx` and re-exports it from `AlertLocationMap.tsx` via a named re-export. Functionally identical; the separate file keeps component responsibilities cleaner.
+
+**Marker icon setup via explicit `import.meta.url` pattern**
+The plan showed the `delete (L.Icon.Default.prototype as ...) ._getIconUrl` plus `mergeOptions` pattern. The implementation uses `new URL('leaflet/dist/images/...', import.meta.url).href` to resolve asset paths through Vite, then calls only `L.Icon.Default.mergeOptions(...)` without the delete. This avoids mutating the prototype and is equally effective for Vite environments.
+
+### All Acceptance Criteria Met
+- Alerts with renderable coordinates (currently Toronto Police) render a live Leaflet/OSM map. ✓
+- Alerts without coordinates render the explicit unavailable-state card. ✓
+- Location section is shared across all four source types. ✓
+- `locationCoords` on `AlertPresentation` is the sole coordinate boundary; no component inspects raw transport fields. ✓
+- `alerts` Inertia prop remains the contract boundary; no new prop key was introduced. ✓
+- Full QA suite, SSR build, TypeScript, and lint all pass. ✓

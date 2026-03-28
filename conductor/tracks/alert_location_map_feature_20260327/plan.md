@@ -91,13 +91,13 @@
 
 ## Phase 6: Documentation Phase
 
-- [ ] Task: Document the finalized feature behavior
-    - [ ] Update the relevant project docs in `docs/` with the final location-map behavior, coordinate eligibility rules, and the no-geocoding scope for v1.
-    - [ ] Document the tile-provider seam and the reason no CSP expansion was required.
-- [ ] Task: Update repository-facing operational notes only where warranted
-    - [ ] Update `README.md` only if the map changes user-visible project capabilities that belong there.
-    - [ ] Update `CLAUDE.md` only if the implementation introduces a lasting repository convention worth preserving.
-- [ ] Task: Close out conductor artifacts for archival readiness
-    - [ ] Reconcile any implementation deviations back into `spec.md` / `plan.md`.
-    - [ ] Ensure the track is ready for registry/archive handoff after QA sign-off.
+- [x] Task: Document the finalized feature behavior
+    - [x] Update the relevant project docs in `docs/` with the final location-map behavior, coordinate eligibility rules, and the no-geocoding scope for v1.
+    - [x] Document the tile-provider seam and the reason no CSP expansion was required.
+- [x] Task: Update repository-facing operational notes only where warranted
+    - [x] Update `README.md` only if the map changes user-visible project capabilities that belong there.
+    - [x] Update `CLAUDE.md` only if the implementation introduces a lasting repository convention worth preserving.
+- [x] Task: Close out conductor artifacts for archival readiness
+    - [x] Reconcile any implementation deviations back into `spec.md` / `plan.md`.
+    - [x] Ensure the track is ready for registry/archive handoff after QA sign-off.
 - [ ] Task: Conductor - User Manual Verification 'Phase 6: Documentation Phase' (Protocol in workflow.md)

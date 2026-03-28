@@ -16,6 +16,7 @@ GTA Alerts is built as a data aggregator and API using Laravel, with a high-perf
 - **Inertia.js SPA:** A seamless single-page application experience with React 19 and Radix UI.
 - **Production-Ready Scheduler:** Built-in observability for background scraping tasks with heartbeat monitoring and health checks.
 - **Prototype-Two GTA Alerts UI Revamp:** Brutalist high-contrast shell (sidebar/header/footer/FAB), Feed/Table toggle, and expandable incident table summaries for the GTA Alerts surface.
+- **Interactive Location Maps:** Alerts with geographic coordinates (currently Toronto Police) render a live Leaflet + OpenStreetMap map in the details view; alerts without coordinates show an explicit unavailable state.
 
 ---
 

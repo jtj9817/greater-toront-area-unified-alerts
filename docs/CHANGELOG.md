@@ -2,6 +2,25 @@
 
 All notable documentation-relevant changes are tracked here.
 
+## [March 28, 2026] - Alert Location Map Feature Documentation
+
+### Added
+
+- Created `docs/frontend/alert-location-map.md` documenting the Alert Location Map feature:
+    - Coordinate eligibility rules (GTA bounding box, null/partial/0,0 rejection)
+    - SSR-safe two-file component split (`AlertLocationMap.tsx` wrapper + `AlertLocationMap.client.tsx` client-only)
+    - Tile provider seam (`lib/leaflet.ts` constants) and reason no CSP expansion was required
+    - Mobile scroll-trap prevention via `useIsMobile()` hook
+    - Leaflet marker icon Vite configuration
+    - v1 scope limits (no geocoding for fire/TTC/GO Transit)
+
+### Changed
+
+- Updated `docs/frontend/types.md`: Added `AlertPresentationCoordinates` and `locationCoords` field documentation.
+- Updated `docs/README.md`: Added `alert-location-map.md` to documentation tree and Implementation Status table.
+- Updated `README.md`: Added Interactive Location Maps bullet to Key Features.
+- Updated `CLAUDE.md`: Added `locationCoords` note to Frontend Structure section and `alert-location-map.md` reference to Architecture Documentation.
+
 ## [March 10, 2026] - FEED-004 Ticket Closure
 
 ### Changed
