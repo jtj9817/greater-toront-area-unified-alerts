@@ -33,22 +33,22 @@
 
 ## Phase 3: Shared Client-Only Map Components
 
-- [ ] Task: Write failing component tests before building the map surface
-    - [ ] Create `resources/js/features/gta-alerts/components/AlertLocationMap.test.tsx`.
-    - [ ] Mock `react-leaflet` primitives so the tests assert wrapper behavior, tile attribution text, stable IDs, and fallback semantics without real Leaflet runtime.
-    - [ ] Add explicit tests for the unavailable-state component showing the location label and truthful copy.
-- [ ] Task: Implement shared Leaflet runtime setup
-    - [ ] Create `resources/js/features/gta-alerts/lib/leaflet.ts` to configure default marker assets for Vite-bundled image URLs.
-    - [ ] Keep marker configuration in one place so future map surfaces reuse the same setup.
-- [ ] Task: Implement the client-only map module
-    - [ ] Build `AlertLocationMap.client.tsx` with `MapContainer`, `TileLayer`, `Marker`, and `Popup`.
-    - [ ] Use the public OSM raster tile URL and visible attribution.
-    - [ ] Add an explicit height and isolated wrapper to avoid map collapse and z-index bleed.
-    - [ ] Use the existing `resources/js/hooks/use-mobile.tsx` hook instead of ad-hoc `window.matchMedia(...)` checks to reduce scroll-trap behavior on small viewports.
-- [ ] Task: Implement the SSR-safe wrapper and unavailable state
-    - [ ] Build `AlertLocationMap.tsx` as the lazy wrapper that never imports Leaflet directly.
-    - [ ] Export or colocate an `AlertLocationUnavailable` component for non-renderable coordinates.
-    - [ ] Pass a stable `idBase` or equivalent alert-derived identifier into the wrapper so DOM IDs remain deterministic.
+- [x] Task: Write failing component tests before building the map surface [1f9587c]
+    - [x] Create `resources/js/features/gta-alerts/components/AlertLocationMap.test.tsx`.
+    - [x] Mock `react-leaflet` primitives so the tests assert wrapper behavior, tile attribution text, stable IDs, and fallback semantics without real Leaflet runtime.
+    - [x] Add explicit tests for the unavailable-state component showing the location label and truthful copy.
+- [x] Task: Implement shared Leaflet runtime setup [1f9587c]
+    - [x] Create `resources/js/features/gta-alerts/lib/leaflet.ts` to configure default marker assets for Vite-bundled image URLs.
+    - [x] Keep marker configuration in one place so future map surfaces reuse the same setup.
+- [x] Task: Implement the client-only map module [1f9587c]
+    - [x] Build `AlertLocationMap.client.tsx` with `MapContainer`, `TileLayer`, `Marker`, and `Popup`.
+    - [x] Use the public OSM raster tile URL and visible attribution.
+    - [x] Add an explicit height and isolated wrapper to avoid map collapse and z-index bleed.
+    - [x] Use the existing `resources/js/hooks/use-mobile.tsx` hook instead of ad-hoc `window.matchMedia(...)` checks to reduce scroll-trap behavior on small viewports.
+- [x] Task: Implement the SSR-safe wrapper and unavailable state [1f9587c]
+    - [x] Build `AlertLocationMap.tsx` as the lazy wrapper that never imports Leaflet directly.
+    - [x] Export or colocate an `AlertLocationUnavailable` component for non-renderable coordinates.
+    - [x] Pass a stable `idBase` or equivalent alert-derived identifier into the wrapper so DOM IDs remain deterministic.
 - [ ] Task: Conductor - User Manual Verification 'Phase 3: Shared Client-Only Map Components' (Protocol in workflow.md)
 
 ## Phase 4: Shared Alert Details Integration
