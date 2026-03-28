@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import React from 'react';
 import { describe, it, expect } from 'vitest';
 import type { WeatherData } from '../domain/weather/types';
@@ -20,6 +20,13 @@ function makeWeatherData(overrides: Partial<WeatherData> = {}): WeatherData {
         alertLevel: null,
         alertText: null,
         fetchedAt: '2026-03-25T12:00:00+00:00',
+        feelsLike: null,
+        dewpoint: null,
+        pressure: null,
+        visibility: null,
+        windGust: null,
+        tendency: null,
+        stationName: null,
         ...overrides,
     };
 }
@@ -134,6 +141,104 @@ describe('Footer', () => {
             />,
         );
         expect(screen.getByText(/Freezing rain warning/i)).toBeInTheDocument();
+    });
+
+    // -----------------------------------------------------------------------
+    // Feels Like inline display
+    // -----------------------------------------------------------------------
+
+    it('displays Feels Like inline when feelsLike is present', () => {
+        render(<Footer weather={makeWeatherData({ temperature: 1, feelsLike: -5.5 })} />);
+        expect(screen.getByText(/feels like/i)).toBeInTheDocument();
+        expect(screen.getByText(/-5\.5/)).toBeInTheDocument();
+    });
+
+    it('does not show Feels Like text when feelsLike is null', () => {
+        render(<Footer weather={makeWeatherData({ feelsLike: null })} />);
+        expect(screen.queryByText(/feels like/i)).not.toBeInTheDocument();
+    });
+
+    // -----------------------------------------------------------------------
+    // Weather detail panel
+    // -----------------------------------------------------------------------
+
+    it('opens the detail panel when weather bar is clicked', () => {
+        render(
+            <Footer
+                weather={makeWeatherData({
+                    feelsLike: -5.5,
+                    condition: 'Mostly Cloudy',
+                    dewpoint: -10.0,
+                })}
+            />,
+        );
+        expect(document.getElementById('gta-alerts-footer-weather-panel')).not.toBeInTheDocument();
+
+        fireEvent.click(document.getElementById('gta-alerts-footer-weather')!);
+
+        expect(document.getElementById('gta-alerts-footer-weather-panel')).toBeInTheDocument();
+    });
+
+    it('shows non-null detail rows in the panel', () => {
+        render(
+            <Footer
+                weather={makeWeatherData({
+                    feelsLike: -5.5,
+                    condition: 'Mostly Cloudy',
+                    dewpoint: -10.2,
+                    pressure: 103.2,
+                    stationName: "Toronto Pearson Int'l Airport",
+                })}
+            />,
+        );
+
+        fireEvent.click(document.getElementById('gta-alerts-footer-weather')!);
+
+        expect(document.getElementById('gta-alerts-footer-weather-detail-feels-like')).toBeInTheDocument();
+        expect(document.getElementById('gta-alerts-footer-weather-detail-condition')).toBeInTheDocument();
+        expect(document.getElementById('gta-alerts-footer-weather-detail-dewpoint')).toBeInTheDocument();
+        expect(document.getElementById('gta-alerts-footer-weather-detail-pressure')).toBeInTheDocument();
+        expect(document.getElementById('gta-alerts-footer-weather-detail-station-name')).toBeInTheDocument();
+    });
+
+    it('omits null fields from the detail panel', () => {
+        render(
+            <Footer
+                weather={makeWeatherData({
+                    feelsLike: -5.5,
+                    pressure: null,
+                    visibility: null,
+                    windGust: null,
+                })}
+            />,
+        );
+
+        fireEvent.click(document.getElementById('gta-alerts-footer-weather')!);
+
+        expect(document.getElementById('gta-alerts-footer-weather-detail-pressure')).not.toBeInTheDocument();
+        expect(document.getElementById('gta-alerts-footer-weather-detail-visibility')).not.toBeInTheDocument();
+        expect(document.getElementById('gta-alerts-footer-weather-detail-wind-gust')).not.toBeInTheDocument();
+    });
+
+    it('closes the panel when Escape is pressed', () => {
+        render(
+            <Footer weather={makeWeatherData({ feelsLike: -5.5 })} />,
+        );
+
+        fireEvent.click(document.getElementById('gta-alerts-footer-weather')!);
+        expect(document.getElementById('gta-alerts-footer-weather-panel')).toBeInTheDocument();
+
+        fireEvent.keyDown(document, { key: 'Escape' });
+        expect(document.getElementById('gta-alerts-footer-weather-panel')).not.toBeInTheDocument();
+    });
+
+    it('does not open the panel when weather is null', () => {
+        render(<Footer weather={null} />);
+        const weatherBar = document.getElementById('gta-alerts-footer-weather');
+        if (weatherBar) {
+            fireEvent.click(weatherBar);
+        }
+        expect(document.getElementById('gta-alerts-footer-weather-panel')).not.toBeInTheDocument();
     });
 
     // -----------------------------------------------------------------------

@@ -22,6 +22,13 @@ function makeWeatherResponse(overrides: Record<string, unknown> = {}) {
             alert_level: null,
             alert_text: null,
             fetched_at: '2026-03-25T12:00:00+00:00',
+            feels_like: null,
+            dewpoint: null,
+            pressure: null,
+            visibility: null,
+            wind_gust: null,
+            tendency: null,
+            station_name: null,
             ...overrides,
         },
     };

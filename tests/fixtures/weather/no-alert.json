@@ -1,8 +1,13 @@
 {
     "observation": {
+        "observedAt": "Toronto Pearson Int'l Airport",
         "temperature": {
             "metricUnrounded": 22.456,
             "metric": 22
+        },
+        "dewpoint": {
+            "metricUnrounded": 15.0,
+            "metric": 15
         },
         "humidity": 65,
         "windDirection": "NW",
@@ -10,6 +15,16 @@
             "metric": 20,
             "label": "20 km/h"
         },
+        "windGust": {
+            "metric": 32
+        },
+        "pressure": {
+            "metric": 101.3
+        },
+        "visibility": {
+            "metric": 24.0
+        },
+        "tendency": "falling",
         "condition": "Mostly Cloudy"
     },
     "alert": []

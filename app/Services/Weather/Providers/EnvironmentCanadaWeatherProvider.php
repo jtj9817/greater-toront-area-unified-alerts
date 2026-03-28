@@ -6,6 +6,7 @@ use App\Models\GtaPostalCode;
 use App\Services\Weather\Contracts\WeatherProvider;
 use App\Services\Weather\DTOs\WeatherData;
 use App\Services\Weather\Exceptions\WeatherFetchException;
+use App\Services\Weather\FeelsLikeCalculator;
 use DateTimeImmutable;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Http;
@@ -124,17 +125,28 @@ class EnvironmentCanadaWeatherProvider implements WeatherProvider
         $alert = $payload['alert'] ?? [];
         $alertLevel = $this->parseAlertLevel($alert);
 
+        $temperature = $this->parseTemperature($observation);
+        $dewpoint = $this->parseDewpoint($observation);
+        $windKph = $this->parseWindSpeedKph($observation);
+
         return new WeatherData(
             fsa: $fsa,
             provider: self::NAME,
-            temperature: $this->parseTemperature($observation),
+            temperature: $temperature,
             humidity: $this->parseHumidity($observation),
-            windSpeed: $this->parseWindSpeed($observation),
+            windSpeed: $this->formatWindSpeed($windKph),
             windDirection: $this->parseWindDirection($observation),
             condition: $this->parseCondition($observation),
             alertLevel: $alertLevel,
             alertText: $this->parseAlertText($alert, $alertLevel),
             fetchedAt: new DateTimeImmutable,
+            feelsLike: FeelsLikeCalculator::compute($temperature, $windKph, $dewpoint),
+            dewpoint: $dewpoint,
+            pressure: $this->parsePressure($observation),
+            visibility: $this->parseVisibility($observation),
+            windGust: $this->parseWindGust($observation),
+            tendency: $this->parseTendency($observation),
+            stationName: $this->parseObservedAt($observation),
         );
     }
 
@@ -177,7 +189,8 @@ class EnvironmentCanadaWeatherProvider implements WeatherProvider
         return (string) $direction;
     }
 
-    private function parseWindSpeed(array $observation): ?string
+    /** Returns the raw numeric wind speed in km/h, or null if unavailable. */
+    private function parseWindSpeedKph(array $observation): ?float
     {
         if (! isset($observation['windSpeed']) || ! is_array($observation['windSpeed'])) {
             return null;
@@ -186,11 +199,109 @@ class EnvironmentCanadaWeatherProvider implements WeatherProvider
         $speed = $observation['windSpeed'];
 
         if (isset($speed['metric']) && is_numeric($speed['metric'])) {
-            return $speed['metric'].' km/h';
+            return (float) $speed['metric'];
         }
 
         return null;
     }
+
+    /** Formats a raw km/h value as "N km/h", or returns null when unavailable. */
+    private function formatWindSpeed(?float $kph): ?string
+    {
+        if ($kph === null) {
+            return null;
+        }
+
+        return $kph.' km/h';
+    }
+
+    private function parseDewpoint(array $observation): ?float
+    {
+        if (! isset($observation['dewpoint'])) {
+            return null;
+        }
+
+        $dew = $observation['dewpoint'];
+
+        if (isset($dew['metricUnrounded']) && is_numeric($dew['metricUnrounded'])) {
+            return (float) $dew['metricUnrounded'];
+        }
+
+        if (isset($dew['metric']) && is_numeric($dew['metric'])) {
+            return (float) $dew['metric'];
+        }
+
+        return null;
+    }
+
+    private function parsePressure(array $observation): ?float
+    {
+        if (! isset($observation['pressure'])) {
+            return null;
+        }
+
+        $pressure = $observation['pressure'];
+
+        if (isset($pressure['metric']) && is_numeric($pressure['metric'])) {
+            return (float) $pressure['metric'];
+        }
+
+        return null;
+    }
+
+    private function parseVisibility(array $observation): ?float
+    {
+        if (! isset($observation['visibility'])) {
+            return null;
+        }
+
+        $vis = $observation['visibility'];
+
+        if (isset($vis['metric']) && is_numeric($vis['metric'])) {
+            return (float) $vis['metric'];
+        }
+
+        return null;
+    }
+
+    private function parseWindGust(array $observation): ?string
+    {
+        if (! isset($observation['windGust']) || ! is_array($observation['windGust'])) {
+            return null;
+        }
+
+        $gust = $observation['windGust'];
+
+        if (isset($gust['metric']) && is_numeric($gust['metric'])) {
+            return $gust['metric'].' km/h';
+        }
+
+        return null;
+    }
+
+    private function parseTendency(array $observation): ?string
+    {
+        $tendency = $observation['tendency'] ?? null;
+
+        if (! is_string($tendency) || trim($tendency) === '') {
+            return null;
+        }
+
+        return trim($tendency);
+    }
+
+    private function parseObservedAt(array $observation): ?string
+    {
+        $station = $observation['observedAt'] ?? null;
+
+        if (! is_string($station) || trim($station) === '') {
+            return null;
+        }
+
+        return trim($station);
+    }
+
+
 
     private function parseCondition(array $observation): ?string
     {

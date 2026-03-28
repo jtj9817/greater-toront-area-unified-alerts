@@ -77,6 +77,13 @@ class WeatherCacheService
             alertLevel: $p['alert_level'] ?? null,
             alertText: $p['alert_text'] ?? null,
             fetchedAt: new DateTimeImmutable($p['fetched_at']),
+            feelsLike: isset($p['feels_like']) ? (float) $p['feels_like'] : null,
+            dewpoint: isset($p['dewpoint']) ? (float) $p['dewpoint'] : null,
+            pressure: isset($p['pressure']) ? (float) $p['pressure'] : null,
+            visibility: isset($p['visibility']) ? (float) $p['visibility'] : null,
+            windGust: $p['wind_gust'] ?? null,
+            tendency: $p['tendency'] ?? null,
+            stationName: $p['station_name'] ?? null,
         );
     }
 
@@ -91,6 +98,13 @@ class WeatherCacheService
             'alert_level' => $data->alertLevel,
             'alert_text' => $data->alertText,
             'fetched_at' => $data->fetchedAt->format(DATE_ATOM),
+            'feels_like' => $data->feelsLike,
+            'dewpoint' => $data->dewpoint,
+            'pressure' => $data->pressure,
+            'visibility' => $data->visibility,
+            'wind_gust' => $data->windGust,
+            'tendency' => $data->tendency,
+            'station_name' => $data->stationName,
         ];
     }
 }

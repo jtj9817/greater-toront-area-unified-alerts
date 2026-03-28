@@ -18,5 +18,19 @@ readonly class WeatherData
         public ?string $alertLevel,
         public ?string $alertText,
         public DateTimeImmutable $fetchedAt,
+        /** Apparent temperature in °C using Wind Chill or Humidex formula. */
+        public ?float $feelsLike = null,
+        /** Dewpoint temperature in °C. */
+        public ?float $dewpoint = null,
+        /** Atmospheric pressure in kPa. */
+        public ?float $pressure = null,
+        /** Visibility in km. */
+        public ?float $visibility = null,
+        /** Wind gust speed formatted as "N km/h". */
+        public ?string $windGust = null,
+        /** Pressure tendency, e.g. "falling" or "rising". */
+        public ?string $tendency = null,
+        /** Name of the observation station. */
+        public ?string $stationName = null,
     ) {}
 }

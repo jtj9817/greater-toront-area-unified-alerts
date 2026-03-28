@@ -26,6 +26,13 @@ class WeatherResource extends JsonResource
             'alert_level' => $this->alertLevel,
             'alert_text' => $this->alertText,
             'fetched_at' => $this->fetchedAt->format(DATE_ATOM),
+            'feels_like' => $this->feelsLike,
+            'dewpoint' => $this->dewpoint,
+            'pressure' => $this->pressure,
+            'visibility' => $this->visibility,
+            'wind_gust' => $this->windGust,
+            'tendency' => $this->tendency,
+            'station_name' => $this->stationName,
         ];
     }
 }

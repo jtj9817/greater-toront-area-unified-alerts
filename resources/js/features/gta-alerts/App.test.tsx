@@ -424,6 +424,13 @@ describe('GTA Alerts App (typed domain enforcement boundary)', () => {
                     alert_level: null,
                     alert_text: null,
                     fetched_at: '2026-03-28T12:00:00+00:00',
+                    feels_like: null,
+                    dewpoint: null,
+                    pressure: null,
+                    visibility: null,
+                    wind_gust: null,
+                    tendency: null,
+                    station_name: null,
                 },
             }),
         );

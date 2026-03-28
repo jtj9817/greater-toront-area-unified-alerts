@@ -13,6 +13,20 @@ export type WeatherData = {
     alertLevel: 'yellow' | 'orange' | 'red' | null;
     alertText: string | null;
     fetchedAt: string;
+    /** Apparent temperature in °C (Wind Chill or Humidex). */
+    feelsLike: number | null;
+    /** Dewpoint in °C. */
+    dewpoint: number | null;
+    /** Atmospheric pressure in kPa. */
+    pressure: number | null;
+    /** Visibility in km. */
+    visibility: number | null;
+    /** Wind gust formatted as "N km/h". */
+    windGust: string | null;
+    /** Pressure tendency e.g. "falling". */
+    tendency: string | null;
+    /** Name of the observation station. */
+    stationName: string | null;
 };
 
 /**

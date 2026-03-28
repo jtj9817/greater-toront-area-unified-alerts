@@ -30,5 +30,12 @@ export function fromWeatherResource(resource: unknown): WeatherData | null {
         alertLevel: r.alert_level,
         alertText: r.alert_text,
         fetchedAt: r.fetched_at,
+        feelsLike: r.feels_like,
+        dewpoint: r.dewpoint,
+        pressure: r.pressure,
+        visibility: r.visibility,
+        windGust: r.wind_gust,
+        tendency: r.tendency,
+        stationName: r.station_name,
     };
 }

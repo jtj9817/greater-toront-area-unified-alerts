@@ -15,6 +15,13 @@ export const WeatherResourceSchema = z.object({
     alert_level: z.nullable(z.enum(['yellow', 'orange', 'red'])),
     alert_text: z.nullable(z.string()),
     fetched_at: z.string(),
+    feels_like: z.nullable(z.number()),
+    dewpoint: z.nullable(z.number()),
+    pressure: z.nullable(z.number()),
+    visibility: z.nullable(z.number()),
+    wind_gust: z.nullable(z.string()),
+    tendency: z.nullable(z.string()),
+    station_name: z.nullable(z.string()),
 });
 
 export type WeatherResource = z.input<typeof WeatherResourceSchema>;

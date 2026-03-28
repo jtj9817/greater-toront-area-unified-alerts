@@ -273,3 +273,85 @@ test('throws WeatherFetchException when JSON is not an object', function () {
     expect(fn () => $provider->fetch('M5V'))
         ->toThrow(WeatherFetchException::class, 'Expected JSON object');
 });
+
+// ---------------------------------------------------------------------------
+// New extended fields
+// ---------------------------------------------------------------------------
+
+test('parses dewpoint, pressure, visibility, wind gust, tendency, and observed-at from no-alert payload', function () {
+    Http::fake(['*' => Http::response(ecJsonFixture('no-alert'), 200)]);
+
+    GtaPostalCode::firstOrCreate(['fsa' => 'M5V'], ['municipality' => 'Toronto', 'neighbourhood' => 'Liberty Village', 'lat' => 43.6406, 'lng' => -79.3961]);
+
+    $provider = new EnvironmentCanadaWeatherProvider;
+    $data = $provider->fetch('M5V');
+
+    expect($data->dewpoint)->toBe(15.0);
+    expect($data->pressure)->toBe(101.3);
+    expect($data->visibility)->toBe(24.0);
+    expect($data->windGust)->toBe('32 km/h');
+    expect($data->tendency)->toBe('falling');
+    expect($data->stationName)->toBe("Toronto Pearson Int'l Airport");
+});
+
+test('computes humidex feels-like for warm temperature with dewpoint', function () {
+    Http::fake(['*' => Http::response(ecJsonFixture('no-alert'), 200)]);
+
+    GtaPostalCode::firstOrCreate(['fsa' => 'M5V'], ['municipality' => 'Toronto', 'neighbourhood' => 'Liberty Village', 'lat' => 43.6406, 'lng' => -79.3961]);
+
+    $provider = new EnvironmentCanadaWeatherProvider;
+    $data = $provider->fetch('M5V');
+
+    // T=22.456°C ≥ 20 and Td=15.0°C → Humidex applies
+    expect($data->feelsLike)->toBeFloat()->toBeBetween(25.0, 28.0);
+});
+
+test('computes wind chill feels-like for cold temperature with wind', function () {
+    $payload = json_decode(ecJsonFixture('no-alert'), true);
+    $payload['observation']['temperature']['metricUnrounded'] = -5.0;
+    $payload['observation']['temperature']['metric'] = -5;
+    $payload['observation']['windSpeed']['metric'] = 30;
+
+    Http::fake(['*' => Http::response(json_encode($payload), 200)]);
+
+    GtaPostalCode::firstOrCreate(['fsa' => 'M5V'], ['municipality' => 'Toronto', 'neighbourhood' => 'Liberty Village', 'lat' => 43.6406, 'lng' => -79.3961]);
+
+    $provider = new EnvironmentCanadaWeatherProvider;
+    $data = $provider->fetch('M5V');
+
+    // T=-5°C ≤ 10 and W=30 km/h > 4.8 → Wind Chill applies, result colder than actual
+    expect($data->feelsLike)->toBeFloat()->toBeLessThan(-5.0);
+});
+
+test('feels-like is null in neutral temperature range with no applicable formula', function () {
+    $payload = json_decode(ecJsonFixture('no-alert'), true);
+    $payload['observation']['temperature']['metricUnrounded'] = 15.0;
+    $payload['observation']['temperature']['metric'] = 15;
+
+    Http::fake(['*' => Http::response(json_encode($payload), 200)]);
+
+    GtaPostalCode::firstOrCreate(['fsa' => 'M5V'], ['municipality' => 'Toronto', 'neighbourhood' => 'Liberty Village', 'lat' => 43.6406, 'lng' => -79.3961]);
+
+    $provider = new EnvironmentCanadaWeatherProvider;
+    $data = $provider->fetch('M5V');
+
+    expect($data->feelsLike)->toBeNull();
+});
+
+test('new fields are null when not present in observation payload', function () {
+    $payload = ['observation' => ['temperature' => ['metricUnrounded' => 5.0], 'humidity' => 50], 'alert' => []];
+
+    Http::fake(['*' => Http::response(json_encode($payload), 200)]);
+
+    GtaPostalCode::firstOrCreate(['fsa' => 'M5V'], ['municipality' => 'Toronto', 'neighbourhood' => 'Liberty Village', 'lat' => 43.6406, 'lng' => -79.3961]);
+
+    $provider = new EnvironmentCanadaWeatherProvider;
+    $data = $provider->fetch('M5V');
+
+    expect($data->dewpoint)->toBeNull();
+    expect($data->pressure)->toBeNull();
+    expect($data->visibility)->toBeNull();
+    expect($data->windGust)->toBeNull();
+    expect($data->tendency)->toBeNull();
+    expect($data->stationName)->toBeNull();
+});
