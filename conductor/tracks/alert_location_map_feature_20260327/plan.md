@@ -53,19 +53,19 @@
 
 ## Phase 4: Shared Alert Details Integration
 
-- [ ] Task: Write failing detail-view tests before refactoring layout
-    - [ ] Extend `resources/js/features/gta-alerts/components/AlertDetailsView.test.tsx` to assert a police alert with coordinates renders the shared location-map section.
-    - [ ] Add failing tests asserting fire alerts without coordinates render the unavailable-state card instead of placeholder copy.
-    - [ ] Add assertions that the legacy `Interactive Map Loading...` text no longer appears for any branch.
-    - [ ] Add assertions for stable IDs on the shared location section and its map/unavailable child container.
-- [ ] Task: Move location rendering into the shared details layout
-    - [ ] Refactor `resources/js/features/gta-alerts/components/AlertDetailsView.tsx` so the location section renders in the common layout immediately after `Official Briefing`.
-    - [ ] Render the map when `alert.locationCoords` exists and the unavailable state otherwise.
-    - [ ] Preserve all existing branch-specific metadata and specialized content blocks.
-- [ ] Task: Keep fire-specific specialized content focused
-    - [ ] Remove the map placeholder card from the fire specialized branch.
-    - [ ] Keep `SceneIntelTimeline` and other fire-only content independent of the shared location section.
-    - [ ] Confirm police, TTC, and GO branches do not need duplicated map logic after the refactor.
+- [x] Task: Write failing detail-view tests before refactoring layout [c01e16a]
+    - [x] Extend `resources/js/features/gta-alerts/components/AlertDetailsView.test.tsx` to assert a police alert with coordinates renders the shared location-map section.
+    - [x] Add failing tests asserting fire alerts without coordinates render the unavailable-state card instead of placeholder copy.
+    - [x] Add assertions that the legacy `Interactive Map Loading...` text no longer appears for any branch.
+    - [x] Add assertions for stable IDs on the shared location section and its map/unavailable child container.
+- [x] Task: Move location rendering into the shared details layout [c01e16a]
+    - [x] Refactor `resources/js/features/gta-alerts/components/AlertDetailsView.tsx` so the location section renders in the common layout immediately after `Official Briefing`.
+    - [x] Render the map when `alert.locationCoords` exists and the unavailable state otherwise.
+    - [x] Preserve all existing branch-specific metadata and specialized content blocks.
+- [x] Task: Keep fire-specific specialized content focused [c01e16a]
+    - [x] Remove the map placeholder card from the fire specialized branch.
+    - [x] Keep `SceneIntelTimeline` and other fire-only content independent of the shared location section.
+    - [x] Confirm police, TTC, and GO branches do not need duplicated map logic after the refactor.
 - [ ] Task: Conductor - User Manual Verification 'Phase 4: Shared Alert Details Integration' (Protocol in workflow.md)
 
 ## Phase 5: QA (Full Testing Suite)
