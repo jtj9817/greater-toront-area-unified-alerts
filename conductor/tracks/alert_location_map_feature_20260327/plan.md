@@ -66,7 +66,7 @@
     - [x] Remove the map placeholder card from the fire specialized branch.
     - [x] Keep `SceneIntelTimeline` and other fire-only content independent of the shared location section.
     - [x] Confirm police, TTC, and GO branches do not need duplicated map logic after the refactor.
-- [ ] Task: Conductor - User Manual Verification 'Phase 4: Shared Alert Details Integration' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 4: Shared Alert Details Integration' (Protocol in workflow.md) [fd758d0]
 
 ## Phase 5: QA (Full Testing Suite)
 
