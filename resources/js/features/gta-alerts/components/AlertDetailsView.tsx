@@ -9,6 +9,7 @@ import {
     mapDomainAlertToPresentation,
     type DomainAlert,
 } from '../domain/alerts';
+import { AlertLocationMap, AlertLocationUnavailable } from './AlertLocationMap';
 import { Icon } from './Icon';
 import { SceneIntelTimeline } from './SceneIntelTimeline';
 
@@ -48,17 +49,19 @@ const AlertDetailsLayout: React.FC<DetailLayoutProps> = ({
     onToggleSave,
     onShare,
 }) => {
+    const idBase = `gta-alerts-alert-details-${alert.id}`;
+
     return (
         <section
-            id={`gta-alerts-alert-details-${alert.id}`}
+            id={idBase}
             className="flex h-full animate-in flex-col bg-background-dark duration-500 fade-in slide-in-from-bottom-4"
         >
             <header
-                id={`gta-alerts-alert-details-${alert.id}-header`}
+                id={`${idBase}-header`}
                 className="sticky top-0 z-10 flex items-center gap-4 border-b border-white/5 bg-background-dark/50 p-4 backdrop-blur-md"
             >
                 <button
-                    id={`gta-alerts-alert-details-${alert.id}-back-btn`}
+                    id={`${idBase}-back-btn`}
                     onClick={onBack}
                     className="flex h-10 w-10 items-center justify-center rounded-full bg-white/5 text-white transition-all hover:bg-[#FF7F00] hover:text-white"
                 >
@@ -66,7 +69,7 @@ const AlertDetailsLayout: React.FC<DetailLayoutProps> = ({
                 </button>
                 <div>
                     <h2
-                        id={`gta-alerts-alert-details-${alert.id}-title`}
+                        id={`${idBase}-title`}
                         className="leading-none font-bold text-white"
                     >
                         Incident Details
@@ -78,17 +81,17 @@ const AlertDetailsLayout: React.FC<DetailLayoutProps> = ({
             </header>
 
             <div
-                id={`gta-alerts-alert-details-${alert.id}-content`}
+                id={`${idBase}-content`}
                 className="flex-1 overflow-y-auto p-4 md:p-8"
             >
                 <div
-                    id={`gta-alerts-alert-details-${alert.id}-sections`}
+                    id={`${idBase}-sections`}
                     className="mx-auto max-w-4xl space-y-8"
                 >
                     {sections.header}
 
                     <section
-                        id={`gta-alerts-alert-details-${alert.id}-briefing-section`}
+                        id={`${idBase}-briefing-section`}
                         className="rounded-2xl border border-white/5 bg-surface-dark p-6 shadow-xl md:p-8"
                     >
                         <div className="flex flex-col gap-8 md:flex-row">
@@ -128,14 +131,37 @@ const AlertDetailsLayout: React.FC<DetailLayoutProps> = ({
                         </div>
                     </section>
 
+                    <section
+                        id={`${idBase}-location-section`}
+                        className="rounded-2xl border border-white/5 bg-surface-dark p-6 shadow-xl md:p-8"
+                    >
+                        <h3 className="mb-4 flex items-center gap-2 text-xs font-bold tracking-widest text-primary uppercase">
+                            <Icon name="map" className="text-sm" />
+                            Location Map
+                        </h3>
+                        {alert.locationCoords ? (
+                            <AlertLocationMap
+                                idBase={idBase}
+                                lat={alert.locationCoords.lat}
+                                lng={alert.locationCoords.lng}
+                                locationName={alert.location}
+                            />
+                        ) : (
+                            <AlertLocationUnavailable
+                                idBase={idBase}
+                                locationName={alert.location}
+                            />
+                        )}
+                    </section>
+
                     {sections.specializedContent}
 
                     <div
-                        id={`gta-alerts-alert-details-${alert.id}-actions`}
+                        id={`${idBase}-actions`}
                         className="flex gap-4 pt-4"
                     >
                         <button
-                            id={`gta-alerts-alert-details-${alert.id}-share-btn`}
+                            id={`${idBase}-share-btn`}
                             type="button"
                             onClick={onShare}
                             className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-white/10 py-4 font-bold text-white shadow-lg transition-all hover:bg-white/20"
@@ -146,7 +172,7 @@ const AlertDetailsLayout: React.FC<DetailLayoutProps> = ({
                         <Tooltip>
                             <TooltipTrigger asChild>
                                 <button
-                                    id={`gta-alerts-alert-details-${alert.id}-save-btn`}
+                                    id={`${idBase}-save-btn`}
                                     onClick={onToggleSave}
                                     disabled={isPending}
                                     className={`flex items-center justify-center gap-2 rounded-xl border px-6 py-4 font-bold transition-all ${
@@ -303,27 +329,10 @@ function buildFireSections(alert: PresentationAlert): DetailSections {
             </>
         ),
         specializedContent: (
-            <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-                <div className="rounded-2xl border border-white/5 bg-surface-dark p-6">
-                    <h4 className="mb-4 flex items-center gap-2 text-xs font-bold text-primary uppercase">
-                        <Icon name="map" className="text-sm" /> Location Map
-                    </h4>
-                    <div className="relative flex aspect-video items-center justify-center overflow-hidden rounded-lg border border-dashed border-white/10 bg-white/5">
-                        <div className="absolute inset-0 bg-[radial-gradient(#e0556033_1px,transparent_1px)] [background-size:16px_16px] opacity-20"></div>
-                        <Icon
-                            name="location_on"
-                            className="animate-bounce text-4xl text-primary"
-                        />
-                        <span className="absolute bottom-4 text-xs text-text-secondary">
-                            Interactive Map Loading...
-                        </span>
-                    </div>
-                </div>
-                <SceneIntelTimeline
-                    eventNum={alert.metadata?.eventNum || ''}
-                    initialItems={alert.metadata?.intelSummary}
-                />
-            </div>
+            <SceneIntelTimeline
+                eventNum={alert.metadata?.eventNum || ''}
+                initialItems={alert.metadata?.intelSummary}
+            />
         ),
     };
 }

@@ -8,6 +8,34 @@ vi.mock('./SceneIntelTimeline', () => ({
     SceneIntelTimeline: () => <div data-testid="scene-intel-timeline" />,
 }));
 
+vi.mock('./AlertLocationMap', () => ({
+    AlertLocationMap: ({
+        idBase,
+        locationName,
+    }: {
+        idBase: string;
+        locationName: string;
+    }) => (
+        <div id={`${idBase}-map-wrapper`} data-testid="alert-location-map">
+            {locationName}
+        </div>
+    ),
+    AlertLocationUnavailable: ({
+        idBase,
+        locationName,
+    }: {
+        idBase: string;
+        locationName: string;
+    }) => (
+        <div
+            id={`${idBase}-location-unavailable`}
+            data-testid="alert-location-unavailable"
+        >
+            {locationName}
+        </div>
+    ),
+}));
+
 function toDomainAlert(resource: UnifiedAlertResource) {
     const alert = AlertService.mapUnifiedAlertToDomainAlert(resource);
     if (!alert) {
@@ -86,6 +114,59 @@ describe('AlertDetailsView', () => {
 
         expect(screen.getByText('Tactical Operation')).toBeInTheDocument();
         expect(screen.getByText('Public Safety Advisory')).toBeInTheDocument();
+        expect(
+            screen.getByTestId('alert-location-map'),
+        ).toBeInTheDocument();
+        expect(
+            screen.queryByTestId('alert-location-unavailable'),
+        ).not.toBeInTheDocument();
+        expect(screen.queryByText('Interactive Map Loading...')).toBeNull();
+
+        const idBase = 'gta-alerts-alert-details-police:123';
+        expect(
+            document.getElementById(`${idBase}-location-section`),
+        ).not.toBeNull();
+        expect(document.getElementById(`${idBase}-map-wrapper`)).not.toBeNull();
+    });
+
+    it('renders unavailable location map state for fire alerts without renderable coordinates', () => {
+        const fireAlert = toDomainAlert({
+            id: 'fire:E2',
+            source: 'fire',
+            external_id: 'E2',
+            is_active: true,
+            timestamp,
+            title: 'FIRE INVESTIGATION',
+            location: { name: 'Queen St W', lat: null, lng: null },
+            meta: {
+                alarm_level: 1,
+                units_dispatched: 'P2',
+                beat: 'B2',
+                event_num: 'E2',
+            },
+        });
+
+        render(
+            <AlertDetailsView
+                alert={fireAlert}
+                onBack={() => {}}
+                {...defaultProps}
+            />,
+        );
+
+        expect(
+            screen.getByTestId('alert-location-unavailable'),
+        ).toBeInTheDocument();
+        expect(screen.queryByTestId('alert-location-map')).not.toBeInTheDocument();
+        expect(screen.queryByText('Interactive Map Loading...')).toBeNull();
+
+        const idBase = 'gta-alerts-alert-details-fire:E2';
+        expect(
+            document.getElementById(`${idBase}-location-section`),
+        ).not.toBeNull();
+        expect(
+            document.getElementById(`${idBase}-location-unavailable`),
+        ).not.toBeNull();
     });
 
     it('renders TTC transit detail branch for transit kind', () => {
