@@ -52,8 +52,10 @@ pest_suite_results.log
 /artifacts/playwright/*.log
 
 # Playwright MCP root-level screenshots
-current-state-*.png
-fixed-*.png
+/*.png
+/*.jpeg
+/*.jpg
+/*.webp
 
 # Local Bun lockfile is not used by this pnpm-managed project
 /bun.lock
