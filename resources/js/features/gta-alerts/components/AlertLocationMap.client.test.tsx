@@ -9,13 +9,30 @@ const mapContainerSpy = vi.hoisted(() =>
 );
 
 const configureLeafletDefaultIconsSpy = vi.hoisted(() => vi.fn());
+const tileLayerSpy = vi.hoisted(() => vi.fn(() => null));
+const markerSpy = vi.hoisted(() =>
+    vi.fn(({ children }: { children?: ReactNode }) => <>{children}</>),
+);
+const popupSpy = vi.hoisted(() =>
+    vi.fn(({ children }: { children?: ReactNode }) => <>{children}</>),
+);
 
 vi.mock('react-leaflet', () => ({
     MapContainer: mapContainerSpy,
+    TileLayer: tileLayerSpy,
+    Marker: markerSpy,
+    Popup: popupSpy,
 }));
 
 vi.mock('../lib/leaflet', () => ({
     configureLeafletDefaultIcons: configureLeafletDefaultIconsSpy,
+    OPEN_STREET_MAP_ATTRIBUTION:
+        '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+    OPEN_STREET_MAP_TILE_URL: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+}));
+
+vi.mock('@/hooks/use-mobile', () => ({
+    useIsMobile: () => false,
 }));
 
 import { AlertLocationMapClient } from './AlertLocationMap.client';
@@ -23,6 +40,9 @@ import { AlertLocationMapClient } from './AlertLocationMap.client';
 describe('AlertLocationMap.client', () => {
     beforeEach(() => {
         mapContainerSpy.mockClear();
+        tileLayerSpy.mockClear();
+        markerSpy.mockClear();
+        popupSpy.mockClear();
     });
 
     it('configures Leaflet default icons during module setup', () => {
@@ -52,5 +72,9 @@ describe('AlertLocationMap.client', () => {
             height: '100%',
             width: '100%',
         });
+
+        expect(tileLayerSpy).toHaveBeenCalledTimes(1);
+        expect(markerSpy).toHaveBeenCalledTimes(1);
+        expect(popupSpy).toHaveBeenCalledTimes(1);
     });
 });

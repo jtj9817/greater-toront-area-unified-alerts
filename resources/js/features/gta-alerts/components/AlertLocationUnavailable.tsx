@@ -23,6 +23,9 @@ export function AlertLocationUnavailable({
                 <span className="text-xs text-text-secondary">
                     Map unavailable
                 </span>
+                <span className="text-xs text-text-secondary/80">
+                    Exact coordinates are not available for this alert.
+                </span>
                 <span className="text-xs text-text-secondary/70">
                     {locationName}
                 </span>

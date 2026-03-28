@@ -16,6 +16,8 @@ interface AlertLocationMapProps {
     locationName: string;
 }
 
+export { AlertLocationUnavailable } from './AlertLocationUnavailable';
+
 export function AlertLocationMap({
     idBase,
     lat,
