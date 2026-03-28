@@ -70,23 +70,23 @@
 
 ## Phase 5: QA (Full Testing Suite)
 
-- [ ] Task: Run targeted tests first for fast feedback
-    - [ ] Run `vendor/bin/sail pnpm test -- mapDomainAlertToPresentation.test.ts AlertLocationMap.test.tsx AlertDetailsView.test.tsx`.
-    - [ ] Run `vendor/bin/sail artisan test --compact tests/Feature/GtaAlertsTest.php`.
-- [ ] Task: Run full frontend and backend quality gates
-    - [ ] Run `vendor/bin/sail pnpm types`.
-    - [ ] Run `vendor/bin/sail pnpm lint:check`.
-    - [ ] Run `vendor/bin/sail pnpm test`.
-    - [ ] Run `vendor/bin/sail artisan test --compact`.
-    - [ ] Run `vendor/bin/sail artisan test --coverage --min=90`.
-- [ ] Task: Verify build and security behavior for the SSR app
-    - [ ] Run `vendor/bin/sail pnpm run build:ssr` to catch SSR import regressions.
-    - [ ] Run `vendor/bin/sail artisan test --compact tests/Feature/Security/SecurityHeadersTest.php`.
-    - [ ] Only modify CSP/security-header code if the implementation proves a real regression.
-- [ ] Task: Run final audits and manual verification
-    - [ ] Run `vendor/bin/sail bin pint --dirty --format agent`.
-    - [ ] Run `vendor/bin/sail composer audit` and `vendor/bin/sail pnpm audit`.
-    - [ ] Verify in the browser that alerts with coordinates render a working map, alerts without coordinates render the unavailable state, and mobile scrolling remains usable.
+- [x] Task: Run targeted tests first for fast feedback
+    - [x] Run `vendor/bin/sail pnpm test -- mapDomainAlertToPresentation.test.ts AlertLocationMap.test.tsx AlertDetailsView.test.tsx`.
+    - [x] Run `vendor/bin/sail artisan test --compact tests/Feature/GtaAlertsTest.php`.
+- [x] Task: Run full frontend and backend quality gates
+    - [x] Run `vendor/bin/sail pnpm types`.
+    - [x] Run `vendor/bin/sail pnpm lint:check`.
+    - [x] Run `vendor/bin/sail pnpm test`.
+    - [x] Run `vendor/bin/sail artisan test --compact`.
+    - [x] Run `vendor/bin/sail artisan test --coverage --min=90`.
+- [x] Task: Verify build and security behavior for the SSR app
+    - [x] Run `vendor/bin/sail pnpm run build:ssr` to catch SSR import regressions.
+    - [x] Run `vendor/bin/sail artisan test --compact tests/Feature/Security/SecurityHeadersTest.php`.
+    - [x] Only modify CSP/security-header code if the implementation proves a real regression.
+- [x] Task: Run final audits and manual verification
+    - [x] Run `vendor/bin/sail bin pint --dirty --format agent`.
+    - [x] Run `vendor/bin/sail composer audit` and `vendor/bin/sail pnpm audit`.
+    - [x] Verify in the browser that alerts with coordinates render a working map, alerts without coordinates render the unavailable state, and mobile scrolling remains usable.
 - [ ] Task: Conductor - User Manual Verification 'Phase 5: QA (Full Testing Suite)' (Protocol in workflow.md)
 
 ## Phase 6: Documentation Phase
