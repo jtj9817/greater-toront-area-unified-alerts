@@ -347,7 +347,7 @@ try {
     // SUMMARY
     // =====================================================================
     logInfo('');
-    logInfo("=== Phase 1 Manual Verification Complete ===");
+    logInfo('=== Phase 1 Manual Verification Complete ===');
     logInfo("Results: {$passed} passed, {$failed} failed, ".($passed + $failed).' total');
 
     if ($failed > 0) {

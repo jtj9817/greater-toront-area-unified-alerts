@@ -37,7 +37,7 @@ function normalizeCoordinates(
         return null;
     }
 
-    if (lat <= 40 || lat >= 50 || lng <= -90 || lng >= -70) {
+    if (lat < 40 || lat > 50 || lng < -90 || lng > -70) {
         return null;
     }
 

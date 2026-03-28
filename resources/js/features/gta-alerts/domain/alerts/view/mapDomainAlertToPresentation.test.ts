@@ -156,6 +156,27 @@ describe('mapDomainAlertToPresentation', () => {
         expect(alertItem.location).toBe('Yonge & Bloor');
     });
 
+    it('preserves coordinates that sit exactly on GTA boundary limits', () => {
+        const police = makePoliceAlert();
+        police.location = { name: 'Boundary', lat: 40, lng: -90 };
+
+        const minBoundaryAlert = mapDomainAlertToPresentation(police);
+
+        expect(minBoundaryAlert.locationCoords).toEqual({
+            lat: 40,
+            lng: -90,
+        });
+
+        police.location = { name: 'Boundary', lat: 50, lng: -70 };
+
+        const maxBoundaryAlert = mapDomainAlertToPresentation(police);
+
+        expect(maxBoundaryAlert.locationCoords).toEqual({
+            lat: 50,
+            lng: -70,
+        });
+    });
+
     it('sets locationCoords to null when location is null', () => {
         const fire = makeFireAlert();
         fire.location = null;
