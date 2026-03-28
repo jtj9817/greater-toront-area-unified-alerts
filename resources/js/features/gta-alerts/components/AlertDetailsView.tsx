@@ -156,10 +156,7 @@ const AlertDetailsLayout: React.FC<DetailLayoutProps> = ({
 
                     {sections.specializedContent}
 
-                    <div
-                        id={`${idBase}-actions`}
-                        className="flex gap-4 pt-4"
-                    >
+                    <div id={`${idBase}-actions`} className="flex gap-4 pt-4">
                         <button
                             id={`${idBase}-share-btn`}
                             type="button"

@@ -28,7 +28,8 @@ vi.mock('../lib/leaflet', () => ({
     configureLeafletDefaultIcons: configureLeafletDefaultIconsSpy,
     OPEN_STREET_MAP_ATTRIBUTION:
         '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-    OPEN_STREET_MAP_TILE_URL: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+    OPEN_STREET_MAP_TILE_URL:
+        'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
 }));
 
 vi.mock('@/hooks/use-mobile', () => ({

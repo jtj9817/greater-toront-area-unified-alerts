@@ -2,7 +2,7 @@
 
 **Type:** Bug
 **Priority:** P1
-**Status:** Open
+**Status:** Closed
 **Component:** Frontend CI (Vitest · Prettier)
 **Affects:** `master` — commit `21150db` and all subsequent commits
 
@@ -175,8 +175,8 @@ Trace whether `isolate: false` + `vi.resetModules()` is leaking a prior fetch mo
 
 ## Acceptance Criteria
 
-- [ ] `pnpm run format:check` exits 0 on `master`.
-- [ ] All 17 tests in `useWeather.test.ts` pass in CI.
-- [ ] All 16 tests in `LocationPicker.test.tsx` pass in CI.
-- [ ] The fix does not re-introduce the vitest OOM failure documented in FEED-025.
-- [ ] `composer run test` and `pnpm run test` both exit 0 locally.
+- [x] `pnpm run format:check` exits 0 on `master`.
+- [x] All 17 tests in `useWeather.test.ts` pass in CI.
+- [x] All 16 tests in `LocationPicker.test.tsx` pass in CI.
+- [x] The fix does not re-introduce the vitest OOM failure documented in FEED-025.
+- [x] `composer run test` and `pnpm run test` both exit 0 locally.

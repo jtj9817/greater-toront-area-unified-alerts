@@ -114,9 +114,7 @@ describe('AlertDetailsView', () => {
 
         expect(screen.getByText('Tactical Operation')).toBeInTheDocument();
         expect(screen.getByText('Public Safety Advisory')).toBeInTheDocument();
-        expect(
-            screen.getByTestId('alert-location-map'),
-        ).toBeInTheDocument();
+        expect(screen.getByTestId('alert-location-map')).toBeInTheDocument();
         expect(
             screen.queryByTestId('alert-location-unavailable'),
         ).not.toBeInTheDocument();
@@ -157,7 +155,9 @@ describe('AlertDetailsView', () => {
         expect(
             screen.getByTestId('alert-location-unavailable'),
         ).toBeInTheDocument();
-        expect(screen.queryByTestId('alert-location-map')).not.toBeInTheDocument();
+        expect(
+            screen.queryByTestId('alert-location-map'),
+        ).not.toBeInTheDocument();
         expect(screen.queryByText('Interactive Map Loading...')).toBeNull();
 
         const idBase = 'gta-alerts-alert-details-fire:E2';

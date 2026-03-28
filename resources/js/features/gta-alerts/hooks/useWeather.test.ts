@@ -319,14 +319,21 @@ describe('useWeather', () => {
             // Intentionally left unresolved to assert abort-on-switch behavior.
         });
 
-        vi.spyOn(global, 'fetch')
-            .mockImplementationOnce(
-                (_input: RequestInfo | URL, init?: RequestInit) => {
+        vi.spyOn(global, 'fetch').mockImplementation(
+            (input: RequestInfo | URL, init?: RequestInit) => {
+                const url = String(input);
+                const fsa = new URL(url, 'http://localhost').searchParams.get(
+                    'fsa',
+                );
+
+                if (fsa === 'M5V') {
                     firstSignal = init?.signal as AbortSignal | undefined;
                     return firstPending;
-                },
-            )
-            .mockResolvedValueOnce(mockFetchError(503));
+                }
+
+                return Promise.resolve(mockFetchError(503));
+            },
+        );
 
         const { result } = renderHook(() => useWeather());
 
@@ -335,7 +342,7 @@ describe('useWeather', () => {
         });
 
         await waitFor(() => {
-            expect(global.fetch).toHaveBeenCalledTimes(1);
+            expect(firstSignal).toBeDefined();
         });
 
         act(() => {
@@ -367,9 +374,24 @@ describe('useWeather', () => {
             resolveSecond = resolve;
         });
 
-        vi.spyOn(global, 'fetch')
-            .mockReturnValueOnce(firstPending as Promise<Response>)
-            .mockReturnValueOnce(secondPending as Promise<Response>);
+        vi.spyOn(global, 'fetch').mockImplementation(
+            (input: RequestInfo | URL) => {
+                const url = String(input);
+                const fsa = new URL(url, 'http://localhost').searchParams.get(
+                    'fsa',
+                );
+
+                if (fsa === 'M5V') {
+                    return firstPending;
+                }
+
+                if (fsa === 'M4B') {
+                    return secondPending;
+                }
+
+                return Promise.resolve(mockFetchError(503));
+            },
+        );
 
         const { result } = renderHook(() => useWeather());
 

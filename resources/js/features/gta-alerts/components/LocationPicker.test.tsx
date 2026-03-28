@@ -91,7 +91,7 @@ describe('LocationPicker', () => {
     // Search
     // -----------------------------------------------------------------------
 
-    it('does not search when input is shorter than 2 characters', async () => {
+    it('does not search when input is shorter than 2 characters', () => {
         const fetchSpy = vi
             .spyOn(global, 'fetch')
             .mockResolvedValue(mockFetchOk(makeSearchResponse()));
@@ -101,9 +101,7 @@ describe('LocationPicker', () => {
 
         fireEvent.change(input, { target: { value: 'M' } });
 
-        await waitFor(() => {
-            expect(fetchSpy).not.toHaveBeenCalled();
-        });
+        expect(fetchSpy).not.toHaveBeenCalled();
     });
 
     it('fetches postal code suggestions when input has 2+ characters', async () => {

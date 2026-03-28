@@ -10,7 +10,9 @@ const mapContainerSpy = vi.hoisted(() =>
 
 const tileLayerSpy = vi.hoisted(() =>
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    vi.fn((props: Record<string, unknown>) => <div data-testid="leaflet-tile-layer" />),
+    vi.fn((props: Record<string, unknown>) => (
+        <div data-testid="leaflet-tile-layer" />
+    )),
 );
 
 const markerSpy = vi.hoisted(() =>
@@ -36,7 +38,8 @@ vi.mock('../lib/leaflet', () => ({
     configureLeafletDefaultIcons: vi.fn(),
     OPEN_STREET_MAP_ATTRIBUTION:
         '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-    OPEN_STREET_MAP_TILE_URL: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+    OPEN_STREET_MAP_TILE_URL:
+        'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
 }));
 
 vi.mock('@/hooks/use-mobile', () => ({
@@ -67,7 +70,9 @@ describe('AlertLocationMap', () => {
 
         await screen.findByTestId('leaflet-map-container');
 
-        expect(container.querySelector('#test-alert-map-wrapper')).not.toBeNull();
+        expect(
+            container.querySelector('#test-alert-map-wrapper'),
+        ).not.toBeNull();
     });
 });
 
@@ -122,7 +127,9 @@ describe('AlertLocationUnavailable', () => {
             .closest('div[id="alert-404-location-unavailable"]');
         expect(unavailableCard).not.toBeNull();
         expect(
-            screen.getByText('Exact coordinates are not available for this alert.'),
+            screen.getByText(
+                'Exact coordinates are not available for this alert.',
+            ),
         ).toBeInTheDocument();
         expect(screen.getByText('Unknown location')).toBeInTheDocument();
     });
