@@ -4,7 +4,7 @@
 - **Type:** Bug / Security
 - **Severity:** High + Moderate (combined)
 - **Component:** Frontend Dependencies (`pnpm-lock.yaml`)
-- **Status:** Open
+- **Status:** Closed
 
 ## Summary
 Security scan on 2026-03-28 (`vendor/bin/sail pnpm audit --audit-level low`) reports 7 open vulnerabilities in transitive npm dependencies locked in `pnpm-lock.yaml`:
@@ -56,13 +56,31 @@ This ticket defines the implementation and verification plan to remove all curre
 6. **Security re-check**
    - Run `vendor/bin/sail pnpm audit --audit-level low` (and Dependabot re-scan) and confirm alerts are closed for all three packages.
 
+## Resolution (2026-03-28)
+- Applied scoped `pnpm` overrides in `package.json`:
+  - `"flatted@3.4.1": "3.4.2"`
+  - `"picomatch@2.3.1": "2.3.2"`
+  - `"picomatch@4.0.3": "4.0.4"`
+  - `"brace-expansion@1.1.12": "1.1.13"`
+  - `"brace-expansion@5.0.4": "5.0.5"`
+- Regenerated lockfile with `vendor/bin/sail pnpm install --lockfile-only`.
+- Verified scanner output: `vendor/bin/sail pnpm audit --audit-level low` reports **No known vulnerabilities found**.
+- Validation commands executed:
+  - `vendor/bin/sail pnpm run test resources/js/features/gta-alerts/services/AlertService.test.ts`
+  - `vendor/bin/sail pnpm run build`
+  - `vendor/bin/sail composer test`
+  - `vendor/bin/sail composer lint`
+  - `vendor/bin/sail pnpm run lint`
+  - `vendor/bin/sail pnpm run format`
+  - `vendor/bin/sail pnpm run types`
+
 ## Acceptance Criteria
-- [ ] No vulnerable `flatted` versions remain in `pnpm-lock.yaml`.
-- [ ] No vulnerable `picomatch` versions remain in `pnpm-lock.yaml`.
-- [ ] No vulnerable `brace-expansion` versions remain in `pnpm-lock.yaml`.
-- [ ] Dependency changes are minimal and scoped to security remediation.
-- [ ] Lint, build, and targeted test gates pass after updates.
-- [ ] Dependabot alerts for these issues are closed.
+- [x] No vulnerable `flatted` versions remain in `pnpm-lock.yaml`.
+- [x] No vulnerable `picomatch` versions remain in `pnpm-lock.yaml`.
+- [x] No vulnerable `brace-expansion` versions remain in `pnpm-lock.yaml`.
+- [x] Dependency changes are minimal and scoped to security remediation.
+- [x] Lint, build, and targeted test gates pass after updates.
+- [ ] Dependabot alerts for these issues are closed (pending GitHub re-scan after push).
 
 ## Out of Scope
 - Broader dependency modernization unrelated to these vulnerabilities.

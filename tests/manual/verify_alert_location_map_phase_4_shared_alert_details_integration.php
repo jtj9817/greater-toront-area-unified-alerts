@@ -274,4 +274,3 @@ try {
 
     exit($failed > 0 ? 1 : 0);
 }
-
