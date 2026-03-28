@@ -29,7 +29,7 @@
 - [x] Task: Protect the surrounding frontend contract [9f7debf]
     - [x] Run and fix any impacted alert-domain tests so the new presentation field does not regress existing domain parsing.
     - [x] Only touch `resources/js/features/gta-alerts/domain/alerts/resource.ts` or related transport code if the contract tests expose a real mismatch.
-- [ ] Task: Conductor - User Manual Verification 'Phase 2: Presentation Boundary and Coordinate Eligibility' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 2: Presentation Boundary and Coordinate Eligibility' (Protocol in workflow.md) [d841233]
 
 ## Phase 3: Shared Client-Only Map Components
 
