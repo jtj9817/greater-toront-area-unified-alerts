@@ -2,7 +2,7 @@
 
 **Type:** Bug
 **Priority:** P2
-**Status:** Open
+**Status:** Closed
 **Component:** GTA Alerts Frontend (Weather / Footer / Mobile Layout)
 
 ---
@@ -46,10 +46,18 @@ Surface weather data in the **weather prompt banner region** (header area) on mo
 
 ---
 
+## Resolution
+
+Added a mobile-only (`md:hidden`) compact weather bar in the header banner region of `App.tsx`. After a user selects a location, the prompt banner transitions to a compact weather display showing FSA code, temperature, condition, and weather alert badge (if any). A loading state ("Loading…") is shown while weather data is being fetched.
+
+**Files changed:**
+- `resources/js/features/gta-alerts/App.tsx` — Added `isLoading` from `useWeather()`; added mobile weather bar block after the onboarding prompt conditional
+- `resources/js/features/gta-alerts/App.test.tsx` — Added 4 tests covering weather data display, loading state, no-location hidden state, and dismissed-prompt hidden state
+
 ## Acceptance Criteria
 
-- [ ] On mobile (<=768px), weather data is visible in the header/banner region after a location is selected.
-- [ ] The weather prompt banner transitions to a compact weather display post-selection.
-- [ ] Desktop layout is unaffected -- footer weather bar continues to render as before.
-- [ ] "Not now" dismissal still hides the banner (no weather shown until user revisits settings).
-- [ ] Weather data updates reactively (matches `useWeather` hook state).
+- [x] On mobile (<=768px), weather data is visible in the header/banner region after a location is selected.
+- [x] The weather prompt banner transitions to a compact weather display post-selection.
+- [x] Desktop layout is unaffected -- footer weather bar continues to render as before.
+- [x] "Not now" dismissal still hides the banner (no weather shown until user revisits settings).
+- [x] Weather data updates reactively (matches `useWeather` hook state).

@@ -400,6 +400,90 @@ describe('GTA Alerts App (typed domain enforcement boundary)', () => {
         ).not.toBeInTheDocument();
     });
 
+    it('shows mobile weather bar with weather data when location is selected', async () => {
+        localStorage.setItem(
+            LOCATION_STORAGE_KEY,
+            JSON.stringify({
+                fsa: 'M5V',
+                label: 'M5V — Waterfront Communities, Toronto',
+                lat: 43.6406,
+                lng: -79.3961,
+            }),
+        );
+
+        vi.spyOn(global, 'fetch').mockResolvedValue(
+            mockJsonResponse({
+                data: {
+                    fsa: 'M5V',
+                    provider: 'environment_canada',
+                    temperature: 12,
+                    humidity: 55,
+                    wind_speed: '15 km/h',
+                    wind_direction: 'W',
+                    condition: 'Partly Cloudy',
+                    alert_level: null,
+                    alert_text: null,
+                    fetched_at: '2026-03-28T12:00:00+00:00',
+                },
+            }),
+        );
+
+        render(<AlertsApp {...buildBaseProps([fireResource()])} />);
+
+        await waitFor(() => {
+            expect(screen.getByText('M5V')).toBeInTheDocument();
+        });
+        expect(screen.getByText(/12°C/)).toBeInTheDocument();
+        expect(screen.getByText('Partly Cloudy')).toBeInTheDocument();
+    });
+
+    it('shows loading state in mobile weather bar while weather is being fetched', () => {
+        localStorage.setItem(
+            LOCATION_STORAGE_KEY,
+            JSON.stringify({
+                fsa: 'M5V',
+                label: 'M5V — Waterfront Communities, Toronto',
+                lat: 43.6406,
+                lng: -79.3961,
+            }),
+        );
+
+        vi.spyOn(global, 'fetch').mockReturnValue(
+            new Promise<Response>(() => {
+                // Keep request pending to simulate loading state.
+            }),
+        );
+
+        render(<AlertsApp {...buildBaseProps([fireResource()])} />);
+
+        expect(screen.getByText('M5V')).toBeInTheDocument();
+        expect(screen.getByText('Loading…')).toBeInTheDocument();
+    });
+
+    it('does not show mobile weather bar when no location is selected', () => {
+        render(<AlertsApp {...buildBaseProps([fireResource()])} />);
+
+        expect(
+            document.getElementById('gta-alerts-mobile-weather-bar'),
+        ).not.toBeInTheDocument();
+    });
+
+    it('does not show mobile weather bar when prompt was dismissed with Not now', () => {
+        localStorage.setItem(
+            LOCATION_PROMPT_STORAGE_KEY,
+            JSON.stringify({
+                handled: true,
+                result: 'deferred',
+            }),
+        );
+
+        render(<AlertsApp {...buildBaseProps([fireResource()])} />);
+
+        expect(
+            document.getElementById('gta-alerts-mobile-weather-bar'),
+        ).not.toBeInTheDocument();
+    });
+
     it('keeps the mobile drawer closed by default and toggles open/closed from menu controls', () => {
         render(<AlertsApp {...buildBaseProps([fireResource()])} />);
 
