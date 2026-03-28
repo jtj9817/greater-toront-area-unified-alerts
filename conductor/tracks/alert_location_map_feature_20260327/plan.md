@@ -68,7 +68,7 @@
     - [x] Confirm police, TTC, and GO branches do not need duplicated map logic after the refactor.
 - [x] Task: Conductor - User Manual Verification 'Phase 4: Shared Alert Details Integration' (Protocol in workflow.md) [fd758d0]
 
-## Phase 5: QA (Full Testing Suite)
+## Phase 5: QA (Full Testing Suite) [checkpoint: 633f518]
 
 - [x] Task: Run targeted tests first for fast feedback
     - [x] Run `vendor/bin/sail pnpm test -- mapDomainAlertToPresentation.test.ts AlertLocationMap.test.tsx AlertDetailsView.test.tsx`.
@@ -87,7 +87,7 @@
     - [x] Run `vendor/bin/sail bin pint --dirty --format agent`.
     - [x] Run `vendor/bin/sail composer audit` and `vendor/bin/sail pnpm audit`.
     - [x] Verify in the browser that alerts with coordinates render a working map, alerts without coordinates render the unavailable state, and mobile scrolling remains usable.
-- [ ] Task: Conductor - User Manual Verification 'Phase 5: QA (Full Testing Suite)' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 5: QA (Full Testing Suite)' (Protocol in workflow.md) [633f518]
 
 ## Phase 6: Documentation Phase
 
