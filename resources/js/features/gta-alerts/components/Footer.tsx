@@ -29,7 +29,7 @@ export const Footer: React.FC<FooterProps> = ({ weather }) => {
     return (
         <footer
             id="gta-alerts-footer"
-            className="hidden h-12 flex-none items-center justify-between border-t-4 border-primary bg-background-dark px-8 text-[11px] font-black tracking-widest text-white uppercase md:flex"
+            className="flex h-12 flex-none items-center justify-between border-t-4 border-primary bg-background-dark px-8 text-[11px] font-black tracking-widest text-white uppercase"
         >
             <div id="gta-alerts-footer-weather" className="flex gap-8">
                 {weather ? (
@@ -71,7 +71,7 @@ export const Footer: React.FC<FooterProps> = ({ weather }) => {
                 )}
             </div>
 
-            <div id="gta-alerts-footer-links" className="flex gap-6">
+            <div id="gta-alerts-footer-links" className="hidden gap-6 md:flex">
                 <a
                     id="gta-alerts-footer-link-archives"
                     className="border-b border-transparent transition-colors hover:border-primary hover:text-primary"

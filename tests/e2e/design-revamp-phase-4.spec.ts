@@ -94,8 +94,8 @@ export const designRevampPhase4Spec = {
             id: 'responsive-mobile-parity',
             checks: [
                 'Drawer opens/closes with menu actions and Escape key',
-                'Bottom nav coexists with feed shell on mobile',
-                'Refresh FAB reserves clearance above bottom nav touch targets',
+                'Weather footer renders on mobile in place of bottom nav',
+                'Refresh FAB reserves clearance above footer touch area',
             ],
         },
     ],
@@ -349,7 +349,7 @@ describe(designRevampPhase4Spec.scenarios[3].id, () => {
 });
 
 describe(designRevampPhase4Spec.scenarios[4].id, () => {
-    it('keeps the mobile drawer controls, bottom nav, and feed refresh affordance aligned', () => {
+    it('keeps the mobile drawer controls, weather footer, and feed refresh affordance aligned', () => {
         render(React.createElement(AlertsApp, buildAppProps()));
 
         const openMenuButton = screen.getByRole('button', { name: 'Open menu' });
@@ -363,15 +363,12 @@ describe(designRevampPhase4Spec.scenarios[4].id, () => {
 
         expect(sidebar).not.toBeNull();
         expect(
-            document.getElementById('gta-alerts-bottom-nav'),
+            document.getElementById('gta-alerts-footer'),
         ).toBeInTheDocument();
         expect(
-            document.getElementById('gta-alerts-bottom-nav-btn-feed'),
+            document.getElementById('gta-alerts-footer-weather'),
         ).toBeInTheDocument();
-        expect(
-            document.getElementById('gta-alerts-bottom-nav-btn-inbox'),
-        ).toBeInTheDocument();
-        expect(refreshButton).toHaveClass('bottom-24');
+        expect(refreshButton).toHaveClass('bottom-16');
 
         fireEvent.click(openMenuButton);
         expect(sidebar).toHaveClass('translate-x-0');

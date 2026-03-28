@@ -2,7 +2,7 @@
 
 **Type:** Enhancement
 **Priority:** P2
-**Status:** Open
+**Status:** Closed
 **Component:** GTA Alerts Frontend (Mobile Layout / Navigation / Weather)
 
 ---
@@ -140,3 +140,25 @@ Remove the 4 tests that assert on `gta-alerts-mobile-weather-bar`, or replace th
 | [FEED-038](./FEED-038-weather-bar-hidden-on-mobile.md) | Weather bar hidden on mobile — workaround this ticket supersedes |
 | [FEED-016](./FEED-016-design-revamp-phase-4-verification-findings.md) | Design revamp phase 4 — original mobile shell contract |
 | [FEED-015](./FEED-015-footer-weather-stats-hardcoded-placeholder.md) | Footer weather stats originally hardcoded |
+
+---
+
+## Resolution
+
+Implemented as described above.
+
+**Files changed:**
+
+- `resources/js/features/gta-alerts/components/Footer.tsx` — Removed `hidden` / `md:flex` from root `<footer>`; added `hidden md:flex` on links `<div>` so links remain desktop-only.
+- `resources/js/features/gta-alerts/App.tsx` — Removed `BottomNav` import and JSX; removed `gta-alerts-mobile-weather-bar` header block and the `isLoading: isWeatherLoading` destructure entry (sole consumer removed); adjusted FAB positions: refresh `bottom-24 → bottom-16`, MinimalModeToggle `bottom-40 → bottom-32`.
+- `resources/js/features/gta-alerts/components/BottomNav.tsx` — **Deleted**.
+- `tests/e2e/design-revamp-phase-4.spec.ts` — Updated `responsive-mobile-parity` scenario metadata and test: replaced bottom-nav assertions with footer assertions, updated FAB class check to `bottom-16`.
+- `resources/js/features/gta-alerts/App.test.tsx` — Removed 3 stale mobile weather bar tests (loading state, no-location hidden, prompt-dismissed hidden); updated the weather data test to verify `gta-alerts-footer-weather-text` content instead.
+
+**Verification:**
+
+- `pnpm run types` → **PASS**
+- `pnpm run lint` → **PASS**
+- `pnpm run format` → **PASS**
+- Vitest (all frontend tests) → **300 passed**
+- `vendor/bin/sail composer test` → **756 passed, 7 skipped**

@@ -8,7 +8,6 @@ import React, {
 } from 'react';
 import { home } from '@/routes';
 import { AlertDetailsView } from './components/AlertDetailsView';
-import { BottomNav } from './components/BottomNav';
 import { FeedView } from './components/FeedView';
 import { Footer } from './components/Footer';
 import { Icon } from './components/Icon';
@@ -100,7 +99,6 @@ const App: React.FC<AppProps> = ({
     const {
         location: weatherLocation,
         weather,
-        isLoading: isWeatherLoading,
         shouldPromptForLocation,
         markLocationPromptHandled,
         setLocation: setWeatherLocation,
@@ -727,69 +725,6 @@ const App: React.FC<AppProps> = ({
                                 </div>
                             </div>
                         )}
-
-                        {/* Mobile-only compact weather bar — visible after location is selected */}
-                        {!shouldPromptForLocation &&
-                            weatherLocation !== null && (
-                                <div
-                                    id="gta-alerts-mobile-weather-bar"
-                                    className="border-t border-[#333333] bg-[#121212] px-4 py-2 md:hidden"
-                                >
-                                    <div className="flex items-center gap-3 text-[11px] font-bold tracking-widest text-white uppercase">
-                                        <span className="flex items-center gap-1">
-                                            <Icon
-                                                name="location_on"
-                                                className="text-xs text-primary"
-                                            />
-                                            {weatherLocation.fsa}
-                                        </span>
-                                        {weather ? (
-                                            <>
-                                                <span className="flex items-center gap-1">
-                                                    <Icon
-                                                        name="thermostat"
-                                                        className="text-xs"
-                                                    />
-                                                    {weather.temperature !==
-                                                    null
-                                                        ? `${weather.temperature}°C`
-                                                        : '—°C'}
-                                                </span>
-                                                {weather.condition && (
-                                                    <span className="truncate opacity-70">
-                                                        {weather.condition}
-                                                    </span>
-                                                )}
-                                                {weather.alertLevel && (
-                                                    <span
-                                                        role="status"
-                                                        className={`flex items-center gap-1 px-2 py-0.5 text-[10px] font-black uppercase ${
-                                                            weather.alertLevel ===
-                                                            'yellow'
-                                                                ? 'bg-yellow-400 text-black'
-                                                                : weather.alertLevel ===
-                                                                    'orange'
-                                                                  ? 'bg-orange-500 text-white'
-                                                                  : 'bg-red-600 text-white'
-                                                        }`}
-                                                    >
-                                                        <Icon
-                                                            name="warning"
-                                                            className="text-xs"
-                                                        />
-                                                        {weather.alertText ??
-                                                            `${weather.alertLevel.charAt(0).toUpperCase() + weather.alertLevel.slice(1)} alert`}
-                                                    </span>
-                                                )}
-                                            </>
-                                        ) : isWeatherLoading ? (
-                                            <span className="opacity-50">
-                                                Loading…
-                                            </span>
-                                        ) : null}
-                                    </div>
-                                </div>
-                            )}
                     </div>
                 </header>
 
@@ -803,16 +738,12 @@ const App: React.FC<AppProps> = ({
                 </main>
 
                 <Footer weather={weather} />
-                <BottomNav
-                    currentView={currentView}
-                    onNavigate={handleNavigate}
-                />
             </div>
 
             {currentView === 'feed' && (
                 <>
                     {/* Minimal Mode Toggle FAB */}
-                    <div className="fixed right-5 bottom-40 z-[95] md:right-8 md:bottom-24">
+                    <div className="fixed right-5 bottom-32 z-[95] md:right-8 md:bottom-24">
                         <MinimalModeToggle
                             isHidden={isHidden}
                             toggleSection={toggleSection}
@@ -825,7 +756,7 @@ const App: React.FC<AppProps> = ({
                         onClick={handleRefreshFeed}
                         disabled={isRefreshingFeed}
                         aria-label="Refresh feed"
-                        className="fixed right-5 bottom-24 z-[95] flex h-12 w-12 items-center justify-center border-2 border-black bg-primary text-black shadow-[5px_5px_0_#000] transition-all hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-none disabled:cursor-not-allowed disabled:opacity-60 md:right-8 md:bottom-8"
+                        className="fixed right-5 bottom-16 z-[95] flex h-12 w-12 items-center justify-center border-2 border-black bg-primary text-black shadow-[5px_5px_0_#000] transition-all hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-none disabled:cursor-not-allowed disabled:opacity-60 md:right-8 md:bottom-8"
                     >
                         <Icon
                             name={isRefreshingFeed ? 'sync' : 'refresh'}
