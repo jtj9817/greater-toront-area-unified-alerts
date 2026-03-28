@@ -49,7 +49,7 @@
     - [x] Build `AlertLocationMap.tsx` as the lazy wrapper that never imports Leaflet directly.
     - [x] Export or colocate an `AlertLocationUnavailable` component for non-renderable coordinates.
     - [x] Pass a stable `idBase` or equivalent alert-derived identifier into the wrapper so DOM IDs remain deterministic.
-- [ ] Task: Conductor - User Manual Verification 'Phase 3: Shared Client-Only Map Components' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 3: Shared Client-Only Map Components' (Protocol in workflow.md) [3ae4bef]
 
 ## Phase 4: Shared Alert Details Integration
 
