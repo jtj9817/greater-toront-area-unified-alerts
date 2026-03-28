@@ -1,4 +1,4 @@
-# SEC-002: Resolve Open Dependabot Vulnerabilities in `picomatch` and `brace-expansion`
+# SEC-002: Resolve Open Dependabot Vulnerabilities in `flatted`, `picomatch`, and `brace-expansion`
 
 ## Meta
 - **Type:** Bug / Security
@@ -7,44 +7,57 @@
 - **Status:** Open
 
 ## Summary
-Dependabot is reporting open security vulnerabilities in transitive npm dependencies locked in `pnpm-lock.yaml`:
+Security scan on 2026-03-28 (`vendor/bin/sail pnpm audit --audit-level low`) reports 7 open vulnerabilities in transitive npm dependencies locked in `pnpm-lock.yaml`:
 
-- `picomatch` ReDoS via extglob quantifiers (4 alerts)
-- `brace-expansion` zero-step sequence process hang / memory exhaustion (1 alert)
+- `flatted` prototype pollution via `parse()` (high)
+- `picomatch` ReDoS + method-injection advisories (high + moderate)
+- `brace-expansion` zero-step sequence process hang / memory exhaustion (moderate; two affected major ranges)
 
-This ticket defines the implementation plan to remove the vulnerable versions from the dependency graph and verify no regression is introduced.
+This ticket defines the implementation and verification plan to remove all currently vulnerable versions from the dependency graph with scoped overrides, then validate there is no regression.
 
 ## Vulnerability Snapshot
+- **Package:** `flatted`
+  - **Observed vulnerable lock version:** `3.4.1`
+  - **Minimum patched version:** `>=3.4.2`
+  - **Introduced transitively via:** `eslint` → `file-entry-cache` → `flat-cache`.
 - **Package:** `picomatch`
-  - **Observed vulnerable lock version:** `4.0.3`
-  - **Minimum patched version:** `>=4.0.4`
-  - **Introduced transitively via:** `vite`, `vitest`, `@tailwindcss/vite`, `@vitejs/plugin-react`, `typescript-eslint`, and related tooling chain packages.
+  - **Observed vulnerable lock versions:** `2.3.1`, `4.0.3`
+  - **Minimum patched versions:** `>=2.3.2` for v2 range; `>=4.0.4` for v4 range.
+  - **Introduced transitively via:** `vite-plugin-full-reload`, `vite`, `vitest`, `@tailwindcss/vite`, `@vitejs/plugin-react`, `typescript-eslint`.
 - **Package:** `brace-expansion`
-  - **Observed vulnerable lock version:** `5.0.4`
-  - **Minimum patched version:** `>=5.0.5`
-  - **Introduced transitively via:** `eslint-import-resolver-typescript`, `eslint-plugin-import`, and `typescript-eslint`.
+  - **Observed vulnerable lock versions:** `1.1.12`, `5.0.4`
+  - **Minimum patched versions:** `>=1.1.13` for v1 range; `>=5.0.5` for v5 range.
+  - **Introduced transitively via:** `eslint` (via `minimatch@3`) and `typescript-eslint`/`eslint-plugin-import` (via `minimatch@10`).
+
+## Priority Order
+- **P1:** `flatted` high severity (`3.4.1` → `>=3.4.2`)
+- **P2:** `picomatch` high/moderate advisories (`2.3.1` and `4.0.3`)
+- **P3:** `brace-expansion` moderate advisories (`1.1.12` and `5.0.4`)
 
 ## Implementation Plan
 1. **Map current graph**
-   - Run `pnpm why picomatch` and `pnpm why brace-expansion` to confirm all transitive introduction paths.
+   - Run `pnpm why flatted`, `pnpm why picomatch`, and `pnpm why brace-expansion` to confirm all transitive introduction paths.
 2. **Select update strategy**
-   - Prefer upgrading top-level packages that pull vulnerable transitive versions.
-   - If upstream ranges do not resolve quickly, add targeted `pnpm.overrides` entries in `package.json`:
-     - `"picomatch": ">=4.0.4"`
-     - `"brace-expansion": ">=5.0.5"`
+   - Use scoped `pnpm.overrides` to avoid cross-major forced upgrades that could break dependents.
+   - Apply fixes in priority order:
+     - `flatted`: `"flatted": ">=3.4.2"`
+     - `picomatch`: `"vite-plugin-full-reload@1.2.0>picomatch": "2.3.2"` and `"picomatch": ">=4.0.4"`
+     - `brace-expansion`: `"minimatch@3.1.5>brace-expansion": "1.1.13"` and `"minimatch@10.2.4>brace-expansion": "5.0.5"`
 3. **Regenerate lockfile**
-   - Run `pnpm install` to apply resolution and update `pnpm-lock.yaml`.
+   - Run `vendor/bin/sail pnpm install` to apply resolution and update `pnpm-lock.yaml`.
 4. **Verify resolved versions**
-   - Re-run `pnpm why picomatch` and `pnpm why brace-expansion` and confirm no vulnerable versions remain.
+   - Re-run `vendor/bin/sail pnpm why flatted`, `vendor/bin/sail pnpm why picomatch`, and `vendor/bin/sail pnpm why brace-expansion`.
+   - Confirm vulnerable versions no longer appear in resolver output.
 5. **Regression validation**
-   - Run lint/build/test gates used in this repo for dependency changes:
+   - Run targeted checks first, then broader quality gates:
      - `vendor/bin/sail pnpm run lint`
      - `vendor/bin/sail pnpm run build`
      - `vendor/bin/sail artisan test --compact`
 6. **Security re-check**
-   - Run `pnpm audit` (or Dependabot re-scan) and confirm alerts are closed for both packages.
+   - Run `vendor/bin/sail pnpm audit --audit-level low` (and Dependabot re-scan) and confirm alerts are closed for all three packages.
 
 ## Acceptance Criteria
+- [ ] No vulnerable `flatted` versions remain in `pnpm-lock.yaml`.
 - [ ] No vulnerable `picomatch` versions remain in `pnpm-lock.yaml`.
 - [ ] No vulnerable `brace-expansion` versions remain in `pnpm-lock.yaml`.
 - [ ] Dependency changes are minimal and scoped to security remediation.
@@ -52,9 +65,9 @@ This ticket defines the implementation plan to remove the vulnerable versions fr
 - [ ] Dependabot alerts for these issues are closed.
 
 ## Out of Scope
-- Broader dependency modernization unrelated to these two vulnerabilities.
+- Broader dependency modernization unrelated to these vulnerabilities.
 - Non-security refactors in application code.
 
 ## Notes
-- Both findings are currently transitive lockfile issues; remediation may be completed without application source changes.
+- All findings are currently transitive lockfile issues; remediation may be completed without application source changes.
 - If direct package upgrades conflict with current toolchain constraints, use `pnpm.overrides` as an explicit short-term control and track cleanup in a follow-up ticket.
