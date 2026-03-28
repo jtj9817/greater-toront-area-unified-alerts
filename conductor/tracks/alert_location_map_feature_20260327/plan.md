@@ -89,7 +89,7 @@
     - [x] Verify in the browser that alerts with coordinates render a working map, alerts without coordinates render the unavailable state, and mobile scrolling remains usable.
 - [x] Task: Conductor - User Manual Verification 'Phase 5: QA (Full Testing Suite)' (Protocol in workflow.md) [633f518]
 
-## Phase 6: Documentation Phase
+## Phase 6: Documentation Phase [checkpoint: 8fd7d1f]
 
 - [x] Task: Document the finalized feature behavior [8263094]
     - [x] Update the relevant project docs in `docs/` with the final location-map behavior, coordinate eligibility rules, and the no-geocoding scope for v1.
@@ -100,4 +100,4 @@
 - [x] Task: Close out conductor artifacts for archival readiness [8263094]
     - [x] Reconcile any implementation deviations back into `spec.md` / `plan.md`.
     - [x] Ensure the track is ready for registry/archive handoff after QA sign-off.
-- [ ] Task: Conductor - User Manual Verification 'Phase 6: Documentation Phase' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 6: Documentation Phase' (Protocol in workflow.md) [8fd7d1f]
