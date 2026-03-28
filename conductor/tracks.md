@@ -13,7 +13,7 @@ This file tracks all major tracks for the project. Each track has its own detail
 ## Archived Tracks
 
 - [x] **Track: Alert Location Map Feature (Leaflet + OpenStreetMap)**
-      _Link: [./tracks/alert_location_map_feature_20260327/](./tracks/alert_location_map_feature_20260327/)_
+      _Link: [./archive/alert_location_map_feature_20260327/](./archive/alert_location_map_feature_20260327/)_
 
 - [x] **Track: Weather Feature (GTA Alerts)**
       _Link: [./archive/weather_feature_20260325/](./archive/weather_feature_20260325/)_
