@@ -9,7 +9,8 @@ const mapContainerSpy = vi.hoisted(() =>
 );
 
 const tileLayerSpy = vi.hoisted(() =>
-    vi.fn(() => <div data-testid="leaflet-tile-layer" />),
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    vi.fn((props: Record<string, unknown>) => <div data-testid="leaflet-tile-layer" />),
 );
 
 const markerSpy = vi.hoisted(() =>
@@ -42,8 +43,8 @@ vi.mock('@/hooks/use-mobile', () => ({
     useIsMobile: () => false,
 }));
 
-import { AlertLocationMapClient } from './AlertLocationMap.client';
 import { AlertLocationMap } from './AlertLocationMap';
+import { AlertLocationMapClient } from './AlertLocationMap.client';
 import { AlertLocationUnavailable } from './AlertLocationUnavailable';
 
 beforeEach(() => {
