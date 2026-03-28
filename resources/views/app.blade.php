@@ -36,6 +36,25 @@
         <link rel="icon" href="/favicon.svg" type="image/svg+xml">
         <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 
+        {{-- Social metadata: description, Open Graph, Twitter Card --}}
+        <meta name="description" content="{{ config('app.description') }}">
+
+        <meta property="og:type" content="website">
+        <meta property="og:site_name" content="{{ config('app.name') }}">
+        <meta property="og:title" content="{{ config('app.name') }}">
+        <meta property="og:description" content="{{ config('app.description') }}">
+        <meta property="og:url" content="{{ rtrim(config('app.url'), '/') }}">
+        <meta property="og:image" content="{{ rtrim(config('app.url'), '/') }}/images/social-preview.png">
+        <meta property="og:image:width" content="1200">
+        <meta property="og:image:height" content="630">
+        <meta property="og:image:alt" content="{{ config('app.description') }}">
+        <meta property="og:locale" content="en_CA">
+
+        <meta name="twitter:card" content="summary_large_image">
+        <meta name="twitter:title" content="{{ config('app.name') }}">
+        <meta name="twitter:description" content="{{ config('app.description') }}">
+        <meta name="twitter:image" content="{{ rtrim(config('app.url'), '/') }}/images/social-preview.png">
+
         @viteReactRefresh
         @vite(['resources/js/app.tsx', "resources/js/pages/{$page['component']}.tsx"])
         @inertiaHead

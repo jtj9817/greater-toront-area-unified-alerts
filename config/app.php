@@ -17,6 +17,18 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Application Description
+    |--------------------------------------------------------------------------
+    |
+    | A short description of the application used in HTML meta tags and social
+    | media preview cards (Open Graph, Twitter Card). Keep it under 160 chars.
+    |
+    */
+
+    'description' => env('APP_DESCRIPTION', 'Real-time emergency services and transit alerts for the Greater Toronto Area.'),
+
+    /*
+    |--------------------------------------------------------------------------
     | Application Environment
     |--------------------------------------------------------------------------
     |

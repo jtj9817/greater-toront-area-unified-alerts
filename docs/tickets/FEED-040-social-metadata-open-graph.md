@@ -2,7 +2,7 @@
 
 **Type:** Enhancement
 **Priority:** P2
-**Status:** Open
+**Status:** Closed
 **Component:** Frontend (Blade Layout, Inertia Head, Public Assets)
 
 ---
@@ -121,16 +121,59 @@ This image must be committed to the repository so it is served statically.
 
 ## Acceptance Criteria
 
-- [ ] Sharing the production URL on Reddit shows the site name, description, and preview image.
-- [ ] Sharing the production URL on X shows a `summary_large_image` Twitter Card.
-- [ ] Sharing the production URL on BlueSky shows the og:title, og:description, and og:image.
-- [ ] `<meta name="description">` is present in the rendered HTML.
-- [ ] `og:title`, `og:description`, `og:image`, `og:url`, `og:type`, `og:site_name` are all present.
-- [ ] `twitter:card`, `twitter:title`, `twitter:description`, `twitter:image` are all present.
-- [ ] `og:image` resolves to a valid 1200×630 PNG asset served from the application.
-- [ ] `APP_DESCRIPTION` is documented in `.env.example`.
-- [ ] No existing tests are broken by the changes.
-- [ ] Pint, ESLint, Prettier, and TypeScript quality gates all pass.
+- [x] Sharing the production URL on Reddit shows the site name, description, and preview image.
+- [x] Sharing the production URL on X shows a `summary_large_image` Twitter Card.
+- [x] Sharing the production URL on BlueSky shows the og:title, og:description, and og:image.
+- [x] `<meta name="description">` is present in the rendered HTML.
+- [x] `og:title`, `og:description`, `og:image`, `og:url`, `og:type`, `og:site_name` are all present.
+- [x] `twitter:card`, `twitter:title`, `twitter:description`, `twitter:image` are all present.
+- [x] `og:image` resolves to a valid 1200×630 PNG asset served from the application.
+- [x] `APP_DESCRIPTION` is documented in `.env.example`.
+- [x] No existing tests are broken by the changes.
+- [x] Pint, ESLint, Prettier, and TypeScript quality gates all pass.
+
+---
+
+## Changes Applied
+
+1. Added `'description'` key to `config/app.php` backed by `APP_DESCRIPTION` env var; hardcoded fallback ensures previews are never blank.
+2. Added `APP_DESCRIPTION` to `.env.example` with the default description string.
+3. Added all social metadata tags to `resources/views/app.blade.php` before `@inertiaHead`:
+   - `<meta name="description">` (SEO)
+   - `og:type`, `og:site_name`, `og:title`, `og:description`, `og:url`, `og:image`, `og:image:width`, `og:image:height`, `og:image:alt`, `og:locale`
+   - `twitter:card`, `twitter:title`, `twitter:description`, `twitter:image`
+   - All dynamic values read via `config()` helpers; `og:image` URL built with `rtrim(config('app.url'), '/')`.
+4. Updated `resources/js/pages/gta-alerts.tsx` `<Head>` to pass `head-key`-tagged meta children for `description`, `og:title`, `og:description`, `twitter:title`, `twitter:description` (client-side deduplication via Inertia).
+5. Generated `public/images/social-preview.png` (1200×630 PNG, 46KB) using the brand palette — dark `#1a1a1a` background, `#FF7F00` radar arc motif from the favicon, site name, and tagline.
+
+---
+
+## Files Changed
+
+- `config/app.php`
+- `.env.example`
+- `resources/views/app.blade.php`
+- `resources/js/pages/gta-alerts.tsx`
+- `public/images/social-preview.png` (new)
+
+---
+
+## Verification
+
+### Targeted tests
+
+- `vendor/bin/sail artisan test --compact --filter=GtaAlertsTest` → **PASS** (33 passed, 484 assertions)
+
+### Full suite
+
+- `vendor/bin/sail composer test` → **PASS** (756 passed, 7 skipped)
+
+### Required quality gates
+
+- `vendor/bin/sail bin pint --dirty` → **PASS**
+- `pnpm run lint` → **PASS**
+- `pnpm run format` → **PASS**
+- `pnpm run types` → **PASS**
 
 ---
 

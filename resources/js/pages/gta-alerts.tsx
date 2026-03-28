@@ -41,7 +41,33 @@ export default function GTAAlerts({
 
     return (
         <div id="gta-alerts-page">
-            <Head title="GTA Alerts" />
+            <Head title="GTA Alerts">
+                <meta
+                    head-key="description"
+                    name="description"
+                    content="Real-time emergency services and transit alerts for the Greater Toronto Area."
+                />
+                <meta
+                    head-key="og:title"
+                    property="og:title"
+                    content="GTA Alerts"
+                />
+                <meta
+                    head-key="og:description"
+                    property="og:description"
+                    content="Real-time emergency services and transit alerts for the Greater Toronto Area."
+                />
+                <meta
+                    head-key="twitter:title"
+                    name="twitter:title"
+                    content="GTA Alerts"
+                />
+                <meta
+                    head-key="twitter:description"
+                    name="twitter:description"
+                    content="Real-time emergency services and transit alerts for the Greater Toronto Area."
+                />
+            </Head>
             <AlertsApp
                 alerts={alerts}
                 filters={filters}
