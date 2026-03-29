@@ -148,7 +148,11 @@ describe('Footer', () => {
     // -----------------------------------------------------------------------
 
     it('displays Feels Like inline when feelsLike is present', () => {
-        render(<Footer weather={makeWeatherData({ temperature: 1, feelsLike: -5.5 })} />);
+        render(
+            <Footer
+                weather={makeWeatherData({ temperature: 1, feelsLike: -5.5 })}
+            />,
+        );
         expect(screen.getByText(/feels like/i)).toBeInTheDocument();
         expect(screen.getByText(/-5\.5/)).toBeInTheDocument();
     });
@@ -172,11 +176,47 @@ describe('Footer', () => {
                 })}
             />,
         );
-        expect(document.getElementById('gta-alerts-footer-weather-panel')).not.toBeInTheDocument();
+        expect(
+            document.getElementById('gta-alerts-footer-weather-panel'),
+        ).not.toBeInTheDocument();
 
         fireEvent.click(document.getElementById('gta-alerts-footer-weather')!);
 
-        expect(document.getElementById('gta-alerts-footer-weather-panel')).toBeInTheDocument();
+        expect(
+            document.getElementById('gta-alerts-footer-weather-panel'),
+        ).toBeInTheDocument();
+    });
+
+    it('resets open state when weather becomes unavailable, preventing auto-reopen', () => {
+        const { rerender } = render(
+            <Footer
+                weather={makeWeatherData({
+                    feelsLike: -5.5,
+                })}
+            />,
+        );
+
+        fireEvent.click(document.getElementById('gta-alerts-footer-weather')!);
+        expect(
+            document.getElementById('gta-alerts-footer-weather-panel'),
+        ).toBeInTheDocument();
+
+        rerender(<Footer weather={null} />);
+        expect(
+            document.getElementById('gta-alerts-footer-weather-panel'),
+        ).not.toBeInTheDocument();
+
+        rerender(
+            <Footer
+                weather={makeWeatherData({
+                    feelsLike: -5.5,
+                    fetchedAt: '2026-03-25T12:05:00+00:00',
+                })}
+            />,
+        );
+        expect(
+            document.getElementById('gta-alerts-footer-weather-panel'),
+        ).not.toBeInTheDocument();
     });
 
     it('shows non-null detail rows in the panel', () => {
@@ -194,11 +234,31 @@ describe('Footer', () => {
 
         fireEvent.click(document.getElementById('gta-alerts-footer-weather')!);
 
-        expect(document.getElementById('gta-alerts-footer-weather-detail-feels-like')).toBeInTheDocument();
-        expect(document.getElementById('gta-alerts-footer-weather-detail-condition')).toBeInTheDocument();
-        expect(document.getElementById('gta-alerts-footer-weather-detail-dewpoint')).toBeInTheDocument();
-        expect(document.getElementById('gta-alerts-footer-weather-detail-pressure')).toBeInTheDocument();
-        expect(document.getElementById('gta-alerts-footer-weather-detail-station-name')).toBeInTheDocument();
+        expect(
+            document.getElementById(
+                'gta-alerts-footer-weather-detail-feels-like',
+            ),
+        ).toBeInTheDocument();
+        expect(
+            document.getElementById(
+                'gta-alerts-footer-weather-detail-condition',
+            ),
+        ).toBeInTheDocument();
+        expect(
+            document.getElementById(
+                'gta-alerts-footer-weather-detail-dewpoint',
+            ),
+        ).toBeInTheDocument();
+        expect(
+            document.getElementById(
+                'gta-alerts-footer-weather-detail-pressure',
+            ),
+        ).toBeInTheDocument();
+        expect(
+            document.getElementById(
+                'gta-alerts-footer-weather-detail-station-name',
+            ),
+        ).toBeInTheDocument();
     });
 
     it('omits null fields from the detail panel', () => {
@@ -215,21 +275,35 @@ describe('Footer', () => {
 
         fireEvent.click(document.getElementById('gta-alerts-footer-weather')!);
 
-        expect(document.getElementById('gta-alerts-footer-weather-detail-pressure')).not.toBeInTheDocument();
-        expect(document.getElementById('gta-alerts-footer-weather-detail-visibility')).not.toBeInTheDocument();
-        expect(document.getElementById('gta-alerts-footer-weather-detail-wind-gust')).not.toBeInTheDocument();
+        expect(
+            document.getElementById(
+                'gta-alerts-footer-weather-detail-pressure',
+            ),
+        ).not.toBeInTheDocument();
+        expect(
+            document.getElementById(
+                'gta-alerts-footer-weather-detail-visibility',
+            ),
+        ).not.toBeInTheDocument();
+        expect(
+            document.getElementById(
+                'gta-alerts-footer-weather-detail-wind-gust',
+            ),
+        ).not.toBeInTheDocument();
     });
 
     it('closes the panel when Escape is pressed', () => {
-        render(
-            <Footer weather={makeWeatherData({ feelsLike: -5.5 })} />,
-        );
+        render(<Footer weather={makeWeatherData({ feelsLike: -5.5 })} />);
 
         fireEvent.click(document.getElementById('gta-alerts-footer-weather')!);
-        expect(document.getElementById('gta-alerts-footer-weather-panel')).toBeInTheDocument();
+        expect(
+            document.getElementById('gta-alerts-footer-weather-panel'),
+        ).toBeInTheDocument();
 
         fireEvent.keyDown(document, { key: 'Escape' });
-        expect(document.getElementById('gta-alerts-footer-weather-panel')).not.toBeInTheDocument();
+        expect(
+            document.getElementById('gta-alerts-footer-weather-panel'),
+        ).not.toBeInTheDocument();
     });
 
     it('does not open the panel when weather is null', () => {
@@ -238,7 +312,9 @@ describe('Footer', () => {
         if (weatherBar) {
             fireEvent.click(weatherBar);
         }
-        expect(document.getElementById('gta-alerts-footer-weather-panel')).not.toBeInTheDocument();
+        expect(
+            document.getElementById('gta-alerts-footer-weather-panel'),
+        ).not.toBeInTheDocument();
     });
 
     // -----------------------------------------------------------------------

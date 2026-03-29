@@ -23,7 +23,7 @@ class FeelsLikeCalculator
      * @param  float|null  $temperature  Air temperature in °C.
      * @param  float|null  $windKph  Wind speed in km/h (required for Wind Chill).
      * @param  float|null  $dewpoint  Dewpoint in °C (required for Humidex).
-     * @return float|null  Apparent temperature rounded to 1 decimal place, or null.
+     * @return float|null Apparent temperature rounded to 1 decimal place, or null.
      */
     public static function compute(?float $temperature, ?float $windKph, ?float $dewpoint): ?float
     {

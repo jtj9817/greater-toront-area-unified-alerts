@@ -25,19 +25,46 @@ interface DetailRow {
 function buildDetailRows(weather: WeatherData): DetailRow[] {
     const rows: DetailRow[] = [];
 
-    const add = (id: string, label: string, value: string | null | undefined) => {
+    const add = (
+        id: string,
+        label: string,
+        value: string | null | undefined,
+    ) => {
         if (value !== null && value !== undefined && value.trim() !== '') {
             rows.push({ id, label, value });
         }
     };
 
-    add('feels-like', 'Feels Like', weather.feelsLike !== null ? `${weather.feelsLike} °C` : null);
+    add(
+        'feels-like',
+        'Feels Like',
+        weather.feelsLike !== null ? `${weather.feelsLike} °C` : null,
+    );
     add('condition', 'Condition', weather.condition);
-    add('dewpoint', 'Dewpoint', weather.dewpoint !== null ? `${weather.dewpoint} °C` : null);
-    add('pressure', 'Pressure', weather.pressure !== null ? `${weather.pressure} kPa` : null);
-    add('visibility', 'Visibility', weather.visibility !== null ? `${weather.visibility} km` : null);
+    add(
+        'dewpoint',
+        'Dewpoint',
+        weather.dewpoint !== null ? `${weather.dewpoint} °C` : null,
+    );
+    add(
+        'pressure',
+        'Pressure',
+        weather.pressure !== null ? `${weather.pressure} kPa` : null,
+    );
+    add(
+        'visibility',
+        'Visibility',
+        weather.visibility !== null ? `${weather.visibility} km` : null,
+    );
     add('wind-gust', 'Wind Gust', weather.windGust);
-    add('tendency', 'Tendency', weather.tendency ? weather.tendency.charAt(0).toUpperCase() + weather.tendency.slice(1) : null);
+    add(
+        'tendency',
+        'Tendency',
+        weather.tendency
+            ? weather.tendency.charAt(0).toUpperCase() +
+                  weather.tendency.slice(1)
+            : null,
+    );
     add('station-name', 'Station', weather.stationName);
 
     return rows;
@@ -57,9 +84,16 @@ interface FooterProps {
 // ---------------------------------------------------------------------------
 
 export const Footer: React.FC<FooterProps> = ({ weather }) => {
-    const [isPanelOpen, setIsPanelOpen] = useState(false);
+    const [openPanelKey, setOpenPanelKey] = useState<string | null>(null);
     const panelRef = useRef<HTMLDivElement>(null);
     const triggerRef = useRef<HTMLButtonElement>(null);
+
+    const detailRows = weather ? buildDetailRows(weather) : [];
+    const canOpenPanel = weather !== null && detailRows.length > 0;
+    const currentPanelKey =
+        canOpenPanel && weather ? `${weather.fsa}-${weather.fetchedAt}` : null;
+    const isPanelOpen =
+        currentPanelKey !== null && openPanelKey === currentPanelKey;
 
     // Close on click-outside and Escape
     useEffect(() => {
@@ -72,13 +106,13 @@ export const Footer: React.FC<FooterProps> = ({ weather }) => {
                 triggerRef.current &&
                 !triggerRef.current.contains(event.target as Node)
             ) {
-                setIsPanelOpen(false);
+                setOpenPanelKey(null);
             }
         };
 
         const handleEscape = (event: KeyboardEvent) => {
             if (event.key === 'Escape') {
-                setIsPanelOpen(false);
+                setOpenPanelKey(null);
             }
         };
 
@@ -91,9 +125,6 @@ export const Footer: React.FC<FooterProps> = ({ weather }) => {
         };
     }, [isPanelOpen]);
 
-    const detailRows = weather ? buildDetailRows(weather) : [];
-    const canOpenPanel = weather !== null && detailRows.length > 0;
-
     return (
         <footer
             id="gta-alerts-footer"
@@ -101,7 +132,7 @@ export const Footer: React.FC<FooterProps> = ({ weather }) => {
         >
             <div className="relative z-[95]">
                 {/* Weather detail panel */}
-                {isPanelOpen && weather && (
+                {isPanelOpen && canOpenPanel && weather && (
                     <div
                         ref={panelRef}
                         id="gta-alerts-footer-weather-panel"
@@ -119,10 +150,12 @@ export const Footer: React.FC<FooterProps> = ({ weather }) => {
                                     id={`gta-alerts-footer-weather-detail-${row.id}`}
                                     className="flex items-center justify-between px-3 py-1.5 text-xs"
                                 >
-                                    <span className="text-text-secondary font-medium normal-case tracking-normal">
+                                    <span className="font-medium tracking-normal text-text-secondary normal-case">
                                         {row.label}
                                     </span>
-                                    <span className="font-bold">{row.value}</span>
+                                    <span className="font-bold">
+                                        {row.value}
+                                    </span>
                                 </div>
                             ))}
                         </div>
@@ -135,7 +168,15 @@ export const Footer: React.FC<FooterProps> = ({ weather }) => {
                     id="gta-alerts-footer-weather"
                     type="button"
                     disabled={!canOpenPanel}
-                    onClick={() => setIsPanelOpen((prev) => !prev)}
+                    onClick={() => {
+                        if (!currentPanelKey) {
+                            return;
+                        }
+
+                        setOpenPanelKey((prev) =>
+                            prev === currentPanelKey ? null : currentPanelKey,
+                        );
+                    }}
                     aria-expanded={canOpenPanel ? isPanelOpen : undefined}
                     aria-haspopup={canOpenPanel ? true : undefined}
                     className={`flex gap-8 bg-transparent p-0 text-inherit ${canOpenPanel ? 'cursor-pointer' : 'cursor-default'}`}
@@ -158,7 +199,11 @@ export const Footer: React.FC<FooterProps> = ({ weather }) => {
                                     ` | Wind: ${weather.windSpeed}${weather.windDirection ? ` ${weather.windDirection}` : ''}`}
                                 {canOpenPanel && (
                                     <Icon
-                                        name={isPanelOpen ? 'expand_less' : 'expand_more'}
+                                        name={
+                                            isPanelOpen
+                                                ? 'expand_less'
+                                                : 'expand_more'
+                                        }
                                         className="text-xs opacity-60"
                                     />
                                 )}

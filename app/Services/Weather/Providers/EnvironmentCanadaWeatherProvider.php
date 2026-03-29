@@ -301,8 +301,6 @@ class EnvironmentCanadaWeatherProvider implements WeatherProvider
         return trim($station);
     }
 
-
-
     private function parseCondition(array $observation): ?string
     {
         $condition = $observation['condition'] ?? '';
