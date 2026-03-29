@@ -195,7 +195,7 @@ export const FeedView: React.FC<FeedViewProps> = ({
                         </span>
                         <div
                             id="gta-alerts-feed-status-links"
-                            className="flex gap-2"
+                            className="flex gap-0"
                         >
                             {statusOptions.map((opt) => (
                                 <Link
@@ -219,10 +219,10 @@ export const FeedView: React.FC<FeedViewProps> = ({
                                     preserveState
                                     only={['alerts', 'filters']}
                                     disabled={isFilterLoading}
-                                    className={`flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[11px] font-bold whitespace-nowrap transition-all ${
+                                    className={`flex items-center gap-1.5 border-b-2 px-3 py-1.5 text-[11px] font-bold whitespace-nowrap transition-colors ${
                                         status === opt.id
-                                            ? 'border-black bg-[#FF7F00] text-black'
-                                            : 'border-[#333333] bg-background-dark text-text-secondary hover:border-primary hover:bg-[#333333] hover:text-white'
+                                            ? 'border-[#FF7F00] text-white'
+                                            : 'border-transparent text-text-secondary hover:border-text-secondary/40 hover:text-white'
                                     } ${isFilterLoading ? 'pointer-events-none opacity-50' : ''}`}
                                 >
                                     <Icon name={opt.icon} className="text-sm" />
@@ -247,7 +247,7 @@ export const FeedView: React.FC<FeedViewProps> = ({
                 >
                     <div
                         id="gta-alerts-feed-category-links"
-                        className="no-scrollbar mask-linear-fade flex w-full justify-start gap-2 overflow-x-auto pb-1"
+                        className="no-scrollbar mask-linear-fade flex w-full justify-start gap-0 overflow-x-auto"
                     >
                         {categories.map((cat) => {
                             const isSelected = activeCategory === cat.id;
@@ -279,10 +279,10 @@ export const FeedView: React.FC<FeedViewProps> = ({
                                     preserveState
                                     only={['alerts', 'filters']}
                                     disabled={isFilterLoading}
-                                    className={`flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-medium whitespace-nowrap transition-all md:px-4 md:py-2 ${
+                                    className={`flex items-center gap-2 border-b-2 px-3 py-2 text-xs whitespace-nowrap transition-colors md:px-4 ${
                                         isSelected
-                                            ? 'border-black bg-[#FF7F00] text-black'
-                                            : 'border-[#333333] bg-background-dark text-text-secondary hover:border-primary hover:bg-[#333333] hover:text-white'
+                                            ? 'border-[#FF7F00] font-semibold text-white'
+                                            : 'border-transparent font-medium text-text-secondary hover:border-text-secondary/40 hover:text-white'
                                     } ${isFilterLoading ? 'pointer-events-none opacity-50' : ''}`}
                                 >
                                     <Icon name={cat.icon} className="text-lg" />
