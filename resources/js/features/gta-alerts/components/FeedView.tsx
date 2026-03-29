@@ -415,40 +415,31 @@ export const FeedView: React.FC<FeedViewProps> = ({
                         </button>
 
                         {/* View Mode Toggle */}
-                        <div
+                        <button
                             id="gta-alerts-feed-view-toggle"
-                            className="flex border-2 border-black bg-background-dark p-1"
+                            onClick={() =>
+                                setViewMode(
+                                    viewMode === 'feed' ? 'table' : 'feed',
+                                )
+                            }
+                            aria-label={
+                                viewMode === 'feed'
+                                    ? 'Switch to table view'
+                                    : 'Switch to feed view'
+                            }
+                            className="relative flex items-center gap-1.5 rounded border border-[#333333] bg-background-dark px-2.5 py-1.5 text-xs font-medium text-white transition-colors hover:border-primary hover:text-primary"
                         >
-                            <button
-                                id="gta-alerts-feed-view-mode-feed-btn"
-                                onClick={() => setViewMode('feed')}
-                                aria-label="Feed view"
-                                className={`flex items-center gap-2 px-4 py-2 text-xs font-black tracking-wide uppercase transition-colors ${
+                            <Icon
+                                name={
                                     viewMode === 'feed'
-                                        ? 'bg-[#FF7F00] text-black'
-                                        : 'text-white hover:text-primary'
-                                }`}
-                            >
-                                <Icon
-                                    name="view_agenda"
-                                    className="text-base"
-                                />
-                                Feed
-                            </button>
-                            <button
-                                id="gta-alerts-feed-view-mode-table-btn"
-                                onClick={() => setViewMode('table')}
-                                aria-label="Table view"
-                                className={`flex items-center gap-2 px-4 py-2 text-xs font-black tracking-wide uppercase transition-colors ${
-                                    viewMode === 'table'
-                                        ? 'bg-[#FF7F00] text-black'
-                                        : 'text-white hover:text-primary'
-                                }`}
-                            >
-                                <Icon name="table_rows" className="text-base" />
-                                Table
-                            </button>
-                        </div>
+                                        ? 'view_agenda'
+                                        : 'table_rows'
+                                }
+                                className="text-sm"
+                            />
+                            {viewMode === 'feed' ? 'Feed' : 'Table'}
+                            <span className="absolute inset-x-0 bottom-0 h-0.5 rounded-full bg-[#FF7F00]" />
+                        </button>
                     </div>
                 </div>
             </div>
