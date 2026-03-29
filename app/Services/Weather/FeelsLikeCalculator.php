@@ -32,10 +32,12 @@ class FeelsLikeCalculator
         }
 
         if ($temperature <= 10.0 && $windKph !== null && $windKph > 4.8) {
+            $windExponent = $windKph ** 0.16;
+
             $windChill = 13.12
                 + 0.6215 * $temperature
-                - 11.37 * ($windKph ** 0.16)
-                + 0.3965 * $temperature * ($windKph ** 0.16);
+                - 11.37 * $windExponent
+                + 0.3965 * $temperature * $windExponent;
 
             return round($windChill, 1);
         }

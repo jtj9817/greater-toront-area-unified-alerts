@@ -283,22 +283,26 @@ class EnvironmentCanadaWeatherProvider implements WeatherProvider
     {
         $tendency = $observation['tendency'] ?? null;
 
-        if (! is_string($tendency) || trim($tendency) === '') {
+        if (! is_string($tendency)) {
             return null;
         }
 
-        return trim($tendency);
+        $trimmed = trim($tendency);
+
+        return $trimmed === '' ? null : $trimmed;
     }
 
     private function parseObservedAt(array $observation): ?string
     {
         $station = $observation['observedAt'] ?? null;
 
-        if (! is_string($station) || trim($station) === '') {
+        if (! is_string($station)) {
             return null;
         }
 
-        return trim($station);
+        $trimmed = trim($station);
+
+        return $trimmed === '' ? null : $trimmed;
     }
 
     private function parseCondition(array $observation): ?string

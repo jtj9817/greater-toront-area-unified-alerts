@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import type { WeatherData } from '../domain/weather/types';
 import { Icon } from './Icon';
 
@@ -88,7 +88,10 @@ export const Footer: React.FC<FooterProps> = ({ weather }) => {
     const panelRef = useRef<HTMLDivElement>(null);
     const triggerRef = useRef<HTMLButtonElement>(null);
 
-    const detailRows = weather ? buildDetailRows(weather) : [];
+    const detailRows = useMemo(
+        () => (weather ? buildDetailRows(weather) : []),
+        [weather],
+    );
     const canOpenPanel = weather !== null && detailRows.length > 0;
     const currentPanelKey =
         canOpenPanel && weather ? `${weather.fsa}-${weather.fetchedAt}` : null;
