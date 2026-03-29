@@ -47,21 +47,25 @@ The "Feels Like" row in the footer weather detail panel is omitted entirely when
 
 ## Acceptance Criteria
 
-- [ ] `FeelsLikeCalculator::compute()` returns the actual temperature (rounded to 1 decimal) when neither Wind Chill nor Humidex applies but `temperature` is available.
-- [ ] `FeelsLikeCalculator::compute()` still returns `null` when `temperature` is `null`.
-- [ ] Wind Chill and Humidex formulas and thresholds remain unchanged.
-- [ ] "Feels Like" row is always the first row in the detail panel when any weather data is available.
-- [ ] Existing provider integration tests still pass (Humidex and Wind Chill values unchanged).
-- [ ] Frontend Footer test confirms "Feels Like" appears even when no formula applies.
-- [ ] All existing tests continue to pass.
+- [x] `FeelsLikeCalculator::compute()` returns the actual temperature (rounded to 1 decimal) when neither Wind Chill nor Humidex applies but `temperature` is available.
+- [x] `FeelsLikeCalculator::compute()` still returns `null` when `temperature` is `null`.
+- [x] Wind Chill and Humidex formulas and thresholds remain unchanged.
+- [x] "Feels Like" row is always the first row in the detail panel when any weather data is available.
+- [x] Existing provider integration tests still pass (Humidex and Wind Chill values unchanged).
+- [x] Frontend Footer test confirms "Feels Like" appears even when no formula applies.
+- [x] All existing tests continue to pass.
 
 ## Verification
 
-- `vendor/bin/sail artisan test --compact --filter=FeelsLike` → **PASS**
-- `vendor/bin/sail artisan test --compact --filter=EnvironmentCanada` → **PASS**
-- `vendor/bin/sail pnpm exec vitest run resources/js/features/gta-alerts/components/Footer.test.tsx` → **PASS**
-- `vendor/bin/sail composer test` → **PASS**
-- `vendor/bin/sail bin pint --dirty` → **PASS**
+- `vendor/bin/sail artisan test --compact --filter=FeelsLike` → **PASS** (15 tests, 35 assertions)
+- `vendor/bin/sail artisan test --compact --filter=EnvironmentCanada` → **PASS** (26 tests, 69 assertions)
+- `vendor/bin/sail pnpm exec vitest run resources/js/features/gta-alerts/components/Footer.test.tsx` → **PASS** (22 tests)
+- `vendor/bin/sail composer test` → **PASS** (776 passed, 7 skipped, 3722 assertions)
+- `vendor/bin/sail bin pint --dirty` → **PASS** (0 files)
 - `vendor/bin/sail pnpm run lint` → **PASS**
 - `vendor/bin/sail pnpm run format` → **PASS**
 - `vendor/bin/sail pnpm run types` → **PASS**
+
+## Status
+
+**COMPLETED** - All fixes applied and verified.
