@@ -25,13 +25,13 @@ test('wind chill is colder than actual temperature', function () {
     expect($result)->not->toBeNull()->toBeLessThan(-5.0);
 });
 
-test('returns null when wind speed is at or below 4.8 km/h for cold temperature', function () {
-    expect(FeelsLikeCalculator::compute(5.0, 4.8, null))->toBeNull();
-    expect(FeelsLikeCalculator::compute(5.0, 0.0, null))->toBeNull();
+test('returns actual temperature when wind speed is at or below 4.8 km/h for cold temperature', function () {
+    expect(FeelsLikeCalculator::compute(5.0, 4.8, null))->toBe(5.0);
+    expect(FeelsLikeCalculator::compute(5.0, 0.0, null))->toBe(5.0);
 });
 
-test('returns null when wind speed is null for cold temperature', function () {
-    expect(FeelsLikeCalculator::compute(5.0, null, null))->toBeNull();
+test('returns actual temperature when wind speed is null for cold temperature', function () {
+    expect(FeelsLikeCalculator::compute(5.0, null, null))->toBe(5.0);
 });
 
 test('wind chill result is rounded to one decimal place', function () {
@@ -65,8 +65,8 @@ test('humidex is warmer than actual temperature when dewpoint is high', function
     expect($result)->not->toBeNull()->toBeGreaterThan(30.0);
 });
 
-test('returns null when dewpoint is null for warm temperature', function () {
-    expect(FeelsLikeCalculator::compute(25.0, null, null))->toBeNull();
+test('returns actual temperature when dewpoint is null for warm temperature', function () {
+    expect(FeelsLikeCalculator::compute(25.0, null, null))->toBe(25.0);
 });
 
 test('humidex result is rounded to one decimal place', function () {
@@ -80,10 +80,18 @@ test('humidex result is rounded to one decimal place', function () {
 // Neutral range (no formula applies)
 // ---------------------------------------------------------------------------
 
-test('returns null in neutral range between 10 and 20 degrees', function () {
-    expect(FeelsLikeCalculator::compute(15.0, 30.0, 10.0))->toBeNull();
-    expect(FeelsLikeCalculator::compute(11.0, 50.0, 15.0))->toBeNull();
-    expect(FeelsLikeCalculator::compute(19.9, 20.0, 18.0))->toBeNull();
+test('returns actual temperature in neutral range between 10 and 20 degrees', function () {
+    expect(FeelsLikeCalculator::compute(15.0, 30.0, 10.0))->toBe(15.0);
+    expect(FeelsLikeCalculator::compute(11.0, 50.0, 15.0))->toBe(11.0);
+    expect(FeelsLikeCalculator::compute(19.9, 20.0, 18.0))->toBe(19.9);
+});
+
+test('returns actual temperature rounded to one decimal place when no formula applies', function () {
+    $result = FeelsLikeCalculator::compute(15.234, 10.0, 12.0);
+
+    expect($result)->toBe(15.2);
+    // Verify one decimal precision: multiply by 10, floor, divide by 10 should equal original
+    expect(round($result * 10) / 10)->toBe($result);
 });
 
 // ---------------------------------------------------------------------------

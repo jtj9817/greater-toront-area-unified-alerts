@@ -261,6 +261,26 @@ describe('Footer', () => {
         ).toBeInTheDocument();
     });
 
+    it('shows Feels Like in detail panel even when no formula applies (neutral temperature)', () => {
+        render(
+            <Footer
+                weather={makeWeatherData({
+                    temperature: 15.5,
+                    feelsLike: 15.5,
+                    condition: 'Partly Cloudy',
+                })}
+            />,
+        );
+
+        fireEvent.click(document.getElementById('gta-alerts-footer-weather')!);
+
+        const feelsLikeRow = document.getElementById(
+            'gta-alerts-footer-weather-detail-feels-like',
+        );
+        expect(feelsLikeRow).toBeInTheDocument();
+        expect(feelsLikeRow?.textContent).toContain('15.5');
+    });
+
     it('omits null fields from the detail panel', () => {
         render(
             <Footer

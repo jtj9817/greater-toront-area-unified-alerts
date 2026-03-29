@@ -17,8 +17,9 @@ class FeelsLikeCalculator
      *   When temperature ≥ 20 °C and dewpoint is available.
      *   `T + 0.5555 × (6.11 × exp(5417.753 × (1/273.16 − 1/(273.15 + Td))) − 10)`
      *
-     * Returns null when neither condition is met (e.g., 10 °C < T < 20 °C),
-     * or when required inputs are unavailable.
+     * Falls back to the actual temperature when neither condition is met but
+     * temperature is available (e.g., 10 °C < T < 20 °C, or missing wind/dewpoint).
+     * Returns null only when temperature itself is null.
      *
      * @param  float|null  $temperature  Air temperature in °C.
      * @param  float|null  $windKph  Wind speed in km/h (required for Wind Chill).
@@ -49,6 +50,7 @@ class FeelsLikeCalculator
             return round($humidex, 1);
         }
 
-        return null;
+        // Fall back to actual temperature when no adjustment formula applies
+        return round($temperature, 1);
     }
 }

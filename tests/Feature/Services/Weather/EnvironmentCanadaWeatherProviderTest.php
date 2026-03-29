@@ -323,7 +323,7 @@ test('computes wind chill feels-like for cold temperature with wind', function (
     expect($data->feelsLike)->toBeFloat()->toBeLessThan(-5.0);
 });
 
-test('feels-like is null in neutral temperature range with no applicable formula', function () {
+test('feels-like returns actual temperature in neutral range when no formula applies', function () {
     $payload = json_decode(ecJsonFixture('no-alert'), true);
     $payload['observation']['temperature']['metricUnrounded'] = 15.0;
     $payload['observation']['temperature']['metric'] = 15;
@@ -335,7 +335,7 @@ test('feels-like is null in neutral temperature range with no applicable formula
     $provider = new EnvironmentCanadaWeatherProvider;
     $data = $provider->fetch('M5V');
 
-    expect($data->feelsLike)->toBeNull();
+    expect($data->feelsLike)->toBe(15.0);
 });
 
 test('new fields are null when not present in observation payload', function () {
