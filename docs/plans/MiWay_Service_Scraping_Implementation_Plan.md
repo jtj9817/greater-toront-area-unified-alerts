@@ -319,99 +319,105 @@ Schedule::call(function (ScheduledFetchJobDispatcher $dispatcher) {
 
 ## Phase 7: Frontend Domain
 
-### TypeScript Types
+### Architecture
+
+Same pattern as DRT (see DRT plan Phase 7 for the full explanation):
+
+```
+UnifiedAlertResource (source: 'miway')
+    → fromResource() switch case 'miway'
+    → mapMiwayAlert() validates against MiwayTransitAlertSchema
+    → MiwayTransitAlert (kind: 'miway')
+```
+
+### Schema
 
 ```typescript
-// resources/js/features/gta-alerts/domain/alerts/sources/miway.ts
-export interface MiwayAlertTransport {
-  id: number;
-  source: 'miway';
-  external_id: string;
-  is_active: boolean;
-  timestamp: string;
-  title: string;
-  location_name: string | null;
-  lat: null;
-  lng: null;
-  meta: {
-    route_number: string | null;
-    route_name: string | null;
-    cause: string | null;
-    effect: string | null;
-    effective_start_date: string | null;
-    effective_end_date: string | null;
-    alert_text: string | null;
-  };
-}
+// resources/js/features/gta-alerts/domain/alerts/transit/miway/schema.ts
+import { z } from 'zod/v4';
+import { BaseTransitAlertSchema, BaseTransitMetaSchema } from '../schema';
 
-export interface MiwayDomainAlert extends DomainAlert {
-  source: 'miway';
-  externalId: string;
-  isActive: boolean;
-  timestamp: Date;
-  title: string;
-  locationName: string | null;
-  locationCoords: null;
-  meta: {
-    routeNumber: string | null;
-    routeName: string | null;
-    cause: string | null;
-    effect: string | null;
-    effectiveStartDate: Date | null;
-    effectiveEndDate: Date | null;
-    alertText: string | null;
-  };
-}
+export const MiwayMetaSchema = BaseTransitMetaSchema.extend({
+    route_number: z.nullable(z.string()),
+    route_name: z.nullable(z.string()),
+    cause: z.nullable(z.string()),
+    effect: z.nullable(z.string()),
+    effective_start_date: z.nullable(z.string()),
+    effective_end_date: z.nullable(z.string()),
+    alert_text: z.nullable(z.string()),
+});
+
+export type MiwayMeta = z.infer<typeof MiwayMetaSchema>;
+
+export const MiwayTransitAlertSchema = BaseTransitAlertSchema.extend({
+    kind: z.literal('miway'),
+    meta: MiwayMetaSchema,
+});
+
+export type MiwayTransitAlert = z.infer<typeof MiwayTransitAlertSchema>;
 ```
 
 ### Mapper
 
 ```typescript
-// resources/js/features/gta-alerts/domain/alerts/sources/miway.ts
-export function fromResourceMiway(resource: MiwayAlertTransport): MiwayDomainAlert {
-  return {
-    id: `miway:${resource.external_id}`,
-    source: 'miway' as const,
-    externalId: resource.external_id,
-    isActive: resource.is_active,
-    timestamp: new Date(resource.timestamp),
-    title: resource.title,
-    locationName: resource.location_name,
-    locationCoords: null,
-    meta: {
-      routeNumber: resource.meta.route_number ?? null,
-      routeName: resource.meta.route_name ?? null,
-      cause: resource.meta.cause ?? null,
-      effect: resource.meta.effect ?? null,
-      effectiveStartDate: resource.meta.effective_start_date
-        ? new Date(resource.meta.effective_start_date)
-        : null,
-      effectiveEndDate: resource.meta.effective_end_date
-        ? new Date(resource.meta.effective_end_date)
-        : null,
-      alertText: resource.meta.alert_text ?? null,
-    },
-  };
+// resources/js/features/gta-alerts/domain/alerts/transit/miway/mapper.ts
+import { buildBaseDomainInput } from '../../mapperUtils';
+import type { UnifiedAlertResourceParsed } from '../../resource';
+import { MiwayTransitAlertSchema } from './schema';
+import type { MiwayTransitAlert } from './schema';
+
+export function mapMiwayAlert(
+    resource: UnifiedAlertResourceParsed,
+): MiwayTransitAlert | null {
+    if (resource.source !== 'miway') {
+        console.warn(
+            `[DomainAlert] MiWay mapper received non-miway resource (${resource.id}):`,
+            resource.source,
+        );
+        return null;
+    }
+
+    const result = MiwayTransitAlertSchema.safeParse({
+        ...buildBaseDomainInput(resource),
+        kind: 'miway',
+    });
+
+    if (!result.success) {
+        console.warn(
+            `[DomainAlert] Invalid MiWay alert (${resource.id}):`,
+            result.error.issues,
+        );
+        return null;
+    }
+
+    return result.data;
 }
 ```
 
-### Presentation
-
-In `mapDomainAlertToPresentation`, add:
+### Register in `fromResource.ts`
 
 ```typescript
-case 'miway':
-  return {
-    id: alert.id,
-    source: 'MiWay',
-    title: alert.title,
-    location: alert.locationName ?? 'MiWay Alert',
-    severity: mapCauseToSeverity(alert.meta.cause),
-    status: mapEffectToStatus(alert.meta.effect),
-    timestamp: alert.timestamp,
-    coordinates: null,
-    raw: alert,
-  };
+// resources/js/features/gta-alerts/domain/alerts/fromResource.ts
+case 'miway': {
+    return mapMiwayAlert(validated);
+}
+```
+
+### Update DomainAlert Union and UnifiedAlertResourceSchema
+
+Same as DRT plan — add `MiwayTransitAlert` to the `DomainAlert` union and `'miway'` to the `source` enum in `UnifiedAlertResourceSchema`.
+
+### Presentation
+
+In `mapDomainAlertToPresentation.ts`, add:
+
+```typescript
+case 'miway': {
+    type = 'transit';
+    severity = deriveTtcSeverity(alert.meta);
+    details = buildTtcDescriptionAndMetadata(alert);
+    break;
+}
 ```
 
 ---

@@ -347,99 +347,105 @@ Schedule::call(function (ScheduledFetchJobDispatcher $dispatcher) {
 
 ## Phase 7: Frontend Domain
 
-### TypeScript Types
+### Architecture
+
+Same pattern as DRT (see DRT plan Phase 7 for the full explanation):
+
+```
+UnifiedAlertResource (source: 'yrt')
+    → fromResource() switch case 'yrt'
+    → mapYrtAlert() validates against YrtTransitAlertSchema
+    → YrtTransitAlert (kind: 'yrt')
+```
+
+### Schema
 
 ```typescript
-// resources/js/features/gta-alerts/domain/alerts/sources/yrt.ts
-export interface YrtAlertTransport {
-  id: number;
-  source: 'yrt';
-  external_id: string;
-  is_active: boolean;
-  timestamp: string;
-  title: string;
-  location_name: string | null;
-  lat: null;
-  lng: null;
-  meta: {
-    alert_type: 'service_advisory' | 'service_change';
-    route_number: string | null;
-    route_name: string | null;
-    cause: string | null;
-    effect: string | null;
-    effective_start_date: string | null;
-    effective_end_date: string | null;
-  };
-}
+// resources/js/features/gta-alerts/domain/alerts/transit/yrt/schema.ts
+import { z } from 'zod/v4';
+import { BaseTransitAlertSchema, BaseTransitMetaSchema } from '../schema';
 
-export interface YrtDomainAlert extends DomainAlert {
-  source: 'yrt';
-  externalId: string;
-  isActive: boolean;
-  timestamp: Date;
-  title: string;
-  locationName: string | null;
-  locationCoords: null;
-  meta: {
-    alertType: 'service_advisory' | 'service_change';
-    routeNumber: string | null;
-    routeName: string | null;
-    cause: string | null;
-    effect: string | null;
-    effectiveStartDate: Date | null;
-    effectiveEndDate: Date | null;
-  };
-}
+export const YrtMetaSchema = BaseTransitMetaSchema.extend({
+    alert_type: z.nullable(z.enum(['service_advisory', 'service_change'])),
+    route_number: z.nullable(z.string()),
+    route_name: z.nullable(z.string()),
+    cause: z.nullable(z.string()),
+    effect: z.nullable(z.string()),
+    effective_start_date: z.nullable(z.string()),
+    effective_end_date: z.nullable(z.string()),
+});
+
+export type YrtMeta = z.infer<typeof YrtMetaSchema>;
+
+export const YrtTransitAlertSchema = BaseTransitAlertSchema.extend({
+    kind: z.literal('yrt'),
+    meta: YrtMetaSchema,
+});
+
+export type YrtTransitAlert = z.infer<typeof YrtTransitAlertSchema>;
 ```
 
 ### Mapper
 
 ```typescript
-// resources/js/features/gta-alerts/domain/alerts/sources/yrt.ts
-export function fromResourceYrt(resource: YrtAlertTransport): YrtDomainAlert {
-  return {
-    id: `yrt:${resource.external_id}`,
-    source: 'yrt' as const,
-    externalId: resource.external_id,
-    isActive: resource.is_active,
-    timestamp: new Date(resource.timestamp),
-    title: resource.title,
-    locationName: resource.location_name,
-    locationCoords: null,
-    meta: {
-      alertType: resource.meta.alert_type,
-      routeNumber: resource.meta.route_number ?? null,
-      routeName: resource.meta.route_name ?? null,
-      cause: resource.meta.cause ?? null,
-      effect: resource.meta.effect ?? null,
-      effectiveStartDate: resource.meta.effective_start_date
-        ? new Date(resource.meta.effective_start_date)
-        : null,
-      effectiveEndDate: resource.meta.effective_end_date
-        ? new Date(resource.meta.effective_end_date)
-        : null,
-    },
-  };
+// resources/js/features/gta-alerts/domain/alerts/transit/yrt/mapper.ts
+import { buildBaseDomainInput } from '../../mapperUtils';
+import type { UnifiedAlertResourceParsed } from '../../resource';
+import { YrtTransitAlertSchema } from './schema';
+import type { YrtTransitAlert } from './schema';
+
+export function mapYrtAlert(
+    resource: UnifiedAlertResourceParsed,
+): YrtTransitAlert | null {
+    if (resource.source !== 'yrt') {
+        console.warn(
+            `[DomainAlert] YRT mapper received non-yrt resource (${resource.id}):`,
+            resource.source,
+        );
+        return null;
+    }
+
+    const result = YrtTransitAlertSchema.safeParse({
+        ...buildBaseDomainInput(resource),
+        kind: 'yrt',
+    });
+
+    if (!result.success) {
+        console.warn(
+            `[DomainAlert] Invalid YRT alert (${resource.id}):`,
+            result.error.issues,
+        );
+        return null;
+    }
+
+    return result.data;
 }
 ```
 
-### Presentation
-
-In `mapDomainAlertToPresentation`, add:
+### Register in `fromResource.ts`
 
 ```typescript
-case 'yrt':
-  return {
-    id: alert.id,
-    source: 'YRT',
-    title: alert.title,
-    location: alert.locationName ?? 'YRT Alert',
-    severity: mapCauseToSeverity(alert.meta.cause),
-    status: mapEffectToStatus(alert.meta.effect),
-    timestamp: alert.timestamp,
-    coordinates: null,
-    raw: alert,
-  };
+// resources/js/features/gta-alerts/domain/alerts/fromResource.ts
+case 'yrt': {
+    return mapYrtAlert(validated);
+}
+```
+
+### Update DomainAlert Union and UnifiedAlertResourceSchema
+
+Same as DRT plan — add `YrtTransitAlert` to the `DomainAlert` union and `'yrt'` to the `source` enum in `UnifiedAlertResourceSchema`.
+
+### Presentation
+
+In `mapDomainAlertToPresentation.ts`, add:
+
+```typescript
+case 'yrt': {
+    type = 'transit';
+    severity = deriveTtcSeverity(alert.meta);
+    details = buildTtcDescriptionAndMetadata(alert);
+    break;
+}
 ```
 
 ---

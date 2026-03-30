@@ -340,96 +340,180 @@ Schedule::call(function (ScheduledFetchJobDispatcher $dispatcher) {
 
 ## Phase 7: Frontend Domain
 
-### TypeScript Types
+### Architecture
+
+The frontend uses a **single `fromResource()` entry point** that:
+1. Validates the transport envelope via `UnifiedAlertResourceSchema` (Zod)
+2. Dispatches to a source-specific mapper via `switch (validated.source)`
+3. The mapper validates against a source-specific Zod schema
+
+New transit sources follow the same pattern as TTC (`transit`) and GO (`go_transit`):
+
+```
+UnifiedAlertResource (source: 'drt')
+    → fromResource() switch case 'drt'
+    → mapDrtAlert() validates against DrtTransitAlertSchema
+    → DrtTransitAlert (kind: 'drt')
+```
+
+### Schema
 
 ```typescript
-// resources/js/features/gta-alerts/domain/alerts/sources/drt.ts
-export interface DrtAlertTransport {
-  id: number;
-  source: 'drt';
-  external_id: string;
-  is_active: boolean;
-  timestamp: string;
-  title: string;
-  location_name: string | null;
-  lat: null;
-  lng: null;
-  meta: {
-    route_number: string | null;
-    route_name: string | null;
-    cause: string | null;
-    effect: string | null;
-    effective_start_date: string | null;
-    effective_end_date: string | null;
-  };
-}
+// resources/js/features/gta-alerts/domain/alerts/transit/drt/schema.ts
+import { z } from 'zod/v4';
+import { BaseTransitAlertSchema, BaseTransitMetaSchema } from '../schema';
 
-export interface DrtDomainAlert extends DomainAlert {
-  source: 'drt';
-  externalId: string;
-  isActive: boolean;
-  timestamp: Date;
-  title: string;
-  locationName: string | null;
-  locationCoords: null;
-  meta: {
-    routeNumber: string | null;
-    routeName: string | null;
-    cause: string | null;
-    effect: string | null;
-    effectiveStartDate: Date | null;
-    effectiveEndDate: Date | null;
-  };
-}
+export const DrtMetaSchema = BaseTransitMetaSchema.extend({
+    route_number: z.nullable(z.string()),
+    route_name: z.nullable(z.string()),
+    cause: z.nullable(z.string()),
+    effect: z.nullable(z.string()),
+    effective_start_date: z.nullable(z.string()),
+    effective_end_date: z.nullable(z.string()),
+});
+
+export type DrtMeta = z.infer<typeof DrtMetaSchema>;
+
+export const DrtTransitAlertSchema = BaseTransitAlertSchema.extend({
+    kind: z.literal('drt'),
+    meta: DrtMetaSchema,
+});
+
+export type DrtTransitAlert = z.infer<typeof DrtTransitAlertSchema>;
 ```
 
 ### Mapper
 
 ```typescript
-// resources/js/features/gta-alerts/domain/alerts/sources/drt.ts
-export function fromResourceDrt(resource: DrtAlertTransport): DrtDomainAlert {
-  return {
-    id: `drt:${resource.external_id}`,
-    source: 'drt' as const,
-    externalId: resource.external_id,
-    isActive: resource.is_active,
-    timestamp: new Date(resource.timestamp),
-    title: resource.title,
-    locationName: resource.location_name,
-    locationCoords: null,
-    meta: {
-      routeNumber: resource.meta.route_number ?? null,
-      routeName: resource.meta.route_name ?? null,
-      cause: resource.meta.cause ?? null,
-      effect: resource.meta.effect ?? null,
-      effectiveStartDate: resource.meta.effective_start_date
-        ? new Date(resource.meta.effective_start_date)
-        : null,
-      effectiveEndDate: resource.meta.effective_end_date
-        ? new Date(resource.meta.effective_end_date)
-        : null,
-    },
-  };
+// resources/js/features/gta-alerts/domain/alerts/transit/drt/mapper.ts
+import { buildBaseDomainInput } from '../../mapperUtils';
+import type { UnifiedAlertResourceParsed } from '../../resource';
+import { DrtTransitAlertSchema } from './schema';
+import type { DrtTransitAlert } from './schema';
+
+export function mapDrtAlert(
+    resource: UnifiedAlertResourceParsed,
+): DrtTransitAlert | null {
+    if (resource.source !== 'drt') {
+        console.warn(
+            `[DomainAlert] DRT mapper received non-drt resource (${resource.id}):`,
+            resource.source,
+        );
+        return null;
+    }
+
+    const result = DrtTransitAlertSchema.safeParse({
+        ...buildBaseDomainInput(resource),
+        kind: 'drt',
+    });
+
+    if (!result.success) {
+        console.warn(
+            `[DomainAlert] Invalid DRT alert (${resource.id}):`,
+            result.error.issues,
+        );
+        return null;
+    }
+
+    return result.data;
 }
+```
+
+### Register in `fromResource.ts`
+
+```typescript
+// resources/js/features/gta-alerts/domain/alerts/fromResource.ts
+// Add to the switch:
+case 'drt': {
+    return mapDrtAlert(validated);
+}
+```
+
+### Update DomainAlert Union
+
+```typescript
+// resources/js/features/gta-alerts/domain/alerts/types.ts
+export type DomainAlert =
+    | FireAlert
+    | PoliceAlert
+    | TtcTransitAlert
+    | GoTransitAlert
+    | DrtTransitAlert   // Add
+    | YrtTransitAlert   // Add
+    | MiwayTransitAlert; // Add
+```
+
+### Update UnifiedAlertResourceSchema Source Enum
+
+```typescript
+// resources/js/features/gta-alerts/domain/alerts/resource.ts
+export const UnifiedAlertResourceSchema = z.object({
+    // ...
+    source: z.enum(['fire', 'police', 'transit', 'go_transit', 'drt', 'yrt', 'miway']),
+    // ...
+});
 ```
 
 ### Presentation
 
-In `mapDomainAlertToPresentation`, add:
+In `mapDomainAlertToPresentation.ts`, add a `case 'drt':` branch. Since transit alerts all use the same structure (`type: 'transit'`), the existing TTC/GO presentation logic can be reused — add a severity derivation for DRT-specific cause values if needed. Location coordinates are already `null` for all transit sources, so no change needed there.
 
 ```typescript
-case 'drt':
-  return {
-    id: alert.id,
-    source: 'DRT',
-    title: alert.title,
-    location: alert.locationName ?? 'DRT Alert',
-    severity: mapCauseToSeverity(alert.meta.cause),
-    status: mapEffectToStatus(alert.meta.effect),
-    timestamp: alert.timestamp,
-    coordinates: null,
-    raw: alert,
-  };
+case 'drt': {
+    type = 'transit';
+    severity = deriveTtcSeverity(alert.meta); // Reuse TTC severity logic
+    details = buildTtcDescriptionAndMetadata(alert);
+    break;
+}
+```
+
+### Tests
+
+```typescript
+// resources/js/features/gta-alerts/domain/alerts/transit/drt/mapper.test.ts
+import { describe, it, expect, vi } from 'vitest';
+import type { UnifiedAlertResourceParsed } from '../../resource';
+import { mapDrtAlert } from './mapper';
+
+describe('mapDrtAlert', () => {
+    const timestamp = new Date('2026-02-03T12:00:00Z').toISOString();
+
+    it('maps a valid DRT resource to a DrtTransitAlert', () => {
+        const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+        const resource: UnifiedAlertResourceParsed = {
+            id: 'drt:123',
+            source: 'drt',
+            external_id: '123',
+            is_active: true,
+            timestamp,
+            title: 'Route 92 Delay',
+            location: { name: '92 Woodrobin', lat: null, lng: null },
+            meta: {
+                route_number: '92',
+                route_name: 'Woodrobin',
+                cause: 'Construction',
+                effect: 'Delay',
+                alert_type: null,
+                direction: null,
+                effective_start_date: null,
+                effective_end_date: null,
+            },
+        };
+        const alert = mapDrtAlert(resource);
+        expect(alert).not.toBeNull();
+        expect(alert?.kind).toBe('drt');
+        expect(alert?.meta.route_number).toBe('92');
+        warn.mockRestore();
+    });
+
+    it('returns null (and warns) for non-drt source', () => {
+        const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+        const resource = { ... } as UnifiedAlertResourceParsed;
+        expect(mapDrtAlert({ ...resource, source: 'transit' })).toBeNull();
+        expect(warn).toHaveBeenCalled();
+        warn.mockRestore();
+    });
+});
 ```
 
 ---
