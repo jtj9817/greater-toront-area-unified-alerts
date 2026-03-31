@@ -1,537 +1,305 @@
-# DRT Service Implementation Plan
+# DRT Service Alerts Scraping Implementation Plan
 
-> **Reference architecture only.** This document outlines how Durham Region Transit (DRT) service alerts will be integrated into GTA Alerts. It adapts the original RACC News reference plan to fit the GTA Alerts unified alerts architecture (Provider & Adapter pattern). Do not apply the original plan directly.
+Integrate **Durham Region Transit (DRT)** “Service Alerts and Detours” into the GTA Alerts **Unified Alerts** architecture.
 
----
-
-## Data Source
-
-- **Source type:** HTML scraping (list page + detail pages)
-- **List URL:** `/Modules/News/en?feedid=f3f5ff28-b7b8-45ab-8d28-fdf53f51d6bf`
-- **Base URL:** Requires research — not yet identified
-- **Update frequency:** Every 5 minutes (recommended, aligned with TTC/GO Transit)
-- **Authentication:** None expected
-
-### Data Shape
-
-DRT advisories contain:
-- `title` — alert headline
-- `posted_at` — publication timestamp
-- `route_number` / `route_name` — affected route(s)
-- `cause` — e.g., Construction, Accident
-- `effect` — e.g., Delay, Detour, Service Reduction
-- `effective_start_date` / `effective_end_date` — validity window
-
-No coordinates are provided. Route/stop descriptions populate `location_name` in the unified schema.
+This plan is written to match the current codebase patterns (Laravel 12, Provider-tagged unified query, scheduled fetch job wrappers, Inertia + React domain mapping).
 
 ---
 
-## Architecture
+## Source Discovery (Research Findings)
 
-### GTA Alerts Pattern (use this)
+Validated on **2026-03-30** using a browser network + DOM inspection:
 
-All new alert sources follow the **Provider & Adapter** pattern:
+- **Base URL:** `https://www.durhamregiontransit.com`
+- **List page (active alerts):** `https://www.durhamregiontransit.com/Modules/News/en/ServiceAlertsandDetours`
+  - **Pagination:** `?page=N` (e.g. `.../ServiceAlertsandDetours?page=2`)
+  - Page HTML includes `div.blogItem` entries, each with:
+    - `h2 > a.newsTitle[href]` detail URL + title
+    - `.blogPostDate p` with a timestamp like: `Posted on Tuesday, February 24, 2026 11:16 AM`
+    - Inline body snippet containing `When:` + `Route:` / `Routes:` lines
+- **Detail page pattern:** `https://www.durhamregiontransit.com/en/news/{slug}.aspx`
+  - Body uses simple HTML (`p`, `strong`, `br`) with labeled fields like:
+    - `<p><strong>When:</strong> …</p>`
+    - `<p><strong>Route:</strong> …</p>` or `<p><strong>Routes:</strong> …</p>`
+- **Not used:** `GET /Modules/NewsModule/services/getAlertBannerFeeds.ashx` returned a body string error (`(404) Not Found`) on 2026-03-30; treat as unreliable.
 
-```
-Source Model (DrtAlert)
-    ↓
-AlertSelectProvider (DrtAlertSelectProvider)
-    ↓
-UNION Query (UnifiedAlertsQuery)
-    ↓
-UnifiedAlert DTO (transport)
-    ↓
-DomainAlert (frontend)
-    ↓
-AlertPresentation (frontend view model)
-```
-
-**Key components to create:**
-1. `DrtAlert` model + migration
-2. `DrtAlertFeedService` — fetch + parse
-3. `FetchDrtAlertsCommand` — artisan command
-4. `DrtAlertSelectProvider` — tagged `alerts.select-providers`
-5. `AlertSource` enum update — add `Drt` variant
-6. Domain TypeScript types + mapper
-7. `Schedule::call()` in `routes/console.php`
-
-**Do NOT use:**
-- `PublicTransitAlertsController` (RACC pattern)
-- `LlmApiService` / `HtmlToMarkdownService`
-- Laravel Scout
+**Conclusion:** scrape the server-rendered HTML list + detail pages.
 
 ---
 
-## Phase 1: Model and Migration
+## Alternate Feeds (Investigated)
 
-### Schema
+Validated on **2026-03-30/31**:
 
-Follow the pattern in `FireIncident` / `PoliceCall` migrations. The base unified columns are:
+- **RSS:** no `link[rel="alternate"][type="application/rss+xml"]` (or similar) discovered on the listing page; common RSS-style query params (`output=rss`, `rss=1`, etc.) still returned `text/html`.
+- **JSON (News-only):** `GET /Modules/NewsModule/services/getTopFiveNews.ashx?limit=N&lang=en` returns a JSON array (served with `Content-Type: application/javascript`), but it appears limited to general “News” content.
+  - Attempts to filter via `categories=Service%20Alerts%20and%20Detours` returned an empty response body.
+  - It also appears to depend on a site-issued `__RequestVerificationToken` cookie, so it is not a clean unauthenticated feed to build on.
 
-| Column | Type | Notes |
-|--------|------|-------|
-| `id` | bigint PK | Auto |
-| `external_id` | string unique | Source's own ID (upsert key) |
-| `source` | string | Always `drt` |
-| `is_active` | boolean | Default true; cleared alerts set false |
-| `timestamp` | timestamp | `posted_at` from source |
-| `title` | string | Alert headline |
-| `location_name` | string nullable | Route/stop description (from `route_number` + `route_name`) |
-| `lat` | decimal nullable | Always null for transit |
-| `lng` | decimal nullable | Always null for transit |
-| `meta` | json | Source-specific fields: `route_number`, `route_name`, `cause`, `effect`, `effective_start_date`, `effective_end_date`, `original_payload` |
-
-```php
-Schema::create('drt_alerts', function (Blueprint $table) {
-    $table->id();
-    $table->string('external_id')->unique();
-    $table->string('source')->default('drt');
-    $table->boolean('is_active')->default(true);
-    $table->timestamp('timestamp');
-    $table->string('title');
-    $table->string('location_name')->nullable();
-    $table->decimal('lat', 10, 7)->nullable();
-    $table->decimal('lng', 10, 7)->nullable();
-    $table->json('meta');
-    $table->timestamps();
-
-    $table->index(['is_active', 'timestamp']);
-    $table->index('external_id');
-});
-```
-
-### Model (`DrtAlert`)
-
-```php
-// app/Models/DrtAlert.php
-class DrtAlert extends Model
-{
-    use HasFactory;
-
-    protected $fillable = [
-        'external_id',
-        'source',
-        'is_active',
-        'timestamp',
-        'title',
-        'location_name',
-        'lat',
-        'lng',
-        'meta',
-    ];
-
-    protected function casts(): array
-    {
-        return [
-            'is_active' => 'boolean',
-            'timestamp' => 'datetime',
-            'meta' => 'array',
-            'lat' => 'decimal:7',
-            'lng' => 'decimal:7',
-        ];
-    }
-
-    // Accessors for source-specific fields stored in meta
-    public function getRouteNumberAttribute(): ?string
-    {
-        return $this->meta['route_number'] ?? null;
-    }
-
-    public function getRouteNameAttribute(): ?string
-    {
-        return $this->meta['route_name'] ?? null;
-    }
-
-    public function getCauseAttribute(): ?string
-    {
-        return $this->meta['cause'] ?? null;
-    }
-
-    public function getEffectAttribute(): ?string
-    {
-        return $this->meta['effect'] ?? null;
-    }
-
-    public function getEffectiveStartDateAttribute(): ?Carbon
-    {
-        return isset($this->meta['effective_start_date'])
-            ? Carbon::parse($this->meta['effective_start_date'])
-            : null;
-    }
-
-    public function getEffectiveEndDateAttribute(): ?Carbon
-    {
-        return isset($this->meta['effective_end_date'])
-            ? Carbon::parse($this->meta['effective_end_date'])
-            : null;
-    }
-}
-```
+**Conclusion:** no reliable RSS/JSON feed for Service Alerts/Detours was identified; proceed with HTML scraping.
 
 ---
 
-## Phase 2: Feed Service
+## Scraping Optimizations (Avoid Unnecessary Fetching)
 
-### Feed Service (`DrtAlertFeedService`)
+Even though the listing is currently small, apply these to keep the scraper efficient and polite:
 
-```php
-// app/Services/Alerts/Providers/DrtAlertFeedService.php
-class DrtAlertFeedService
-{
-    private const BASE_URL = 'https://www.drt.ca'; // RESEARCH REQUIRED
-
-    public function fetchAlerts(): array
-    {
-        // 1. Fetch list page
-        // 2. Parse div.blogItem entries -> extract detail page URLs
-        // 3. For each detail page: fetch HTML, parse fields
-        // 4. Return array of parsed alert arrays
-    }
-
-    public function parseListPage(string $html): array
-    {
-        // Use Symfony\Component\DomCrawler\Crawler
-        // Extract: external_id, title, posted_at, detail_page_url
-    }
-
-    public function parseDetailPage(string $html, string $listItemData): array
-    {
-        // Extract: route_number, route_name, cause, effect,
-        //          effective_start_date, effective_end_date, original_html
-    }
-}
-```
-
-### Parsing Notes
-
-- **List page selector:** `div.blogItem` — extract `h2 > a[href]` for detail URL
-- **Detail page:** Parse `#blogContentContainer` for full advisory content
-- **external_id:** Derived from the detail page URL slug (basename of URL path)
-- **Change detection:** SHA1 hash of full detail HTML stored in `meta.original_payload`
-- **Pagination:** Check for `.PagedList-skipToNext a` — dispatch chain if found
-
-### Alert Normalization to Unified Schema
-
-```php
-private function normalizeToUnified(array $parsed, string $html): array
-{
-    $routeDesc = trim(implode(' ', array_filter([
-        $parsed['route_number'] ?? null,
-        $parsed['route_name'] ? "- {$parsed['route_name']}" : null,
-    ])));
-
-    return [
-        'external_id' => $parsed['external_id'],
-        'source' => 'drt',
-        'is_active' => true,
-        'timestamp' => Carbon::parse($parsed['posted_at']),
-        'title' => $parsed['title'],
-        'location_name' => $routeDesc ?: null,
-        'lat' => null,
-        'lng' => null,
-        'meta' => [
-            'route_number' => $parsed['route_number'] ?? null,
-            'route_name' => $parsed['route_name'] ?? null,
-            'cause' => $parsed['cause'] ?? null,
-            'effect' => $parsed['effect'] ?? null,
-            'effective_start_date' => $parsed['effective_start_date'] ?? null,
-            'effective_end_date' => $parsed['effective_end_date'] ?? null,
-            'original_payload' => $html,
-            'payload_hash' => sha1($html),
-        ],
-    ];
-}
-```
+1. **List-first, detail-on-demand**
+   - Always scrape list pages to define the *active set*.
+   - Only fetch detail pages when needed for full text.
+2. **Skip unchanged detail fetches**
+   - Add `list_hash` (SHA1) + `details_fetched_at` columns.
+   - Compute `list_hash` from stable list signals (title + posted timestamp + when/route lines + excerpt text).
+   - If `external_id` exists and `list_hash` matches and `body_text` is present, skip detail fetch.
+   - Optional: force-refresh details if `details_fetched_at` is older than 24h (guards against silent edits that don’t affect the excerpt).
+3. **Parse only the content block**
+   - On detail pages, extract text from the post content container (e.g., `div.iCreateDynaToken` in observed HTML) rather than `main` to avoid nav/footer noise and reduce parsing work.
+4. **Guard rails**
+   - Cap pagination (e.g. max 10 pages) to prevent unexpected crawl expansion.
+   - Keep concurrency low (sequential fetch is fine for this source).
 
 ---
 
-## Phase 3: Fetch Command
+## Data Model (Observed Shape)
 
-```php
-// app/Console/Commands/FetchDrtAlerts.php
-class FetchDrtAlerts extends Command
-{
-    protected $signature = 'drt:fetch-alerts';
-    protected $description = 'Fetch and sync DRT service alerts';
+DRT items appear to be “posts” that remain listed while active/relevant. The listing includes older posts when their `When:` ranges extend into the future (example observed: posted in 2025 with “Extended until … 2026”).
 
-    public function handle(DrtAlertFeedService $feedService): int
-    {
-        $this->info('Fetching DRT alerts...');
+Persist these fields:
 
-        $alerts = $feedService->fetchAlerts();
-        $count = count($alerts);
+- `external_id` — derived from detail URL slug (stable upsert key)
+- `title`
+- `posted_at` — from list page (includes time)
+- `when_text` — raw `When:` line text (not reliably machine-parseable)
+- `route_text` — raw `Route:` / `Routes:` line text (not reliably machine-parseable)
+- `details_url` — canonical detail URL (for UI + debugging)
+- `body_text` — full detail body as plain text (normalized whitespace)
+- `is_active` — true when present in the currently scraped list; false when missing
+- `feed_updated_at` — scrape time (UTC) to aid ops/debugging
 
-        // Upsert
-        foreach ($alerts as $alert) {
-            DrtAlert::updateOrCreate(
-                ['external_id' => $alert['external_id']],
-                $alert
-            );
-        }
-
-        // Mark missing as inactive
-        $externalIds = collect($alerts)->pluck('external_id');
-        DrtAlert::where('source', 'drt')
-            ->whereNotIn('external_id', $externalIds)
-            ->update(['is_active' => false]);
-
-        $this->info("DRT alerts synced: {$count} active");
-
-        return Command::SUCCESS;
-    }
-}
-```
+Coordinates are not present; unified `lat`/`lng` are always `NULL` for this source.
 
 ---
 
-## Phase 4: AlertSelectProvider
+## Architecture Fit (GTA Alerts Unified Query)
 
-```php
-// app/Services/Alerts/Providers/DrtAlertSelectProvider.php
-class DrtAlertSelectProvider implements AlertSelectProvider
-{
-    public function tag(): string
-    {
-        return 'drt';
-    }
+Backend flow:
 
-    public function select(int $limit, ?int $sinceTimestamp, ?string $source): array
-    {
-        // Uses DB::getDriverName() check for sqlite vs mysql concat
-        // Returns: id, source, external_id, is_active, timestamp, title,
-        //          location_name, lat, lng, meta
-    }
-}
+```
+DrtAlert table
+  → DrtAlertSelectProvider (tagged in AppServiceProvider)
+  → UnifiedAlertsQuery (UNION)
+  → API resources → Inertia/React domain mappers
 ```
 
-See `FireAlertSelectProvider` or `GoTransitAlertSelectProvider` for the full implementation pattern including dual-driver SQL expressions.
-
----
-
-## Phase 5: AlertSource Enum
-
-```php
-// app/Enums/AlertSource.php
-enum AlertSource: string
-{
-    case Fire = 'fire';
-    case Police = 'police';
-    case Transit = 'transit';
-    case GoTransit = 'go_transit';
-    case Drt = 'drt';       // Add
-    case Yrt = 'yrt';       // Add
-    case MiWay = 'miway';   // Add
-}
-```
-
----
-
-## Phase 6: Scheduling
-
-In `routes/console.php`, add:
-
-```php
-Schedule::call(function (ScheduledFetchJobDispatcher $dispatcher) {
-    return $dispatcher->dispatch('drt:fetch-alerts');
-})->everyFiveMinutes()->name('drt:fetch-alerts');
-```
-
----
-
-## Phase 7: Frontend Domain
-
-### Architecture
-
-The frontend uses a **single `fromResource()` entry point** that:
-1. Validates the transport envelope via `UnifiedAlertResourceSchema` (Zod)
-2. Dispatches to a source-specific mapper via `switch (validated.source)`
-3. The mapper validates against a source-specific Zod schema
-
-New transit sources follow the same pattern as TTC (`transit`) and GO (`go_transit`):
+Frontend flow:
 
 ```
 UnifiedAlertResource (source: 'drt')
-    → fromResource() switch case 'drt'
-    → mapDrtAlert() validates against DrtTransitAlertSchema
-    → DrtTransitAlert (kind: 'drt')
-```
-
-### Schema
-
-```typescript
-// resources/js/features/gta-alerts/domain/alerts/transit/drt/schema.ts
-import { z } from 'zod/v4';
-import { BaseTransitAlertSchema, BaseTransitMetaSchema } from '../schema';
-
-export const DrtMetaSchema = BaseTransitMetaSchema.extend({
-    route_number: z.nullable(z.string()),
-    route_name: z.nullable(z.string()),
-    cause: z.nullable(z.string()),
-    effect: z.nullable(z.string()),
-    effective_start_date: z.nullable(z.string()),
-    effective_end_date: z.nullable(z.string()),
-});
-
-export type DrtMeta = z.infer<typeof DrtMetaSchema>;
-
-export const DrtTransitAlertSchema = BaseTransitAlertSchema.extend({
-    kind: z.literal('drt'),
-    meta: DrtMetaSchema,
-});
-
-export type DrtTransitAlert = z.infer<typeof DrtTransitAlertSchema>;
-```
-
-### Mapper
-
-```typescript
-// resources/js/features/gta-alerts/domain/alerts/transit/drt/mapper.ts
-import { buildBaseDomainInput } from '../../mapperUtils';
-import type { UnifiedAlertResourceParsed } from '../../resource';
-import { DrtTransitAlertSchema } from './schema';
-import type { DrtTransitAlert } from './schema';
-
-export function mapDrtAlert(
-    resource: UnifiedAlertResourceParsed,
-): DrtTransitAlert | null {
-    if (resource.source !== 'drt') {
-        console.warn(
-            `[DomainAlert] DRT mapper received non-drt resource (${resource.id}):`,
-            resource.source,
-        );
-        return null;
-    }
-
-    const result = DrtTransitAlertSchema.safeParse({
-        ...buildBaseDomainInput(resource),
-        kind: 'drt',
-    });
-
-    if (!result.success) {
-        console.warn(
-            `[DomainAlert] Invalid DRT alert (${resource.id}):`,
-            result.error.issues,
-        );
-        return null;
-    }
-
-    return result.data;
-}
-```
-
-### Register in `fromResource.ts`
-
-```typescript
-// resources/js/features/gta-alerts/domain/alerts/fromResource.ts
-// Add to the switch:
-case 'drt': {
-    return mapDrtAlert(validated);
-}
-```
-
-### Update DomainAlert Union
-
-```typescript
-// resources/js/features/gta-alerts/domain/alerts/types.ts
-export type DomainAlert =
-    | FireAlert
-    | PoliceAlert
-    | TtcTransitAlert
-    | GoTransitAlert
-    | DrtTransitAlert   // Add
-    | YrtTransitAlert   // Add
-    | MiwayTransitAlert; // Add
-```
-
-### Update UnifiedAlertResourceSchema Source Enum
-
-```typescript
-// resources/js/features/gta-alerts/domain/alerts/resource.ts
-export const UnifiedAlertResourceSchema = z.object({
-    // ...
-    source: z.enum(['fire', 'police', 'transit', 'go_transit', 'drt', 'yrt', 'miway']),
-    // ...
-});
-```
-
-### Presentation
-
-In `mapDomainAlertToPresentation.ts`, add a `case 'drt':` branch. Since transit alerts all use the same structure (`type: 'transit'`), the existing TTC/GO presentation logic can be reused — add a severity derivation for DRT-specific cause values if needed. Location coordinates are already `null` for all transit sources, so no change needed there.
-
-```typescript
-case 'drt': {
-    type = 'transit';
-    severity = deriveTtcSeverity(alert.meta); // Reuse TTC severity logic
-    details = buildTtcDescriptionAndMetadata(alert);
-    break;
-}
-```
-
-### Tests
-
-```typescript
-// resources/js/features/gta-alerts/domain/alerts/transit/drt/mapper.test.ts
-import { describe, it, expect, vi } from 'vitest';
-import type { UnifiedAlertResourceParsed } from '../../resource';
-import { mapDrtAlert } from './mapper';
-
-describe('mapDrtAlert', () => {
-    const timestamp = new Date('2026-02-03T12:00:00Z').toISOString();
-
-    it('maps a valid DRT resource to a DrtTransitAlert', () => {
-        const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
-        const resource: UnifiedAlertResourceParsed = {
-            id: 'drt:123',
-            source: 'drt',
-            external_id: '123',
-            is_active: true,
-            timestamp,
-            title: 'Route 92 Delay',
-            location: { name: '92 Woodrobin', lat: null, lng: null },
-            meta: {
-                route_number: '92',
-                route_name: 'Woodrobin',
-                cause: 'Construction',
-                effect: 'Delay',
-                alert_type: null,
-                direction: null,
-                effective_start_date: null,
-                effective_end_date: null,
-            },
-        };
-        const alert = mapDrtAlert(resource);
-        expect(alert).not.toBeNull();
-        expect(alert?.kind).toBe('drt');
-        expect(alert?.meta.route_number).toBe('92');
-        warn.mockRestore();
-    });
-
-    it('returns null (and warns) for non-drt source', () => {
-        const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
-        const resource = { ... } as UnifiedAlertResourceParsed;
-        expect(mapDrtAlert({ ...resource, source: 'transit' })).toBeNull();
-        expect(warn).toHaveBeenCalled();
-        warn.mockRestore();
-    });
-});
+  → fromResource() switch
+  → mapDrtAlert()
+  → presentation mapping (reuse transit presentation utilities)
 ```
 
 ---
 
-## Research Required
+## Phase 1: Database + Model
 
-- [ ] **DRT base URL** — The full base URL for the DRT service advisories feed is not yet identified. The feed path is `/Modules/News/en?feedid=f3f5ff28-b7b8-45ab-8d28-fdf53f51d6bf`. Research `drt.ca` or `durhamregiontransit.com` to confirm the correct base URL.
+Create `drt_alerts` using the existing alert table conventions (see `database/migrations/2026_02_05_233653_create_go_transit_alerts_table.php` and `database/migrations/2026_01_31_204856_create_police_calls_table.php`).
+
+Suggested columns:
+
+- `id`
+- `external_id` (unique)
+- `title`
+- `posted_at` (datetime)
+- `when_text` (string, nullable)
+- `route_text` (string, nullable)
+- `details_url` (string)
+- `body_text` (text, nullable)
+- `list_hash` (string(40), nullable) — supports skipping unchanged detail fetches
+- `details_fetched_at` (timestamp nullable) — supports periodic refresh of details
+- `is_active` (boolean default true)
+- `feed_updated_at` (timestamp nullable)
+- `created_at`, `updated_at`
+
+Indexes:
+
+- `index(['is_active', 'posted_at'])`
+- `index('posted_at')`
+
+Model:
+
+- `app/Models/DrtAlert.php`
+- `fillable` for all persisted fields
+- `casts()` for `posted_at`, `feed_updated_at` as datetime and `is_active` as boolean
+- `scopeActive()` consistent with other alert models
 
 ---
 
-## Verification
+## Phase 2: Feed Service (HTML Scraper)
 
-```bash
-php artisan drt:fetch-alerts
-php artisan tinker --execute="DrtAlert::count(); DrtAlert::latest('timestamp')->first();"
+Add `app/Services/DrtServiceAlertsFeedService.php` following `app/Services/TtcAlertsFeedService.php` patterns:
+
+- Use `Http::timeout(15)->retry(2, 200, throw: false)` with browser-ish headers.
+- Use `FeedCircuitBreaker`:
+  - `throwIfOpen('drt')`
+  - `recordSuccess('drt')` / `recordFailure('drt', $exception)`
+- Respect `config('feeds.allow_empty_feeds')`.
+- Parse HTML with `DOMDocument` + `DOMXPath` (already used in the repo).
+
+Fetch algorithm:
+
+1. Fetch list page page=1.
+2. Parse `div.blogItem` blocks:
+   - `title`: `string(.//h2/a[@class="newsTitle"])`
+   - `details_url`: `string(.//h2/a[@class="newsTitle"]/@href)`
+   - `posted_at_raw`: `string(.//*[contains(@class,"blogPostDate")]//p)`
+   - `when_text`: first `<p>` containing a `<strong>` that starts with `When`
+   - `route_text`: first `<p>` containing a `<strong>` that starts with `Route`/`Routes`
+3. Follow pagination via `.PagedList-skipToNext a[href]` until none (guard with a sane max page count).
+4. Compute a `list_hash` for each item from stable list fields (title + posted timestamp + when/route + excerpt text).
+5. Only fetch and parse detail pages when one of the following is true:
+   - the alert is new (no existing row)
+   - `list_hash` differs from the stored value
+   - `body_text` is null/empty
+   - `details_fetched_at` is older than a refresh threshold (optional, e.g. 24h)
+
+Normalization:
+
+- `external_id` = detail URL slug (path basename without `.aspx`)
+- `posted_at` should parse with `'America/Toronto'` timezone then convert to UTC (match other feeds).
+- `feed_updated_at` = `now()->utc()` for this scrape run.
+- `details_fetched_at` = `now()->utc()` when the detail page is actually fetched
+
+Return shape:
+
+```php
+// array{updated_at: CarbonInterface, alerts: list<array<string, mixed>>}
 ```
 
-Run the unified feed query to confirm DRT appears:
-```bash
-php artisan tinker --execute="app(\App\Services\Alerts\UnifiedAlertsQuery::class)->cursorPaginate(\App\Services\Alerts\DTOs\UnifiedAlertsCriteria::fromRequest(['source' => 'drt']))"
-```
+---
+
+## Phase 3: Fetch Command (Sync + Notifications)
+
+Add `app/Console/Commands/FetchDrtAlertsCommand.php` matching the error-handling style of:
+
+- `app/Console/Commands/FetchTransitAlertsCommand.php`
+- `app/Console/Commands/FetchGoTransitAlertsCommand.php`
+
+Responsibilities:
+
+- Call `DrtServiceAlertsFeedService->fetch()`.
+- Upsert each item into `drt_alerts` with `is_active=true` and `feed_updated_at`.
+- Deactivate stale rows:
+  - `where('is_active', true)->whereNotIn('external_id', $activeExternalIds)->update(['is_active' => false])`
+- Dispatch `AlertCreated` for newly created or re-activated alerts (align with other fetch commands):
+  - Add `NotificationAlertFactory::fromDrtAlert(DrtAlert $alert)` as needed.
+
+Command signature:
+
+- `drt:fetch-alerts`
+
+---
+
+## Phase 4: Queue Job Wrapper + Scheduler
+
+Follow the existing scheduler pattern (command invoked via a unique queued job):
+
+- `app/Jobs/FetchDrtAlertsJob.php` (modelled on `app/Jobs/FetchGoTransitAlertsJob.php`)
+  - `Artisan::call('drt:fetch-alerts')`, throw on non-zero
+  - `ShouldQueue` + `ShouldBeUnique`, `WithoutOverlapping` middleware
+- Update `app/Services/ScheduledFetchJobDispatcher.php`
+  - Add `dispatchDrtAlerts(): bool` that dispatches `FetchDrtAlertsJob`
+- Update `routes/console.php`
+  - `Schedule::call(fn (ScheduledFetchJobDispatcher $d) => $d->dispatchDrtAlerts())`
+  - `->everyFiveMinutes()->withoutOverlapping(10)` (match TTC/GO cadence)
+
+---
+
+## Phase 5: Unified Alerts Provider (SelectProvider)
+
+Create `app/Services/Alerts/Providers/DrtAlertSelectProvider.php` implementing:
+
+- `App\Services\Alerts\Contracts\AlertSelectProvider`
+  - `source(): string` returns `AlertSource::Drt->value`
+  - `select(UnifiedAlertsCriteria $criteria): Builder`
+
+Provider query should emit the unified columns:
+
+- `id` as `{source}:{external_id}` (driver-specific concat, see other providers)
+- `source` literal `'drt'`
+- `external_id`
+- `is_active`
+- `timestamp` = `posted_at`
+- `title`
+- `location_name` = prefer `route_text` (or `NULLIF(route_text, '')`)
+- `lat` / `lng` = `NULL`
+- `meta` = JSON object built from table columns (`when_text`, `route_text`, `details_url`, `body_text`, `feed_updated_at`)
+
+Criteria support:
+
+- `source` filter
+- `status` filter (active/cleared)
+- `sinceCutoff` filter on `posted_at`
+- `query` support:
+  - SQLite: handled at `UnifiedAlertsQuery` level (title/location only)
+  - MySQL/Postgres: mirror other providers’ approach (add fulltext index later if needed)
+
+Register provider tag:
+
+- Update `app/Providers/AppServiceProvider.php` to include `DrtAlertSelectProvider::class` in the `'alerts.select-providers'` tag list.
+
+---
+
+## Phase 6: AlertSource Enum
+
+Update `app/Enums/AlertSource.php`:
+
+- Add `case Drt = 'drt';`
+
+---
+
+## Phase 7: Frontend Domain (Inertia/React)
+
+Add `drt` as a new `source` and `kind`.
+
+1. Transport envelope:
+   - Update `resources/js/features/gta-alerts/domain/alerts/resource.ts` source enum to include `'drt'`.
+2. Mapper switch:
+   - Update `resources/js/features/gta-alerts/domain/alerts/fromResource.ts` to handle `'drt'`.
+3. Domain types:
+   - Add `resources/js/features/gta-alerts/domain/alerts/transit/drt/schema.ts`
+   - Add `resources/js/features/gta-alerts/domain/alerts/transit/drt/mapper.ts` (pattern-match `.../transit/go/mapper.ts`)
+   - Update `resources/js/features/gta-alerts/domain/alerts/types.ts` union to include `DrtTransitAlert`.
+4. Presentation:
+   - Update `resources/js/features/gta-alerts/domain/alerts/view/mapDomainAlertToPresentation.ts` to handle `kind: 'drt'`.
+   - Reuse shared transit helpers in `resources/js/features/gta-alerts/domain/alerts/transit/presentation.ts`.
+
+---
+
+## Tests (Required)
+
+Backend (Pest):
+
+- Feed parser unit tests:
+  - Store HTML fixtures for list + detail pages.
+  - Assert parsing of `external_id`, `posted_at`, `when_text`, `route_text`, `details_url`.
+- Command test:
+  - Fake HTTP responses and assert upserts + deactivations.
+
+Frontend (Vitest):
+
+- `mapDrtAlert()` returns `DrtTransitAlert` for valid input and warns/returns `null` for invalid input.
+
+Run minimal targeted tests via Sail:
+
+- `vendor/bin/sail artisan test --compact tests/...`
+- `vendor/bin/sail pnpm test` (or the repo’s existing frontend test command)
+
+---
+
+## Verification (Manual)
+
+- `vendor/bin/sail artisan drt:fetch-alerts`
+- Confirm `UnifiedAlertsQuery` returns DRT items:
+  - `vendor/bin/sail artisan tinker --execute 'app(App\\Services\\Alerts\\UnifiedAlertsQuery::class)->cursorPaginate(App\\Services\\Alerts\\DTOs\\UnifiedAlertsCriteria::fromRequest([\"source\" => \"drt\"]))'`
