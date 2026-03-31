@@ -87,18 +87,18 @@
     - [x] Ensure UI source filtering can treat MiWay independently from TTC/GO.
 - [ ] Task: Conductor - User Manual Verification 'Phase 7: Frontend Domain Integration' (Protocol in workflow.md)
 
-## Phase 8: QA Phase
+## Phase 8: QA Phase [checkpoint: bc6c166]
 
-- [ ] Task: Execute targeted automated test gates first
-    - [ ] Run focused Pest suites added in Phases 1–7 using `vendor/bin/sail artisan test --compact`.
-    - [ ] Run focused frontend/Vitest suites for MiWay mapper integration.
-    - [ ] Resolve regressions before broad-suite execution.
-- [ ] Task: Execute full project quality gates
-    - [ ] Run `vendor/bin/sail artisan test --compact`.
-    - [ ] Run `vendor/bin/sail artisan test --coverage --min=90`.
-    - [ ] Run `vendor/bin/sail pnpm typecheck`, `vendor/bin/sail pnpm lint`, and `vendor/bin/sail pnpm format:check`.
-    - [ ] Run `vendor/bin/sail composer audit` and `vendor/bin/sail pnpm audit`.
-- [ ] Task: Conductor - User Manual Verification 'Phase 8: QA Phase' (Protocol in workflow.md)
+- [x] Task: Execute targeted automated test gates first
+    - [x] Run focused Pest suites added in Phases 1–7 using `vendor/bin/sail artisan test --compact`.
+    - [x] Run focused frontend/Vitest suites for MiWay mapper integration.
+    - [x] Resolve regressions before broad-suite execution.
+- [x] Task: Execute full project quality gates
+    - [x] Run `vendor/bin/sail artisan test --compact`.
+    - [x] Run `vendor/bin/sail artisan test --coverage --min=90`.
+    - [x] Run `vendor/bin/sail pnpm typecheck`, `vendor/bin/sail pnpm lint`, and `vendor/bin/sail pnpm format:check`.
+    - [x] Run `vendor/bin/sail composer audit` and `vendor/bin/sail pnpm audit`.
+- [x] Task: Conductor - User Manual Verification 'Phase 8: QA Phase' (Protocol in workflow.md)
 
 ## Phase 9: Documentation Phase
 
