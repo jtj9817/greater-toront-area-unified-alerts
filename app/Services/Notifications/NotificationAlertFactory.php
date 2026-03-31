@@ -6,6 +6,7 @@ use App\Models\FireIncident;
 use App\Models\GoTransitAlert;
 use App\Models\PoliceCall;
 use App\Models\TransitAlert;
+use App\Models\MiwayAlert;
 
 class NotificationAlertFactory
 {
@@ -102,6 +103,24 @@ class NotificationAlertFactory
                 'corridor_code' => $alert->corridor_code,
                 'service_mode' => $alert->service_mode,
                 'sub_category' => $alert->sub_category,
+            ],
+        );
+    }
+
+        public function fromMiwayAlert(MiwayAlert $alert): NotificationAlert
+    {
+        $severity = $this->mapTransitSeverity($alert->effect);
+
+        return new NotificationAlert(
+            alertId: "miway:{$alert->external_id}",
+            source: 'miway',
+            severity: $severity,
+            summary: $alert->header_text,
+            occurredAt: $alert->starts_at ?? $alert->created_at,
+            metadata: [
+                'cause' => $alert->cause,
+                'effect' => $alert->effect,
+                'description_text' => $alert->description_text,
             ],
         );
     }
