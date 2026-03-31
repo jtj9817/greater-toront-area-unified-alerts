@@ -503,6 +503,60 @@ function buildGoTransitSections(alert: PresentationAlert): DetailSections {
     };
 }
 
+function buildMiwaySections(alert: PresentationAlert): DetailSections {
+    return {
+        header: (
+            <div className="relative flex flex-col items-center gap-6 overflow-hidden rounded-3xl border border-orange-500/20 bg-orange-950/20 p-8 md:flex-row">
+                <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-orange-500 text-white shadow-2xl shadow-orange-500/40">
+                    <Icon name="directions_bus" className="text-4xl" />
+                </div>
+                <div>
+                    <span className="mb-2 inline-block rounded-md bg-orange-600 px-2 py-1 text-[10px] font-bold text-white uppercase">
+                        MiWay Service Notice
+                    </span>
+                    <h1 className="text-3xl font-bold tracking-tight text-white md:text-4xl">
+                        {alert.title}
+                    </h1>
+                </div>
+            </div>
+        ),
+        metadata: (
+            <>
+                <div className="rounded-xl bg-white/5 p-4">
+                    <p className="mb-1 text-[10px] font-bold text-text-secondary uppercase">
+                        Alert Source
+                    </p>
+                    <p className="text-sm text-white">
+                        {alert.metadata?.source || 'MiWay'}
+                    </p>
+                </div>
+                {alert.metadata?.effect && (
+                    <div className="rounded-xl bg-white/5 p-4">
+                        <p className="mb-1 text-[10px] font-bold text-text-secondary uppercase">
+                            Effect
+                        </p>
+                        <p className="text-sm text-white capitalize">
+                            {alert.metadata.effect
+                                .replace(/_/g, ' ')
+                                .toLowerCase()}
+                        </p>
+                    </div>
+                )}
+            </>
+        ),
+        specializedContent: (
+            <div className="rounded-2xl border border-orange-500/20 bg-orange-500/5 p-6">
+                <h4 className="mb-4 flex items-center gap-2 text-xs font-bold text-orange-400 uppercase">
+                    <Icon name="info" className="text-sm" /> MiWay Notice
+                </h4>
+                <p className="text-sm text-orange-100">
+                    For real-time service updates, visit miapp.ca or call 311.
+                </p>
+            </div>
+        ),
+    };
+}
+
 export const AlertDetailsView: React.FC<DetailsProps> = ({
     alert,
     onBack,
@@ -526,6 +580,8 @@ export const AlertDetailsView: React.FC<DetailsProps> = ({
                 return buildTransitSections(presentation);
             case 'go_transit':
                 return buildGoTransitSections(presentation);
+            case 'miway':
+                return buildMiwaySections(presentation);
         }
     }, [alert.kind, presentation]);
 

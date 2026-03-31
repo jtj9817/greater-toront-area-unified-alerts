@@ -30,6 +30,8 @@ function getSourceLabel(alert: DomainAlert): string {
             return 'TTC';
         case 'go_transit':
             return 'GO Transit';
+        case 'miway':
+            return 'MiWay';
     }
 }
 
