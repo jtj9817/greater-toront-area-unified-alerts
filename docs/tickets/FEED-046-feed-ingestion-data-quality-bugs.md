@@ -15,6 +15,32 @@ Two data quality bugs were discovered during a database inspection of `transit_a
 
 ---
 
+## Reproduction
+
+### P1 — TTC junk records
+
+Run the TTC fetch command against the live API (or use the existing `Http::fake()` pattern in the test suite — see below) and query:
+
+```sql
+SELECT * FROM transit_alerts WHERE route = '9999' OR alert_type = 'SiteWide';
+```
+
+### P2 + P3 — GO Transit SAAG
+
+Run the GO Transit fetch command against the live API (or construct a fixture with a `Train` entry that omits `Name` and `Code`) and query:
+
+```sql
+SELECT external_id, message_subject, message_body
+FROM go_transit_alerts
+WHERE alert_type = 'saag'
+ORDER BY created_at DESC
+LIMIT 20;
+```
+
+`message_subject` values will start with ` - ` for affected records. `message_body` will never contain an `Arrival:` line for any SAAG alert.
+
+---
+
 ## Findings
 
 ### P1 — TTC `siteWideCustom`/`generalCustom` bucket records ingested as real alerts
@@ -38,24 +64,30 @@ title="WEBSITE", active_period_end="2027-03-29" (1-year window)
 
 **Risk:** Junk records surface in the unified feed and are visible to users. The `route: "9999"` value also poisons any route-based filtering or frontend presentation logic.
 
-**Fix:** Return `null` early from `normalizeLiveApiAlert()` for `siteWideCustom` and `generalCustom` buckets before the generic path, discarding all records from those buckets regardless of their content:
+**Fix:** Insert an early-return guard in `normalizeLiveApiAlert()` immediately **after** the `accessibility` branch (line 206), so the `accessibility` path is unaffected:
 
 ```php
+if ($bucket === 'accessibility') {
+    return $this->normalizeAccessibilityAlert($record);
+}
+
+// Add this guard:
 if ($bucket === 'siteWideCustom' || $bucket === 'generalCustom') {
     return null;
 }
 ```
 
-**Files:**
+**DB cleanup:** Existing dirty records will be marked `is_active = false` automatically on the next successful fetch (the command deactivates any record not present in the latest API response). No migration is needed.
 
-- `app/Services/TtcAlertsFeedService.php`
-- `tests/Feature/` or `tests/Unit/` — add a test asserting `siteWideCustom`/`generalCustom` records are filtered out
+**Test file:** `tests/Feature/Services/TtcAlertsFeedServiceTest.php`
+
+The existing test uses `Http::fake()` to supply a synthetic API response (see the `routes` and `accessibility` bucket fixtures at the top of the file). Add a new test case that includes a `siteWideCustom` entry in the faked response and asserts that no `transit_alert` record is created for it. Follow the `Http::fake()` + `->fetch()` pattern already established in that file.
 
 ---
 
 ### P2 — GO Transit SAAG `message_subject` has leading ` - ` when train `Name` is absent
 
-**File:** `app/Services/GoTransitFeedService.php:110–111, 256–258`
+**File:** `app/Services/GoTransitFeedService.php:110–111, 256–258, 285`
 
 **Issue:** `$name` is resolved from `$train['Name']` at line 111. When the Metrolinx API omits the `Name` field for a train, `$name` is an empty string. The subject is then constructed as:
 
@@ -65,18 +97,21 @@ $subject = $headSign !== ''
     : "{$name} train delayed";
 ```
 
-This produces a leading ` - ` in every affected record's `message_subject`. The same empty `$name` also causes `corridor_or_route` to be stored as `""` (both `$name` and `$code` are empty, confirmed by `external_id` values of the form `saag::6933` — double colon — in the database).
+The same empty `$name` causes `corridor_or_route` to be stored as `""` on line 285 (`$name ?: $code` — when `$code` is also absent, both collapse to `""`). This is confirmed by `external_id` values in the database of the form `saag::6933` (double colon) rather than `saag:{code}:{tripNumber}`.
 
 **Example records in DB:**
 
 ```
-external_id="saag::6933", message_subject=" - Union Station to Allandale Waterfront GO delayed (00:05:28)"
-external_id="saag::1025", message_subject=" - Union Station to Aldershot GO delayed (00:05:58)"
+external_id="saag::6933", corridor_or_route="",
+message_subject=" - Union Station to Allandale Waterfront GO delayed (00:05:28)"
+
+external_id="saag::1025", corridor_or_route="",
+message_subject=" - Union Station to Aldershot GO delayed (00:05:58)"
 ```
 
-**Risk:** Malformed subjects display awkwardly in the feed UI and break any subject-based search or display logic.
+**Risk:** Malformed subjects display awkwardly in the feed UI and break any subject-based search or display logic. `corridor_or_route` being empty means these alerts have no corridor attribution.
 
-**Fix:** Guard the subject construction against an empty `$name`, falling back to `$code` then to a generic label:
+**Fix:** Introduce a `$label` fallback used for both `message_subject` and `corridor_or_route`:
 
 ```php
 $label = $name ?: $code ?: 'GO Train';
@@ -86,10 +121,15 @@ $subject = $headSign !== ''
     : "{$label} train delayed";
 ```
 
-**Files:**
+Update `corridor_or_route` on line 285 to use the same fallback:
 
-- `app/Services/GoTransitFeedService.php`
-- `tests/` — assert `message_subject` never starts with whitespace or ` - `
+```php
+'corridor_or_route' => $label,
+```
+
+**Test file:** `tests/Feature/Services/GoTransitFeedServiceTest.php`
+
+The existing test supplies a `Train` fixture with `Code: 'LW'` and `Name: 'Lakeshore West'` (happy path only). Add a test case with a `Train` entry where both `Name` and `Code` are omitted, and assert that `message_subject` does not start with whitespace or ` - `, and that `corridor_or_route` is `'GO Train'` rather than `""`.
 
 ---
 
@@ -107,9 +147,11 @@ $arrivalTime = trim((string) ($saag['ArrivalTimeTimeDisplay'] ?? ''));
 
 Because the key never matches, `$arrivalTime` is always `''`, meaning the `Arrival:` line is never appended to `message_body` for any SAAG alert.
 
-**Risk:** Low — arrival times are supplemental display data, but the data is always silently missing and the bug will persist unless corrected.
+**Note:** The existing test fixture in `GoTransitFeedServiceTest.php` also uses the wrong key (`ArrivalTimeTimeDisplay`), which is why this bug was never caught. The fixture must be corrected to `ArrivalTimeDisplay` alongside the service fix, and the test should assert that the `Arrival:` line appears in `message_body`.
 
-**Fix:** Rename the key:
+**Risk:** Low — arrival times are supplemental display data — but the data has been silently missing for all SAAG alerts since the feature was introduced.
+
+**Fix:** Correct the key at line 253:
 
 ```php
 $arrivalTime = trim((string) ($saag['ArrivalTimeDisplay'] ?? ''));
@@ -118,16 +160,18 @@ $arrivalTime = trim((string) ($saag['ArrivalTimeDisplay'] ?? ''));
 **Files:**
 
 - `app/Services/GoTransitFeedService.php`
+- `tests/Feature/Services/GoTransitFeedServiceTest.php` (fix the fixture key and add assertion)
 
 ---
 
 ## Acceptance Criteria
 
 - [ ] Records from `siteWideCustom` and `generalCustom` TTC API buckets are not persisted to `transit_alerts`.
-- [ ] No `transit_alerts` record with `route = '9999'` or `alert_type = 'SiteWide'` exists after a fresh fetch.
+- [ ] No `transit_alerts` record with `route = '9999'` or `alert_type = 'SiteWide'` is created after a fresh fetch (existing dirty records deactivate naturally on next fetch).
 - [ ] All GO Transit SAAG `message_subject` values begin with a non-whitespace character.
-- [ ] `corridor_or_route` is populated for SAAG alerts where `$code` is available even when `$name` is empty.
-- [ ] `message_body` for SAAG alerts includes the `Arrival:` line when the API provides an arrival time.
+- [ ] `corridor_or_route` is non-empty for SAAG alerts even when both `$name` and `$code` are absent from the API response.
+- [ ] `message_body` for SAAG alerts includes an `Arrival:` line when the API provides an arrival time.
+- [ ] `GoTransitFeedServiceTest` fixture corrected to use `ArrivalTimeDisplay` and asserts the `Arrival:` line.
 - [ ] All existing tests continue to pass.
 
 ## Status
