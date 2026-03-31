@@ -1,8 +1,8 @@
 {
   "track_id": "miway_service_scraping_20260331",
   "type": "feature",
-  "status": "new",
+  "status": "archived",
   "created_at": "2026-03-31T02:05:11Z",
-  "updated_at": "2026-03-31T02:05:11Z",
+  "completed_at": "2026-03-31",
   "description": "MiWay Service Alerts (GTFS-RT) integration based on docs/plans/MiWay_Service_Scraping_Implementation_Plan.md"
 }

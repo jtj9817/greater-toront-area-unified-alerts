@@ -11,6 +11,7 @@ GTA Alerts is a real-time dashboard for emergency services and transit alerts ac
 - **Toronto Police Services** - ArcGIS FeatureServer scraping (every 10 minutes)
 - **TTC Transit Alerts** - Composite feed (live API + SXA + static pages, every 5 minutes)
 - **GO Transit** - Metrolinx JSON API (`api.metrolinx.com/external/go/serviceupdate/en/all`, every 5 minutes)
+- **MiWay Service Alerts** - GTFS-RT protobuf feed from `miapp.ca` (every 5 minutes)
 - **Weather (Environment Canada)** - Live weather data by FSA (30-min cache, location picker)
 
 ## Commands

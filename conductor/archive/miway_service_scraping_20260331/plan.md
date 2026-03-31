@@ -100,13 +100,13 @@
     - [x] Run `vendor/bin/sail composer audit` and `vendor/bin/sail pnpm audit`.
 - [x] Task: Conductor - User Manual Verification 'Phase 8: QA Phase' (Protocol in workflow.md)
 
-## Phase 9: Documentation Phase
+## Phase 9: Documentation Phase [checkpoint:]
 
-- [ ] Task: Update project documentation for MiWay integration
-    - [ ] Document feed source, conditional-fetch behavior, and operational command usage in `docs/`.
-    - [ ] Update `README.md` and `CLAUDE.md` only where user-facing capabilities or durable repo conventions changed.
-    - [ ] Document any implementation deviations from this track spec/plan.
-- [ ] Task: Prepare conductor artifacts for closeout
-    - [ ] Reconcile final implementation notes into `spec.md` and `plan.md`.
-    - [ ] Update `metadata.json`/registry status when ready for archive handoff.
+- [x] Task: Update project documentation for MiWay integration
+    - [x] Document feed source, conditional-fetch behavior, and operational command usage in `docs/`.
+    - [x] Update `README.md` and `CLAUDE.md` only where user-facing capabilities or durable repo conventions changed.
+    - [x] Document any implementation deviations from this track spec/plan.
+- [x] Task: Prepare conductor artifacts for closeout
+    - [x] Reconcile final implementation notes into `spec.md` and `plan.md`.
+    - [x] Update `metadata.json`/registry status when ready for archive handoff.
 - [ ] Task: Conductor - User Manual Verification 'Phase 9: Documentation Phase' (Protocol in workflow.md)
