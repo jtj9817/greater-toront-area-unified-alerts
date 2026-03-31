@@ -39,7 +39,7 @@
     - [x] Extend `NotificationAlertFactory` path for `MiwayAlert` if required by event flow.
 - [x] Task: Conductor - User Manual Verification 'Phase 3: Fetch Command (Sync + Notifications)' [8e69487]
 
-## Phase 4: Queue Job Wrapper + Scheduler
+## Phase 4: Queue Job Wrapper + Scheduler [checkpoint: 2133f36]
 
 - [x] Task: Write failing tests for queue-dispatch scheduling behavior [1b18309]
     - [x] Add tests asserting job wrapper invokes `miway:fetch-alerts` and throws on non-zero Artisan exit.
@@ -49,7 +49,7 @@
     - [x] Create `app/Jobs/FetchMiwayAlertsJob.php` with uniqueness and overlap middleware.
     - [x] Update `app/Services/ScheduledFetchJobDispatcher.php` with `dispatchMiwayAlerts()`.
     - [x] Register schedule callback in `routes/console.php`.
-- [ ] Task: Conductor - User Manual Verification 'Phase 4: Queue Job Wrapper + Scheduler' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 4: Queue Job Wrapper + Scheduler' [2133f36]
 
 ## Phase 5: Unified Alerts Provider
 
