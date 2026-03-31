@@ -33,6 +33,14 @@ class GtaPostalCode extends Model
     }
 
     /**
+     * Escape special LIKE characters.
+     */
+    private static function escapeLike(string $value): string
+    {
+        return str_replace(['!', '%', '_'], ['!!', '!%', '!_'], $value);
+    }
+
+    /**
      * Search by FSA (exact after normalization), municipality, or neighbourhood.
      *
      * FSA exact matches are ranked first; remaining results are ordered
@@ -45,13 +53,14 @@ class GtaPostalCode extends Model
         $driver = DB::getDriverName();
         $normalizedFsa = static::normalize($query);
         $likeOp = $driver === 'pgsql' ? 'ILIKE' : 'LIKE';
-        $pattern = '%'.$query.'%';
+        $escapedQuery = static::escapeLike($query);
+        $pattern = '%'.$escapedQuery.'%';
 
         return static::query()
             ->where(function (Builder $q) use ($normalizedFsa, $likeOp, $pattern) {
                 $q->where('fsa', $normalizedFsa)
-                    ->orWhere('municipality', $likeOp, $pattern)
-                    ->orWhere('neighbourhood', $likeOp, $pattern);
+                    ->orWhereRaw("municipality {$likeOp} ? ESCAPE '!'", [$pattern])
+                    ->orWhereRaw("neighbourhood {$likeOp} ? ESCAPE '!'", [$pattern]);
             })
             ->orderByRaw('CASE WHEN fsa = ? THEN 0 ELSE 1 END', [$normalizedFsa])
             ->orderBy('municipality')
