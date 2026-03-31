@@ -12,6 +12,10 @@ export function deriveIconName(
 
     if (type === 'go_transit') return 'directions_transit';
 
+    if (type === 'transit' && alert.kind === 'miway') {
+        return 'directions_bus';
+    }
+
     if (type === 'transit' && alert.kind === 'transit') {
         return deriveTtcIconName(alert);
     }

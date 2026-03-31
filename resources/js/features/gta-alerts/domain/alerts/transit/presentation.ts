@@ -1,3 +1,4 @@
+import type { MiwayAlert } from '../miway/schema';
 import type { AlertPresentation } from '../view/types';
 import type { GoTransitAlert } from './go/schema';
 import type { TtcTransitAlert } from './ttc/schema';
@@ -39,6 +40,26 @@ export function deriveGoTransitSeverity(
 
     const alertType = (meta.alert_type ?? '').trim().toLowerCase();
     if (alertType === 'saag') {
+        return 'medium';
+    }
+
+    return 'low';
+}
+
+export function deriveMiwaySeverity(
+    meta: MiwayAlert['meta'],
+): AlertPresentation['severity'] {
+    const effect = (meta.effect ?? '').trim().toUpperCase();
+
+    if (effect === 'NO_SERVICE') {
+        return 'high';
+    }
+
+    if (
+        effect === 'REDUCED_SERVICE' ||
+        effect === 'SIGNIFICANT_DELAYS' ||
+        effect === 'DETOUR'
+    ) {
         return 'medium';
     }
 
@@ -194,6 +215,46 @@ export function buildGoTransitDescriptionAndMetadata(
             effect: subCategory ?? undefined,
             direction: goDirection,
             estimatedDelay: delayDuration ?? undefined,
+        },
+    };
+}
+
+export function buildMiwayDescriptionAndMetadata(
+    alert: MiwayAlert,
+): Pick<AlertPresentation, 'description' | 'metadata'> {
+    const headerText = alert.meta.header_text ?? undefined;
+    const descriptionText = alert.meta.description_text ?? undefined;
+    const cause = alert.meta.cause ?? undefined;
+    const effect = alert.meta.effect ?? undefined;
+
+    const summaryParts = [
+        effect ? getTransitEffectLabel(effect) : null,
+        cause ? `Cause: ${cause}` : null,
+    ]
+        .filter(Boolean)
+        .join(' • ');
+
+    const miwayDescription = [summaryParts || null, descriptionText || null]
+        .filter(Boolean)
+        .join('. ');
+
+    return {
+        description:
+            miwayDescription ||
+            headerText ||
+            alert.title ||
+            'MiWay service alert.',
+        metadata: {
+            eventNum: alert.externalId,
+            alarmLevel: 0,
+            unitsDispatched: null,
+            beat: null,
+            source: 'MiWay',
+            routeType: undefined,
+            route: undefined,
+            effect,
+            direction: undefined,
+            estimatedDelay: undefined,
         },
     };
 }

@@ -38,3 +38,7 @@ export type { TtcTransitAlert, TtcTransitMeta } from './transit/ttc/schema';
 // Transit - GO (Metrolinx)
 export { GoTransitAlertSchema, GoTransitMetaSchema } from './transit/go/schema';
 export type { GoTransitAlert, GoTransitMeta } from './transit/go/schema';
+
+// MiWay
+export { MiwayAlertSchema, MiwayMetaSchema } from './miway/schema';
+export type { MiwayAlert, MiwayMeta } from './miway/schema';

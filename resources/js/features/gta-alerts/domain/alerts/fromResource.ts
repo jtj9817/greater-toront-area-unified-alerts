@@ -1,4 +1,5 @@
 import { mapFireAlert } from './fire/mapper';
+import { mapMiwayAlert } from './miway/mapper';
 import { mapPoliceAlert } from './police/mapper';
 import { UnifiedAlertResourceSchema } from './resource';
 import { mapGoTransitAlert } from './transit/go/mapper';
@@ -41,6 +42,9 @@ export function fromResource(resource: unknown): DomainAlert | null {
         }
         case 'go_transit': {
             return mapGoTransitAlert(validated);
+        }
+        case 'miway': {
+            return mapMiwayAlert(validated);
         }
         default: {
             console.warn(
