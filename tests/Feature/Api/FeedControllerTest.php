@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Models\FireIncident;
+use App\Models\MiwayAlert;
 use App\Models\PoliceCall;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -95,6 +96,107 @@ test('the feed api respects source filter', function () {
     $policeData = $policeResponse->json('data');
     expect($policeData)->toHaveCount(1)
         ->and($policeData[0]['source'])->toBe('police');
+});
+
+test('the feed api respects source filter for miway', function () {
+    Carbon::setTestNow(Carbon::parse('2026-02-03 12:00:00'));
+
+    MiwayAlert::factory()->create([
+        'external_id' => 'miway:alert:12345',
+        'header_text' => 'Route 17 detour',
+        'is_active' => true,
+        'starts_at' => Carbon::now()->subMinutes(5),
+    ]);
+
+    MiwayAlert::factory()->create([
+        'external_id' => 'miway:alert:67890',
+        'header_text' => 'Route 5 reduced service',
+        'is_active' => false,
+        'starts_at' => Carbon::now()->subMinutes(10),
+    ]);
+
+    // Filter by source=miway should return all miway alerts (active and inactive)
+    $miwayResponse = $this->getJson(route('api.feed', ['source' => 'miway']));
+    $miwayResponse->assertOk();
+    $miwayData = $miwayResponse->json('data');
+    expect($miwayData)->toHaveCount(2)
+        ->and($miwayData[0]['source'])->toBe('miway')
+        ->and($miwayData[1]['source'])->toBe('miway');
+
+    // Filter by source=miway and status=active should return only active
+    $activeResponse = $this->getJson(route('api.feed', ['source' => 'miway', 'status' => 'active']));
+    $activeResponse->assertOk();
+    $activeData = $activeResponse->json('data');
+    expect($activeData)->toHaveCount(1)
+        ->and($activeData[0]['source'])->toBe('miway')
+        ->and($activeData[0]['is_active'])->toBe(true);
+});
+
+test('miway alerts appear in unified feed with correct structure', function () {
+    Carbon::setTestNow(Carbon::parse('2026-02-03 12:00:00'));
+
+    MiwayAlert::factory()->create([
+        'external_id' => 'miway:alert:99999',
+        'header_text' => 'Bus route 101 detour',
+        'description_text' => 'Due to construction on Hurontario Street',
+        'cause' => 'CONSTRUCTION',
+        'effect' => 'DETOUR',
+        'is_active' => true,
+        'starts_at' => Carbon::now()->subMinutes(5),
+        'url' => 'https://www.miway.ca/alerts/101',
+        'detour_pdf_url' => 'https://www.miway.ca/detours/101.pdf',
+    ]);
+
+    $response = $this->getJson(route('api.feed'));
+
+    $response->assertOk()
+        ->assertJsonStructure([
+            'data' => [
+                '*' => [
+                    'id',
+                    'source',
+                    'external_id',
+                    'is_active',
+                    'timestamp',
+                    'title',
+                    'location',
+                    'meta',
+                ],
+            ],
+            'next_cursor',
+        ]);
+
+    $data = $response->json('data');
+    expect($data)->toHaveCount(1);
+
+    $alert = $data[0];
+    expect($alert['source'])->toBe('miway');
+    expect($alert['external_id'])->toBe('miway:alert:99999');
+    expect($alert['is_active'])->toBe(true);
+    expect($alert['title'])->toBe('Bus route 101 detour');
+    expect($alert['location'])->toBeNull(); // MiWay has no location
+
+    // Verify meta contains MiWay-specific fields
+    expect($alert['meta'])->toBeArray();
+    expect($alert['meta']['header_text'])->toBe('Bus route 101 detour');
+    expect($alert['meta']['description_text'])->toBe('Due to construction on Hurontario Street');
+    expect($alert['meta']['cause'])->toBe('CONSTRUCTION');
+    expect($alert['meta']['effect'])->toBe('DETOUR');
+    expect($alert['meta']['url'])->toBe('https://www.miway.ca/alerts/101');
+    expect($alert['meta']['detour_pdf_url'])->toBe('https://www.miway.ca/detours/101.pdf');
+});
+
+test('source filter returns empty for miway when no miway alerts exist', function () {
+    FireIncident::factory()->create([
+        'event_num' => 'F1',
+        'is_active' => true,
+    ]);
+
+    $response = $this->getJson(route('api.feed', ['source' => 'miway']));
+    $response->assertOk();
+
+    $data = $response->json('data');
+    expect($data)->toHaveCount(0);
 });
 
 test('the feed api respects since filter', function () {
