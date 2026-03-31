@@ -5,6 +5,7 @@ namespace App\Providers;
 use App\Models\User;
 use App\Services\Alerts\Providers\FireAlertSelectProvider;
 use App\Services\Alerts\Providers\GoTransitAlertSelectProvider;
+use App\Services\Alerts\Providers\MiwayAlertSelectProvider;
 use App\Services\Alerts\Providers\PoliceAlertSelectProvider;
 use App\Services\Alerts\Providers\TransitAlertSelectProvider;
 use App\Services\Weather\WeatherCacheService;
@@ -28,6 +29,7 @@ class AppServiceProvider extends ServiceProvider
             PoliceAlertSelectProvider::class,
             TransitAlertSelectProvider::class,
             GoTransitAlertSelectProvider::class,
+            MiwayAlertSelectProvider::class,
         ], 'alerts.select-providers');
 
         $this->app->singleton(WeatherFetchService::class, function ($app) {
