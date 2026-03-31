@@ -27,7 +27,7 @@
     - [x] Confirm no behavior regressions via focused test rerun.
 - [x] Task: Conductor - User Manual Verification 'Phase 2: GTFS-RT Feed Service' [19aecb8]
 
-## Phase 3: Fetch Command (Sync + Notifications)
+## Phase 3: Fetch Command (Sync + Notifications) [checkpoint: 8e69487]
 
 - [x] Task: Write failing command tests for sync lifecycle [2c60234]
     - [x] Add tests for upsert of active alerts and feed timestamp persistence.
@@ -37,7 +37,7 @@
     - [x] Create `app/Console/Commands/FetchMiwayAlertsCommand.php` and wire feed-service call.
     - [x] Implement upsert/deactivate behavior and `not_modified` short-circuit.
     - [x] Extend `NotificationAlertFactory` path for `MiwayAlert` if required by event flow.
-- [ ] Task: Conductor - User Manual Verification 'Phase 3: Fetch Command (Sync + Notifications)' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 3: Fetch Command (Sync + Notifications)' [8e69487]
 
 ## Phase 4: Queue Job Wrapper + Scheduler
 
