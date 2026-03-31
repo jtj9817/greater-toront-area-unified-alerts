@@ -48,12 +48,12 @@ while [[ $# -gt 0 ]]; do
             shift 2
             ;;
         --help|-h)
-            echo "Usage: ./scripts/run-manual-test.sh [--env-file <file>] [--db mysql|pgsql] tests/manual/<script>.php [args...]"
+            echo "Usage: ./scripts/run-manual-test.sh [--env-file <file>] [--db mysql|pgsql] (tests/manual|scripts/manual_tests)/<script>.php [args...]"
             exit 0
             ;;
         --*)
             echo "Error: Unknown option '$1'."
-            echo "Usage: ./scripts/run-manual-test.sh [--env-file <file>] [--db mysql|pgsql] tests/manual/<script>.php [args...]"
+            echo "Usage: ./scripts/run-manual-test.sh [--env-file <file>] [--db mysql|pgsql] (tests/manual|scripts/manual_tests)/<script>.php [args...]"
             exit 1
             ;;
         *)
@@ -68,7 +68,7 @@ if [[ ! -f "${ENV_FILE}" ]]; then
 fi
 
 if [[ $# -lt 1 ]]; then
-    echo "Usage: ./scripts/run-manual-test.sh [--env-file <file>] [--db mysql|pgsql] tests/manual/<script>.php [args...]"
+    echo "Usage: ./scripts/run-manual-test.sh [--env-file <file>] [--db mysql|pgsql] (tests/manual|scripts/manual_tests)/<script>.php [args...]"
     exit 1
 fi
 
@@ -80,8 +80,8 @@ if [[ ! -f "${TARGET_SCRIPT}" ]]; then
     exit 1
 fi
 
-if [[ "${TARGET_SCRIPT}" != tests/manual/* ]]; then
-    echo "Error: Manual script must be inside tests/manual."
+if [[ "${TARGET_SCRIPT}" != tests/manual/* && "${TARGET_SCRIPT}" != scripts/manual_tests/* ]]; then
+    echo "Error: Manual script must be inside tests/manual or scripts/manual_tests."
     exit 1
 fi
 
