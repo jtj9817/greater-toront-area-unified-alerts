@@ -46,7 +46,7 @@ Result: **FAIL**. Pint output includes (non-exhaustive) generated files such as:
 - `app/Protobuf/Google/Transit/Realtime/Alert/Cause.php`
 - `app/Protobuf/Google/Transit/Realtime/Alert/Effect.php`
 
-**Note:** The current Pint failure output also includes non-protobuf files (e.g. `app/Services/MiwayGtfsRtAlertsFeedService.php` and various repo scripts). Even if protobuf sources are excluded, Pint may still fail until those additional issues are addressed.
+**Note:** Pint failures also included non-protobuf files (e.g. the MiWay feed service/tests and manual verification scripts). Those were resolved after excluding generated protobuf sources.
 
 ### P1 — Unknown GTFS-RT enum values can crash normalization
 
@@ -54,20 +54,20 @@ Result: **FAIL**. Pint output includes (non-exhaustive) generated files such as:
 
 **Verification:** In `app/Protobuf/Google/Transit/Realtime/Alert/Cause.php`, `Cause::name($value)` throws when the value key is not defined in the generated map (same pattern in `Effect`).
 
-Impact surface:
-- `App\Services\MiwayGtfsRtAlertsFeedService::normalizeAlert()` currently calls `Alert\Cause::name($alert->getCause())` and `Alert\Effect::name($alert->getEffect())` without a guard.
+Impact surface (pre-fix):
+- `App\Services\MiwayGtfsRtAlertsFeedService::normalizeAlert()` called `Alert\Cause::name($alert->getCause())` and `Alert\Effect::name($alert->getEffect())` without a guard.
 
 ### P2 — `updated_at` timezone semantics differ on 304 responses
 
 **Claim:** On HTTP 304, `fetch()` returns `updated_at` in local timezone (`Carbon::now()`), while the successful decode path returns UTC (`->utc()`).
 
-**Verification:** In `app/Services/MiwayGtfsRtAlertsFeedService.php`, the 304 early return uses `Carbon::now()` (no `->utc()`), while the decoded-feed path uses `Carbon::createFromTimestamp(...)->utc()` / `Carbon::now()->utc()`.
+**Verification (pre-fix):** In `app/Services/MiwayGtfsRtAlertsFeedService.php`, the 304 early return used `Carbon::now()` (no `->utc()`), while the decoded-feed path used `Carbon::createFromTimestamp(...)->utc()` / `Carbon::now()->utc()`.
 
 ### P3 — `empty()` is not a safe “no bytes returned” check for binary payloads
 
 **Claim:** `empty($body)` treats `'0'` as empty; strict checks like `$body === ''` (or `strlen($body) === 0`) avoid misclassification.
 
-**Verification:** In `app/Services/MiwayGtfsRtAlertsFeedService.php`, `fetch()` uses `empty($body)` to detect an empty payload.
+**Verification (pre-fix):** In `app/Services/MiwayGtfsRtAlertsFeedService.php`, `fetch()` used `empty($body)` to detect an empty payload.
 
 ## Recommendations (No Timeline)
 
