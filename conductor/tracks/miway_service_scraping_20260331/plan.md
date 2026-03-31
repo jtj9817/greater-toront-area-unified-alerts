@@ -14,17 +14,17 @@
 
 ## Phase 2: GTFS-RT Feed Service
 
-- [ ] Task: Write failing feed-service tests (red phase)
-    - [ ] Add tests for successful protobuf decode and normalization to persisted fields.
-    - [ ] Add tests for conditional GET (`ETag` / `Last-Modified`) including `304 Not Modified`.
-    - [ ] Add failure-mode tests for timeout/network errors, malformed protobuf, and empty payload handling.
-- [ ] Task: Implement `MiwayGtfsRtAlertsFeedService` (green phase)
-    - [ ] Create `app/Services/MiwayGtfsRtAlertsFeedService.php` with timeout/retry, circuit-breaker hooks, and conditional-fetch caching.
-    - [ ] Decode GTFS-RT Alerts payload and normalize `external_id`, text, active period, cause/effect, URL, and detour PDF URL.
-    - [ ] Return normalized result shape with `updated_at`, `alerts`, and optional `not_modified`.
-- [ ] Task: Refactor feed service while keeping tests green
-    - [ ] Extract translation/period parsing helpers for readability.
-    - [ ] Confirm no behavior regressions via focused test rerun.
+- [x] Task: Write failing feed-service tests (red phase) [f74e8d1]
+    - [x] Add tests for successful protobuf decode and normalization to persisted fields.
+    - [x] Add tests for conditional GET (`ETag` / `Last-Modified`) including `304 Not Modified`.
+    - [x] Add failure-mode tests for timeout/network errors, malformed protobuf, and empty payload handling.
+- [x] Task: Implement `MiwayGtfsRtAlertsFeedService` (green phase) [f74e8d1]
+    - [x] Create `app/Services/MiwayGtfsRtAlertsFeedService.php` with timeout/retry, circuit-breaker hooks, and conditional-fetch caching.
+    - [x] Decode GTFS-RT Alerts payload and normalize `external_id`, text, active period, cause/effect, URL, and detour PDF URL.
+    - [x] Return normalized result shape with `updated_at`, `alerts`, and optional `not_modified`.
+- [x] Task: Refactor feed service while keeping tests green [f74e8d1]
+    - [x] Extract translation/period parsing helpers for readability.
+    - [x] Confirm no behavior regressions via focused test rerun.
 - [ ] Task: Conductor - User Manual Verification 'Phase 2: GTFS-RT Feed Service' (Protocol in workflow.md)
 
 ## Phase 3: Fetch Command (Sync + Notifications)
