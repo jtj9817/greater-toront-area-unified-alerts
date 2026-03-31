@@ -109,8 +109,8 @@ test('it fetches and normalizes TTC alerts from live API, SXA, and static source
     expect($staticAlert['route_type'])->toBe('Streetcar');
 });
 
-test('it ignores siteWideCustom and generalCustom buckets', function () {
-    config(['feeds.allow_empty_feeds' => true]);
+test('it treats shape-gated empty responses with only custom buckets as success without throwing', function () {
+    config(['feeds.allow_empty_feeds' => false]);
 
     Http::fake([
         'https://alerts.ttc.ca/api/alerts/live-alerts*' => Http::response([
@@ -156,6 +156,30 @@ test('it ignores siteWideCustom and generalCustom buckets', function () {
 
     expect($apiAlerts)->toBeEmpty();
 });
+
+test('it throws when feed is completely empty and allow_empty_feeds is false', function () {
+    config(['feeds.allow_empty_feeds' => false]);
+
+    Http::fake([
+        'https://alerts.ttc.ca/api/alerts/live-alerts*' => Http::response([
+            'lastUpdated' => '2026-02-03T04:41:06.633Z',
+            'routes' => [],
+            'accessibility' => [],
+            'siteWideCustom' => [],
+            'generalCustom' => [],
+            'stops' => [],
+            'status' => 'success',
+        ], 200),
+        '*sxa/search/results*' => Http::sequence()
+            ->push(['Results' => []], 200)
+            ->push(['Results' => []], 200)
+            ->push(['Results' => []], 200)
+            ->push(['Results' => []], 200),
+        'https://www.ttc.ca/service-advisories/Streetcar-Service-Changes*' => Http::response('', 200),
+    ]);
+
+    app(TtcAlertsFeedService::class)->fetch();
+})->throws(RuntimeException::class, 'TTC alerts feed returned zero alerts');
 
 test('it ignores non advisory static sections when parsing streetcar page', function () {
     Http::fake([

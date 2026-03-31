@@ -30,7 +30,7 @@ test('it parses a valid json response with trains buses and stations', function 
                                 'HeadSign' => 'Union Station',
                                 'DelayDuration' => '00:12:00',
                                 'DepartureTimeDisplay' => '2:30 PM',
-                                'ArrivalTimeTimeDisplay' => '3:15 PM',
+                                'ArrivalTimeDisplay' => '3:15 PM',
                                 'Status' => 'Moving',
                                 'TripNumbers' => ['4521'],
                                 'PostedDateTime' => '2026-02-05 14:25:00',
@@ -115,6 +115,7 @@ test('it parses a valid json response with trains buses and stations', function 
     expect($saag['external_id'])->toBe('saag:LW:4521');
     expect($saag['message_subject'])->toContain('Lakeshore West');
     expect($saag['message_body'])->toContain('Departure: 2:30 PM');
+    expect($saag['message_body'])->toContain('Arrival: 3:15 PM');
 
     // Bus notification
     $bus = $results['alerts'][2];

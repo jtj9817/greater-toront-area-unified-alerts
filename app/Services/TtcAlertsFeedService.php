@@ -39,7 +39,7 @@ class TtcAlertsFeedService
         $this->circuitBreaker->throwIfOpen('ttc_alerts');
 
         try {
-            [$updatedAt, $primaryAlerts] = $this->fetchLiveApiAlerts();
+            [$updatedAt, $primaryAlerts, $isShapeGatedEmptySuccess] = $this->fetchLiveApiAlerts();
 
             $alerts = $primaryAlerts;
             $alerts = array_merge($alerts, $this->fetchSxaAlerts());
@@ -47,7 +47,7 @@ class TtcAlertsFeedService
 
             $dedupedAlerts = array_values($this->dedupeByExternalId($alerts));
 
-            if ($dedupedAlerts === [] && ! $allowEmptyFeeds) {
+            if ($dedupedAlerts === [] && ! $allowEmptyFeeds && ! $isShapeGatedEmptySuccess) {
                 throw new RuntimeException('TTC alerts feed returned zero alerts');
             }
 
@@ -66,7 +66,7 @@ class TtcAlertsFeedService
     }
 
     /**
-     * @return array{0: CarbonInterface, 1: list<array<string, mixed>>}
+     * @return array{0: CarbonInterface, 1: list<array<string, mixed>>, 2: bool}
      */
     protected function fetchLiveApiAlerts(): array
     {
@@ -94,10 +94,21 @@ class TtcAlertsFeedService
         $alerts = [];
         $buckets = ['routes', 'accessibility', 'siteWideCustom', 'generalCustom', 'stops'];
 
+        $hasRealRecords = false;
+        $hasCustomRecords = false;
+
         foreach ($buckets as $bucket) {
             $records = $data[$bucket] ?? [];
             if (! is_array($records)) {
                 continue;
+            }
+
+            if (! empty($records)) {
+                if (in_array($bucket, ['siteWideCustom', 'generalCustom'], true)) {
+                    $hasCustomRecords = true;
+                } else {
+                    $hasRealRecords = true;
+                }
             }
 
             foreach ($records as $record) {
@@ -112,7 +123,9 @@ class TtcAlertsFeedService
             }
         }
 
-        return [$updatedAt, $alerts];
+        $isShapeGatedEmptySuccess = $hasCustomRecords && ! $hasRealRecords;
+
+        return [$updatedAt, $alerts, $isShapeGatedEmptySuccess];
     }
 
     /**

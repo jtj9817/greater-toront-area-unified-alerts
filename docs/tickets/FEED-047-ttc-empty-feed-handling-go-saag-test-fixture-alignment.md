@@ -4,8 +4,8 @@
 
 After closing [FEED-046 — Feed Ingestion Data Quality Issues](FEED-046-feed-ingestion-data-quality-bugs.md), a review flagged two follow-ups:
 
-1) The TTC change that filters out `siteWideCustom`/`generalCustom` records can cause a **successful** TTC fetch to return **zero alerts**, which currently throws when `ALLOW_EMPTY_FEEDS=false` (default), potentially failing ingestion/circuit-breaker depending on real upstream payload shapes.
-2) `GoTransitFeedService` now correctly reads `ArrivalTimeDisplay` for SAAG alerts, but the canonical “valid json response” fixture still contains the old key (`ArrivalTimeTimeDisplay`), making the happy-path test non-representative and missing an assertion for the `Arrival:` line.
+1. The TTC change that filters out `siteWideCustom`/`generalCustom` records can cause a **successful** TTC fetch to return **zero alerts**, which currently throws when `ALLOW_EMPTY_FEEDS=false` (default), potentially failing ingestion/circuit-breaker depending on real upstream payload shapes.
+2. `GoTransitFeedService` now correctly reads `ArrivalTimeDisplay` for SAAG alerts, but the canonical “valid json response” fixture still contains the old key (`ArrivalTimeTimeDisplay`), making the happy-path test non-representative and missing an assertion for the `Arrival:` line.
 
 ## Component
 
@@ -69,11 +69,11 @@ After closing [FEED-046 — Feed Ingestion Data Quality Issues](FEED-046-feed-in
 
 ## Acceptance Criteria
 
-- [ ] TTC ingestion does not fail/circuit-break solely due to a successful upstream response yielding zero “real” alerts after filtering `siteWideCustom`/`generalCustom` (per the chosen strategy).
-- [ ] A test covers the chosen TTC empty-feed strategy (and documents the intended behavior).
-- [ ] `tests/Feature/Services/GoTransitFeedServiceTest.php` “valid json response” fixture uses `ArrivalTimeDisplay` for SAAG notifications.
-- [ ] The GO SAAG happy-path test asserts that `message_body` includes both `Departure:` and `Arrival:` when the API provides both fields.
+- [x] TTC ingestion does not fail/circuit-break solely due to a successful upstream response yielding zero “real” alerts after filtering `siteWideCustom`/`generalCustom` (per the chosen strategy).
+- [x] A test covers the chosen TTC empty-feed strategy (and documents the intended behavior).
+- [x] `tests/Feature/Services/GoTransitFeedServiceTest.php` “valid json response” fixture uses `ArrivalTimeDisplay` for SAAG notifications.
+- [x] The GO SAAG happy-path test asserts that `message_body` includes both `Departure:` and `Arrival:` when the API provides both fields.
 
 ## Status
 
-**OPEN**
+**CLOSED**
