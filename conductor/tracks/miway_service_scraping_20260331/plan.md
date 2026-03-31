@@ -41,14 +41,14 @@
 
 ## Phase 4: Queue Job Wrapper + Scheduler
 
-- [ ] Task: Write failing tests for queue-dispatch scheduling behavior
-    - [ ] Add tests asserting job wrapper invokes `miway:fetch-alerts` and throws on non-zero Artisan exit.
-    - [ ] Add tests for `ScheduledFetchJobDispatcher::dispatchMiwayAlerts()` return/dispatch behavior.
-    - [ ] Add scheduler registration assertions for 5-minute cadence with overlap protection.
-- [ ] Task: Implement MiWay job + scheduler wiring
-    - [ ] Create `app/Jobs/FetchMiwayAlertsJob.php` with uniqueness and overlap middleware.
-    - [ ] Update `app/Services/ScheduledFetchJobDispatcher.php` with `dispatchMiwayAlerts()`.
-    - [ ] Register schedule callback in `routes/console.php`.
+- [x] Task: Write failing tests for queue-dispatch scheduling behavior [1b18309]
+    - [x] Add tests asserting job wrapper invokes `miway:fetch-alerts` and throws on non-zero Artisan exit.
+    - [x] Add tests for `ScheduledFetchJobDispatcher::dispatchMiwayAlerts()` return/dispatch behavior.
+    - [x] Add scheduler registration assertions for 5-minute cadence with overlap protection.
+- [x] Task: Implement MiWay job + scheduler wiring [1b18309]
+    - [x] Create `app/Jobs/FetchMiwayAlertsJob.php` with uniqueness and overlap middleware.
+    - [x] Update `app/Services/ScheduledFetchJobDispatcher.php` with `dispatchMiwayAlerts()`.
+    - [x] Register schedule callback in `routes/console.php`.
 - [ ] Task: Conductor - User Manual Verification 'Phase 4: Queue Job Wrapper + Scheduler' (Protocol in workflow.md)
 
 ## Phase 5: Unified Alerts Provider
