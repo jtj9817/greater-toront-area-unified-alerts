@@ -205,6 +205,10 @@ class TtcAlertsFeedService
             return $this->normalizeAccessibilityAlert($record);
         }
 
+        if ($bucket === 'siteWideCustom' || $bucket === 'generalCustom') {
+            return null;
+        }
+
         $externalSourceId = $this->stringValue($record['id'] ?? null);
         $title = $this->stringValue($record['title'] ?? $record['headerText'] ?? $record['customHeaderText'] ?? null);
 

@@ -250,12 +250,14 @@ class GoTransitFeedService
             $headSign = trim((string) ($saag['HeadSign'] ?? ''));
             $delayDuration = trim((string) ($saag['DelayDuration'] ?? '')) ?: null;
             $departureTime = trim((string) ($saag['DepartureTimeDisplay'] ?? ''));
-            $arrivalTime = trim((string) ($saag['ArrivalTimeTimeDisplay'] ?? ''));
+            $arrivalTime = trim((string) ($saag['ArrivalTimeDisplay'] ?? ''));
             $status = trim((string) ($saag['Status'] ?? '')) ?: null;
 
+            $label = $name ?: $code ?: 'GO Train';
+
             $subject = $headSign !== ''
-                ? "{$name} - {$headSign} delayed"
-                : "{$name} train delayed";
+                ? "{$label} - {$headSign} delayed"
+                : "{$label} train delayed";
 
             if ($delayDuration !== null && $delayDuration !== '00:00:00') {
                 $subject .= " ({$delayDuration})";
@@ -282,7 +284,7 @@ class GoTransitFeedService
                 'external_id' => $externalId,
                 'alert_type' => 'saag',
                 'service_mode' => 'GO Train',
-                'corridor_or_route' => $name ?: $code,
+                'corridor_or_route' => $label,
                 'corridor_code' => $code ?: null,
                 'sub_category' => null,
                 'message_subject' => $subject,

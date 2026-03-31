@@ -129,6 +129,50 @@ test('it parses a valid json response with trains buses and stations', function 
     expect($station['message_body'])->toBeNull();
 });
 
+test('it handles SAAG notifications missing Name and Code without generating malformed subjects', function () {
+    $json = [
+        'LastUpdated' => '2026-02-05T14:30:00-05:00',
+        'Trains' => [
+            'Train' => [
+                [
+                    'Notifications' => ['Notification' => []],
+                    'SaagNotifications' => [
+                        'SaagNotification' => [
+                            [
+                                'Direction' => 'EASTBOUND',
+                                'HeadSign' => 'Union Station',
+                                'DelayDuration' => '00:12:00',
+                                'DepartureTimeDisplay' => '2:30 PM',
+                                'ArrivalTimeDisplay' => '3:15 PM',
+                                'Status' => 'Moving',
+                                'TripNumbers' => ['4521'],
+                                'PostedDateTime' => '2026-02-05 14:25:00',
+                            ],
+                        ],
+                    ],
+                ],
+            ],
+        ],
+        'Buses' => ['Bus' => []],
+        'Stations' => ['Station' => []],
+    ];
+
+    Http::fake([
+        '*' => Http::response($json, 200, ['Content-Type' => 'application/json']),
+    ]);
+
+    $service = app(GoTransitFeedService::class);
+    $results = $service->fetch();
+
+    expect($results['alerts'])->toHaveCount(1);
+
+    $saag = $results['alerts'][0];
+
+    expect($saag['message_subject'])->toBe('GO Train - Union Station delayed (00:12:00)');
+    expect($saag['corridor_or_route'])->toBe('GO Train');
+    expect($saag['message_body'])->toContain('Arrival: 3:15 PM');
+});
+
 test('it strips html from message body', function () {
     $json = [
         'LastUpdated' => '2026-02-05T14:30:00-05:00',

@@ -109,6 +109,54 @@ test('it fetches and normalizes TTC alerts from live API, SXA, and static source
     expect($staticAlert['route_type'])->toBe('Streetcar');
 });
 
+test('it ignores siteWideCustom and generalCustom buckets', function () {
+    config(['feeds.allow_empty_feeds' => true]);
+
+    Http::fake([
+        'https://alerts.ttc.ca/api/alerts/live-alerts*' => Http::response([
+            'lastUpdated' => '2026-02-03T04:41:06.633Z',
+            'routes' => [],
+            'accessibility' => [],
+            'siteWideCustom' => [
+                [
+                    'id' => '2171',
+                    'alertType' => 'SiteWide',
+                    'routeType' => 'General',
+                    'route' => '9999',
+                    'title' => 'WEBSITE',
+                    'activePeriod' => [
+                        'start' => '2026-02-02T10:22:53.697Z',
+                        'end' => '0001-01-01T00:00:00Z',
+                    ],
+                ],
+            ],
+            'generalCustom' => [
+                [
+                    'id' => '2172',
+                    'alertType' => 'SiteWide',
+                    'routeType' => 'General',
+                    'route' => '9999',
+                    'title' => 'ANOTHER',
+                ],
+            ],
+            'stops' => [],
+            'status' => 'success',
+        ], 200),
+        '*sxa/search/results*' => Http::sequence()
+            ->push(['Results' => []], 200)
+            ->push(['Results' => []], 200)
+            ->push(['Results' => []], 200)
+            ->push(['Results' => []], 200),
+        'https://www.ttc.ca/service-advisories/Streetcar-Service-Changes*' => Http::response('', 200),
+    ]);
+
+    $result = app(TtcAlertsFeedService::class)->fetch();
+
+    $apiAlerts = collect($result['alerts'])->where('source_feed', 'live-api');
+
+    expect($apiAlerts)->toBeEmpty();
+});
+
 test('it ignores non advisory static sections when parsing streetcar page', function () {
     Http::fake([
         'https://alerts.ttc.ca/api/alerts/live-alerts*' => Http::response([

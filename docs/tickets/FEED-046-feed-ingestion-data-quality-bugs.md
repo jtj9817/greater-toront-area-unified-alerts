@@ -2,7 +2,7 @@
 
 ## Summary
 
-Two data quality bugs were discovered during a database inspection of `transit_alerts` and `go_transit_alerts`. TTC's live API injects website CMS banner records into the alerts feed, and GO Transit SAAG alerts produce malformed `message_subject` values with a leading ` - ` when the train corridor `Name` field is absent from the API response. A secondary typo also silently drops arrival time data from all SAAG alerts.
+Two data quality bugs were discovered during a database inspection of `transit_alerts` and `go_transit_alerts`. TTC's live API injects website CMS banner records into the alerts feed, and GO Transit SAAG alerts produce malformed `message_subject` values with a leading `-` when the train corridor `Name` field is absent from the API response. A secondary typo also silently drops arrival time data from all SAAG alerts.
 
 ## Component
 
@@ -37,7 +37,7 @@ ORDER BY created_at DESC
 LIMIT 20;
 ```
 
-`message_subject` values will start with ` - ` for affected records. `message_body` will never contain an `Arrival:` line for any SAAG alert.
+`message_subject` values will start with `-` for affected records. `message_body` will never contain an `Arrival:` line for any SAAG alert.
 
 ---
 
@@ -85,7 +85,7 @@ The existing test uses `Http::fake()` to supply a synthetic API response (see th
 
 ---
 
-### P2 — GO Transit SAAG `message_subject` has leading ` - ` when train `Name` is absent
+### P2 — GO Transit SAAG `message_subject` has leading `-` when train `Name` is absent
 
 **File:** `app/Services/GoTransitFeedService.php:110–111, 256–258, 285`
 
@@ -129,7 +129,7 @@ Update `corridor_or_route` on line 285 to use the same fallback:
 
 **Test file:** `tests/Feature/Services/GoTransitFeedServiceTest.php`
 
-The existing test supplies a `Train` fixture with `Code: 'LW'` and `Name: 'Lakeshore West'` (happy path only). Add a test case with a `Train` entry where both `Name` and `Code` are omitted, and assert that `message_subject` does not start with whitespace or ` - `, and that `corridor_or_route` is `'GO Train'` rather than `""`.
+The existing test supplies a `Train` fixture with `Code: 'LW'` and `Name: 'Lakeshore West'` (happy path only). Add a test case with a `Train` entry where both `Name` and `Code` are omitted, and assert that `message_subject` does not start with whitespace or `-`, and that `corridor_or_route` is `'GO Train'` rather than `""`.
 
 ---
 
@@ -166,14 +166,14 @@ $arrivalTime = trim((string) ($saag['ArrivalTimeDisplay'] ?? ''));
 
 ## Acceptance Criteria
 
-- [ ] Records from `siteWideCustom` and `generalCustom` TTC API buckets are not persisted to `transit_alerts`.
-- [ ] No `transit_alerts` record with `route = '9999'` or `alert_type = 'SiteWide'` is created after a fresh fetch (existing dirty records deactivate naturally on next fetch).
-- [ ] All GO Transit SAAG `message_subject` values begin with a non-whitespace character.
-- [ ] `corridor_or_route` is non-empty for SAAG alerts even when both `$name` and `$code` are absent from the API response.
-- [ ] `message_body` for SAAG alerts includes an `Arrival:` line when the API provides an arrival time.
-- [ ] `GoTransitFeedServiceTest` fixture corrected to use `ArrivalTimeDisplay` and asserts the `Arrival:` line.
-- [ ] All existing tests continue to pass.
+- [x] Records from `siteWideCustom` and `generalCustom` TTC API buckets are not persisted to `transit_alerts`.
+- [x] No `transit_alerts` record with `route = '9999'` or `alert_type = 'SiteWide'` is created after a fresh fetch (existing dirty records deactivate naturally on next fetch).
+- [x] All GO Transit SAAG `message_subject` values begin with a non-whitespace character.
+- [x] `corridor_or_route` is non-empty for SAAG alerts even when both `$name` and `$code` are absent from the API response.
+- [x] `message_body` for SAAG alerts includes an `Arrival:` line when the API provides an arrival time.
+- [x] `GoTransitFeedServiceTest` fixture corrected to use `ArrivalTimeDisplay` and asserts the `Arrival:` line.
+- [x] All existing tests continue to pass.
 
 ## Status
 
-**OPEN**
+**CLOSED**
