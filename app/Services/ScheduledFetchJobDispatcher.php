@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Jobs\FetchFireIncidentsJob;
 use App\Jobs\FetchGoTransitAlertsJob;
+use App\Jobs\FetchMiwayAlertsJob;
 use App\Jobs\FetchPoliceCallsJob;
 use App\Jobs\FetchTransitAlertsJob;
 use BackedEnum;
@@ -163,5 +164,10 @@ class ScheduledFetchJobDispatcher
             ->where('queue', $queueName)
             ->where('payload', 'like', "%{$needle}%")
             ->exists();
+    }
+
+    public function dispatchMiwayAlerts(): bool
+    {
+        return $this->dispatchUnique('miway:fetch-alerts', new FetchMiwayAlertsJob);
     }
 }

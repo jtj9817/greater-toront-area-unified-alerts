@@ -2,6 +2,7 @@
 
 use App\Jobs\FetchFireIncidentsJob;
 use App\Jobs\FetchGoTransitAlertsJob;
+use App\Jobs\FetchMiwayAlertsJob;
 use App\Jobs\FetchPoliceCallsJob;
 use App\Jobs\FetchTransitAlertsJob;
 use App\Services\ScheduledFetchJobDispatcher;
@@ -44,11 +45,13 @@ test('dispatch methods enqueue one scheduled fetch job per source', function () 
     expect($dispatcher->dispatchPoliceCalls())->toBeTrue();
     expect($dispatcher->dispatchTransitAlerts())->toBeTrue();
     expect($dispatcher->dispatchGoTransitAlerts())->toBeTrue();
+    expect($dispatcher->dispatchMiwayAlerts())->toBeTrue();
 
     expect(queuedJobCount(FetchFireIncidentsJob::class))->toBe(1);
     expect(queuedJobCount(FetchPoliceCallsJob::class))->toBe(1);
     expect(queuedJobCount(FetchTransitAlertsJob::class))->toBe(1);
     expect(queuedJobCount(FetchGoTransitAlertsJob::class))->toBe(1);
+    expect(queuedJobCount(FetchMiwayAlertsJob::class))->toBe(1);
 });
 
 test('dispatch skips duplicate enqueue when an equivalent job is already queued', function () {
@@ -149,6 +152,7 @@ test('dispatch methods use the configured unique lock store instead of the defau
     expect($dispatcher->dispatchPoliceCalls())->toBeTrue();
     expect($dispatcher->dispatchTransitAlerts())->toBeTrue();
     expect($dispatcher->dispatchGoTransitAlerts())->toBeTrue();
+    expect($dispatcher->dispatchMiwayAlerts())->toBeTrue();
 
     expect(DB::table('cache_locks')->count())->toBe(0);
 });

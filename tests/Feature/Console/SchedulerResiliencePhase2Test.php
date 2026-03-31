@@ -27,6 +27,7 @@ test('scheduled fetch events are callback-based and named', function () {
         'police:fetch-calls',
         'transit:fetch-alerts',
         'go-transit:fetch-alerts',
+        'miway:fetch-alerts',
     ];
 
     foreach ($expectedNames as $eventName) {
