@@ -109,7 +109,7 @@ class NotificationAlertFactory
 
     public function fromMiwayAlert(MiwayAlert $alert): NotificationAlert
     {
-        $severity = $this->mapTransitSeverity($alert->effect);
+        $severity = $this->mapMiwayEffectSeverity($alert->effect);
 
         return new NotificationAlert(
             alertId: "miway:{$alert->external_id}",
@@ -160,6 +160,17 @@ class NotificationAlertFactory
         }
 
         return NotificationSeverity::MINOR;
+    }
+
+    private function mapMiwayEffectSeverity(?string $effect): string
+    {
+        $value = strtoupper(trim((string) $effect));
+
+        return match ($value) {
+            'NO_SERVICE' => NotificationSeverity::CRITICAL,
+            'REDUCED_SERVICE', 'SIGNIFICANT_DELAYS', 'DETOUR' => NotificationSeverity::MAJOR,
+            default => NotificationSeverity::MINOR,
+        };
     }
 
     private function mapGoTransitSeverity(?string $subCategory, string $subject): string

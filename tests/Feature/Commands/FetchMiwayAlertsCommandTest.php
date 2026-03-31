@@ -183,6 +183,45 @@ it('reactivates previously inactive alerts and dispatches event', function () {
     Event::assertDispatched(AlertCreated::class, 1);
 });
 
+it('deactivates all records when the feed returns zero alerts', function () {
+    Event::fake();
+
+    config()->set('feeds.allow_empty_feeds', true);
+
+    MiwayAlert::factory()->create([
+        'external_id' => 'active_1',
+        'is_active' => true,
+    ]);
+
+    MiwayAlert::factory()->create([
+        'external_id' => 'active_2',
+        'is_active' => true,
+    ]);
+
+    MiwayAlert::factory()->inactive()->create([
+        'external_id' => 'inactive_1',
+    ]);
+
+    $feedData = [
+        'updated_at' => \Carbon\Carbon::parse('2026-03-31T12:00:00Z'),
+        'alerts' => [],
+    ];
+
+    $this->mock(MiwayGtfsRtAlertsFeedService::class, function (MockInterface $mock) use ($feedData) {
+        $mock->shouldReceive('fetch')->once()->andReturn($feedData);
+    });
+
+    $this->artisan('miway:fetch-alerts')
+        ->expectsOutputToContain('Done. 0 active alerts synced, 2 marked inactive.')
+        ->assertExitCode(0);
+
+    expect(MiwayAlert::where('external_id', 'active_1')->first()->is_active)->toBeFalse();
+    expect(MiwayAlert::where('external_id', 'active_2')->first()->is_active)->toBeFalse();
+    expect(MiwayAlert::where('external_id', 'inactive_1')->first()->is_active)->toBeFalse();
+
+    Event::assertNotDispatched(AlertCreated::class);
+});
+
 it('handles service failures gracefully', function () {
     $this->mock(MiwayGtfsRtAlertsFeedService::class, function (MockInterface $mock) {
         $mock->shouldReceive('fetch')->once()->andThrow(new RuntimeException('Service unavailable'));

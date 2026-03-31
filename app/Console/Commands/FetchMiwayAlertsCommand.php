@@ -60,11 +60,13 @@ class FetchMiwayAlertsCommand extends Command
                     }
                 }
 
-                if (count($syncedIds) > 0) {
-                    $deactivatedCount = MiwayAlert::whereNotIn('external_id', $syncedIds)
-                        ->where('is_active', true)
-                        ->update(['is_active' => false]);
+                $deactivationQuery = MiwayAlert::where('is_active', true);
+
+                if ($syncedIds !== []) {
+                    $deactivationQuery->whereNotIn('external_id', $syncedIds);
                 }
+
+                $deactivatedCount = $deactivationQuery->update(['is_active' => false]);
             });
 
             foreach ($newOrReactivatedModels as $model) {
