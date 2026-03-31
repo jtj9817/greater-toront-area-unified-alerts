@@ -1,16 +1,16 @@
 # Implementation Plan: MiWay Service Alerts (GTFS-RT) Integration
 
-## Phase 1: Database + Model
+## Phase 1: Database + Model [checkpoint: d6f8ddd]
 
-- [ ] Task: Write failing tests for MiWay alert persistence and model behavior
-    - [ ] Add tests for `miway_alerts` schema expectations, unique `external_id`, and index coverage.
-    - [ ] Add tests for `MiwayAlert` casts and `scopeActive()` behavior.
-    - [ ] Run focused Pest tests first and confirm red state.
-- [ ] Task: Implement `miway_alerts` storage and model contracts
-    - [ ] Create migration for `miway_alerts` with required columns and indexes from the implementation plan.
-    - [ ] Implement `app/Models/MiwayAlert.php` with typed casts and active scope.
-    - [ ] Re-run focused tests and bring them to green.
-- [ ] Task: Conductor - User Manual Verification 'Phase 1: Database + Model' (Protocol in workflow.md)
+- [x] Task: Write failing tests for MiWay alert persistence and model behavior
+    - [x] Add tests for `miway_alerts` schema expectations, unique `external_id`, and index coverage.
+    - [x] Add tests for `MiwayAlert` casts and `scopeActive()` behavior.
+    - [x] Run focused Pest tests first and confirm red state.
+- [x] Task: Implement `miway_alerts` storage and model contracts
+    - [x] Create migration for `miway_alerts` with required columns and indexes from the implementation plan.
+    - [x] Implement `app/Models/MiwayAlert.php` with typed casts and active scope.
+    - [x] Re-run focused tests and bring them to green.
+- [x] Task: Conductor - User Manual Verification 'Phase 1: Database + Model' [d6f8ddd]
 
 ## Phase 2: GTFS-RT Feed Service
 
