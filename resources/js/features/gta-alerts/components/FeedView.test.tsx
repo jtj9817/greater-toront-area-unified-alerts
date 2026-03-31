@@ -226,8 +226,9 @@ describe('FeedView', () => {
     it('renders view mode toggle (Feed/Table)', () => {
         render(<FeedView {...defaultProps} />);
 
-        expect(screen.getByText('Feed')).toBeInTheDocument();
-        expect(screen.getByText('Table')).toBeInTheDocument();
+        expect(
+            screen.getByRole('button', { name: 'Switch to table view' }),
+        ).toBeInTheDocument();
     });
 
     it('keeps cards/table toggle client-side and does not trigger navigation', () => {
@@ -235,8 +236,8 @@ describe('FeedView', () => {
 
         const callsBeforeToggle = inertiaRouterMocks.get.mock.calls.length;
 
-        fireEvent.click(screen.getByRole('button', { name: 'Table view' }));
-        fireEvent.click(screen.getByRole('button', { name: 'Feed view' }));
+        fireEvent.click(screen.getByRole('button', { name: 'Switch to table view' }));
+        fireEvent.click(screen.getByRole('button', { name: 'Switch to feed view' }));
 
         expect(inertiaRouterMocks.get).toHaveBeenCalledTimes(callsBeforeToggle);
     });

@@ -95,6 +95,7 @@ describe('LocationPicker', () => {
         const fetchSpy = vi
             .spyOn(global, 'fetch')
             .mockResolvedValue(mockFetchOk(makeSearchResponse()));
+        fetchSpy.mockClear();
 
         render(<LocationPicker onSelect={vi.fn()} />);
         const input = screen.getByPlaceholderText(/postal code|search/i);

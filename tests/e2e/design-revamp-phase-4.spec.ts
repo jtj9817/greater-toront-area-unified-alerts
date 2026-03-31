@@ -261,7 +261,7 @@ describe(designRevampPhase4Spec.scenarios[1].id, () => {
         expect(screen.getByText('STRUCTURE FIRE')).toBeInTheDocument();
 
         const callsBeforeToggle = inertiaRouterMocks.get.mock.calls.length;
-        fireEvent.click(screen.getByRole('button', { name: 'Table view' }));
+        fireEvent.click(screen.getByRole('button', { name: 'Switch to table view' }));
 
         expect(screen.getByRole('table')).toBeInTheDocument();
         expect(screen.getByText('CLEARED THEFT')).toBeInTheDocument();
@@ -271,7 +271,7 @@ describe(designRevampPhase4Spec.scenarios[1].id, () => {
             }),
         ).toBeInTheDocument();
 
-        fireEvent.click(screen.getByRole('button', { name: 'Feed view' }));
+        fireEvent.click(screen.getByRole('button', { name: 'Switch to feed view' }));
 
         expect(screen.getByText('STRUCTURE FIRE')).toBeInTheDocument();
         expect(inertiaRouterMocks.get).toHaveBeenCalledTimes(callsBeforeToggle);
@@ -284,7 +284,7 @@ describe(designRevampPhase4Spec.scenarios[2].id, () => {
 
         render(React.createElement(AlertsApp, buildAppProps()));
 
-        fireEvent.click(screen.getByRole('button', { name: 'Table view' }));
+        fireEvent.click(screen.getByRole('button', { name: 'Switch to table view' }));
 
         const urlBeforeExpand = window.location.pathname + window.location.search;
         fireEvent.click(
