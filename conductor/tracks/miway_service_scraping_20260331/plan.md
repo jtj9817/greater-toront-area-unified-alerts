@@ -63,16 +63,16 @@
     - [x] Tag provider in `app/Providers/AppServiceProvider.php` under `alerts.select-providers`.
 - [x] Task: Conductor - User Manual Verification 'Phase 5: Unified Alerts Provider' (Protocol in workflow.md)
 
-## Phase 6: Alert Source + API Contract Plumbing
+## Phase 6: Alert Source + API Contract Plumbing [checkpoint: 93dc036]
 
-- [ ] Task: Write failing backend contract tests for MiWay source identity
-    - [ ] Add tests ensuring unified resources expose source as `miway`.
-    - [ ] Add tests ensuring MiWay records pass through existing unified endpoint/resource flow.
-    - [ ] Confirm no regressions for existing source enum values.
-- [ ] Task: Implement enum and backend source plumbing
-    - [ ] Add `Miway` case to `app/Enums/AlertSource.php`.
-    - [ ] Update any backend switch/validation paths that require explicit source registration.
-    - [ ] Re-run focused backend tests to green.
+- [x] Task: Write failing backend contract tests for MiWay source identity
+    - [x] Add tests ensuring unified resources expose source as `miway`.
+    - [x] Add tests ensuring MiWay records pass through existing unified endpoint/resource flow.
+    - [x] Confirm no regressions for existing source enum values.
+- [x] Task: Implement enum and backend source plumbing
+    - [x] Add `Miway` case to `app/Enums/AlertSource.php`. (already existed from Phase 5 fix)
+    - [x] Update any backend switch/validation paths that require explicit source registration.
+    - [x] Re-run focused backend tests to green.
 - [ ] Task: Conductor - User Manual Verification 'Phase 6: Alert Source + API Contract Plumbing' (Protocol in workflow.md)
 
 ## Phase 7: Frontend Domain Integration
