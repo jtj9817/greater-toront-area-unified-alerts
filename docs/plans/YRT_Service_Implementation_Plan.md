@@ -1,464 +1,259 @@
-# YRT Service Implementation Plan
+# YRT Service Advisories Implementation Plan
 
-> **Reference architecture only.** This document outlines how York Region Transit (YRT) service alerts will be integrated into GTA Alerts. It adapts the original RACC News reference plan to fit the GTA Alerts unified alerts architecture (Provider & Adapter pattern). Do not apply the original plan directly.
+Integrate **York Region Transit (YRT)** service advisories into the GTA Alerts **Unified Alerts** architecture.
 
----
-
-## Data Sources
-
-YRT has two alert sources:
-
-### 1. Service Advisories (HTML scraping)
-- **URL:** `https://www.yrt.ca/modules/news/en/serviceadvisories`
-- **Type:** HTML list + detail pages
-- **Update frequency:** Every 5 minutes (recommended)
-
-### 2. Service Changes (JSON API)
-- **URL:** `https://www.yrt.ca/Modules/NewsModule/services/getServiceAdvisories.ashx?categories=b8f1acba-f043-ec11-9468-0050569c41bf&lang=en`
-- **Type:** JSON API
-- **Update frequency:** Every 5 minutes (recommended)
-- **Notes:** Provides structured data without needing HTML parsing. Does not include `cause`/`effect` fields.
-
-### Data Shape
-
-Both sources contain:
-- `title` — alert headline
-- `posted_at` — publication timestamp
-- `route_number` / `route_name` — affected route(s)
-- `effect` — e.g., Detour, Delay (Service Changes only; cause not provided)
-
-No coordinates are provided. Route/stop descriptions populate `location_name` in the unified schema.
+This plan is written to match the current codebase patterns (Laravel 12, Provider-tagged unified query, scheduled fetch job wrappers, Inertia + React domain mapping).
 
 ---
 
-## Architecture
+## Source Discovery (Research Findings)
 
-### GTA Alerts Pattern (use this)
+Validated on **2026-03-31** using browser network + DOM inspection:
 
-All new alert sources follow the **Provider & Adapter** pattern:
+- **Public UI page:** `https://www.yrt.ca/modules/news/en/serviceadvisories`
+  - Loads the advisory list via XHR (not just static HTML).
+- **Primary feed (JSON):** `GET https://www.yrt.ca/Modules/NewsModule/services/getServiceAdvisories.ashx?categories=b8f1acba-f043-ec11-9468-0050569c41bf&lang=en`
+  - Returns a JSON array (served with `Content-Type: application/javascript; charset=utf-8`).
+  - Fields observed: `title`, `description` (often truncated with `...`), `link`, `postedDate`, `postedTime`, plus split date components.
+  - Confirmed to work without cookies (`fetch(..., { credentials: 'omit' })` succeeded).
+- **Detail pages (optional enrichment):** `https://www.yrt.ca/en/news/{slug}.aspx`
+  - Full article body typically includes labeled fields embedded in prose: `When:`, `Where:`, `Reason:`, `Routes affected:`.
+- **Not used / unreliable:** `GET /Modules/NewsModule/services/getAlertBannerFeeds.ashx`
+  - Returned a body-string error `The remote server returned an error: (404) Not Found.` during the same inspection.
 
-```
-Source Model (YrtAlert)
-    ↓
-AlertSelectProvider (YrtAlertSelectProvider)
-    ↓
-UNION Query (UnifiedAlertsQuery)
-    ↓
-UnifiedAlert DTO (transport)
-    ↓
-DomainAlert (frontend)
-    ↓
-AlertPresentation (frontend view model)
-```
-
-**Key components to create:**
-1. `YrtAlert` model + migration
-2. `YrtAlertFeedService` — fetch + parse both sources
-3. `FetchYrtAlertsCommand` — artisan command
-4. `YrtAlertSelectProvider` — tagged `alerts.select-providers`
-5. `AlertSource` enum update — add `Yrt` variant
-6. Domain TypeScript types + mapper
-7. `Schedule::call()` in `routes/console.php`
-
-**Do NOT use:**
-- `PublicTransitAlertsController` (RACC pattern)
-- `LlmApiService` / `HtmlToMarkdownService`
-- Laravel Scout
+**Conclusion:** ingest the `getServiceAdvisories.ashx` JSON feed as the source of truth; fetch detail pages only when we actually need richer body text.
 
 ---
 
-## Phase 1: Model and Migration
+## Fetch Optimizations (Avoid Unnecessary Work)
 
-### Schema
+1. **List-first ingestion**
+   - Treat the JSON feed as the authoritative active set.
+   - Do not scrape the HTML list page.
+2. **Skip unchanged work**
+   - Persist `list_hash` (SHA1 of a stable JSON subset) per alert.
+   - If `list_hash` has not changed and we already have `body_text`, skip detail fetch.
+3. **Detail fetch on-demand**
+   - Fetch `link` HTML only when one of the following is true:
+     - new alert
+     - `list_hash` changed
+     - `body_text` is empty
+     - `details_fetched_at` is older than a refresh threshold (optional, e.g. 24h)
+4. **Guard rails**
+   - Cap list size processed per run (e.g. max 200).
+   - Low/no concurrency; timeouts + retries consistent with existing feed services.
 
-Follow the pattern in `FireIncident` / `PoliceCall` migrations. The base unified columns are:
+---
 
-| Column | Type | Notes |
-|--------|------|-------|
-| `id` | bigint PK | Auto |
-| `external_id` | string unique | Source's own ID (upsert key) |
-| `source` | string | Always `yrt` |
-| `is_active` | boolean | Default true; cleared alerts set false |
-| `timestamp` | timestamp | `posted_at` from source |
-| `title` | string | Alert headline |
-| `location_name` | string nullable | Route/stop description (from `route_number` + `route_name`) |
-| `lat` | decimal nullable | Always null for transit |
-| `lng` | decimal nullable | Always null for transit |
-| `meta` | json | Source-specific: `alert_type` (`service_advisory` or `service_change`), `route_number`, `route_name`, `cause`, `effect`, `effective_start_date`, `effective_end_date`, `original_payload`, `payload_hash` |
+## Data Model (Observed Shape)
 
-```php
-Schema::create('yrt_alerts', function (Blueprint $table) {
-    $table->id();
-    $table->string('external_id')->unique();
-    $table->string('source')->default('yrt');
-    $table->boolean('is_active')->default(true);
-    $table->timestamp('timestamp');
-    $table->string('title');
-    $table->string('location_name')->nullable();
-    $table->decimal('lat', 10, 7)->nullable();
-    $table->decimal('lng', 10, 7)->nullable();
-    $table->json('meta');
-    $table->timestamps();
+Persist these fields:
 
-    $table->index(['is_active', 'timestamp']);
-    $table->index('external_id');
-});
+- `external_id` — derived from `link` slug (path basename without `.aspx`)
+- `title`
+- `posted_at` — parsed from `postedDate + postedTime` (America/Toronto → UTC)
+- `details_url` — the `link` field
+- `description_excerpt` — normalized `description` from the feed (even if truncated)
+- `route_text` — derived best-effort (from title like `52 - Holland Landing` or from `Routes affected:` in excerpt)
+- `body_text` — optional full detail page text (normalized whitespace)
+- `list_hash` — supports skipping unchanged detail fetches
+- `details_fetched_at` — timestamp when detail page was last fetched
+- `is_active` — true when present in the latest feed, false when missing
+- `feed_updated_at` — scrape time (UTC) to aid ops/debugging
+
+Coordinates are not present; unified `lat`/`lng` are always `NULL` for this source.
+
+---
+
+## Architecture Fit (GTA Alerts Unified Query)
+
+Backend flow:
+
+```
+YrtAlert table
+  → YrtAlertSelectProvider (tagged in AppServiceProvider)
+  → UnifiedAlertsQuery (UNION)
+  → API resources → Inertia/React domain mappers
 ```
 
-### Model (`YrtAlert`)
+Frontend flow:
 
-```php
-// app/Models/YrtAlert.php
-class YrtAlert extends Model
-{
-    use HasFactory;
-
-    protected $fillable = [
-        'external_id',
-        'source',
-        'is_active',
-        'timestamp',
-        'title',
-        'location_name',
-        'lat',
-        'lng',
-        'meta',
-    ];
-
-    protected function casts(): array
-    {
-        return [
-            'is_active' => 'boolean',
-            'timestamp' => 'datetime',
-            'meta' => 'array',
-            'lat' => 'decimal:7',
-            'lng' => 'decimal:7',
-        ];
-    }
-
-    public function getAlertTypeAttribute(): ?string
-    {
-        return $this->meta['alert_type'] ?? null;
-    }
-
-    public function getRouteNumberAttribute(): ?string
-    {
-        return $this->meta['route_number'] ?? null;
-    }
-
-    public function getRouteNameAttribute(): ?string
-    {
-        return $this->meta['route_name'] ?? null;
-    }
-
-    public function getCauseAttribute(): ?string
-    {
-        return $this->meta['cause'] ?? null;
-    }
-
-    public function getEffectAttribute(): ?string
-    {
-        return $this->meta['effect'] ?? null;
-    }
-}
+```
+UnifiedAlertResource (source: 'yrt')
+  → fromResource() switch
+  → mapYrtAlert()
+  → presentation mapping (reuse transit presentation utilities)
 ```
 
 ---
 
-## Phase 2: Feed Service
+## Phase 1: Database + Model
 
-### Feed Service (`YrtAlertFeedService`)
+Create `yrt_alerts` using the existing alert table conventions (see `database/migrations/2026_02_05_233653_create_go_transit_alerts_table.php`).
 
-```php
-// app/Services/Alerts/Providers/YrtAlertFeedService.php
-class YrtAlertFeedService
-{
-    private const ADVISORIES_URL = 'https://www.yrt.ca/modules/news/en/serviceadvisories';
-    private const SERVICE_CHANGES_URL = 'https://www.yrt.ca/Modules/NewsModule/services/getServiceAdvisories.ashx?categories=b8f1acba-f043-ec11-9468-0050569c41bf&lang=en';
+Suggested columns:
 
-    public function fetchAlerts(): array
-    {
-        // Fetch both sources and merge
-        $advisories = $this->fetchServiceAdvisories();
-        $serviceChanges = $this->fetchServiceChanges();
-        return array_merge($advisories, $serviceChanges);
-    }
+- `id`
+- `external_id` (unique)
+- `title` (string)
+- `posted_at` (dateTime)
+- `details_url` (string)
+- `description_excerpt` (text, nullable)
+- `route_text` (string, nullable)
+- `body_text` (text, nullable)
+- `list_hash` (string(40), nullable)
+- `details_fetched_at` (timestamp, nullable)
+- `is_active` (boolean default true)
+- `feed_updated_at` (timestamp nullable)
+- `created_at`, `updated_at`
 
-    public function fetchServiceAdvisories(): array
-    {
-        // 1. Fetch HTML list page
-        // 2. Parse div.blogItem entries
-        // 3. For each item: fetch detail page, parse fields
-        // 4. Return array of parsed alerts with alert_type = 'service_advisory'
-    }
+Indexes:
 
-    public function fetchServiceChanges(): array
-    {
-        // 1. Fetch JSON from SERVICE_CHANGES_URL
-        // 2. Parse each entry (no detail page needed)
-        // 3. Derive external_id from basename of 'link' field
-        // 4. Return array of parsed alerts with alert_type = 'service_change'
-    }
-}
-```
+- `index(['is_active', 'posted_at'])`
+- `index('posted_at')`
+- `index('feed_updated_at')`
 
-### Parsing Notes — Service Advisories (HTML)
+Model:
 
-- **List page selector:** `div.blogItem` — extract `h2 > a[href]` for detail URL
-- **Detail page:** Parse content for `route_number`, `route_name`, dates
-- **external_id:** Derived from detail page URL slug (basename of URL path)
-- **Change detection:** SHA1 hash of full detail HTML stored in `meta.original_payload`
-
-### Parsing Notes — Service Changes (JSON)
-
-- **Response:** Array of JSON objects with `title`, `description`, `postedDate`, `postedTime`, `link`
-- **external_id:** `basename($change['link'])`
-- **effective dates:** Not provided in this endpoint — leave null
-- **cause:** Not provided — leave null
-- **effect:** `description` field (trimmed)
-- **Change detection:** SHA1 hash of full JSON object stored in `meta.original_payload`
-
-### Alert Normalization to Unified Schema
-
-```php
-private function normalizeToUnified(array $parsed, string $alertType, array $originalPayload): array
-{
-    $routeDesc = trim(implode(' ', array_filter([
-        $parsed['route_number'] ?? null,
-        $parsed['route_name'] ? "- {$parsed['route_name']}" : null,
-    ])));
-
-    return [
-        'external_id' => $parsed['external_id'],
-        'source' => 'yrt',
-        'is_active' => true,
-        'timestamp' => Carbon::parse($parsed['posted_at']),
-        'title' => $parsed['title'],
-        'location_name' => $routeDesc ?: null,
-        'lat' => null,
-        'lng' => null,
-        'meta' => [
-            'alert_type' => $alertType,
-            'route_number' => $parsed['route_number'] ?? null,
-            'route_name' => $parsed['route_name'] ?? null,
-            'cause' => $parsed['cause'] ?? null,
-            'effect' => $parsed['effect'] ?? null,
-            'effective_start_date' => $parsed['effective_start_date'] ?? null,
-            'effective_end_date' => $parsed['effective_end_date'] ?? null,
-            'original_payload' => $originalPayload,
-            'payload_hash' => sha1(is_array($originalPayload) ? json_encode($originalPayload) : $originalPayload),
-        ],
-    ];
-}
-```
+- `app/Models/YrtAlert.php`
+- `fillable` for persisted columns
+- `casts()` for `posted_at`, `feed_updated_at`, `details_fetched_at` as datetimes and `is_active` as boolean
+- `scopeActive()` consistent with other alert models
 
 ---
 
-## Phase 3: Fetch Command
+## Phase 2: Feed Service (JSON + Optional Detail HTML)
+
+Add `app/Services/YrtServiceAdvisoriesFeedService.php` following `app/Services/TtcAlertsFeedService.php` patterns:
+
+- Use `Http::timeout(15)->retry(2, 200, throw: false)` with browser-ish headers.
+- Use `FeedCircuitBreaker`:
+  - `throwIfOpen('yrt')`
+  - `recordSuccess('yrt')` / `recordFailure('yrt', $exception)`
+- Respect `config('feeds.allow_empty_feeds')`.
+- Parse JSON via `$response->json()`.
+- Parse detail HTML with `DOMDocument` + `DOMXPath` only when needed.
+
+Fetch algorithm:
+
+1. GET the JSON endpoint.
+2. For each item:
+   - `external_id`: slug from `link` (basename without `.aspx`)
+   - `title`: `title` (trim)
+   - `posted_at`: parse `postedDate + postedTime` in `America/Toronto`, store UTC
+   - `description_excerpt`: normalize whitespace, keep as-is (may be truncated)
+   - `route_text`: best-effort parse:
+     - if title matches `^[0-9]{1,3}\\s*[-–]` then take the left route segment (or full title if it is clearly route-labeled)
+     - else look for `Routes affected:` / `Route affected:` in the excerpt
+   - `details_url`: `link`
+   - compute `list_hash` from a stable subset (e.g. `title|description|postedDate|postedTime|link`)
+3. Optionally fetch and parse the detail page HTML (see “Detail fetch on-demand” rules above) to populate `body_text`.
+4. Return shape:
 
 ```php
-// app/Console/Commands/FetchYrtAlerts.php
-class FetchYrtAlerts extends Command
-{
-    protected $signature = 'yrt:fetch-alerts';
-    protected $description = 'Fetch and sync YRT service alerts';
-
-    public function handle(YrtAlertFeedService $feedService): int
-    {
-        $this->info('Fetching YRT alerts...');
-
-        $alerts = $feedService->fetchAlerts();
-        $count = count($alerts);
-
-        foreach ($alerts as $alert) {
-            YrtAlert::updateOrCreate(
-                ['external_id' => $alert['external_id']],
-                $alert
-            );
-        }
-
-        $externalIds = collect($alerts)->pluck('external_id');
-        YrtAlert::where('source', 'yrt')
-            ->whereNotIn('external_id', $externalIds)
-            ->update(['is_active' => false]);
-
-        $this->info("YRT alerts synced: {$count} active");
-
-        return Command::SUCCESS;
-    }
-}
+// array{updated_at: CarbonInterface, alerts: list<array<string, mixed>>}
 ```
+
+`updated_at` can be `now('UTC')` (the feed does not publish a trustworthy last-updated timestamp; `postedDateTime` was observed as a placeholder).
 
 ---
 
-## Phase 4: AlertSelectProvider
+## Phase 3: Fetch Command (Sync + Notifications)
 
-```php
-// app/Services/Alerts/Providers/YrtAlertSelectProvider.php
-class YrtAlertSelectProvider implements AlertSelectProvider
-{
-    public function tag(): string
-    {
-        return 'yrt';
-    }
+Add `app/Console/Commands/FetchYrtAlertsCommand.php` matching the error-handling style of:
 
-    public function select(int $limit, ?int $sinceTimestamp, ?string $source): array
-    {
-        // Uses DB::getDriverName() check for sqlite vs mysql concat
-        // Returns: id, source, external_id, is_active, timestamp, title,
-        //          location_name, lat, lng, meta
-    }
-}
-```
+- `app/Console/Commands/FetchTransitAlertsCommand.php`
+- `app/Console/Commands/FetchGoTransitAlertsCommand.php`
 
-See `FireAlertSelectProvider` or `GoTransitAlertSelectProvider` for the full implementation pattern.
+Responsibilities:
+
+- Call `YrtServiceAdvisoriesFeedService->fetch()`.
+- Upsert each item into `yrt_alerts` with `is_active=true` and `feed_updated_at`.
+- Deactivate stale rows:
+  - `where('is_active', true)->whereNotIn('external_id', $activeExternalIds)->update(['is_active' => false])`
+- Dispatch `AlertCreated` for newly created or re-activated alerts:
+  - Add `NotificationAlertFactory::fromYrtAlert(YrtAlert $alert)` as needed.
+
+Command signature:
+
+- `yrt:fetch-alerts`
 
 ---
 
-## Phase 5: AlertSource Enum
+## Phase 4: Queue Job Wrapper + Scheduler
 
-```php
-// app/Enums/AlertSource.php
-enum AlertSource: string
-{
-    case Fire = 'fire';
-    case Police = 'police';
-    case Transit = 'transit';
-    case GoTransit = 'go_transit';
-    case Drt = 'drt';
-    case Yrt = 'yrt';       // Add
-    case MiWay = 'miway';   // Add (add all three in one PR)
-}
-```
+Follow the existing scheduler pattern (command invoked via a unique queued job):
+
+- `app/Jobs/FetchYrtAlertsJob.php` (modelled on `app/Jobs/FetchGoTransitAlertsJob.php`)
+  - `Artisan::call('yrt:fetch-alerts')`, throw on non-zero
+  - `ShouldQueue` + `ShouldBeUnique`, `WithoutOverlapping` middleware
+- Update `app/Services/ScheduledFetchJobDispatcher.php`
+  - Add `dispatchYrtAlerts(): bool` that dispatches `FetchYrtAlertsJob`
+- Update `routes/console.php`
+  - `Schedule::call(fn (ScheduledFetchJobDispatcher $d) => $d->dispatchYrtAlerts())`
+  - `->everyFiveMinutes()->withoutOverlapping(10)` (match TTC/GO cadence)
 
 ---
 
-## Phase 6: Scheduling
+## Phase 5: Unified Alerts Provider (SelectProvider)
 
-In `routes/console.php`, add:
+Create `app/Services/Alerts/Providers/YrtAlertSelectProvider.php` implementing:
 
-```php
-Schedule::call(function (ScheduledFetchJobDispatcher $dispatcher) {
-    return $dispatcher->dispatch('yrt:fetch-alerts');
-})->everyFiveMinutes()->name('yrt:fetch-alerts');
-```
+- `App\Services\Alerts\Contracts\AlertSelectProvider`
+  - `source(): string` returns `AlertSource::Yrt->value`
+  - `select(UnifiedAlertsCriteria $criteria): Builder`
+
+Provider query should emit the unified columns:
+
+- `id` as `{source}:{external_id}` (driver-specific concat, see other providers)
+- `source` literal `'yrt'`
+- `external_id`
+- `is_active`
+- `timestamp` = `posted_at`
+- `title`
+- `location_name` = `route_text` (or `NULL` when empty)
+- `lat` / `lng` = `NULL`
+- `meta` = JSON object built from table columns (`details_url`, `description_excerpt`, `body_text`, `posted_at`, `feed_updated_at`)
+
+Register provider tag:
+
+- Update `app/Providers/AppServiceProvider.php` to include `YrtAlertSelectProvider::class` in the `'alerts.select-providers'` tag list.
+
+---
+
+## Phase 6: AlertSource Enum
+
+Update `app/Enums/AlertSource.php`:
+
+- Add `case Yrt = 'yrt';`
 
 ---
 
 ## Phase 7: Frontend Domain
 
-### Architecture
+Follow the same pattern as DRT/MiWay:
 
-Same pattern as DRT (see DRT plan Phase 7 for the full explanation):
+- `resources/js/features/gta-alerts/domain/alerts/transit/yrt/schema.ts`
+- `resources/js/features/gta-alerts/domain/alerts/transit/yrt/mapper.ts`
+- Register `'yrt'` in:
+  - `resources/js/features/gta-alerts/domain/alerts/fromResource.ts`
+  - `resources/js/features/gta-alerts/domain/alerts/resource.ts` (source enum)
+  - `resources/js/features/gta-alerts/domain/alerts/types.ts` (DomainAlert union)
 
-```
-UnifiedAlertResource (source: 'yrt')
-    → fromResource() switch case 'yrt'
-    → mapYrtAlert() validates against YrtTransitAlertSchema
-    → YrtTransitAlert (kind: 'yrt')
-```
+Meta fields should reflect what we actually persist (for example: `details_url`, `description_excerpt`, `body_text`).
 
-### Schema
+Presentation:
 
-```typescript
-// resources/js/features/gta-alerts/domain/alerts/transit/yrt/schema.ts
-import { z } from 'zod/v4';
-import { BaseTransitAlertSchema, BaseTransitMetaSchema } from '../schema';
-
-export const YrtMetaSchema = BaseTransitMetaSchema.extend({
-    alert_type: z.nullable(z.enum(['service_advisory', 'service_change'])),
-    route_number: z.nullable(z.string()),
-    route_name: z.nullable(z.string()),
-    cause: z.nullable(z.string()),
-    effect: z.nullable(z.string()),
-    effective_start_date: z.nullable(z.string()),
-    effective_end_date: z.nullable(z.string()),
-});
-
-export type YrtMeta = z.infer<typeof YrtMetaSchema>;
-
-export const YrtTransitAlertSchema = BaseTransitAlertSchema.extend({
-    kind: z.literal('yrt'),
-    meta: YrtMetaSchema,
-});
-
-export type YrtTransitAlert = z.infer<typeof YrtTransitAlertSchema>;
-```
-
-### Mapper
-
-```typescript
-// resources/js/features/gta-alerts/domain/alerts/transit/yrt/mapper.ts
-import { buildBaseDomainInput } from '../../mapperUtils';
-import type { UnifiedAlertResourceParsed } from '../../resource';
-import { YrtTransitAlertSchema } from './schema';
-import type { YrtTransitAlert } from './schema';
-
-export function mapYrtAlert(
-    resource: UnifiedAlertResourceParsed,
-): YrtTransitAlert | null {
-    if (resource.source !== 'yrt') {
-        console.warn(
-            `[DomainAlert] YRT mapper received non-yrt resource (${resource.id}):`,
-            resource.source,
-        );
-        return null;
-    }
-
-    const result = YrtTransitAlertSchema.safeParse({
-        ...buildBaseDomainInput(resource),
-        kind: 'yrt',
-    });
-
-    if (!result.success) {
-        console.warn(
-            `[DomainAlert] Invalid YRT alert (${resource.id}):`,
-            result.error.issues,
-        );
-        return null;
-    }
-
-    return result.data;
-}
-```
-
-### Register in `fromResource.ts`
-
-```typescript
-// resources/js/features/gta-alerts/domain/alerts/fromResource.ts
-case 'yrt': {
-    return mapYrtAlert(validated);
-}
-```
-
-### Update DomainAlert Union and UnifiedAlertResourceSchema
-
-Same as DRT plan — add `YrtTransitAlert` to the `DomainAlert` union and `'yrt'` to the `source` enum in `UnifiedAlertResourceSchema`.
-
-### Presentation
-
-In `mapDomainAlertToPresentation.ts`, add:
-
-```typescript
-case 'yrt': {
-    type = 'transit';
-    severity = deriveTtcSeverity(alert.meta);
-    details = buildTtcDescriptionAndMetadata(alert);
-    break;
-}
-```
+- In `mapDomainAlertToPresentation.ts`, map `'yrt'` using the existing “transit alert” presentation helpers (avoid TTC-specific naming).
 
 ---
 
 ## Verification
 
-```bash
-php artisan yrt:fetch-alerts
-php artisan tinker --execute="YrtAlert::count(); YrtAlert::latest('timestamp')->first();"
-```
-
-Run the unified feed query:
+Run with Sail:
 
 ```bash
-php artisan tinker --execute="app(\App\Services\Alerts\UnifiedAlertsQuery::class)->cursorPaginate(\App\Services\Alerts\DTOs\UnifiedAlertsCriteria::fromRequest(['source' => 'yrt']))"
+vendor/bin/sail artisan yrt:fetch-alerts
+vendor/bin/sail artisan tinker --execute='\\App\\Models\\YrtAlert::count(); \\App\\Models\\YrtAlert::latest(\"posted_at\")->first();'
+vendor/bin/sail artisan tinker --execute='app(\\App\\Services\\Alerts\\UnifiedAlertsQuery::class)->cursorPaginate(\\App\\Services\\Alerts\\DTOs\\UnifiedAlertsCriteria::fromRequest([\"source\" => \"yrt\"]))'
 ```
