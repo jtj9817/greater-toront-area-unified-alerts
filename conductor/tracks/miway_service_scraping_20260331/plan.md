@@ -29,14 +29,14 @@
 
 ## Phase 3: Fetch Command (Sync + Notifications)
 
-- [ ] Task: Write failing command tests for sync lifecycle
-    - [ ] Add tests for upsert of active alerts and feed timestamp persistence.
-    - [ ] Add tests for stale-record deactivation when IDs disappear from feed.
-    - [ ] Add tests for early exit on `not_modified` and `AlertCreated` dispatch on create/reactivate.
-- [ ] Task: Implement `miway:fetch-alerts` command
-    - [ ] Create `app/Console/Commands/FetchMiwayAlertsCommand.php` and wire feed-service call.
-    - [ ] Implement upsert/deactivate behavior and `not_modified` short-circuit.
-    - [ ] Extend `NotificationAlertFactory` path for `MiwayAlert` if required by event flow.
+- [x] Task: Write failing command tests for sync lifecycle [2c60234]
+    - [x] Add tests for upsert of active alerts and feed timestamp persistence.
+    - [x] Add tests for stale-record deactivation when IDs disappear from feed.
+    - [x] Add tests for early exit on `not_modified` and `AlertCreated` dispatch on create/reactivate.
+- [x] Task: Implement `miway:fetch-alerts` command [2c60234]
+    - [x] Create `app/Console/Commands/FetchMiwayAlertsCommand.php` and wire feed-service call.
+    - [x] Implement upsert/deactivate behavior and `not_modified` short-circuit.
+    - [x] Extend `NotificationAlertFactory` path for `MiwayAlert` if required by event flow.
 - [ ] Task: Conductor - User Manual Verification 'Phase 3: Fetch Command (Sync + Notifications)' (Protocol in workflow.md)
 
 ## Phase 4: Queue Job Wrapper + Scheduler
