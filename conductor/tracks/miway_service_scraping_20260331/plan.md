@@ -73,7 +73,7 @@
     - [x] Add `Miway` case to `app/Enums/AlertSource.php`. (already existed from Phase 5 fix)
     - [x] Update any backend switch/validation paths that require explicit source registration.
     - [x] Re-run focused backend tests to green.
-- [ ] Task: Conductor - User Manual Verification 'Phase 6: Alert Source + API Contract Plumbing' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 6: Alert Source + API Contract Plumbing' (Protocol in workflow.md)
 
 ## Phase 7: Frontend Domain Integration
 
