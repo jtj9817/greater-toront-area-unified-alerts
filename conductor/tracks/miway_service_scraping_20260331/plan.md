@@ -51,7 +51,7 @@
     - [x] Register schedule callback in `routes/console.php`.
 - [x] Task: Conductor - User Manual Verification 'Phase 4: Queue Job Wrapper + Scheduler' [2133f36]
 
-## Phase 5: Unified Alerts Provider [checkpoint: 32aa162]
+## Phase 5: Unified Alerts Provider [checkpoint: 70fd0f3]
 
 - [x] Task: Write failing provider/query contract tests
     - [x] Add tests for `MiwayAlertSelectProvider` unified select columns and `id` composition.
@@ -61,7 +61,7 @@
     - [x] Create `app/Services/Alerts/Providers/MiwayAlertSelectProvider.php`.
     - [x] Implement driver-safe `id` concat and unified timestamp selection (`COALESCE(...)`).
     - [x] Tag provider in `app/Providers/AppServiceProvider.php` under `alerts.select-providers`.
-- [ ] Task: Conductor - User Manual Verification 'Phase 5: Unified Alerts Provider' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 5: Unified Alerts Provider' (Protocol in workflow.md)
 
 ## Phase 6: Alert Source + API Contract Plumbing
 
