@@ -1,436 +1,269 @@
-# MiWay Service Implementation Plan
+# MiWay Service Alerts (GTFS-RT) Implementation Plan
 
-> **Reference architecture only.** This document outlines how MiWay (Mississauga Transit) service alerts will be integrated into GTA Alerts. It adapts the original RACC News reference plan to fit the GTA Alerts unified alerts architecture (Provider & Adapter pattern). Do not apply the original plan directly.
+Integrate **MiWay (Mississauga Transit)** service alerts into the GTA Alerts **Unified Alerts** architecture.
 
----
-
-## Data Source
-
-- **Source type:** HTML scraping
-- **URL:** `https://www.mississauga.ca/miway-transit/service-updates/`
-- **Update frequency:** Every 5 minutes (recommended)
-- **Authentication:** None
-
-### Data Shape
-
-MiWay service updates contain:
-- `title` — alert headline (or derived from route + alert text)
-- `posted_at` — publication timestamp
-- `route_number` / `route_name` — affected route(s) (e.g., "1 Dundas")
-- `effect` — e.g., Detour, Delay, Service Change
-- `effective_start_date` / `effective_end_date` — validity window
-
-No coordinates are provided. Route/stop descriptions populate `location_name` in the unified schema.
+This plan is written to match the current codebase patterns (Laravel 12, Provider-tagged unified query, scheduled fetch job wrappers, Inertia + React domain mapping).
 
 ---
 
-## Architecture
+## Source Discovery (Research Findings)
 
-### GTA Alerts Pattern (use this)
+Validated on **2026-03-31** using a browser DOM/network inspection and a direct HTTP fetch of the feed:
 
-All new alert sources follow the **Provider & Adapter** pattern:
+- **Primary feed:** GTFS Realtime **Alerts** protobuf
+  - URL: `https://www.miapp.ca/gtfs_rt/Alerts/Alerts.pb`
+  - `Content-Type: application/protocol-buffer`
+  - Supports conditional fetch via **ETag** and **Last-Modified** headers (observed on 2026-03-31)
+- **Public UI (derived):** `https://www.mississauga.ca/miway-transit/service-updates/`
+  - Server-rendered accordion listing (no XHR/JSON endpoints observed)
+  - Each route panel contains list items like:
+    - `ul.alert-list-items > li.small.current > div.alert-text`
+    - Links to detour PDFs via: `/miway-transit/r?url=https://www7.mississauga.ca/documents/miway/detours/{id}.pdf`
+- **Developer download page (source of truth for endpoints):** `https://www.mississauga.ca/miway-transit/developer-download/`
+  - Lists the three GTFS-RT feeds including “GTFS Real-Time Alerts Feed”
 
-```
-Source Model (MiwayAlert)
-    ↓
-AlertSelectProvider (MiwayAlertSelectProvider)
-    ↓
-UNION Query (UnifiedAlertsQuery)
-    ↓
-UnifiedAlert DTO (transport)
-    ↓
-DomainAlert (frontend)
-    ↓
-AlertPresentation (frontend view model)
-```
+Observed in the Alerts protobuf payload (via `strings(...)` sampling on 2026-03-31):
 
-**Key components to create:**
-1. `MiwayAlert` model + migration
-2. `MiwayAlertFeedService` — fetch + parse
-3. `FetchMiwayAlertsCommand` — artisan command
-4. `MiwayAlertSelectProvider` — tagged `alerts.select-providers`
-5. `AlertSource` enum update — add `Miway` variant
-6. Domain TypeScript types + mapper
-7. `Schedule::call()` in `routes/console.php`
+- Route label strings like `2 Hurontario`, `17 Hurontario`, `103 Hurontario Express`
+- Alert text describing stop relocations/closures (matches the public UI wording)
+- Cause/effect-like strings such as `Construction` and `Stop Moved`
+- A timestamp-like string in `YYYYMMDD HH:MM:SS` format (likely derived from active period start)
 
-**Do NOT use:**
-- `PublicTransitAlertsController` (RACC pattern)
-- `LlmApiService` / `HtmlToMarkdownService`
-- Laravel Scout
-- `--fix-records` maintenance mode (RACC-specific)
-- Multi-phase LLM processing pipeline (RACC-specific)
+**Conclusion:** use the GTFS-RT Alerts protobuf as the primary ingestion source. Treat the public UI as a debugging/fallback reference only.
 
 ---
 
-## Phase 1: Model and Migration
+## Fetch Optimizations (Avoid Unnecessary Work)
 
-### Schema
+1. **Single-request ingestion**
+   - Fetch only the protobuf feed; do not scrape per-route UI pages.
+2. **Conditional GET**
+   - Persist last seen `ETag` and/or `Last-Modified` in cache (recommended) and send:
+     - `If-None-Match: {etag}`
+     - `If-Modified-Since: {last_modified}`
+   - If the response is `304 Not Modified`, skip DB writes entirely.
+3. **Do not fetch PDFs**
+   - Store or derive PDF URLs for UI use, but never download PDF contents.
+   - When `external_id` appears to be the detour bulletin ID, build:
+     - `https://www7.mississauga.ca/documents/miway/detours/{external_id}.pdf`
+4. **Polite defaults**
+   - Timeouts + retries consistent with existing feed services.
+   - Low/no concurrency (feed is a single request).
 
-Follow the pattern in `FireIncident` / `PoliceCall` migrations. The base unified columns are:
+---
 
-| Column | Type | Notes |
-|--------|------|-------|
-| `id` | bigint PK | Auto |
-| `external_id` | string unique | Hash of route + alert content (upsert key) |
-| `source` | string | Always `miway` |
-| `is_active` | boolean | Default true; cleared alerts set false |
-| `timestamp` | timestamp | `posted_at` from source |
-| `title` | string | Alert headline |
-| `location_name` | string nullable | Route description (route_number + route_name) |
-| `lat` | decimal nullable | Always null for transit |
-| `lng` | decimal nullable | Always null for transit |
-| `meta` | json | Source-specific: `route_number`, `route_name`, `cause`, `effect`, `effective_start_date`, `effective_end_date`, `alert_text`, `original_payload`, `payload_hash` |
+## Data Model (Observed Shape)
 
-```php
-Schema::create('miway_alerts', function (Blueprint $table) {
-    $table->id();
-    $table->string('external_id')->unique();
-    $table->string('source')->default('miway');
-    $table->boolean('is_active')->default(true);
-    $table->timestamp('timestamp');
-    $table->string('title');
-    $table->string('location_name')->nullable();
-    $table->decimal('lat', 10, 7)->nullable();
-    $table->decimal('lng', 10, 7)->nullable();
-    $table->json('meta');
-    $table->timestamps();
+Persist these fields from GTFS-RT `Alert` entities:
 
-    $table->index(['is_active', 'timestamp']);
-    $table->index('external_id');
-});
+- `external_id` — stable upsert key (prefer GTFS-RT entity id; observed to align with MiWay detour PDF IDs)
+- `header_text` — route/summary label (e.g., `2 Hurontario`)
+- `description_text` — full human text (stop closure/relocation details)
+- `cause` / `effect` — if present (enum-to-string)
+- `starts_at` / `ends_at` — derived from `active_period` ranges (store min start / max end)
+- `url` — if present in the GTFS-RT alert (used by UI)
+- `is_active` — true when present in the latest feed, false when missing
+- `feed_updated_at` — scrape time (UTC) to aid ops/debugging
+
+Coordinates are not present; unified `lat`/`lng` are always `NULL` for this source.
+
+---
+
+## Architecture Fit (GTA Alerts Unified Query)
+
+Backend flow:
+
+```
+MiwayAlert table
+  → MiwayAlertSelectProvider (tagged in AppServiceProvider)
+  → UnifiedAlertsQuery (UNION)
+  → API resources → Inertia/React domain mappers
 ```
 
-### Model (`MiwayAlert`)
+Frontend flow:
 
-```php
-// app/Models/MiwayAlert.php
-class MiwayAlert extends Model
-{
-    use HasFactory;
-
-    protected $fillable = [
-        'external_id',
-        'source',
-        'is_active',
-        'timestamp',
-        'title',
-        'location_name',
-        'lat',
-        'lng',
-        'meta',
-    ];
-
-    protected function casts(): array
-    {
-        return [
-            'is_active' => 'boolean',
-            'timestamp' => 'datetime',
-            'meta' => 'array',
-            'lat' => 'decimal:7',
-            'lng' => 'decimal:7',
-        ];
-    }
-
-    public function getRouteNumberAttribute(): ?string
-    {
-        return $this->meta['route_number'] ?? null;
-    }
-
-    public function getRouteNameAttribute(): ?string
-    {
-        return $this->meta['route_name'] ?? null;
-    }
-
-    public function getCauseAttribute(): ?string
-    {
-        return $this->meta['cause'] ?? null;
-    }
-
-    public function getEffectAttribute(): ?string
-    {
-        return $this->meta['effect'] ?? null;
-    }
-
-    public function getAlertTextAttribute(): ?string
-    {
-        return $this->meta['alert_text'] ?? null;
-    }
-}
+```
+UnifiedAlertResource (source: 'miway')
+  → fromResource() switch
+  → mapMiwayAlert()
+  → presentation mapping (reuse transit presentation utilities)
 ```
 
 ---
 
-## Phase 2: Feed Service
+## Phase 1: Database + Model
 
-### Feed Service (`MiwayAlertFeedService`)
+Create `miway_alerts` using the existing alert table conventions (see `database/migrations/2026_02_05_233653_create_go_transit_alerts_table.php`).
+
+Suggested columns:
+
+- `id`
+- `external_id` (unique)
+- `header_text` (string)
+- `description_text` (text, nullable)
+- `cause` (string, nullable)
+- `effect` (string, nullable)
+- `starts_at` (dateTime, nullable)
+- `ends_at` (dateTime, nullable)
+- `url` (string, nullable)
+- `detour_pdf_url` (string, nullable)
+- `is_active` (boolean default true)
+- `feed_updated_at` (timestamp nullable)
+- `created_at`, `updated_at`
+
+Indexes:
+
+- `index(['is_active', 'starts_at'])`
+- `index('feed_updated_at')`
+
+Model:
+
+- `app/Models/MiwayAlert.php`
+- `casts()` for `starts_at`, `ends_at`, `feed_updated_at` as datetime and `is_active` as boolean
+- `scopeActive()` consistent with other alert models
+
+---
+
+## Phase 2: Feed Service (GTFS-RT Protobuf)
+
+Add `app/Services/MiwayGtfsRtAlertsFeedService.php` following `app/Services/GoTransitFeedService.php` patterns:
+
+- Use `Http::timeout(15)->retry(2, 200, throw: false)`.
+- Use `FeedCircuitBreaker`:
+  - `throwIfOpen('miway')`
+  - `recordSuccess('miway')` / `recordFailure('miway', $exception)`
+- Respect `config('feeds.allow_empty_feeds')`.
+- Implement **conditional GET** using cached `ETag`/`Last-Modified`.
+
+Parsing approach:
+
+- Decode the protobuf to GTFS-RT types:
+  - Preferred: add a production dependency on `google/protobuf` and generate PHP classes from `transit_realtime.proto`.
+  - Extract `FeedMessage.entity[]` where `entity.alert` is present.
+  - Prefer English translations (`translation.language == 'en'`), fallback to first translation.
+- Normalize each alert to the persisted model fields:
+  - `external_id`: `entity.id` (fallback to a hash if blank)
+  - `header_text`: alert header/route label
+  - `description_text`: alert description
+  - `starts_at` / `ends_at`: min/max across active periods (if any)
+  - `cause` / `effect`: map enums to strings
+  - `url`: alert url (if present)
+  - `detour_pdf_url`: derive from numeric-ish `external_id` (if applicable)
+
+Return shape:
 
 ```php
-// app/Services/Alerts/Providers/MiwayAlertFeedService.php
-class MiwayAlertFeedService
-{
-    private const BASE_URL = 'https://www.mississauga.ca/miway-transit/service-updates/';
-
-    public function fetchAlerts(): array
-    {
-        // 1. Fetch HTML page
-        // 2. Parse div.accordion items
-        // 3. For each accordion: extract route name from button.accordion-title
-        // 4. For each li > .alert-text within accordion: parse alert text
-        // 5. Return array of parsed alerts
-    }
-}
-```
-
-### Parsing Notes
-
-- **Page selector:** `div.accordion`
-- **Route name:** `button.accordion-title` text content (e.g., "1 Dundas")
-- **Alert items:** `li > .alert-text` within each accordion content
-- **external_id:** SHA1 hash of `route_name + alert_text` — provides stable ID for upsert
-- **Change detection:** SHA1 hash of `route_name + alert_text` stored in `meta.payload_hash`
-- **Title derivation:** If no explicit title, use `"MiWay Alert: {route_name}"`
-- **effective dates:** Not provided on this page — leave null
-- **cause:** Not provided — leave null
-- **effect:** Derived from alert text keywords (e.g., "detour", "delay") — or use generic "Service Update"
-
-### Alert Normalization to Unified Schema
-
-```php
-private function normalizeToUnified(array $parsed): array
-{
-    $routeDesc = trim($parsed['route_name'] ?? '');
-
-    return [
-        'external_id' => $parsed['external_id'],
-        'source' => 'miway',
-        'is_active' => true,
-        'timestamp' => $parsed['posted_at'] ?? now(),
-        'title' => $parsed['title'],
-        'location_name' => $routeDesc ?: null,
-        'lat' => null,
-        'lng' => null,
-        'meta' => [
-            'route_number' => $parsed['route_number'] ?? null,
-            'route_name' => $parsed['route_name'] ?? null,
-            'cause' => null,
-            'effect' => $parsed['effect'] ?? 'Service Update',
-            'effective_start_date' => null,
-            'effective_end_date' => null,
-            'alert_text' => $parsed['alert_text'] ?? null,
-            'original_payload' => $parsed['original_payload'],
-            'payload_hash' => $parsed['payload_hash'],
-        ],
-    ];
-}
+// array{updated_at: CarbonInterface, alerts: list<array<string, mixed>>, not_modified?: bool}
 ```
 
 ---
 
-## Phase 3: Fetch Command
+## Phase 3: Fetch Command (Sync + Notifications)
 
-```php
-// app/Console/Commands/FetchMiwayAlerts.php
-class FetchMiwayAlerts extends Command
-{
-    protected $signature = 'miway:fetch-alerts';
-    protected $description = 'Fetch and sync MiWay service alerts';
+Add `app/Console/Commands/FetchMiwayAlertsCommand.php` matching the error-handling style of:
 
-    public function handle(MiwayAlertFeedService $feedService): int
-    {
-        $this->info('Fetching MiWay alerts...');
+- `app/Console/Commands/FetchTransitAlertsCommand.php`
+- `app/Console/Commands/FetchGoTransitAlertsCommand.php`
 
-        $alerts = $feedService->fetchAlerts();
-        $count = count($alerts);
+Responsibilities:
 
-        foreach ($alerts as $alert) {
-            MiwayAlert::updateOrCreate(
-                ['external_id' => $alert['external_id']],
-                $alert
-            );
-        }
+- Call `MiwayGtfsRtAlertsFeedService->fetch()`.
+- If `not_modified` is true, exit early (no DB writes).
+- Upsert each item into `miway_alerts` with `is_active=true` and `feed_updated_at`.
+- Deactivate stale rows:
+  - `where('is_active', true)->whereNotIn('external_id', $activeExternalIds)->update(['is_active' => false])`
+- Dispatch `AlertCreated` for newly created or re-activated alerts (align with other fetch commands):
+  - Add `NotificationAlertFactory::fromMiwayAlert(MiwayAlert $alert)` as needed.
 
-        $externalIds = collect($alerts)->pluck('external_id');
-        MiwayAlert::where('source', 'miway')
-            ->whereNotIn('external_id', $externalIds)
-            ->update(['is_active' => false]);
+Command signature:
 
-        $this->info("MiWay alerts synced: {$count} active");
-
-        return Command::SUCCESS;
-    }
-}
-```
+- `miway:fetch-alerts`
 
 ---
 
-## Phase 4: AlertSelectProvider
+## Phase 4: Queue Job Wrapper + Scheduler
 
-```php
-// app/Services/Alerts/Providers/MiwayAlertSelectProvider.php
-class MiwayAlertSelectProvider implements AlertSelectProvider
-{
-    public function tag(): string
-    {
-        return 'miway';
-    }
+Follow the existing scheduler pattern (command invoked via a unique queued job):
 
-    public function select(int $limit, ?int $sinceTimestamp, ?string $source): array
-    {
-        // Uses DB::getDriverName() check for sqlite vs mysql concat
-        // Returns: id, source, external_id, is_active, timestamp, title,
-        //          location_name, lat, lng, meta
-    }
-}
-```
-
-See `FireAlertSelectProvider` or `GoTransitAlertSelectProvider` for the full implementation pattern.
+- `app/Jobs/FetchMiwayAlertsJob.php` (modelled on `app/Jobs/FetchGoTransitAlertsJob.php`)
+  - `Artisan::call('miway:fetch-alerts')`, throw on non-zero
+  - `ShouldQueue` + `ShouldBeUnique`, `WithoutOverlapping` middleware
+- Update `app/Services/ScheduledFetchJobDispatcher.php`
+  - Add `dispatchMiwayAlerts(): bool` that dispatches `FetchMiwayAlertsJob`
+- Update `routes/console.php`
+  - `Schedule::call(fn (ScheduledFetchJobDispatcher $d) => $d->dispatchMiwayAlerts())`
+  - `->everyFiveMinutes()->withoutOverlapping(10)` (match TTC/GO cadence)
 
 ---
 
-## Phase 5: AlertSource Enum
+## Phase 5: Unified Alerts Provider (SelectProvider)
 
-```php
-// app/Enums/AlertSource.php
-enum AlertSource: string
-{
-    case Fire = 'fire';
-    case Police = 'police';
-    case Transit = 'transit';
-    case GoTransit = 'go_transit';
-    case Drt = 'drt';
-    case Yrt = 'yrt';
-    case Miway = 'miway';  // Add all three in one PR
-}
-```
+Create `app/Services/Alerts/Providers/MiwayAlertSelectProvider.php` implementing:
+
+- `App\Services\Alerts\Contracts\AlertSelectProvider`
+  - `source(): string` returns `AlertSource::Miway->value`
+  - `select(UnifiedAlertsCriteria $criteria): Builder`
+
+Provider query should emit the unified columns:
+
+- `id` as `{source}:{external_id}` (driver-specific concat, see other providers)
+- `source` literal `'miway'`
+- `external_id`
+- `is_active`
+- `timestamp` = `COALESCE(starts_at, feed_updated_at, updated_at)`
+- `title` = `header_text`
+- `location_name` = `header_text`
+- `lat` / `lng` = `NULL`
+- `meta` = JSON object built from table columns (`description_text`, `cause`, `effect`, `starts_at`, `ends_at`, `url`, `detour_pdf_url`, `feed_updated_at`)
+
+Criteria support:
+
+- `source` filter
+- `status` filter (active/cleared)
+- `sinceCutoff` filter on the chosen timestamp column(s)
+- `query` support consistent with other providers (MySQL/Postgres can add richer query later if needed)
+
+Register provider tag:
+
+- Update `app/Providers/AppServiceProvider.php` to include `MiwayAlertSelectProvider::class` in the `'alerts.select-providers'` tag list.
 
 ---
 
-## Phase 6: Scheduling
+## Phase 6: AlertSource Enum
 
-In `routes/console.php`, add:
+Update `app/Enums/AlertSource.php`:
 
-```php
-Schedule::call(function (ScheduledFetchJobDispatcher $dispatcher) {
-    return $dispatcher->dispatch('miway:fetch-alerts');
-})->everyFiveMinutes()->name('miway:fetch-alerts');
-```
+- Add `case Miway = 'miway';`
 
 ---
 
 ## Phase 7: Frontend Domain
 
-### Architecture
-
-Same pattern as DRT (see DRT plan Phase 7 for the full explanation):
+Same pattern as the DRT plan Phase 7:
 
 ```
 UnifiedAlertResource (source: 'miway')
-    → fromResource() switch case 'miway'
-    → mapMiwayAlert() validates against MiwayTransitAlertSchema
-    → MiwayTransitAlert (kind: 'miway')
+  → fromResource() switch case 'miway'
+  → mapMiwayAlert()
+  → MiwayTransitAlert (kind: 'miway')
 ```
 
-### Schema
+Notes:
 
-```typescript
-// resources/js/features/gta-alerts/domain/alerts/transit/miway/schema.ts
-import { z } from 'zod/v4';
-import { BaseTransitAlertSchema, BaseTransitMetaSchema } from '../schema';
-
-export const MiwayMetaSchema = BaseTransitMetaSchema.extend({
-    route_number: z.nullable(z.string()),
-    route_name: z.nullable(z.string()),
-    cause: z.nullable(z.string()),
-    effect: z.nullable(z.string()),
-    effective_start_date: z.nullable(z.string()),
-    effective_end_date: z.nullable(z.string()),
-    alert_text: z.nullable(z.string()),
-});
-
-export type MiwayMeta = z.infer<typeof MiwayMetaSchema>;
-
-export const MiwayTransitAlertSchema = BaseTransitAlertSchema.extend({
-    kind: z.literal('miway'),
-    meta: MiwayMetaSchema,
-});
-
-export type MiwayTransitAlert = z.infer<typeof MiwayTransitAlertSchema>;
-```
-
-### Mapper
-
-```typescript
-// resources/js/features/gta-alerts/domain/alerts/transit/miway/mapper.ts
-import { buildBaseDomainInput } from '../../mapperUtils';
-import type { UnifiedAlertResourceParsed } from '../../resource';
-import { MiwayTransitAlertSchema } from './schema';
-import type { MiwayTransitAlert } from './schema';
-
-export function mapMiwayAlert(
-    resource: UnifiedAlertResourceParsed,
-): MiwayTransitAlert | null {
-    if (resource.source !== 'miway') {
-        console.warn(
-            `[DomainAlert] MiWay mapper received non-miway resource (${resource.id}):`,
-            resource.source,
-        );
-        return null;
-    }
-
-    const result = MiwayTransitAlertSchema.safeParse({
-        ...buildBaseDomainInput(resource),
-        kind: 'miway',
-    });
-
-    if (!result.success) {
-        console.warn(
-            `[DomainAlert] Invalid MiWay alert (${resource.id}):`,
-            result.error.issues,
-        );
-        return null;
-    }
-
-    return result.data;
-}
-```
-
-### Register in `fromResource.ts`
-
-```typescript
-// resources/js/features/gta-alerts/domain/alerts/fromResource.ts
-case 'miway': {
-    return mapMiwayAlert(validated);
-}
-```
-
-### Update DomainAlert Union and UnifiedAlertResourceSchema
-
-Same as DRT plan — add `MiwayTransitAlert` to the `DomainAlert` union and `'miway'` to the `source` enum in `UnifiedAlertResourceSchema`.
-
-### Presentation
-
-In `mapDomainAlertToPresentation.ts`, add:
-
-```typescript
-case 'miway': {
-    type = 'transit';
-    severity = deriveTtcSeverity(alert.meta);
-    details = buildTtcDescriptionAndMetadata(alert);
-    break;
-}
-```
+- Keep MiWay as its own `source` (`'miway'`) so the UI can filter it separately from TTC (`'transit'`) and GO (`'go_transit'`).
+- Presentation can reuse the existing transit presentation utilities (severity + metadata builders), as long as the MiWay domain schema extends the same base transit schema.
 
 ---
 
 ## Verification
 
 ```bash
-php artisan miway:fetch-alerts
-php artisan tinker --execute="MiwayAlert::count(); MiwayAlert::latest('timestamp')->first();"
+vendor/bin/sail artisan miway:fetch-alerts
+vendor/bin/sail artisan tinker --execute 'MiwayAlert::count(); MiwayAlert::latest("feed_updated_at")->first();'
 ```
 
 Run the unified feed query:
 
 ```bash
-php artisan tinker --execute="app(\App\Services\Alerts\UnifiedAlertsQuery::class)->cursorPaginate(\App\Services\Alerts\DTOs\UnifiedAlertsCriteria::fromRequest(['source' => 'miway']))"
+vendor/bin/sail artisan tinker --execute 'app(\App\Services\Alerts\UnifiedAlertsQuery::class)->cursorPaginate(\App\Services\Alerts\DTOs\UnifiedAlertsCriteria::fromRequest(["source" => "miway"]))'
 ```
