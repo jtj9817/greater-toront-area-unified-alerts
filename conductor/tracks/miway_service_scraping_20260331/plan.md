@@ -12,7 +12,7 @@
     - [x] Re-run focused tests and bring them to green.
 - [x] Task: Conductor - User Manual Verification 'Phase 1: Database + Model' [d6f8ddd]
 
-## Phase 2: GTFS-RT Feed Service
+## Phase 2: GTFS-RT Feed Service [checkpoint: 19aecb8]
 
 - [x] Task: Write failing feed-service tests (red phase) [f74e8d1]
     - [x] Add tests for successful protobuf decode and normalization to persisted fields.
@@ -25,7 +25,7 @@
 - [x] Task: Refactor feed service while keeping tests green [f74e8d1]
     - [x] Extract translation/period parsing helpers for readability.
     - [x] Confirm no behavior regressions via focused test rerun.
-- [ ] Task: Conductor - User Manual Verification 'Phase 2: GTFS-RT Feed Service' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 2: GTFS-RT Feed Service' [19aecb8]
 
 ## Phase 3: Fetch Command (Sync + Notifications)
 
