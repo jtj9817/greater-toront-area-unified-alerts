@@ -1,10 +1,11 @@
 ---
 ticket_id: FEED-048
 title: "[Review] Validate MiWay GTFS-RT Protobuf Ingestion Findings (P0–P3)"
-status: Open
+status: Closed
 priority: High
 assignee: Unassigned
 created_at: 2026-03-31
+closed_at: 2026-03-31
 tags: [feed, miway, gtfs-rt, protobuf, pint, review]
 related_files:
   - app/Services/MiwayGtfsRtAlertsFeedService.php
@@ -16,7 +17,7 @@ related_files:
 
 ## Overview
 
-This ticket validates the remaining review items (P0–P3) for the MiWay GTFS-Realtime (protobuf) alerts ingestion. This is a verification record only; it does not implement fixes.
+This ticket validates and resolves the remaining review items (P0–P3) for the MiWay GTFS-Realtime (protobuf) alerts ingestion.
 
 ## Validation Summary
 
@@ -82,3 +83,24 @@ Impact surface:
 - `fetch()` returns `updated_at` in UTC regardless of HTTP status (304 vs 200) or empty-feed scenarios.
 - Payload “empty” detection uses a strict byte-length check suitable for binary protobuf bodies.
 
+## Resolution
+
+All validated findings (P0–P3) are fixed:
+
+- **P0:** `pint.json` excludes `app/Protobuf` so generated protobuf sources no longer break `pint --test`.
+- **P1:** `MiwayGtfsRtAlertsFeedService::normalizeAlert()` now guards enum name decoding and falls back to `UNKNOWN_CAUSE` / `UNKNOWN_EFFECT` on unknown values.
+- **P2:** `MiwayGtfsRtAlertsFeedService::fetch()` now returns `updated_at` in UTC for HTTP 304 and empty-feed early returns.
+- **P3:** Empty-payload detection now uses a strict byte check (`$body === ''`) so a `'0'` payload is not misclassified as empty.
+
+## Verification
+
+Commands run:
+
+```bash
+vendor/bin/sail artisan test --compact tests/Feature/MiwayGtfsRtAlertsFeedServiceTest.php tests/Feature/Commands/FetchMiwayAlertsCommandTest.php
+vendor/bin/sail composer test
+vendor/bin/sail composer lint
+vendor/bin/sail pnpm run lint
+vendor/bin/sail pnpm run format
+vendor/bin/sail pnpm run types
+```

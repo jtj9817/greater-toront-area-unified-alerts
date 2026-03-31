@@ -33,8 +33,8 @@ umask(002);
 use App\Models\MiwayAlert;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Schema;
 
 $testRunId = 'miway_phase_1_verify_'.Carbon::now()->format('Y_m_d_His');
 $logFileRelative = "storage/logs/manual_tests/{$testRunId}.log";
@@ -85,9 +85,9 @@ function logFail($msg, $ctx = [])
 function assert_eq($actual, $expected, $label)
 {
     if ($actual === $expected) {
-        logOk("{$label} → " . json_encode($actual));
+        logOk("{$label} → ".json_encode($actual));
     } else {
-        logFail("{$label}: expected " . json_encode($expected) . ', got ' . json_encode($actual));
+        logFail("{$label}: expected ".json_encode($expected).', got '.json_encode($actual));
     }
 }
 
@@ -96,7 +96,7 @@ function assert_true($actual, $label)
     if ($actual === true) {
         logOk("{$label} is true");
     } else {
-        logFail("{$label}: expected true, got " . json_encode($actual));
+        logFail("{$label}: expected true, got ".json_encode($actual));
     }
 }
 
@@ -115,9 +115,9 @@ try {
     $expectedColumns = [
         'id', 'external_id', 'header_text', 'description_text',
         'cause', 'effect', 'starts_at', 'ends_at', 'url', 'detour_pdf_url',
-        'is_active', 'feed_updated_at', 'created_at', 'updated_at'
+        'is_active', 'feed_updated_at', 'created_at', 'updated_at',
     ];
-    
+
     foreach ($expectedColumns as $col) {
         assert_true(in_array($col, $columns), "Column '{$col}' exists");
     }
@@ -129,15 +129,15 @@ try {
 
     logInfo('');
     logInfo('Step 2: Verify MiwayAlert behavior');
-    
+
     $alert1 = MiwayAlert::factory()->create(['external_id' => 'miway:123', 'is_active' => true]);
     $alert2 = MiwayAlert::factory()->create(['external_id' => 'miway:456', 'is_active' => false]);
 
-    assert_true($alert1->starts_at instanceof \DateTimeInterface, "starts_at is cast to datetime");
-    assert_true($alert1->ends_at instanceof \DateTimeInterface, "ends_at is cast to datetime");
-    assert_true($alert1->feed_updated_at instanceof \DateTimeInterface, "feed_updated_at is cast to datetime");
-    assert_true(is_bool($alert1->is_active), "is_active is cast to boolean");
-    
+    assert_true($alert1->starts_at instanceof \DateTimeInterface, 'starts_at is cast to datetime');
+    assert_true($alert1->ends_at instanceof \DateTimeInterface, 'ends_at is cast to datetime');
+    assert_true($alert1->feed_updated_at instanceof \DateTimeInterface, 'feed_updated_at is cast to datetime');
+    assert_true(is_bool($alert1->is_active), 'is_active is cast to boolean');
+
     logInfo('');
     logInfo('Step 3: Verify scopeActive');
 

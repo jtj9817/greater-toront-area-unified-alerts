@@ -6,7 +6,6 @@ use App\Events\AlertCreated;
 use App\Models\MiwayAlert;
 use App\Services\MiwayGtfsRtAlertsFeedService;
 use App\Services\Notifications\NotificationAlertFactory;
-use Carbon\Carbon;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use Throwable;
@@ -14,6 +13,7 @@ use Throwable;
 class FetchMiwayAlertsCommand extends Command
 {
     protected $signature = 'miway:fetch-alerts';
+
     protected $description = 'Fetch and sync MiWay GTFS-RT service alerts';
 
     public function handle(MiwayGtfsRtAlertsFeedService $feedService, NotificationAlertFactory $notificationAlertFactory): int
@@ -28,6 +28,7 @@ class FetchMiwayAlertsCommand extends Command
 
             if ($result['not_modified'] ?? false) {
                 $this->info('Feed not modified. Exiting.');
+
                 return self::SUCCESS;
             }
 
@@ -77,7 +78,8 @@ class FetchMiwayAlertsCommand extends Command
             ));
 
         } catch (Throwable $exception) {
-            $this->error('Feed fetch failed: ' . $exception->getMessage());
+            $this->error('Feed fetch failed: '.$exception->getMessage());
+
             return self::FAILURE;
         }
 

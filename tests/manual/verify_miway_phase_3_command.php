@@ -2,7 +2,6 @@
 
 use App\Models\MiwayAlert;
 use Illuminate\Support\Facades\Artisan;
-use Illuminate\Support\Facades\DB;
 
 require __DIR__.'/../../vendor/autoload.php';
 
@@ -22,25 +21,25 @@ try {
     echo "1. Pre-fetch state:\n";
     $count = MiwayAlert::count();
     echo "  Total MiWay alerts in DB: {$count}\n\n";
-    
+
     echo "2. Running miway:fetch-alerts...\n";
     Artisan::call('miway:fetch-alerts');
-    echo "  Output:\n  " . str_replace("\n", "\n  ", trim(Artisan::output())) . "\n\n";
-    
+    echo "  Output:\n  ".str_replace("\n", "\n  ", trim(Artisan::output()))."\n\n";
+
     echo "3. Post-fetch state:\n";
     $count = MiwayAlert::count();
     echo "  Total MiWay alerts in DB: {$count}\n";
     $activeCount = MiwayAlert::active()->count();
     echo "  Active MiWay alerts: {$activeCount}\n\n";
-    
+
     if ($activeCount > 0) {
         echo "4. Running miway:fetch-alerts again (Testing 304 fallback)...\n";
         Artisan::call('miway:fetch-alerts');
-        echo "  Output:\n  " . str_replace("\n", "\n  ", trim(Artisan::output())) . "\n\n";
+        echo "  Output:\n  ".str_replace("\n", "\n  ", trim(Artisan::output()))."\n\n";
     }
 
 } catch (Throwable $e) {
-    echo "❌ ERROR: " . $e->getMessage() . "\n";
+    echo '❌ ERROR: '.$e->getMessage()."\n";
     exit(1);
 }
 

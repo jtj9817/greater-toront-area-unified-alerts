@@ -1,7 +1,6 @@
 <?php
 
 use App\Jobs\FetchMiwayAlertsJob;
-use Illuminate\Support\Facades\Artisan;
 use Illuminate\Console\Scheduling\Schedule;
 
 require __DIR__.'/../../vendor/autoload.php';
@@ -31,18 +30,18 @@ try {
             break;
         }
     }
-    if (!$found) {
+    if (! $found) {
         echo "  ❌ miway:fetch-alerts is NOT registered in the scheduler\n";
     }
-    
+
     echo "\n2. Validating FetchMiwayAlertsJob constraints...\n";
-    $job = new FetchMiwayAlertsJob();
+    $job = new FetchMiwayAlertsJob;
     echo "  ✅ Job exists and can be instantiated\n";
     echo "  ✅ Tries: {$job->tries}, Backoff: {$job->backoff}, Timeout: {$job->timeout}\n";
     echo "  ✅ Unique ID: {$job->uniqueId()}\n";
 
 } catch (Throwable $e) {
-    echo "❌ ERROR: " . $e->getMessage() . "\n";
+    echo '❌ ERROR: '.$e->getMessage()."\n";
     exit(1);
 }
 

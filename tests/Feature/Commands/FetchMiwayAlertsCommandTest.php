@@ -6,7 +6,6 @@ use App\Services\MiwayGtfsRtAlertsFeedService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event;
 use Mockery\MockInterface;
-use Tests\TestCase;
 
 uses(RefreshDatabase::class);
 
@@ -51,7 +50,7 @@ it('syncs active miway alerts and logs feed timestamp', function () {
         ->assertExitCode(0);
 
     expect(MiwayAlert::count())->toBe(2);
-    
+
     $alert1 = MiwayAlert::where('external_id', 'alert_1')->first();
     expect($alert1->is_active)->toBeTrue()
         ->and($alert1->header_text)->toBe('Stop 123 Closed')

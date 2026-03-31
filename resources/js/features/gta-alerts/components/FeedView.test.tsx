@@ -236,8 +236,12 @@ describe('FeedView', () => {
 
         const callsBeforeToggle = inertiaRouterMocks.get.mock.calls.length;
 
-        fireEvent.click(screen.getByRole('button', { name: 'Switch to table view' }));
-        fireEvent.click(screen.getByRole('button', { name: 'Switch to feed view' }));
+        fireEvent.click(
+            screen.getByRole('button', { name: 'Switch to table view' }),
+        );
+        fireEvent.click(
+            screen.getByRole('button', { name: 'Switch to feed view' }),
+        );
 
         expect(inertiaRouterMocks.get).toHaveBeenCalledTimes(callsBeforeToggle);
     });

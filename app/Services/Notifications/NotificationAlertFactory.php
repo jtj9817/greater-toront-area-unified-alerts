@@ -4,9 +4,9 @@ namespace App\Services\Notifications;
 
 use App\Models\FireIncident;
 use App\Models\GoTransitAlert;
+use App\Models\MiwayAlert;
 use App\Models\PoliceCall;
 use App\Models\TransitAlert;
-use App\Models\MiwayAlert;
 
 class NotificationAlertFactory
 {
@@ -107,7 +107,7 @@ class NotificationAlertFactory
         );
     }
 
-        public function fromMiwayAlert(MiwayAlert $alert): NotificationAlert
+    public function fromMiwayAlert(MiwayAlert $alert): NotificationAlert
     {
         $severity = $this->mapTransitSeverity($alert->effect);
 

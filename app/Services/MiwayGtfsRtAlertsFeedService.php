@@ -4,13 +4,14 @@ namespace App\Services;
 
 use Carbon\Carbon;
 use Carbon\CarbonInterface;
-use Google\Transit\Realtime\FeedMessage;
 use Google\Transit\Realtime\Alert;
+use Google\Transit\Realtime\FeedMessage;
 use Google\Transit\Realtime\TranslatedString;
 use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Support\Facades\Http;
 use RuntimeException;
 use Throwable;
+use UnexpectedValueException;
 
 class MiwayGtfsRtAlertsFeedService
 {
@@ -42,33 +43,35 @@ class MiwayGtfsRtAlertsFeedService
 
             if ($response->status() === 304) {
                 $this->circuitBreaker->recordSuccess('miway_alerts');
-                return ['updated_at' => Carbon::now(), 'alerts' => [], 'not_modified' => true];
+
+                return ['updated_at' => Carbon::now()->utc(), 'alerts' => [], 'not_modified' => true];
             }
 
             if ($response->failed()) {
-                throw new RuntimeException('MiWay GTFS-RT feed request failed: ' . $response->status());
+                throw new RuntimeException('MiWay GTFS-RT feed request failed: '.$response->status());
             }
 
             $body = $response->body();
-            
-            if (empty($body)) {
+
+            if ($body === '') {
                 if (! $allowEmptyFeeds) {
                     throw new RuntimeException('MiWay GTFS-RT feed returned empty payload');
                 }
                 $this->circuitBreaker->recordSuccess('miway_alerts');
-                return ['updated_at' => Carbon::now(), 'alerts' => []];
+
+                return ['updated_at' => Carbon::now()->utc(), 'alerts' => []];
             }
 
             try {
-                $feed = new FeedMessage();
+                $feed = new FeedMessage;
                 $feed->mergeFromString($body);
             } catch (Throwable $exception) {
                 throw new RuntimeException('Failed to decode MiWay GTFS-RT protobuf payload', 0, $exception);
             }
 
             $header = $feed->getHeader();
-            $updatedAt = $header->getTimestamp() > 0 
-                ? Carbon::createFromTimestamp($header->getTimestamp())->utc() 
+            $updatedAt = $header->getTimestamp() > 0
+                ? Carbon::createFromTimestamp($header->getTimestamp())->utc()
                 : Carbon::now()->utc();
 
             $alerts = [];
@@ -76,7 +79,7 @@ class MiwayGtfsRtAlertsFeedService
                 if (! $entity->getAlert()) {
                     continue;
                 }
-                
+
                 $alert = $this->normalizeAlert($entity->getId(), $entity->getAlert());
                 if ($alert !== null) {
                     $alerts[] = $alert;
@@ -122,10 +125,26 @@ class MiwayGtfsRtAlertsFeedService
 
         $descriptionText = $this->extractTranslation($alert->getDescriptionText());
         $url = $this->extractTranslation($alert->getUrl());
-        
-        // Ensure cause/effect map to string identifiers
-        $cause = $alert->getCause() !== 0 ? Alert\Cause::name($alert->getCause()) : 'UNKNOWN_CAUSE';
-        $effect = $alert->getEffect() !== 0 ? Alert\Effect::name($alert->getEffect()) : 'UNKNOWN_EFFECT';
+
+        $cause = 'UNKNOWN_CAUSE';
+        $causeValue = $alert->getCause();
+        if ($causeValue !== 0) {
+            try {
+                $cause = Alert\Cause::name($causeValue);
+            } catch (UnexpectedValueException) {
+                $cause = 'UNKNOWN_CAUSE';
+            }
+        }
+
+        $effect = 'UNKNOWN_EFFECT';
+        $effectValue = $alert->getEffect();
+        if ($effectValue !== 0) {
+            try {
+                $effect = Alert\Effect::name($effectValue);
+            } catch (UnexpectedValueException) {
+                $effect = 'UNKNOWN_EFFECT';
+            }
+        }
 
         [$startsAt, $endsAt] = $this->extractActivePeriod($alert);
 
