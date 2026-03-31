@@ -19,6 +19,14 @@ test('alert id parses from string', function () {
     expect($alertId->value())->toBe('police:9001');
 });
 
+test('alert id accepts miway source', function () {
+    $alertId = AlertId::fromParts('miway', 'miway:alert:12345');
+
+    expect($alertId->source)->toBe('miway');
+    expect($alertId->externalId)->toBe('miway:alert:12345');
+    expect($alertId->value())->toBe('miway:miway:alert:12345');
+});
+
 test('alert id rejects invalid formats', function (string $value) {
     expect(fn () => AlertId::fromString($value))
         ->toThrow(\InvalidArgumentException::class);

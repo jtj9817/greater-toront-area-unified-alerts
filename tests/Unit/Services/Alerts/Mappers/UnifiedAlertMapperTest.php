@@ -53,6 +53,28 @@ test('unified alert mapper maps a row to a dto with location and decoded meta', 
     expect($alert->meta)->toBe(['alarm_level' => 2]);
 });
 
+test('unified alert mapper accepts miway source rows', function () {
+    $row = (object) [
+        'id' => 'miway:miway:alert:12345',
+        'source' => 'miway',
+        'external_id' => 'miway:alert:12345',
+        'is_active' => 1,
+        'timestamp' => '2026-03-31 12:00:00',
+        'title' => 'Route 17 bus detour',
+        'location_name' => null,
+        'lat' => null,
+        'lng' => null,
+        'meta' => '{"effect":"DETOUR"}',
+    ];
+
+    $alert = (new UnifiedAlertMapper)->fromRow($row);
+
+    expect($alert->id)->toBe('miway:miway:alert:12345');
+    expect($alert->source)->toBe('miway');
+    expect($alert->externalId)->toBe('miway:alert:12345');
+    expect($alert->meta)->toBe(['effect' => 'DETOUR']);
+});
+
 test('unified alert mapper returns null location when all location fields are null', function () {
     $row = (object) [
         'id' => 'police:1',

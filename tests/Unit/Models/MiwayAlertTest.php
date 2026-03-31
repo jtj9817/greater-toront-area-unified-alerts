@@ -36,6 +36,19 @@ test('miway_alerts table has correct indexes', function () {
     expect($indexNames)->toContain('miway_alerts_is_active_index');
 });
 
+test('miway_alerts table has mysql fulltext index for text search columns', function () {
+    $driver = Schema::getConnection()->getDriverName();
+
+    if (! in_array($driver, ['mysql', 'mariadb'], true)) {
+        $this->markTestSkipped('MySQL/MariaDB only.');
+    }
+
+    $indexes = Schema::getIndexes('miway_alerts');
+    $indexNames = array_column($indexes, 'name');
+
+    expect($indexNames)->toContain('miway_alerts_fulltext');
+});
+
 test('miway alert model has expected fillable attributes', function () {
     $alert = new MiwayAlert;
 

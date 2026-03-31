@@ -22,7 +22,7 @@ class FeedController extends Controller
      *
      * Query parameters:
      * - status: 'all' | 'active' | 'cleared'
-     * - source: 'fire' | 'police' | 'transit' | 'go_transit'
+     * - source: 'fire' | 'police' | 'transit' | 'go_transit' | 'miway'
      * - q: search query string
      * - since: '30m' | '1h' | '3h' | '6h' | '12h'
      * - sort: 'desc' (default) | 'asc'
