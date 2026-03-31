@@ -75,16 +75,16 @@
     - [x] Re-run focused backend tests to green.
 - [x] Task: Conductor - User Manual Verification 'Phase 6: Alert Source + API Contract Plumbing' (Protocol in workflow.md)
 
-## Phase 7: Frontend Domain Integration
+## Phase 7: Frontend Domain Integration [checkpoint: 6158420]
 
-- [ ] Task: Write failing frontend domain tests for MiWay mapping
-    - [ ] Add mapper tests for `fromResource()` source switch handling `miway`.
-    - [ ] Add tests for `mapMiwayAlert()` output shape and metadata fallbacks.
-    - [ ] Add tests ensuring existing source mappers remain unchanged.
-- [ ] Task: Implement frontend MiWay domain mapping
-    - [ ] Implement `mapMiwayAlert()` and integrate it into unified frontend mapping flow.
-    - [ ] Add/update MiWay domain types (`kind: 'miway'`) and presentation metadata mapping.
-    - [ ] Ensure UI source filtering can treat MiWay independently from TTC/GO.
+- [x] Task: Write failing frontend domain tests for MiWay mapping
+    - [x] Add mapper tests for `fromResource()` source switch handling `miway`.
+    - [x] Add tests for `mapMiwayAlert()` output shape and metadata fallbacks.
+    - [x] Add tests ensuring existing source mappers remain unchanged.
+- [x] Task: Implement frontend MiWay domain mapping
+    - [x] Implement `mapMiwayAlert()` and integrate it into unified frontend mapping flow.
+    - [x] Add/update MiWay domain types (`kind: 'miway'`) and presentation metadata mapping.
+    - [x] Ensure UI source filtering can treat MiWay independently from TTC/GO.
 - [ ] Task: Conductor - User Manual Verification 'Phase 7: Frontend Domain Integration' (Protocol in workflow.md)
 
 ## Phase 8: QA Phase
