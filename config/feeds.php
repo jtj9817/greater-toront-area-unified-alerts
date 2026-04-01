@@ -28,6 +28,11 @@ return [
         'reset_detection_threshold' => 0.1,
     ],
 
+    'yrt' => [
+        'max_records' => 200,
+        'details_refresh_hours' => 24,
+    ],
+
     'sanity' => [
         // Warn when timestamps that should be "near now" drift too far into the future.
         'future_timestamp_grace_seconds' => 15 * 60,
