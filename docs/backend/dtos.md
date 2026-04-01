@@ -21,7 +21,7 @@ readonly class UnifiedAlert
 }
 ```
 
-`source` currently supports: `fire`, `police`, `transit`, `go_transit`.
+`source` currently supports: `fire`, `police`, `transit`, `go_transit`, `miway`.
 
 ## AlertLocation
 
@@ -48,7 +48,8 @@ Key constraints:
 - `status`: normalized via `AlertStatus::normalize()`
 - `perPage`: min 1, max 200, default 50
 - `page`: nullable, must be >=1 when provided
-- `source`: nullable enum-backed source (`fire`, `police`, `transit`, `go_transit`)
+- `source`: nullable enum-backed source (`fire`, `police`, `transit`, `go_transit`, `miway`)
+- `sort`: `asc` or `desc` (default `desc`); normalized to lowercase
 - `query` (`q`): trimmed; empty/whitespace-only becomes `null`
 - `since`: nullable preset (`30m`, `1h`, `3h`, `6h`, `12h`)
 - `sinceCutoff`: computed `CarbonImmutable` cutoff based on `since`

@@ -61,6 +61,13 @@ Readonly value object representing current weather conditions:
 | `alertLevel` | string/null | Severity: 'yellow', 'orange', 'red', or null |
 | `alertText` | string/null | Human-readable alert description |
 | `fetchedAt` | DateTimeImmutable | Timestamp of data retrieval |
+| `feelsLike` | float/null | Apparent temperature in °C (Wind Chill or Humidex; see `FeelsLikeCalculator`) |
+| `dewpoint` | float/null | Dewpoint temperature in °C |
+| `pressure` | float/null | Atmospheric pressure in kPa |
+| `visibility` | float/null | Visibility in km |
+| `windGust` | string/null | Wind gust speed formatted as "N km/h" |
+| `tendency` | string/null | Pressure tendency (e.g., "falling", "rising") |
+| `stationName` | string/null | Name of the observation station |
 
 ### Contracts
 
@@ -80,6 +87,20 @@ interface WeatherProvider
 ```
 
 ### Services
+
+#### `App\Services\Weather\FeelsLikeCalculator`
+
+Static utility class that computes apparent ("Feels Like") temperature in °C. Called by the provider after parsing raw observation data.
+
+- **Wind Chill** (Environment Canada / NWS formula): applied when temperature ≤ 10 °C and wind speed > 4.8 km/h.
+- **Humidex** (Canadian Meteorological Service formula): applied when temperature ≥ 20 °C and dewpoint is available.
+- Falls back to the actual temperature when neither condition applies. Returns `null` only when temperature itself is `null`.
+
+```php
+FeelsLikeCalculator::compute(?float $temperature, ?float $windKph, ?float $dewpoint): ?float
+```
+
+Result is rounded to 1 decimal place.
 
 #### `App\Services\Weather\WeatherFetchService`
 
@@ -177,10 +198,19 @@ Returns current weather conditions for the specified FSA.
     "condition": "Partly Cloudy",
     "alert_level": null,
     "alert_text": null,
-    "fetched_at": "2026-03-26T14:30:00+00:00"
+    "fetched_at": "2026-03-26T14:30:00+00:00",
+    "feels_like": 17.8,
+    "dewpoint": 9.5,
+    "pressure": 101.3,
+    "visibility": 24.1,
+    "wind_gust": "25 km/h",
+    "tendency": "falling",
+    "station_name": "Toronto City Centre"
   }
 }
 ```
+
+All extended fields (`feels_like` through `station_name`) are nullable and may be absent from the upstream data.
 
 **Error Responses:**
 
@@ -443,6 +473,7 @@ Exception includes FSA, provider name, and human-readable reason for logging.
 - `app/Services/Weather/Contracts/WeatherProvider.php`
 - `app/Services/Weather/DTOs/WeatherData.php`
 - `app/Services/Weather/Exceptions/WeatherFetchException.php`
+- `app/Services/Weather/FeelsLikeCalculator.php`
 - `app/Services/Weather/WeatherFetchService.php`
 - `app/Services/Weather/WeatherCacheService.php`
 - `app/Services/Weather/Providers/EnvironmentCanadaWeatherProvider.php`
