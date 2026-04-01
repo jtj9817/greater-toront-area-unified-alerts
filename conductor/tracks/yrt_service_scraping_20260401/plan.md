@@ -2,20 +2,20 @@
 
 ## Phase 1: Database + Model
 
-- [ ] Task: Red - Write failing persistence and model tests for YRT
-    - [ ] Create `tests/Unit/Models/YrtAlertTest.php` with schema expectations for required columns.
-    - [ ] Add assertions for unique `external_id` and indexes on `posted_at`, `feed_updated_at`, and (`is_active`, `posted_at`).
-    - [ ] Add model behavior tests for `fillable`, casts, and `scopeActive()` filtering.
-    - [ ] Run focused tests and confirm red state before implementation.
-- [ ] Task: Green - Implement `yrt_alerts` migration and `YrtAlert` model
-    - [ ] Add migration for `yrt_alerts` with exact spec fields and index definitions.
-    - [ ] Add `app/Models/YrtAlert.php` with required fillable/casts/scope contracts.
-    - [ ] Add/update factory support if needed for deterministic tests.
-    - [ ] Re-run focused tests until green.
-- [ ] Task: Refactor - Normalize model and schema conventions
-    - [ ] Align naming/cast conventions with existing transit alert models.
-    - [ ] Remove duplicate setup code from tests using datasets/helpers.
-    - [ ] Re-run focused suite and verify no regression.
+- [x] Task: Red - Write failing persistence and model tests for YRT (d57877b)
+    - [x] Create `tests/Unit/Models/YrtAlertTest.php` with schema expectations for required columns.
+    - [x] Add assertions for unique `external_id` and indexes on `posted_at`, `feed_updated_at`, and (`is_active`, `posted_at`).
+    - [x] Add model behavior tests for `fillable`, casts, and `scopeActive()` filtering.
+    - [x] Run focused tests and confirm red state before implementation.
+- [x] Task: Green - Implement `yrt_alerts` migration and `YrtAlert` model (d57877b)
+    - [x] Add migration for `yrt_alerts` with exact spec fields and index definitions.
+    - [x] Add `app/Models/YrtAlert.php` with required fillable/casts/scope contracts.
+    - [x] Add/update factory support if needed for deterministic tests.
+    - [x] Re-run focused tests until green.
+- [x] Task: Refactor - Normalize model and schema conventions (d57877b)
+    - [x] Align naming/cast conventions with existing transit alert models.
+    - [x] Remove duplicate setup code from tests using datasets/helpers.
+    - [x] Re-run focused suite and verify no regression.
 - [ ] Task: Conductor - User Manual Verification 'Phase 1: Database + Model' (Protocol in workflow.md)
 
 ## Phase 2: Feed Service (List JSON + Conditional Detail HTML)
