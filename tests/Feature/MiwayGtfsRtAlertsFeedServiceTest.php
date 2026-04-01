@@ -266,3 +266,60 @@ it('handles empty text in translations', function () {
 
     expect($result['alerts'][0]['header_text'])->toBe('Real Title');
 });
+
+it('aggregates all active periods using min-start and max-end across multiple TimeRange entries', function () {
+    $feed = new FeedMessage;
+
+    $header = new FeedHeader;
+    $header->setGtfsRealtimeVersion('2.0');
+    $header->setTimestamp(1711900000);
+    $feed->setHeader($header);
+
+    $entity1 = new FeedEntity;
+    $entity1->setId('multi_period_alert');
+    $alert1 = new Alert;
+    $alert1->setCause(Alert\Cause::TECHNICAL_PROBLEM);
+    $alert1->setEffect(Alert\Effect::DETOUR);
+
+    $headerText = new TranslatedString;
+    $headerText->setTranslation([(new Translation)->setLanguage('en')->setText('Multi-period alert')]);
+    $alert1->setHeaderText($headerText);
+
+    $descText = new TranslatedString;
+    $descText->setTranslation([(new Translation)->setLanguage('en')->setText('Alert spanning multiple periods.')]);
+    $alert1->setDescriptionText($descText);
+
+    // Period 1: 1711800000 - 1711900000
+    $period1 = new TimeRange;
+    $period1->setStart(1711800000);
+    $period1->setEnd(1711900000);
+
+    // Period 2: starts later, ends later (1711950000 - 1712100000)
+    $period2 = new TimeRange;
+    $period2->setStart(1711950000);
+    $period2->setEnd(1712100000);
+
+    // Period 3: zero start (no start restriction) - should be ignored from min calc
+    // Period 4: zero end (no end restriction) - should be ignored from max calc
+    $period3 = new TimeRange;
+    $period3->setStart(0);
+    $period3->setEnd(1712000000);
+
+    $alert1->setActivePeriod([$period1, $period2, $period3]);
+
+    $entity1->setAlert($alert1);
+    $feed->setEntity([$entity1]);
+
+    Http::fake([
+        'https://www.miapp.ca/gtfs_rt/Alerts/Alerts.pb' => Http::response($feed->serializeToString(), 200),
+    ]);
+
+    $service = app(MiwayGtfsRtAlertsFeedService::class);
+    $result = $service->fetch();
+
+    expect($result['alerts'])->toHaveCount(1)
+        // min of [1711800000, 1711950000, 0] = 1711800000
+        ->and($result['alerts'][0]['starts_at'])->toEqual(Carbon::createFromTimestamp(1711800000)->utc())
+        // max of [1711900000, 1712100000, 1712000000] = 1712100000
+        ->and($result['alerts'][0]['ends_at'])->toEqual(Carbon::createFromTimestamp(1712100000)->utc());
+});

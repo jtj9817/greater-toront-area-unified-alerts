@@ -176,12 +176,23 @@ class MiwayGtfsRtAlertsFeedService
 
         $periods = $alert->getActivePeriod();
         if (count($periods) > 0) {
-            $period = $periods[0];
-            if ($period->getStart() > 0) {
-                $startsAt = Carbon::createFromTimestamp($period->getStart())->utc();
+            $nonZeroStarts = [];
+            $nonZeroEnds = [];
+
+            foreach ($periods as $period) {
+                if ($period->getStart() > 0) {
+                    $nonZeroStarts[] = $period->getStart();
+                }
+                if ($period->getEnd() > 0) {
+                    $nonZeroEnds[] = $period->getEnd();
+                }
             }
-            if ($period->getEnd() > 0) {
-                $endsAt = Carbon::createFromTimestamp($period->getEnd())->utc();
+
+            if (count($nonZeroStarts) > 0) {
+                $startsAt = Carbon::createFromTimestamp(min($nonZeroStarts))->utc();
+            }
+            if (count($nonZeroEnds) > 0) {
+                $endsAt = Carbon::createFromTimestamp(max($nonZeroEnds))->utc();
             }
         }
 

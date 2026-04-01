@@ -2,6 +2,7 @@
 
 use App\Models\FireIncident;
 use App\Models\GoTransitAlert;
+use App\Models\MiwayAlert;
 use App\Models\PoliceCall;
 use App\Models\SavedAlert;
 use App\Models\TransitAlert;
@@ -364,6 +365,30 @@ test('the home page sets latest_feed_updated_at from go transit when it is most 
     $this->get(route('home'))
         ->assertInertia(fn (Assert $page) => $page
             ->where('latest_feed_updated_at', $goLatest->toIso8601String())
+        );
+});
+
+test('the home page sets latest_feed_updated_at from miway when it is most recent', function () {
+    Carbon::setTestNow(Carbon::parse('2026-02-05 18:00:00'));
+
+    $fireLatest = Carbon::now()->subMinutes(5);
+    FireIncident::factory()->create([
+        'event_num' => 'E1',
+        'is_active' => true,
+        'dispatch_time' => Carbon::now()->subMinutes(10),
+        'feed_updated_at' => $fireLatest,
+    ]);
+
+    $miwayLatest = Carbon::now()->subMinutes(1);
+    MiwayAlert::factory()->create([
+        'external_id' => 'miway:test:001',
+        'is_active' => true,
+        'feed_updated_at' => $miwayLatest,
+    ]);
+
+    $this->get(route('home'))
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('latest_feed_updated_at', $miwayLatest->toIso8601String())
         );
 });
 

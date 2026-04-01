@@ -3,6 +3,7 @@
 use App\Http\Resources\UnifiedAlertResource;
 use App\Models\FireIncident;
 use App\Models\GoTransitAlert;
+use App\Models\MiwayAlert;
 use App\Models\PoliceCall;
 use App\Models\TransitAlert;
 use App\Services\Alerts\DTOs\UnifiedAlertsCriteria;
@@ -168,6 +169,34 @@ function seedFrontendContractFixtureDataset(): void
         'is_active' => false,
         'feed_updated_at' => $base->copy()->subMinutes(89),
     ]);
+
+    MiwayAlert::factory()->create([
+        'external_id' => 'miway:contract:active:001',
+        'header_text' => 'Route 101 detour in effect',
+        'description_text' => 'Route 101 is detoured via Queen St due to construction.',
+        'cause' => 'CONSTRUCTION',
+        'effect' => 'DETOUR',
+        'starts_at' => $base->copy()->subMinutes(10),
+        'ends_at' => $base->copy()->addHours(2),
+        'url' => 'https://www.miapp.ca/alerts/101-detour',
+        'detour_pdf_url' => null,
+        'is_active' => true,
+        'feed_updated_at' => $base->copy()->subMinutes(5),
+    ]);
+
+    MiwayAlert::factory()->create([
+        'external_id' => 'miway:contract:inactive:001',
+        'header_text' => 'Route 44 reduced service',
+        'description_text' => 'Route 44 operating on reduced schedule.',
+        'cause' => 'UNKNOWN_CAUSE',
+        'effect' => 'REDUCED_SERVICE',
+        'starts_at' => $base->copy()->subHours(3),
+        'ends_at' => $base->copy()->subHours(1),
+        'url' => null,
+        'detour_pdf_url' => null,
+        'is_active' => false,
+        'feed_updated_at' => $base->copy()->subHours(2),
+    ]);
 }
 
 /**
@@ -222,8 +251,8 @@ test('unified alert resource payload matches the frontend contract fixture', fun
         ->values()
         ->all();
 
-    expect($sources)->toBe(['fire', 'go_transit', 'police', 'transit']);
-    expect($actual['alerts'])->toHaveCount(8);
+    expect($sources)->toBe(['fire', 'go_transit', 'miway', 'police', 'transit']);
+    expect($actual['alerts'])->toHaveCount(10);
 
     $fixturePath = frontendContractFixturePath();
     $refreshHint = 'UPDATE_CONTRACT_FIXTURES=1 ./vendor/bin/pest --filter=UnifiedAlertsFrontendContractFixtureTest';

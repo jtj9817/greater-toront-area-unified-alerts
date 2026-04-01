@@ -2,7 +2,7 @@
 
 **Status:** Implemented (updated February 21, 2026)
 
-The unified alerts system aggregates Fire, Police, TTC Transit, and GO Transit records into one feed using tagged providers + `UNION ALL`, server-side filters, and cursor pagination for infinite scroll.
+The unified alerts system aggregates Fire, Police, TTC Transit, GO Transit, and MiWay records into one feed using tagged providers + `UNION ALL`, server-side filters, and cursor pagination for infinite scroll.
 
 ## Source Coverage
 
@@ -12,6 +12,7 @@ The unified alerts system aggregates Fire, Police, TTC Transit, and GO Transit r
 | `police` | `police_calls` | `PoliceAlertSelectProvider` |
 | `transit` | `transit_alerts` | `TransitAlertSelectProvider` |
 | `go_transit` | `go_transit_alerts` | `GoTransitAlertSelectProvider` |
+| `miway` | `miway_alerts` | `MiwayAlertSelectProvider` |
 
 ## Request + Query Flow
 
@@ -35,7 +36,7 @@ Both the Inertia feed page (`/`) and JSON feed endpoint (`/api/feed`) support:
 | Param | Allowed Values | Notes |
 |---|---|---|
 | `status` | `all`, `active`, `cleared` | Defaults to `all`. |
-| `source` | `fire`, `police`, `transit`, `go_transit` | Unified source enum only. |
+| `source` | `fire`, `police`, `transit`, `go_transit`, `miway` | Unified source enum only. |
 | `q` | string, max 200 | Trimmed; whitespace-only acts as unset. |
 | `since` | `30m`, `1h`, `3h`, `6h`, `12h` | Converted to server-side cutoff (`timestamp >= now - since`). |
 | `cursor` | opaque base64url payload | Encodes `(ts, id)` and is validated/decoded server-side. |

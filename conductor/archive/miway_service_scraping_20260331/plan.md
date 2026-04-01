@@ -85,7 +85,7 @@
     - [x] Implement `mapMiwayAlert()` and integrate it into unified frontend mapping flow.
     - [x] Add/update MiWay domain types (`kind: 'miway'`) and presentation metadata mapping.
     - [x] Ensure UI source filtering can treat MiWay independently from TTC/GO.
-- [ ] Task: Conductor - User Manual Verification 'Phase 7: Frontend Domain Integration' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 7: Frontend Domain Integration' (Protocol in workflow.md)
 
 ## Phase 8: QA Phase [checkpoint: bc6c166]
 

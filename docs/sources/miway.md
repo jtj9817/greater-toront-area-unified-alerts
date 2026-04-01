@@ -51,7 +51,7 @@ MySQL/MariaDB deployments include a fulltext index on `(header_text, description
 
 The service sends `If-None-Match` (ETag) and `If-Modified-Since` (Last-Modified) headers when a prior `feed_updated_at` exists. The MiWay server returns `304 Not Modified` when neither header has changed, skipping all database writes on that cycle.
 
-**Note:** MiWay does not appear to issue ETags; `If-Modified-Since` is the effective conditional-fetch mechanism. The ETag path is retained for symmetry.
+**Note:** MiWay's server does not issue ETags; `If-Modified-Since` is the effective conditional-fetch mechanism. The command currently persists only `feed_updated_at` (Last-Modified) and passes it to the service. The ETag header is supported by the service layer (`fetch($etag, $lastModified)`) but is not exercised by the production command flow since there is no ETag to load.
 
 ### Failure Modes
 
