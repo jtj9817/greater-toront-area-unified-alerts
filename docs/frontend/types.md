@@ -15,10 +15,62 @@ Transport shape is validated at the frontend boundary with Zod:
 `DomainAlert` is the discriminated union used across GTA Alerts feature logic:
 - `kind: 'fire'`
 - `kind: 'police'`
-- `kind: 'transit'`
+- `kind: 'transit'` — TTC alerts
 - `kind: 'go_transit'`
+- `kind: 'miway'`
+
+Defined in: `resources/js/features/gta-alerts/domain/alerts/types.ts`
 
 Source-specific schema modules validate and map each source into its domain type.
+
+## MiWay Domain Types
+
+- Schema: `resources/js/features/gta-alerts/domain/alerts/miway/schema.ts`
+- Mapper: `resources/js/features/gta-alerts/domain/alerts/miway/mapper.ts`
+
+### MiwayAlert
+
+Domain type for MiWay (Mississauga Transit) GTFS-RT service alerts. `kind: 'miway'`.
+
+Fields mirror the base domain shape plus a `meta: MiwayMeta` block. Location fields (`lat`, `lng`) are always `null` in v1 — MiWay GTFS-RT feeds do not include stop coordinates.
+
+### MiwayMeta
+
+GTFS-RT fields surfaced from `MiwayAlertSelectProvider`:
+
+| Field | Type | Notes |
+|---|---|---|
+| `header_text` | `string \| null` | Short human-readable summary |
+| `description_text` | `string \| null` | Full alert description |
+| `cause` | `string \| null` | GTFS-RT cause enum (e.g. `CONSTRUCTION`) |
+| `effect` | `string \| null` | GTFS-RT effect enum (e.g. `DETOUR`, `NO_SERVICE`) |
+| `url` | `string \| null` | Optional link to service advisory page |
+| `detour_pdf_url` | `string \| null` | Optional link to detour PDF map |
+| `ends_at` | `string \| null` | ISO 8601 end time if known |
+| `feed_updated_at` | `string \| null` | Feed-level timestamp from GTFS-RT header |
+
+### MiWay Severity Rules
+
+Derived in `deriveMiwaySeverity(meta)` in `transit/presentation.ts` (case-insensitive `effect` match):
+
+- `NO_SERVICE` → `high`
+- `REDUCED_SERVICE`, `SIGNIFICANT_DELAYS`, `DETOUR` → `medium`
+- All other values or `null` → `low`
+
+### MiWay Presentation Mapping
+
+In `mapDomainAlertToPresentation`, MiWay alerts map to `type: 'transit'` (same visual treatment as TTC). Description is built from `effect` label + `cause` + `description_text` with a fallback chain: `header_text` → `title` → `'MiWay service alert.'`.
+
+## GO Transit Severity Rules
+
+Derived in `deriveGoTransitSeverity(meta)` in `transit/presentation.ts`:
+
+- `sub_category === 'BCANCEL'` → `high`
+- `sub_category in ['TDELAY', 'BDETOUR']` → `medium`
+- `alert_type === 'saag'` → `medium`
+- Otherwise → `low`
+
+GO Transit alerts use `type: 'go_transit'` (dedicated train icon, green accent family).
 
 ## AlertPresentation (UI View Model)
 

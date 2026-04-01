@@ -24,8 +24,8 @@ A coordinate pair is eligible only when all of the following are true:
 
 - Both `lat` and `lng` are present and of type `number`
 - Both pass `Number.isFinite()`
-- `lat` is in the open range (40, 50) — the GTA/Ontario bounding box
-- `lng` is in the open range (-90, -70) — the GTA/Ontario bounding box
+- `lat` is in the closed range [40, 50] — the GTA/Ontario bounding box
+- `lng` is in the closed range [-90, -70] — the GTA/Ontario bounding box
 
 The following are rejected:
 
@@ -119,6 +119,7 @@ The conditional rendering logic:
 | Toronto Fire | No (v1) | Intersection text only; geocoding deferred |
 | TTC Transit | No (v1) | Text location only; geocoding deferred |
 | GO Transit | No (v1) | Corridor/route text only; geocoding deferred |
+| MiWay | No (v1) | Route/stop text only; geocoding deferred |
 
 ## v1 Scope Limits
 
