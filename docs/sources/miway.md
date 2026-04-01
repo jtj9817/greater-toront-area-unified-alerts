@@ -11,7 +11,8 @@ Implemented. MiWay alerts are ingested into `miway_alerts` and exposed as unifie
 - Queue job: `app/Jobs/FetchMiwayAlertsJob.php`
 - Model: `app/Models/MiwayAlert.php`
 - Unified provider: `app/Services/Alerts/Providers/MiwayAlertSelectProvider.php`
-- Schedule: `routes/console.php` -> `miway:fetch-alerts` every 5 minutes (`withoutOverlapping(10)`)
+- Schedule: `routes/console.php` -> `miway:fetch-alerts` every 5 minutes
+- Job uniqueness: `ShouldBeUnique` (`uniqueFor = 600 s`, store `QUEUE_UNIQUE_LOCK_STORE`), `WithoutOverlapping('fetch-miway-alerts')` (`releaseAfter = 30 s`, `expireAfter = 600 s`), `timeout = 120 s`, 3 retries with 30 s backoff
 
 ## Upstream Endpoint
 
@@ -49,9 +50,9 @@ MySQL/MariaDB deployments include a fulltext index on `(header_text, description
 
 ## Conditional Fetch
 
-The service sends `If-None-Match` (ETag) and `If-Modified-Since` (Last-Modified) headers when a prior `feed_updated_at` exists. The MiWay server returns `304 Not Modified` when neither header has changed, skipping all database writes on that cycle.
+The command reads the most recent `feed_updated_at` and passes it as the `If-Modified-Since` header. When the feed has not changed, the server returns `304 Not Modified` and the command exits immediately with no database writes.
 
-**Note:** MiWay's server does not issue ETags; `If-Modified-Since` is the effective conditional-fetch mechanism. The command currently persists only `feed_updated_at` (Last-Modified) and passes it to the service. The ETag header is supported by the service layer (`fetch($etag, $lastModified)`) but is not exercised by the production command flow since there is no ETag to load.
+The service signature accepts an ETag argument (`fetch($etag, $lastModified)`), but MiWay's server does not issue ETags. The ETag path is never exercised in production — `If-Modified-Since` is the sole conditional-fetch mechanism.
 
 ### Failure Modes
 
@@ -85,7 +86,7 @@ The service sends `If-None-Match` (ETag) and `If-Modified-Since` (Last-Modified)
 - `lat`/`lng`: `NULL`
 - `meta`: JSON payload with `header_text`, `description_text`, `cause`, `effect`, `url`, `detour_pdf_url`, `ends_at`, `feed_updated_at`
 
-Text search (`q` parameter) uses MySQL/MariaDB fulltext index with `MATCH...AGAINST` + `LIKE` fallback; PostgreSQL uses `tsvector` + `ILIKE`; SQLite uses `LIKE` on both fields.
+Text search (`q` parameter) uses MySQL/MariaDB fulltext `MATCH...AGAINST` + `LIKE` fallback; PostgreSQL uses `tsvector` + `ILIKE`. SQLite has no text-search branch — the `q` filter is silently ignored on SQLite.
 
 ## Usage
 
