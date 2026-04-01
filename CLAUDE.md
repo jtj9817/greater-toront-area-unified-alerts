@@ -43,6 +43,9 @@ php artisan test --filter=AuthenticationTest  # Run a single test file
 ./scripts/run-manual-test.sh tests/manual/verify_scheduler_resilience_phase_2_resilience_architecture_upgrade.php
 ./scripts/run-manual-test.sh tests/manual/verify_scheduler_resilience_phase_3_data_integrity_maintenance.php
 ./scripts/run-manual-test.sh tests/manual/verify_phase_5_saved_alerts_quality_gates.php
+./scripts/run-manual-test.sh tests/manual/verify_miway_phase_1_model.php
+./scripts/run-manual-test.sh tests/manual/verify_miway_phase_2_feed.php
+./scripts/run-manual-test.sh tests/manual/verify_miway_phase_3_command.php
 ```
 
 ### Linting & Formatting
@@ -58,6 +61,7 @@ pnpm run types               # TypeScript type checking (tsc --noEmit)
 php artisan fire:fetch-incidents       # Manually sync Toronto Fire feed
 php artisan police:fetch-calls         # Manually sync Toronto Police feed
 php artisan go-transit:fetch-alerts    # Manually sync GO Transit feed
+php artisan miway:fetch-alerts         # Manually sync MiWay feed
 php artisan db:export-sql              # Export alert tables as SQL UPSERT statements
 php artisan db:import-sql --file=... --force  # Import SQL dump through psql
 ./scripts/export-alert-data.sh --sail  # Orchestrate SQL export with transfer guidance
@@ -80,7 +84,7 @@ php artisan scheduler:report         # Show schedule configuration
 The system uses a **Provider & Adapter** pattern to unify divergent data sources:
 
 ```
-Source Models (FireIncident, PoliceCall, GoTransitAlert)
+Source Models (FireIncident, PoliceCall, TransitAlert, GoTransitAlert, MiwayAlert)
     ↓
 Select Providers (AlertSelectProvider implementations)
     ↓
@@ -103,7 +107,7 @@ AlertPresentation (frontend view model)
 - `App\Services\Alerts\DTOs\UnifiedAlertsCursor` - Opaque cursor `(ts,id)` encoder/decoder
 
 **Enums:**
-- `App\Enums\AlertSource` - Fire, Police, Transit, GoTransit (type-safe)
+- `App\Enums\AlertSource` - Fire, Police, Transit, GoTransit, Miway (type-safe)
 - `App\Enums\AlertStatus` - All, Active, Cleared (with `normalize()` method)
 
 **Providers (Tagged Injection):**
@@ -112,6 +116,7 @@ AlertPresentation (frontend view model)
 - `App\Services\Alerts\Providers\PoliceAlertSelectProvider` - Police calls adapter
 - `App\Services\Alerts\Providers\TransitAlertSelectProvider` - TTC transit alerts adapter
 - `App\Services\Alerts\Providers\GoTransitAlertSelectProvider` - GO Transit alerts adapter
+- `App\Services\Alerts\Providers\MiwayAlertSelectProvider` - MiWay transit alerts adapter
 
 **Query & Mapper:**
 - `App\Services\Alerts\UnifiedAlertsQuery` - UNION ALL query with tagged provider injection
@@ -146,6 +151,11 @@ AlertPresentation (frontend view model)
 **GO Transit:**
 - Metrolinx JSON API → `GoTransitFeedService` (fetch/parse) → `FetchGoTransitAlertsCommand` (upsert via `external_id`) → `GoTransitAlert` model
 - Parses Trains (notifications + SAAG real-time delays), Buses, and Stations
+- Command marks missing alerts as `is_active = false`
+- Scheduled every 5 minutes in `routes/console.php`
+
+**MiWay:**
+- GTFS-RT protobuf feed from `miapp.ca` → `MiwayGtfsRtAlertsFeedService` (fetch/parse) → `FetchMiwayAlertsCommand` (upsert via `external_id`) → `MiwayAlert` model
 - Command marks missing alerts as `is_active = false`
 - Scheduled every 5 minutes in `routes/console.php`
 
@@ -281,7 +291,7 @@ See `docs/` for detailed architecture:
 - `docs/backend/production-scheduler.md` - Scheduler container, ScheduledFetchJobDispatcher, resilience guardrails
 - `docs/backend/security-headers.md` - EnsureSecurityHeaders middleware, CSP nonce and hot-mode extension
 - `docs/deployment/production-seeding.md` - Forge-safe SQL export/import transfer runbook
-- `docs/sources/` - Individual data source documentation (Toronto Fire, Police, TTC, GO Transit)
+- `docs/sources/` - Individual data source documentation (Toronto Fire, Police, TTC, GO Transit, MiWay)
 - `docs/architecture/provider-adapter-pattern.md` - Provider pattern explanation
 - `docs/backend/notification-system.md` - In-app notification system (IMPLEMENTED)
 - `docs/backend/saved-alerts.md` - Saved Alerts system: API contract, guest/auth storage, hydration path, unresolved-ID handling (IMPLEMENTED)
