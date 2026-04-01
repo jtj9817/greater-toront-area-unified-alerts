@@ -1,54 +1,162 @@
 # Specification: YRT Service Advisories Integration
 
 ## Overview
-Integrate York Region Transit (YRT) service advisories into the GTA Alerts unified-alerts pipeline by ingesting the YRT advisories JSON feed, persisting normalized alert records, exposing them via the existing provider-tagged unified query architecture, and mapping them into the Inertia + React alert domain.
+Integrate York Region Transit (YRT) service advisories into the GTA Alerts unified-alerts architecture by ingesting the YRT advisories JSON feed, normalizing and persisting alert records, exposing them through the provider-tagged unified query flow, and mapping them into the Inertia + React domain model.
 
-Source planning reference: `docs/plans/YRT_Service_Implementation_Plan.md` (validated 2026-03-31).
+Primary planning reference: `docs/plans/YRT_Service_Implementation_Plan.md` (validated on 2026-03-31).
+
+## Business Goal
+Add YRT as a first-class transit source in the same operational and UX pathways as existing sources (TTC, GO, MiWay) without regressing current feed behavior or frontend alert rendering.
+
+## Source of Truth and Ingestion Boundaries
+- Canonical feed endpoint:
+  - `GET https://www.yrt.ca/Modules/NewsModule/services/getServiceAdvisories.ashx?categories=b8f1acba-f043-ec11-9468-0050569c41bf&lang=en`
+- Source returns a JSON array payload (served with JavaScript-compatible content type).
+- The HTML advisories page is not an ingestion source.
+- Detail pages are optional enrichment only and must never replace list-feed authority for active/inactive state.
 
 ## Architecture Direction
-- Use `https://www.yrt.ca/Modules/NewsModule/services/getServiceAdvisories.ashx?...` as the source-of-truth feed.
-- Preserve current backend flow:
-  - `YrtAlert` persistence table
+- Preserve the current unified alerts architecture:
+  - `YrtAlert` persistence model
   - `YrtAlertSelectProvider` tagged in `alerts.select-providers`
   - `UnifiedAlertsQuery` union criteria flow
-  - existing API resource + frontend domain mapper flow
-- Keep YRT source identity distinct as `yrt`.
-- Keep location coordinates `NULL` for YRT alerts (source has no lat/lng).
-- Treat detail-page scraping as optional enrichment only when needed.
+  - existing API resource and frontend domain mapping flow
+- Keep source identity explicit as `yrt`.
+- Persist coordinates as `NULL` (`lat`, `lng`) for all YRT rows.
+- Follow established feed resilience patterns already used by transit providers.
 
-## Functional Requirements
-- Persist YRT alerts in a dedicated `yrt_alerts` table with unique `external_id` upsert key.
-- Implement `YrtAlert` model with typed casts and `active()` scope.
-- Implement `YrtServiceAdvisoriesFeedService` that:
-  - fetches the JSON list feed with timeout/retry + feed circuit breaker behavior
-  - normalizes records into persisted fields (`external_id`, `title`, `posted_at`, `details_url`, `description_excerpt`, `route_text`, `list_hash`, optional `body_text`)
-  - optionally fetches detail HTML only when required (new/changed/missing body/stale detail fetch timestamp)
-- Implement sync command `yrt:fetch-alerts` that:
-  - upserts active advisories
-  - deactivates stale advisories missing from latest feed
-  - dispatches `AlertCreated` for newly created or re-activated advisories
-- Add queued/scheduled wrapper path through `FetchYrtAlertsJob` and `ScheduledFetchJobDispatcher::dispatchYrtAlerts()`.
-- Add `YrtAlertSelectProvider` with unified columns and criteria filtering (`source`, `status`, `sinceCutoff`, `query`) matching provider contracts.
-- Extend `AlertSource` enum with `Yrt = 'yrt'`.
-- Extend frontend domain/resource mapping to support `kind: 'yrt'`, including mapper + presentation integration.
+## Persistence Contract
+### Table
+Create `yrt_alerts` with these persisted fields:
+- `external_id` (unique key)
+- `title`
+- `posted_at`
+- `details_url`
+- `description_excerpt` (nullable)
+- `route_text` (nullable)
+- `body_text` (nullable)
+- `list_hash` (nullable, sha1 hex)
+- `details_fetched_at` (nullable)
+- `is_active` (boolean, default true)
+- `feed_updated_at` (nullable)
+- Laravel timestamps
+
+### Indexes
+- unique index on `external_id`
+- index on `posted_at`
+- index on `feed_updated_at`
+- composite index on `is_active, posted_at`
+
+### Model
+- `app/Models/YrtAlert.php`
+- `fillable` includes all persisted write fields.
+- `casts()` includes:
+  - datetime: `posted_at`, `details_fetched_at`, `feed_updated_at`
+  - boolean: `is_active`
+- `scopeActive()` returns only active records.
+
+## Normalization Rules
+For each feed item, normalization must produce a deterministic record:
+- `external_id`: slug from `details_url` pathname basename without `.aspx`.
+- `title`: trimmed feed title, must not be empty after trim.
+- `posted_at`: parsed from `postedDate + postedTime` in `America/Toronto`, stored in UTC.
+- `details_url`: absolute URL from feed `link`; reject empty/non-URL values.
+- `description_excerpt`: normalized whitespace feed description (nullable when empty).
+- `route_text`: best-effort derivation with this priority:
+  1. route-like title prefix (`^[0-9]{1,3}\s*[-]` pattern family)
+  2. `Routes affected:` or `Route affected:` segment in excerpt/body text
+  3. `NULL` when no reliable route text
+- `list_hash`: `sha1` of stable concatenation of list fields (`title|description|postedDate|postedTime|link`).
+
+## Detail Enrichment Rules
+Detail page fetch is allowed only when at least one condition is true:
+- advisory is new, or
+- `list_hash` changed since last sync, or
+- `body_text` is empty/null, or
+- `details_fetched_at` is older than configured refresh threshold.
+
+When detail fetch runs:
+- parse HTML defensively (invalid HTML must not crash sync).
+- extract and normalize readable body text.
+- set `details_fetched_at` to current UTC time.
+
+When detail fetch is skipped:
+- existing `body_text` remains unchanged.
+- avoid network call to detail URL.
+
+## Sync and Lifecycle Semantics (`yrt:fetch-alerts`)
+- Upsert all normalized rows from the latest list feed with `is_active=true`.
+- Deactivate stale rows currently active but absent from latest feed by `external_id`.
+- Do not hard-delete historical rows.
+- Dispatch `AlertCreated` only for:
+  - newly created rows, or
+  - rows transitioning from inactive to active.
+- Command must be idempotent across repeated runs with unchanged source content.
+
+## Scheduled Execution Semantics
+- Add `FetchYrtAlertsJob` queue wrapper calling `yrt:fetch-alerts`.
+- Job must:
+  - implement unique job semantics
+  - use overlap guard middleware
+  - throw on non-zero Artisan exit code
+- Register scheduled dispatch through `ScheduledFetchJobDispatcher::dispatchYrtAlerts()` at 5-minute cadence, consistent with existing transit feeds.
+
+## Unified Provider Contract
+`YrtAlertSelectProvider` must emit the unified select contract:
+- `id`: prefixed source id (`yrt:{external_id}`; driver-safe expression)
+- `source`: literal `yrt`
+- `external_id`
+- `is_active`
+- `timestamp`: `posted_at`
+- `title`
+- `location_name`: mapped from `route_text` (nullable)
+- `lat`, `lng`: `NULL`
+- `meta`: JSON object containing at minimum:
+  - `details_url`
+  - `description_excerpt`
+  - `body_text`
+  - `posted_at`
+  - `feed_updated_at`
+
+Provider must obey existing criteria semantics:
+- `source`
+- `status`
+- `sinceCutoff`
+- `query`
+
+## Backend Contract Updates
+- Add `Yrt = 'yrt'` to `AlertSource` enum.
+- Ensure API resource/mapper paths accept and pass through `yrt` consistently.
+- Preserve compatibility for all existing source values.
+
+## Frontend Contract
+- Add YRT domain schema/mapper under transit domain path.
+- Register source `yrt` in:
+  - resource schema source enum
+  - domain union types
+  - `fromResource()` switch
+- Implement `mapYrtAlert()` with strict schema validation and null-safe metadata fallbacks.
+- Map YRT presentation through shared transit presentation helpers (not TTC-specific branches).
 
 ## Non-Functional Requirements
-- Follow strict TDD for every implementation phase (red -> green -> refactor).
-- Add failure-mode tests for feed outages, malformed JSON/HTML payloads, and empty-feed behavior.
-- Apply existing resilience patterns (timeouts, retries, circuit-breaker, safe empty-feed behavior).
-- Preserve existing unified alerts response contracts and avoid unrelated schema/API changes.
-- Keep ingestion bounded and operationally safe (list processing cap, low concurrency, defensive parsing).
+- Strict TDD per phase: red -> green -> refactor.
+- Add failure-mode tests for network errors, malformed payloads, parse failures, and empty feed scenarios.
+- Keep ingestion bounded and safe:
+  - list processing cap
+  - conservative request behavior
+  - no uncontrolled concurrency fan-out
+- Avoid unrelated API schema, UI redesign, or cross-domain refactors in this track.
 
 ## Acceptance Criteria
-- Running `vendor/bin/sail artisan yrt:fetch-alerts` ingests YRT advisories and keeps `yrt_alerts` synchronized.
-- Re-running sync with unchanged list content skips unnecessary detail fetches based on `list_hash` + freshness rules.
-- Unified alerts queries filtered by `source=yrt` return YRT rows with correct unified metadata shape.
-- New or reactivated YRT advisories trigger expected notification event behavior.
-- Frontend mapper/source handling renders YRT advisories as a first-class transit source without regressing existing sources.
-- Track passes QA gates (targeted + full tests, coverage threshold, lint/type/format checks, audits) and required docs updates.
+1. `vendor/bin/sail artisan yrt:fetch-alerts` ingests advisories into `yrt_alerts` with correct active-state synchronization.
+2. Unchanged advisories avoid unnecessary detail fetches based on `list_hash` and freshness rules.
+3. `source=yrt` unified query returns contract-valid rows and metadata.
+4. Newly created and reactivated YRT advisories trigger expected notification event behavior.
+5. Frontend domain mapping renders YRT alerts with existing feed UI without source regressions.
+6. Quality gates pass (targeted suites, full tests, coverage threshold, lint/type/format, audits).
 
 ## Out of Scope
-- Scraping the public advisories list HTML as primary source.
-- Parsing unsupported or unreliable banner-feed endpoints.
-- Geospatial enrichment (lat/lng inference) for YRT advisories.
-- UI redesign outside source/domain integration needed for existing unified alert presentation.
+- HTML list-page scraping as primary ingestion path.
+- Banner-feed endpoint ingestion.
+- Geospatial enrichment (lat/lng inference) for YRT alerts.
+- New visual redesign work outside minimal source integration.
