@@ -4,7 +4,7 @@
 
 - **Issue Type:** Bug
 - **Priority:** Mixed (`P1`/`P2`/`P3`)
-- **Status:** Open
+- **Status:** Closed
 - **Labels:** `alerts`, `miway`, `review`, `backend`, `frontend`, `documentation`
 - **Source:** Deep implementation review against `conductor/archive/miway_service_scraping_20260331/{plan,spec}.md`
 
@@ -185,11 +185,11 @@ This review found seven gaps where behavior is incomplete, inaccurate, or out of
 
 ## Acceptance Criteria
 
-- [ ] MiWay is selectable from UI source filters and query string emits `source=miway`.
-- [ ] `latest_feed_updated_at` includes MiWay timestamps.
-- [ ] MiWay active period normalization uses min-start/max-end across all GTFS-RT periods.
-- [ ] Conditional-fetch behavior and docs are aligned (ETag+Last-Modified or explicitly Last-Modified-only).
-- [ ] Frontend contract fixture includes MiWay source coverage.
-- [ ] Unified-alerts/enums backend docs include MiWay consistently.
-- [ ] Archived MiWay track artifacts are internally consistent.
+- [x] MiWay is selectable from UI source filters and query string emits `source=miway`.
+- [x] `latest_feed_updated_at` includes MiWay timestamps.
+- [x] MiWay active period normalization uses min-start/max-end across all GTFS-RT periods.
+- [x] Conditional-fetch behavior and docs are aligned (ETag+Last-Modified or explicitly Last-Modified-only).
+- [x] Frontend contract fixture includes MiWay source coverage.
+- [x] Unified-alerts/enums backend docs include MiWay consistently.
+- [x] Archived MiWay track artifacts are internally consistent.
 
