@@ -37,7 +37,7 @@
     - [x] Extract helper methods for route parsing, text normalization, and detail fetch eligibility.
     - [x] Ensure branch coverage for skip/fetch decision logic remains intact.
     - [x] Re-run focused suite and verify no regression.
-- [ ] Task: Conductor - User Manual Verification 'Phase 2: Feed Service (List JSON + Conditional Detail HTML)' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 2: Feed Service (List JSON + Conditional Detail HTML)' (Protocol in workflow.md) (c005c77)
 
 ## Phase 3: Fetch Command (Sync + Notifications)
 
