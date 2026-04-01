@@ -20,23 +20,23 @@
 
 ## Phase 2: Feed Service (List JSON + Conditional Detail HTML)
 
-- [ ] Task: Red - Write failing service tests for normalization and resilience
-    - [ ] Create `tests/Feature/YrtServiceAdvisoriesFeedServiceTest.php` with JSON-list happy-path assertions.
-    - [ ] Add tests for slug extraction, Toronto-to-UTC timestamp parsing, and deterministic `list_hash` generation.
-    - [ ] Add detail-fetch decision tests (new alert, changed hash, missing body, stale `details_fetched_at`, and skip path).
-    - [ ] Add failure-mode tests for network errors, malformed JSON, malformed HTML, and empty payload behavior.
-    - [ ] Add tests for circuit-breaker success/failure recording behavior.
-    - [ ] Run focused tests and confirm red state.
-- [ ] Task: Green - Implement `YrtServiceAdvisoriesFeedService`
-    - [ ] Add `app/Services/YrtServiceAdvisoriesFeedService.php` with timeout/retry and feed-circuit-breaker integration.
-    - [ ] Implement list fetch + normalization into a deterministic alert array contract.
-    - [ ] Implement conditional detail fetch + HTML text extraction with defensive parsing.
-    - [ ] Return normalized shape: `updated_at` (UTC) and `alerts`.
-    - [ ] Re-run focused tests until green.
-- [ ] Task: Refactor - Extract parsing and decision helpers
-    - [ ] Extract helper methods for route parsing, text normalization, and detail fetch eligibility.
-    - [ ] Ensure branch coverage for skip/fetch decision logic remains intact.
-    - [ ] Re-run focused suite and verify no regression.
+- [x] Task: Red - Write failing service tests for normalization and resilience (baf2145)
+    - [x] Create `tests/Feature/YrtServiceAdvisoriesFeedServiceTest.php` with JSON-list happy-path assertions.
+    - [x] Add tests for slug extraction, Toronto-to-UTC timestamp parsing, and deterministic `list_hash` generation.
+    - [x] Add detail-fetch decision tests (new alert, changed hash, missing body, stale `details_fetched_at`, and skip path).
+    - [x] Add failure-mode tests for network errors, malformed JSON, malformed HTML, and empty payload behavior.
+    - [x] Add tests for circuit-breaker success/failure recording behavior.
+    - [x] Run focused tests and confirm red state.
+- [x] Task: Green - Implement `YrtServiceAdvisoriesFeedService` (baf2145)
+    - [x] Add `app/Services/YrtServiceAdvisoriesFeedService.php` with timeout/retry and feed-circuit-breaker integration.
+    - [x] Implement list fetch + normalization into a deterministic alert array contract.
+    - [x] Implement conditional detail fetch + HTML text extraction with defensive parsing.
+    - [x] Return normalized shape: `updated_at` (UTC) and `alerts`.
+    - [x] Re-run focused tests until green.
+- [x] Task: Refactor - Extract parsing and decision helpers (baf2145)
+    - [x] Extract helper methods for route parsing, text normalization, and detail fetch eligibility.
+    - [x] Ensure branch coverage for skip/fetch decision logic remains intact.
+    - [x] Re-run focused suite and verify no regression.
 - [ ] Task: Conductor - User Manual Verification 'Phase 2: Feed Service (List JSON + Conditional Detail HTML)' (Protocol in workflow.md)
 
 ## Phase 3: Fetch Command (Sync + Notifications)
