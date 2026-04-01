@@ -143,9 +143,58 @@ Provider must obey existing criteria semantics:
 - Add failure-mode tests for network errors, malformed payloads, parse failures, and empty feed scenarios.
 - Keep ingestion bounded and safe:
   - list processing cap
-  - conservative request behavior
-  - no uncontrolled concurrency fan-out
+- conservative request behavior
+- no uncontrolled concurrency fan-out
 - Avoid unrelated API schema, UI redesign, or cross-domain refactors in this track.
+
+## Implementation Phases
+1. Phase 1: Database + Model
+2. Phase 2: Feed Service (List JSON + Conditional Detail HTML)
+3. Phase 3: Fetch Command (Sync + Notifications)
+4. Phase 4: Queue Job Wrapper + Scheduler
+5. Phase 5: Unified Alerts Provider
+6. Phase 6: Source Enum + Backend Contract Plumbing
+7. Phase 7: Frontend Domain + Presentation Integration
+8. Phase 8: QA Phase
+9. Phase 9: Documentation Phase
+
+## Documentation Deliverables (Phase 9)
+
+### New Documentation To Create
+- `docs/sources/yrt.md` as the canonical YRT source integration reference.
+
+### Existing Documentation To Update
+- `docs/README.md`:
+  - include YRT in docs tree, current scope, source integration list, and implementation status table.
+- `docs/backend/unified-alerts-system.md`:
+  - include `yrt` in source coverage and filter enum documentation.
+- `docs/backend/enums.md`:
+  - include `AlertSource::Yrt` and updated enum value lists/snippets.
+- `docs/backend/dtos.md`:
+  - include `yrt` anywhere source allow-lists are documented.
+- `docs/backend/architecture-walkthrough.md`:
+  - include YRT service/command/job/provider and scheduler wiring in topology and examples.
+- `docs/backend/unified-alerts-qa.md`:
+  - update source-set references and source-onboarding guidance to reflect YRT as implemented.
+- `docs/backend/database-schema.md`:
+  - add `yrt_alerts` schema/index/provider/migration history and related cross-links.
+- `docs/backend/production-scheduler.md`:
+  - update enumerated fetch-source examples so YRT is consistently represented.
+- `docs/backend/notification-system.md`:
+  - update transit-family matching notes if YRT metadata participates in subscription-route matching.
+- `docs/frontend/alert-service.md`:
+  - include `yrt` in source dispatch documentation.
+- `docs/frontend/types.md`:
+  - include YRT domain type/schema/mapper and meta/presentation notes.
+- `docs/frontend/alert-location-map.md`:
+  - include YRT in source-coverage table for coordinate availability semantics.
+- `docs/CHANGELOG.md`:
+  - add a dated entry summarizing YRT documentation additions/changes.
+
+### Documentation Quality Gates
+- Source-list consistency check across updated docs for: `fire`, `police`, `transit`, `go_transit`, `miway`, `yrt`.
+- Internal link verification for newly added `yrt` references.
+- Explicit note of any intentionally deferred documentation updates in track implementation notes.
 
 ## Acceptance Criteria
 1. `vendor/bin/sail artisan yrt:fetch-alerts` ingests advisories into `yrt_alerts` with correct active-state synchronization.
