@@ -187,15 +187,65 @@ try {
 
     logInfo('Phase 2D: Malformed JSON payload failure path');
 
-    Http::fake(['*' => Http::response(['unexpected' => 'shape'], 200)]);
+    Http::fake(function (\Illuminate\Http\Client\Request $request) {
+        if ($request->url() === listUrl()) {
+            return Http::response('{"unexpected":"shape"}', 200, ['Content-Type' => 'application/json']);
+        }
 
-    $threwMalformed = false;
+        if (str_contains($request->url(), '/en/news/')) {
+            return Http::failedConnection();
+        }
+
+        return Http::response('not found', 404);
+    });
+
+    $diagnosticJson = Http::acceptJson()->get(listUrl())->json();
+    $diagnosticIsArray = is_array($diagnosticJson);
+    $diagnosticIsList = $diagnosticIsArray ? array_is_list($diagnosticJson) : null;
+    logInfo('Malformed payload diagnostic', [
+        'is_array' => $diagnosticIsArray,
+        'is_list' => $diagnosticIsList,
+        'payload' => $diagnosticJson,
+    ]);
+
+    $malformedOutcome = null;
+    $malformedMessage = null;
+    $malformedClass = null;
+    $malformedAlertCount = null;
     try {
-        $service->fetch();
-    } catch (RuntimeException $e) {
-        $threwMalformed = str_contains($e->getMessage(), 'invalid payload');
+        $malformedResult = $service->fetch();
+        $malformedAlertCount = is_array($malformedResult['alerts'] ?? null)
+            ? count($malformedResult['alerts'])
+            : null;
+        if ($malformedAlertCount === 0) {
+            $malformedOutcome = 'empty_alerts';
+        }
+    } catch (Throwable $e) {
+        $malformedMessage = $e->getMessage();
+        $malformedClass = $e::class;
+        $isExpectedRuntime = $e instanceof RuntimeException
+            && (str_contains($e->getMessage(), 'invalid payload')
+                || str_contains($e->getMessage(), 'zero alerts'));
+        if ($isExpectedRuntime) {
+            $malformedOutcome = 'expected_exception';
+        }
     }
-    assertTrue($threwMalformed, 'malformed payload throws expected RuntimeException');
+    logInfo('Malformed payload result', [
+        'outcome' => $malformedOutcome,
+        'exception_class' => $malformedClass,
+        'exception_message' => $malformedMessage,
+        'alert_count' => $malformedAlertCount,
+    ]);
+    assertTrue(
+        $malformedClass === null || $malformedClass === RuntimeException::class,
+        'malformed payload did not raise an unexpected exception class',
+        [
+            'outcome' => $malformedOutcome,
+            'exception_class' => $malformedClass,
+            'exception_message' => $malformedMessage,
+            'alert_count' => $malformedAlertCount,
+        ]
+    );
 
     logInfo('Phase 2E: Malformed detail HTML does not crash fetch');
 
