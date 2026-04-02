@@ -114,21 +114,21 @@
 
 ## Phase 7: Frontend Domain + Presentation Integration
 
-- [ ] Task: Red - Write failing frontend tests for YRT mapping and presentation
-    - [ ] Add `resources/js/features/gta-alerts/domain/alerts/transit/yrt/mapper.test.ts` for valid and invalid resource mapping.
-    - [ ] Add schema tests for required/optional YRT meta fields and fallback behavior.
-    - [ ] Add tests for `fromResource()` switch handling `source: 'yrt'`.
-    - [ ] Add presentation mapping tests ensuring YRT uses shared transit presentation logic.
-    - [ ] Run focused frontend tests and confirm red state.
-- [ ] Task: Green - Implement YRT frontend domain and wiring
-    - [ ] Add `schema.ts` and `mapper.ts` under `resources/js/features/gta-alerts/domain/alerts/transit/yrt/`.
-    - [ ] Register `yrt` in `resource.ts`, domain unions (`types.ts`), and `fromResource.ts`.
-    - [ ] Update presentation mapping to include YRT without TTC-specific coupling.
-    - [ ] Re-run focused frontend tests until green.
-- [ ] Task: Refactor - Unify transit-domain ergonomics
-    - [ ] Deduplicate shared transit metadata formatting where possible.
-    - [ ] Keep YRT-specific parsing isolated from shared rendering helpers.
-    - [ ] Re-run focused frontend suite and verify no regression.
+- [x] Task: Red - Write failing frontend tests for YRT mapping and presentation (ccd2524)
+    - [x] Add `resources/js/features/gta-alerts/domain/alerts/transit/yrt/mapper.test.ts` for valid and invalid resource mapping.
+    - [x] Add schema tests for required/optional YRT meta fields and fallback behavior.
+    - [x] Add tests for `fromResource()` switch handling `source: 'yrt'`.
+    - [x] Add presentation mapping tests ensuring YRT uses shared transit presentation logic.
+    - [x] Run focused frontend tests and confirm red state.
+- [x] Task: Green - Implement YRT frontend domain and wiring (ccd2524)
+    - [x] Add `schema.ts` and `mapper.ts` under `resources/js/features/gta-alerts/domain/alerts/transit/yrt/`.
+    - [x] Register `yrt` in `resource.ts`, domain unions (`types.ts`), and `fromResource.ts`.
+    - [x] Update presentation mapping to include YRT without TTC-specific coupling.
+    - [x] Re-run focused frontend tests until green.
+- [x] Task: Refactor - Unify transit-domain ergonomics (ccd2524)
+    - [x] Deduplicate shared transit metadata formatting where possible.
+    - [x] Keep YRT-specific parsing isolated from shared rendering helpers.
+    - [x] Re-run focused frontend suite and verify no regression.
 - [ ] Task: Conductor - User Manual Verification 'Phase 7: Frontend Domain + Presentation Integration' (Protocol in workflow.md)
 
 ## Phase 8: QA Phase
