@@ -1,6 +1,7 @@
 <?php
 
 use App\Providers\AppServiceProvider;
+use App\Services\Alerts\Providers\YrtAlertSelectProvider;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Validation\Rules\Password;
@@ -47,4 +48,12 @@ test('app service provider uses 12-char password default in production', functio
     $min->setAccessible(true);
 
     expect($min->getValue($rule))->toBe(12);
+});
+
+test('app service provider tags yrt select provider for unified alerts', function () {
+    $providers = collect(app()->tagged('alerts.select-providers'))
+        ->map(fn (object $provider) => $provider::class)
+        ->all();
+
+    expect($providers)->toContain(YrtAlertSelectProvider::class);
 });
