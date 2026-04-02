@@ -13,9 +13,11 @@ import {
     buildGoTransitDescriptionAndMetadata,
     buildMiwayDescriptionAndMetadata,
     buildTtcDescriptionAndMetadata,
+    buildYrtDescriptionAndMetadata,
     deriveGoTransitSeverity,
     deriveMiwaySeverity,
     deriveTtcSeverity,
+    deriveYrtSeverity,
 } from '../transit/presentation';
 import type { DomainAlert } from '../types';
 import {
@@ -82,6 +84,12 @@ export function mapDomainAlertToPresentation(
             type = 'transit';
             severity = deriveMiwaySeverity(alert.meta);
             details = buildMiwayDescriptionAndMetadata(alert);
+            break;
+        }
+        case 'yrt': {
+            type = 'transit';
+            severity = deriveYrtSeverity(alert);
+            details = buildYrtDescriptionAndMetadata(alert);
             break;
         }
     }

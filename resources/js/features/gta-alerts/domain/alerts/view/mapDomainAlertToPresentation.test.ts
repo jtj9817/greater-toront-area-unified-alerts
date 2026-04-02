@@ -5,6 +5,7 @@ import type { FireAlert } from '../fire/schema';
 import type { PoliceAlert } from '../police/schema';
 import type { GoTransitAlert } from '../transit/go/schema';
 import type { TtcTransitAlert } from '../transit/ttc/schema';
+import type { YrtAlert } from '../transit/yrt/schema';
 import { mapDomainAlertToPresentation } from './mapDomainAlertToPresentation';
 
 function makeFireAlert(title = 'GAS LEAK'): FireAlert {
@@ -93,6 +94,25 @@ function makeGoAlert(): GoTransitAlert {
     };
 }
 
+function makeYrtAlert(): YrtAlert {
+    return {
+        kind: 'yrt',
+        id: 'yrt:Y1',
+        externalId: 'Y1',
+        isActive: true,
+        timestamp: new Date('2026-02-03T12:00:00Z').toISOString(),
+        title: '52 - Holland Landing detour',
+        location: { name: '52', lat: null, lng: null },
+        meta: {
+            details_url: 'https://www.yrt.ca/en/service-updates/91001.aspx',
+            description_excerpt: 'Temporary detour in effect near Green Lane.',
+            body_text: 'Routes affected: 52, 58. Expect 15 minute delays.',
+            posted_at: '2026-02-03 07:00:00',
+            feed_updated_at: '2026-02-03 07:05:00',
+        },
+    };
+}
+
 describe('mapDomainAlertToPresentation', () => {
     it('maps fire domain alert using derived hazard type and high severity styling', () => {
         const alertItem = mapDomainAlertToPresentation(makeFireAlert());
@@ -132,6 +152,15 @@ describe('mapDomainAlertToPresentation', () => {
         expect(alertItem.severity).toBe('medium');
         expect(alertItem.iconName).toBe('directions_transit');
         expect(alertItem.metadata?.source).toBe('GO Transit');
+    });
+
+    it('maps YRT domain alert through shared transit presentation styling', () => {
+        const alertItem = mapDomainAlertToPresentation(makeYrtAlert());
+
+        expect(alertItem.type).toBe('transit');
+        expect(alertItem.severity).toBe('medium');
+        expect(alertItem.iconName).toBe('directions_bus');
+        expect(alertItem.metadata?.source).toBe('YRT');
     });
 
     it('falls back to Unknown location when domain alert location is null', () => {

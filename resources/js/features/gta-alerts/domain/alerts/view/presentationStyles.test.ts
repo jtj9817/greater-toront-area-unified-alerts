@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import type { FireAlert } from '../fire/schema';
 import type { GoTransitAlert } from '../transit/go/schema';
 import type { TtcTransitAlert } from '../transit/ttc/schema';
+import type { YrtAlert } from '../transit/yrt/schema';
 import {
     deriveAccentColor,
     deriveIconColor,
@@ -81,6 +82,25 @@ function makeGoAlert(): GoTransitAlert {
     };
 }
 
+function makeYrtAlert(): YrtAlert {
+    return {
+        kind: 'yrt',
+        id: 'yrt:Y1',
+        externalId: 'Y1',
+        isActive: true,
+        timestamp: new Date('2026-02-03T12:00:00Z').toISOString(),
+        title: '52 detour',
+        location: { name: '52', lat: null, lng: null },
+        meta: {
+            details_url: 'https://www.yrt.ca/en/news/52-detour.aspx',
+            description_excerpt: null,
+            body_text: null,
+            posted_at: null,
+            feed_updated_at: null,
+        },
+    };
+}
+
 describe('presentationStyles', () => {
     it('derives icon name from title keyword shortcuts', () => {
         expect(deriveIconName(makeFireAlert('GAS LEAK'), 'fire')).toBe(
@@ -96,6 +116,9 @@ describe('presentationStyles', () => {
             'directions_transit',
         );
         expect(deriveIconName(makeTransitAlert('Bus'), 'transit')).toBe(
+            'directions_bus',
+        );
+        expect(deriveIconName(makeYrtAlert(), 'transit')).toBe(
             'directions_bus',
         );
         expect(deriveIconName(makeTransitAlert('Streetcar'), 'transit')).toBe(

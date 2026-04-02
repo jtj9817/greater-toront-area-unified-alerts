@@ -2,6 +2,7 @@ import type { MiwayAlert } from '../miway/schema';
 import type { AlertPresentation } from '../view/types';
 import type { GoTransitAlert } from './go/schema';
 import type { TtcTransitAlert } from './ttc/schema';
+import type { YrtAlert } from './yrt/schema';
 
 export function deriveTtcSeverity(
     meta: TtcTransitAlert['meta'],
@@ -59,6 +60,37 @@ export function deriveMiwaySeverity(
         effect === 'REDUCED_SERVICE' ||
         effect === 'SIGNIFICANT_DELAYS' ||
         effect === 'DETOUR'
+    ) {
+        return 'medium';
+    }
+
+    return 'low';
+}
+
+export function deriveYrtSeverity(
+    alert: YrtAlert,
+): AlertPresentation['severity'] {
+    const content = [
+        alert.title,
+        alert.meta.description_excerpt ?? '',
+        alert.meta.body_text ?? '',
+    ]
+        .join(' ')
+        .toUpperCase();
+
+    if (
+        content.includes('CANCEL') ||
+        content.includes('SUSPEND') ||
+        content.includes('NO SERVICE') ||
+        content.includes('CLOSED')
+    ) {
+        return 'high';
+    }
+
+    if (
+        content.includes('DETOUR') ||
+        content.includes('DELAY') ||
+        content.includes('REDUCED SERVICE')
     ) {
         return 'medium';
     }
@@ -254,6 +286,36 @@ export function buildMiwayDescriptionAndMetadata(
             route: undefined,
             effect,
             direction: undefined,
+            estimatedDelay: undefined,
+        },
+    };
+}
+
+export function buildYrtDescriptionAndMetadata(
+    alert: YrtAlert,
+): Pick<AlertPresentation, 'description' | 'metadata'> {
+    const bodyText = alert.meta.body_text ?? undefined;
+    const descriptionExcerpt = alert.meta.description_excerpt ?? undefined;
+    const routeLabel = alert.location?.name ?? undefined;
+    const detailsUrl = alert.meta.details_url;
+
+    return {
+        description:
+            bodyText ||
+            descriptionExcerpt ||
+            alert.title ||
+            'YRT service alert.',
+        metadata: {
+            eventNum: alert.externalId,
+            alarmLevel: 0,
+            unitsDispatched: null,
+            beat: null,
+            source: 'YRT',
+            routeType: undefined,
+            route: routeLabel,
+            effect: undefined,
+            direction: undefined,
+            sourceFeed: detailsUrl,
             estimatedDelay: undefined,
         },
     };

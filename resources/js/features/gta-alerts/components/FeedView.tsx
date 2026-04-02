@@ -148,6 +148,7 @@ export const FeedView: React.FC<FeedViewProps> = ({
         { id: 'transit', label: 'TTC', icon: 'train' },
         { id: 'go_transit', label: 'GO Transit', icon: 'directions_bus' },
         { id: 'miway', label: 'MiWay', icon: 'directions_bus' },
+        { id: 'yrt', label: 'YRT', icon: 'directions_bus' },
     ];
 
     const sinceOptions = [

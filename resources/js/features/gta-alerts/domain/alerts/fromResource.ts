@@ -4,6 +4,7 @@ import { mapPoliceAlert } from './police/mapper';
 import { UnifiedAlertResourceSchema } from './resource';
 import { mapGoTransitAlert } from './transit/go/mapper';
 import { mapTtcTransitAlert } from './transit/ttc/mapper';
+import { mapYrtAlert } from './transit/yrt/mapper';
 import type { DomainAlert } from './types';
 
 /**
@@ -45,6 +46,9 @@ export function fromResource(resource: unknown): DomainAlert | null {
         }
         case 'miway': {
             return mapMiwayAlert(validated);
+        }
+        case 'yrt': {
+            return mapYrtAlert(validated);
         }
         default: {
             console.warn(
