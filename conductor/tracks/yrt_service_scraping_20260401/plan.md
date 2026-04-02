@@ -60,21 +60,21 @@
 
 ## Phase 4: Queue Job Wrapper + Scheduler
 
-- [ ] Task: Red - Write failing job and scheduler tests
-    - [ ] Create `tests/Feature/Jobs/FetchYrtAlertsJobTest.php` for command invocation and non-zero exit failure behavior.
-    - [ ] Extend/cover `tests/Feature/Console/ScheduledFetchJobDispatcherTest.php` for `dispatchYrtAlerts()`.
-    - [ ] Add scheduler registration assertions for five-minute cadence and overlap protection.
-    - [ ] Add uniqueness/idempotency checks for job dispatch behavior.
-    - [ ] Run focused tests and confirm red state.
-- [ ] Task: Green - Implement YRT job and schedule wiring
-    - [ ] Add `app/Jobs/FetchYrtAlertsJob.php` implementing queue, unique, and overlap middleware contracts.
-    - [ ] Update `app/Services/ScheduledFetchJobDispatcher.php` with `dispatchYrtAlerts()`.
-    - [ ] Update `routes/console.php` schedule callback for the YRT dispatcher path.
-    - [ ] Re-run focused tests until green.
-- [ ] Task: Refactor - Align scheduler ergonomics with transit patterns
-    - [ ] Match job naming and middleware ordering with existing TTC/GO/MiWay wrappers.
-    - [ ] Remove duplicated scheduler configuration logic where possible.
-    - [ ] Re-run focused suite and verify no regression.
+- [x] Task: Red - Write failing job and scheduler tests (e75339c)
+    - [x] Create `tests/Feature/Jobs/FetchYrtAlertsJobTest.php` for command invocation and non-zero exit failure behavior.
+    - [x] Extend/cover `tests/Feature/Console/ScheduledFetchJobDispatcherTest.php` for `dispatchYrtAlerts()`.
+    - [x] Add scheduler registration assertions for five-minute cadence and overlap protection.
+    - [x] Add uniqueness/idempotency checks for job dispatch behavior.
+    - [x] Run focused tests and confirm red state.
+- [x] Task: Green - Implement YRT job and schedule wiring (e75339c)
+    - [x] Add `app/Jobs/FetchYrtAlertsJob.php` implementing queue, unique, and overlap middleware contracts.
+    - [x] Update `app/Services/ScheduledFetchJobDispatcher.php` with `dispatchYrtAlerts()`.
+    - [x] Update `routes/console.php` schedule callback for the YRT dispatcher path.
+    - [x] Re-run focused tests until green.
+- [x] Task: Refactor - Align scheduler ergonomics with transit patterns (e75339c)
+    - [x] Match job naming and middleware ordering with existing TTC/GO/MiWay wrappers.
+    - [x] Remove duplicated scheduler configuration logic where possible.
+    - [x] Re-run focused suite and verify no regression.
 - [ ] Task: Conductor - User Manual Verification 'Phase 4: Queue Job Wrapper + Scheduler' (Protocol in workflow.md)
 
 ## Phase 5: Unified Alerts Provider
