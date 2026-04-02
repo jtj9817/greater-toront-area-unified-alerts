@@ -237,6 +237,15 @@ test('the feed api respects source and status filters for yrt without affecting 
         ->and($yrtActiveData[0]['external_id'])->toBe('91001')
         ->and($yrtActiveData[0]['is_active'])->toBeTrue();
 
+    $yrtClearedResponse = $this->getJson(route('api.feed', ['source' => 'yrt', 'status' => 'cleared']));
+    $yrtClearedResponse->assertOk();
+    $yrtClearedData = $yrtClearedResponse->json('data');
+
+    expect($yrtClearedData)->toHaveCount(1)
+        ->and($yrtClearedData[0]['source'])->toBe('yrt')
+        ->and($yrtClearedData[0]['external_id'])->toBe('91002')
+        ->and($yrtClearedData[0]['is_active'])->toBeFalse();
+
     $fireResponse = $this->getJson(route('api.feed', ['source' => 'fire']));
     $fireResponse->assertOk();
     $fireData = $fireResponse->json('data');
