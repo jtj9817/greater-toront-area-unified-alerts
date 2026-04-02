@@ -98,18 +98,18 @@
 
 ## Phase 6: Source Enum + Backend Contract Plumbing
 
-- [ ] Task: Red - Write failing backend contract tests for `yrt`
-    - [ ] Extend `tests/Unit/Enums/AlertSourceTest.php` to require `yrt` in enum values and validation paths.
-    - [ ] Add/extend feed API contract tests for `source=yrt` filtering and status behavior.
-    - [ ] Add regression tests proving existing sources remain unaffected.
-    - [ ] Run focused tests and confirm red state.
-- [ ] Task: Green - Implement source identity plumbing
-    - [ ] Add `Yrt = 'yrt'` to `app/Enums/AlertSource.php`.
-    - [ ] Update backend mapper/resource boundaries that require explicit source allow-listing.
-    - [ ] Re-run focused tests until green.
-- [ ] Task: Refactor - Consolidate source handling consistency
-    - [ ] Remove duplicated source checks where a shared enum/path can be reused.
-    - [ ] Re-run focused suite and verify no regression.
+- [x] Task: Red - Write failing backend contract tests for  (4163978)`yrt`
+    - [x] Extend `tests/Unit/Enums/AlertSourceTest.php` to require `yrt` in enum values and validation paths.
+    - [x] Add/extend feed API contract tests for `source=yrt` filtering and status behavior.
+    - [x] Add regression tests proving existing sources remain unaffected.
+    - [x] Run focused tests and confirm red state.
+- [x] Task: Green - Implement source identity plumbing (4163978)
+    - [x] Add `Yrt = 'yrt'` to `app/Enums/AlertSource.php`.
+    - [x] Update backend mapper/resource boundaries that require explicit source allow-listing.
+    - [x] Re-run focused tests until green.
+- [x] Task: Refactor - Consolidate source handling consistency (4163978)
+    - [x] Remove duplicated source checks where a shared enum/path can be reused.
+    - [x] Re-run focused suite and verify no regression.
 - [ ] Task: Conductor - User Manual Verification 'Phase 6: Source Enum + Backend Contract Plumbing' (Protocol in workflow.md)
 
 ## Phase 7: Frontend Domain + Presentation Integration
