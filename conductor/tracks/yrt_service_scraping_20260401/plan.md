@@ -131,7 +131,7 @@
     - [x] Re-run focused frontend suite and verify no regression.
 - [x] Task: Conductor - User Manual Verification 'Phase 7: Frontend Domain + Presentation Integration' (Protocol in workflow.md) (8bd05a8)
 
-## Phase 8: QA Phase
+## Phase 8: QA Phase [checkpoint: pending]
 
 - [x] Task: Red - Execute quality gates and capture all failures (00e2b68)
     - [x] Run targeted suites added in phases 1-7 and record failing tests first.
