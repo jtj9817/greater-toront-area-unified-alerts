@@ -277,7 +277,7 @@ Use log-based alerts for these events:
 
 ### ScheduledFetchJobDispatcher
 
-All five feed-fetch entries in `routes/console.php` use `Schedule::call()` closures that delegate to `App\Services\ScheduledFetchJobDispatcher`. This service enforces pre-enqueue uniqueness so the `jobs` table never accumulates redundant fetch-job rows when a worker is paused or slow.
+All six feed-fetch entries in `routes/console.php` use `Schedule::call()` closures that delegate to `App\Services\ScheduledFetchJobDispatcher`. This service enforces pre-enqueue uniqueness so the `jobs` table never accumulates redundant fetch-job rows when a worker is paused or slow.
 
 **Dispatch logic (per source):**
 
@@ -301,7 +301,7 @@ QUEUE_UNIQUE_LOCK_STORE=redis     # recommended for multi-node production
 
 The value is read from `config/queue.php` (`queue.unique_lock_store`). Each job class implements `uniqueVia()` to read this config key and return the appropriate cache store.
 
-**Each job class** (`FetchFireIncidentsJob`, `FetchPoliceCallsJob`, `FetchTransitAlertsJob`, `FetchGoTransitAlertsJob`, `FetchMiwayAlertsJob`) implements:
+**Each job class** (`FetchFireIncidentsJob`, `FetchPoliceCallsJob`, `FetchTransitAlertsJob`, `FetchGoTransitAlertsJob`, `FetchMiwayAlertsJob`, `FetchYrtAlertsJob`) implements:
 - `ShouldBeUnique` with `$uniqueFor = 600` seconds
 - `uniqueVia()` returning the `QUEUE_UNIQUE_LOCK_STORE` cache store
 - `WithoutOverlapping` middleware as a second execution-time concurrency guard

@@ -45,10 +45,12 @@ docs/
 │   └── scheduler-troubleshooting.md
 ├── sources/
 │   ├── go-transit.md
+│   ├── miway.md
 │   ├── toronto-fire.md
 │   ├── toronto-police.md
 │   ├── toronto-police-architecture.md
-│   └── ttc-transit.md
+│   ├── ttc-transit.md
+│   └── yrt.md
 ├── plans/
 │   ├── frontend-typed-alert-domain-plan.md
 │   ├── hetzner-forge-deployment-preflight.md
@@ -69,12 +71,14 @@ docs/
 
 ## Current System Scope
 
-The unified feed currently aggregates four source types:
+The unified feed currently aggregates six source types:
 
 - `fire` (Toronto Fire CAD)
 - `police` (Toronto Police ArcGIS)
 - `transit` (TTC composite feed: live API + SXA + static page)
 - `go_transit` (Metrolinx GO Transit service updates)
+- `miway` (MiWay GTFS-RT service alerts)
+- `yrt` (YRT service advisories)
 
 ## Recommended Reading Order
 
@@ -95,6 +99,8 @@ The unified feed currently aggregates four source types:
 - **[sources/toronto-police.md](sources/toronto-police.md)**
 - **[sources/ttc-transit.md](sources/ttc-transit.md)**
 - **[sources/go-transit.md](sources/go-transit.md)**
+- **[sources/miway.md](sources/miway.md)**
+- **[sources/yrt.md](sources/yrt.md)**
 
 ## Deployment Docs
 
@@ -135,6 +141,8 @@ Active work items and feature proposals:
 | Toronto Police Integration | Implemented | [sources/toronto-police.md](sources/toronto-police.md) |
 | TTC Transit Integration | Implemented | [sources/ttc-transit.md](sources/ttc-transit.md) |
 | GO Transit Integration | Implemented | [sources/go-transit.md](sources/go-transit.md) |
+| MiWay Integration | Implemented | [sources/miway.md](sources/miway.md) |
+| YRT Integration | Implemented | [sources/yrt.md](sources/yrt.md) |
 | Unified Alerts Query | Implemented | [backend/unified-alerts-system.md](backend/unified-alerts-system.md) |
 | Server-Side Feed Filters + Infinite Scroll (FEED-001) | Implemented | [backend/unified-alerts-system.md](backend/unified-alerts-system.md) |
 | Sort Direction Toggle (FEED-004) | Implemented | [tickets/FEED-004-sort-direction-toggle.md](tickets/FEED-004-sort-direction-toggle.md) |

@@ -6,7 +6,7 @@ A comprehensive guide to the GTA Alerts backend architecture, dependency injecti
 
 The backend follows a **layered architecture** with clear separation of concerns:
 
-1. **External API Layer** - Data sources (Fire, Police, TTC, GO Transit)
+1. **External API Layer** - Data sources (Fire, Police, TTC, GO Transit, MiWay, YRT)
 2. **Feed Services** - Stateless fetchers that pull from external APIs
 3. **Console Commands** - Orchestrators that persist data to the database
 4. **Queue Jobs** - Background processing wrappers
@@ -26,6 +26,7 @@ The backend follows a **layered architecture** with clear separation of concerns
 ├─────────────────────────────────────────────────────────────────────────────┤
 │  Toronto Fire CAD    Toronto Police ArcGIS    TTC Alerts (JSON + SXA)       │
 │  (livecad.xml)       (FeatureServer)          GO Transit (Metrolinx API)    │
+│  MiWay (GTFS-RT)     YRT (Service Advisories)                               │
 └─────────────────────────────────────────────────────────────────────────────┘
                                        │
                                        ▼
@@ -36,6 +37,8 @@ The backend follows a **layered architecture** with clear separation of concerns
 │  TorontoPoliceFeedService       HTTP Client → Fetches ArcGIS JSON            │
 │  TtcAlertsFeedService           Multi-source aggregator                      │
 │  GoTransitFeedService           HTTP Client → Fetches Metrolinx API          │
+│  MiwayGtfsRtAlertsFeedService   HTTP Client → Fetches GTFS-RT protobuf       │
+│  YrtServiceAdvisoriesFeedService HTTP Client → JSON list + HTML detail       │
 │                                                                              │
 │  • No DI dependencies - use Http facade directly                             │
 │  • Return arrays of raw data                                                 │
@@ -51,6 +54,8 @@ The backend follows a **layered architecture** with clear separation of concerns
 │  FetchPoliceCallsCommand          DI: TorontoPoliceFeedService               │
 │  FetchTransitAlertsCommand        DI: TtcAlertsFeedService                   │
 │  FetchGoTransitAlertsCommand      DI: GoTransitFeedService                   │
+│  FetchMiwayAlertsCommand          DI: MiwayGtfsRtAlertsFeedService           │
+│  FetchYrtAlertsCommand            DI: YrtServiceAdvisoriesFeedService        │
 │                                                                              │
 │  Pattern:                                                                    │
 │  1. Call $service->fetch()                                                   │
@@ -67,6 +72,8 @@ The backend follows a **layered architecture** with clear separation of concerns
 │  FetchPoliceCallsJob            ShouldBeUnique + WithoutOverlapping (30s)    │
 │  FetchTransitAlertsJob          Dispatched by ScheduledFetchJobDispatcher    │
 │  FetchGoTransitAlertsJob        Calls Artisan::call() on underlying command  │
+│  FetchMiwayAlertsJob            MIWay GTFS-RT fetch wrapper                  │
+│  FetchYrtAlertsJob              YRT service advisory fetch wrapper           │
 └─────────────────────────────────────────────────────────────────────────────┘
                                        │
                                        ▼
@@ -81,11 +88,13 @@ The backend follows a **layered architecture** with clear separation of concerns
 │  is_active               is_active            is_active                      │
 │  feed_updated_at         feed_updated_at      feed_updated_at                │
 │                                                                              │
-│  go_transit_alerts                                                           │
-│  ─────────────────                                                           │
-│  external_id (PK)                                                            │
-│  message_subject, corridor_or_route                                          │
-│  posted_at, is_active                                                        │
+│  go_transit_alerts       miway_alerts            yrt_alerts                 │
+│  ─────────────────       ─────────────           ─────────────              │
+│  external_id (PK)        external_id (PK)         external_id (PK)           │
+│  message_subject,        header_text,             title,                     │
+│    corridor_or_route     description_text         posted_at,                 │
+│  posted_at, is_active    cause, effect            route_text, body_text      │
+│                          starts_at, is_active      is_active                 │
 └─────────────────────────────────────────────────────────────────────────────┘
                                        │
                                        ▼ (Query via Providers)
@@ -99,11 +108,12 @@ The backend follows a **layered architecture** with clear separation of concerns
 │   + select(): Builder                                                        │
 │        △                                                                     │
 │        │ implements                                                          │
-│   ┌────┴────┬────────────┬───────────────┬────────────────┐                  │
-│   │         │            │               │                │                  │
-│   ▼         ▼            ▼               ▼                ▼                  │
-│ FireAlert  PoliceAlert  TransitAlert    GoTransitAlertSelectProvider         │
-│ SelectProvider         SelectProvider                                        │
+│   ┌────┴────┬────────────┬───────────────┬────────────────┬──────────┐       │
+│   │         │            │               │                │          │       │
+│   ▼         ▼            ▼               ▼                ▼          ▼       │
+│ FireAlert  PoliceAlert  TransitAlert    GoTransit       Miway      YrtAlert│
+│ SelectProvider         SelectProvider   AlertSelect    AlertSelect  Select  │
+│                                                      Provider     Provider│
 │                                                                              │
 │ Each provider:                                                               │
 │ • Returns Query Builder with selectRaw()                                     │
@@ -113,7 +123,7 @@ The backend follows a **layered architecture** with clear separation of concerns
 │                                                                              │
 │ Unified Schema Columns:                                                      │
 │ - id: {source}:{external_id}                                                 │
-│ - source: 'fire' | 'police' | 'transit' | 'go_transit'                       │
+│ - source: 'fire' | 'police' | 'transit' | 'go_transit' | 'miway' | 'yrt'     │
 │ - external_id: Source-specific primary key                                   │
 │ - is_active: Boolean status                                                  │
 │ - timestamp: Event occurrence time                                           │
@@ -133,7 +143,7 @@ The backend follows a **layered architecture** with clear separation of concerns
 │  ─────────────────                                                           │
 │                                                                              │
 │  #[Tag('alerts.select-providers')]                                           │
-│  private readonly iterable $providers  ← All 4 providers injected            │
+│  private readonly iterable $providers  ← All 6 providers injected            │
 │                                                                              │
 │  private readonly UnifiedAlertMapper $mapper  ← Mapper injected              │
 │                                                                              │
@@ -219,6 +229,8 @@ $this->app->tag([
     PoliceAlertSelectProvider::class,
     TransitAlertSelectProvider::class,
     GoTransitAlertSelectProvider::class,
+    MiwayAlertSelectProvider::class,
+    YrtAlertSelectProvider::class,
 ], 'alerts.select-providers');
 ```
 
@@ -292,7 +304,7 @@ readonly class UnifiedAlert
 {
     public function __construct(
         public string $id,           // Composite: "{source}:{external_id}"
-        public string $source,       // 'fire' | 'police' | 'transit' | 'go_transit'
+        public string $source,       // 'fire' | 'police' | 'transit' | 'go_transit' | 'miway' | 'yrt'
         public string $externalId,   // Source-specific ID
         public bool $isActive,
         public CarbonImmutable $timestamp,
@@ -356,6 +368,8 @@ enum AlertSource: string
     case Police = 'police';
     case Transit = 'transit';
     case GoTransit = 'go_transit';
+    case Miway = 'miway';
+    case Yrt = 'yrt';
 
     public static function values(): array;
     public static function isValid(?string $value): bool;
@@ -392,6 +406,10 @@ Schedule::call(fn (ScheduledFetchJobDispatcher $d) => $d->dispatchTransitAlerts(
     ->name('transit:fetch-alerts')->everyFiveMinutes()->withoutOverlapping(10);
 Schedule::call(fn (ScheduledFetchJobDispatcher $d) => $d->dispatchGoTransitAlerts())
     ->name('go-transit:fetch-alerts')->everyFiveMinutes()->withoutOverlapping(10);
+Schedule::call(fn (ScheduledFetchJobDispatcher $d) => $d->dispatchMiwayAlerts())
+    ->name('miway:fetch-alerts')->everyFiveMinutes()->withoutOverlapping(10);
+Schedule::call(fn (ScheduledFetchJobDispatcher $d) => $d->dispatchYrtAlerts())
+    ->name('yrt:fetch-alerts')->everyFiveMinutes()->withoutOverlapping(10);
 ```
 
 Each job class (`FetchFireIncidentsJob`, etc.) implements `ShouldBeUnique` with `$uniqueFor = 600` and uses `uniqueVia()` to route its uniqueness lock to the cache store configured in `QUEUE_UNIQUE_LOCK_STORE` (default `file`). This keeps uniqueness locks off the database `cache_locks` table. Each job is also configured with `$tries = 3`, `$backoff = 30`, `$timeout = 120`, and retains `WithoutOverlapping` middleware as an execution-time concurrency guard.

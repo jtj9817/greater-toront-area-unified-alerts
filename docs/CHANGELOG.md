@@ -2,6 +2,35 @@
 
 All notable documentation-relevant changes are tracked here.
 
+## [April 2, 2026] - YRT Service Advisories Integration Documentation
+
+### Added
+
+- Created `docs/sources/yrt.md` documenting the YRT (York Region Transit) service advisories integration:
+    - Upstream endpoints (JSON list + conditional detail HTML enrichment)
+    - Normalization contract (external_id, list_hash, route_text extraction)
+    - Conditional detail-fetch rules (new alert, hash change, missing body, stale refresh)
+    - Sync semantics (upsert/deactivation lifecycle, AlertCreated dispatch)
+    - Circuit breaker integration and failure mode table
+    - Unified feed mapping (YrtAlertSelectProvider column mapping)
+    - Frontend domain mapping (YRT schema/mapper under transit/yrt/)
+    - Operational usage commands and model query examples
+
+### Changed
+
+- Updated `docs/README.md`: Added YRT to docs tree, Current System Scope (now six sources), Source Integration Docs, and Implementation Status table. Added `miway.md` to docs tree and Source Integration Docs.
+- Updated `docs/backend/unified-alerts-system.md`: Added `yrt` to source coverage table, feed query parameters (`source` values), and noted miway/yrt lack PostgreSQL GIN indexes.
+- Updated `docs/backend/enums.md`: Added `Yrt = 'yrt'` to `AlertSource` enum, updated `values()` return, updated frontend `AlertSource` type.
+- Updated `docs/backend/dtos.md`: Added `yrt` to `UnifiedAlert.source` and `UnifiedAlertsCriteria.source` allow-lists.
+- Updated `docs/backend/architecture-walkthrough.md`: Added YRT to Layer 1 external APIs, Layer 2 feed services, Layer 3 commands, Layer 4 queue jobs, Layer 5 database, Layer 6 providers, AlertSource enum, provider tagged registration, and scheduling examples. Updated provider count from 4 to 6.
+- Updated `docs/backend/unified-alerts-qa.md`: Updated source-set references to include `miway` and `yrt`. Updated GIN index note to cover six tables.
+- Updated `docs/backend/database-schema.md`: Added `yrt_alerts` to entity-relationship summary, ASCII diagram, alert source table conventions (now six tables), full table reference with indexes, migration history, and related documentation links.
+- Updated `docs/backend/production-scheduler.md`: Updated fetch-source count from five to six, added `FetchYrtAlertsJob` to job class list.
+- Updated `docs/backend/notification-system.md`: Added `yrt` to transit-family subscription matching sources.
+- Updated `docs/frontend/alert-service.md`: Added `yrt` to `fromResource` source dispatch list.
+- Updated `docs/frontend/types.md`: Added `kind: 'yrt'` to DomainAlert discriminated union.
+- Updated `docs/frontend/alert-location-map.md`: Added YRT to source coverage table (no coordinates, v1).
+
 ## [March 28, 2026] - Alert Location Map Feature Documentation
 
 ### Added

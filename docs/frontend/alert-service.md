@@ -20,6 +20,6 @@
 ## Source Handling
 
 - Source-specific validation and mapping is handled in domain mapper modules under `resources/js/features/gta-alerts/domain/alerts/*`.
-- Sources dispatched by `fromResource`: `fire`, `police`, `transit` (TTC), `go_transit`, `miway`.
+- Sources dispatched by `fromResource`: `fire`, `police`, `transit` (TTC), `go_transit`, `miway`, `yrt`.
 - Presentation derivation (severity/icon/description/metadata) is handled by `mapDomainAlertToPresentation(...)` in `domain/alerts/view/mapDomainAlertToPresentation.ts`.
 - See `docs/frontend/types.md` for severity rules per source.

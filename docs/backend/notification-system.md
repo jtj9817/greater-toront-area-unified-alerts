@@ -131,7 +131,7 @@ Downstream, `DeliverAlertNotificationJob` provides a second layer of idempotency
 
 - Empty subscriptions match all alerts.
 - Non-transit alerts bypass subscription filtering.
-- Transit-family alerts (`transit`, `go_transit`, `ttc_accessibility`) require an intersection between user subscriptions and extractor-derived URNs.
+- Transit-family alerts (`transit`, `go_transit`, `miway`, `yrt`, `ttc_accessibility`) require an intersection between user subscriptions and extractor-derived URNs.
 - Note: `ttc_accessibility` is notification-only and not a feed `source` filter.
 
 ## Delivery Pipeline

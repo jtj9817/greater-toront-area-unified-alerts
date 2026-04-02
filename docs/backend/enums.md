@@ -12,13 +12,14 @@ enum AlertSource: string
     case Transit = 'transit';
     case GoTransit = 'go_transit';
     case Miway = 'miway';
+    case Yrt = 'yrt';
 }
 ```
 
 ### Methods
 
 - `values(): array<int, string>`
-  - Returns `['fire', 'police', 'transit', 'go_transit', 'miway']`
+  - Returns `['fire', 'police', 'transit', 'go_transit', 'miway', 'yrt']`
 - `isValid(?string $value): bool`
   - Validates a non-empty string against enum cases.
 
@@ -76,7 +77,7 @@ Used to classify entries in the `incident_updates` table (Scene Intel system). V
 - File: `resources/js/features/gta-alerts/types.ts`
 
 ```typescript
-type AlertSource = 'fire' | 'police' | 'transit' | 'go_transit' | 'miway';
+type AlertSource = 'fire' | 'police' | 'transit' | 'go_transit' | 'miway' | 'yrt';
 type AlertStatus = 'all' | 'active' | 'cleared';
 ```
 

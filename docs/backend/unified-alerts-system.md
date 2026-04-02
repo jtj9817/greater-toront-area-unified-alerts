@@ -1,8 +1,8 @@
 # Unified Alerts System
 
-**Status:** Implemented (updated February 21, 2026)
+**Status:** Implemented (updated April 2, 2026)
 
-The unified alerts system aggregates Fire, Police, TTC Transit, GO Transit, and MiWay records into one feed using tagged providers + `UNION ALL`, server-side filters, and cursor pagination for infinite scroll.
+The unified alerts system aggregates Fire, Police, TTC Transit, GO Transit, MiWay, and YRT records into one feed using tagged providers + `UNION ALL`, server-side filters, and cursor pagination for infinite scroll.
 
 ## Source Coverage
 
@@ -13,6 +13,7 @@ The unified alerts system aggregates Fire, Police, TTC Transit, GO Transit, and 
 | `transit` | `transit_alerts` | `TransitAlertSelectProvider` |
 | `go_transit` | `go_transit_alerts` | `GoTransitAlertSelectProvider` |
 | `miway` | `miway_alerts` | `MiwayAlertSelectProvider` |
+| `yrt` | `yrt_alerts` | `YrtAlertSelectProvider` |
 
 ## Request + Query Flow
 
@@ -36,7 +37,7 @@ Both the Inertia feed page (`/`) and JSON feed endpoint (`/api/feed`) support:
 | Param | Allowed Values | Notes |
 |---|---|---|
 | `status` | `all`, `active`, `cleared` | Defaults to `all`. |
-| `source` | `fire`, `police`, `transit`, `go_transit`, `miway` | Unified source enum only. |
+| `source` | `fire`, `police`, `transit`, `go_transit`, `miway`, `yrt` | Unified source enum only. |
 | `q` | string, max 200 | Trimmed; whitespace-only acts as unset. |
 | `since` | `30m`, `1h`, `3h`, `6h`, `12h` | Converted to server-side cutoff (`timestamp >= now - since`). |
 | `cursor` | opaque base64url payload | Encodes `(ts, id)` and is validated/decoded server-side. |
@@ -63,6 +64,7 @@ The `q` parameter is handled at the provider layer and behaves differently per d
 - A substring fallback using `ILIKE` is applied **in addition** to FTS (via `OR`) to preserve partial-match UX.
 - GIN indexes created by migration: `database/migrations/2026_02_26_000001_add_pgsql_fulltext_indexes_to_alert_tables.php`
   - Index names: `fire_incidents_fulltext`, `police_calls_fulltext`, `transit_alerts_fulltext`, `go_transit_alerts_fulltext`
+  - **Note:** `miway_alerts` and `yrt_alerts` do not have dedicated PostgreSQL GIN index migrations — their providers fall back to `ILIKE` on PostgreSQL.
   - Indexes use `CREATE INDEX CONCURRENTLY` and are skipped on non-PostgreSQL connections.
 
 ### MySQL (local/dev)

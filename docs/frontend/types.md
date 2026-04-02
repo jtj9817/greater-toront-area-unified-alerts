@@ -18,6 +18,7 @@ Transport shape is validated at the frontend boundary with Zod:
 - `kind: 'transit'` — TTC alerts
 - `kind: 'go_transit'`
 - `kind: 'miway'`
+- `kind: 'yrt'`
 
 Defined in: `resources/js/features/gta-alerts/domain/alerts/types.ts`
 

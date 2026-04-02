@@ -12,6 +12,7 @@ GTA Alerts is a real-time dashboard for emergency services and transit alerts ac
 - **TTC Transit Alerts** - Composite feed (live API + SXA + static pages, every 5 minutes)
 - **GO Transit** - Metrolinx JSON API (`api.metrolinx.com/external/go/serviceupdate/en/all`, every 5 minutes)
 - **MiWay Service Alerts** - GTFS-RT protobuf feed from `miapp.ca` (every 5 minutes)
+- **YRT Service Advisories** - JSON list + conditional HTML detail enrichment from `yrt.ca` (every 5 minutes)
 - **Weather (Environment Canada)** - Live weather data by FSA (30-min cache, location picker)
 
 ## Commands
@@ -62,6 +63,7 @@ php artisan fire:fetch-incidents       # Manually sync Toronto Fire feed
 php artisan police:fetch-calls         # Manually sync Toronto Police feed
 php artisan go-transit:fetch-alerts    # Manually sync GO Transit feed
 php artisan miway:fetch-alerts         # Manually sync MiWay feed
+php artisan yrt:fetch-alerts           # Manually sync YRT feed
 php artisan db:export-sql              # Export alert tables as SQL UPSERT statements
 php artisan db:import-sql --file=... --force  # Import SQL dump through psql
 ./scripts/export-alert-data.sh --sail  # Orchestrate SQL export with transfer guidance
@@ -156,6 +158,12 @@ AlertPresentation (frontend view model)
 
 **MiWay:**
 - GTFS-RT protobuf feed from `miapp.ca` → `MiwayGtfsRtAlertsFeedService` (fetch/parse) → `FetchMiwayAlertsCommand` (upsert via `external_id`) → `MiwayAlert` model
+- Command marks missing alerts as `is_active = false`
+- Scheduled every 5 minutes in `routes/console.php`
+
+**YRT:**
+- JSON list + conditional HTML detail from `yrt.ca` → `YrtServiceAdvisoriesFeedService` (fetch/parse) → `FetchYrtAlertsCommand` (upsert via `external_id`) → `YrtAlert` model
+- Conditional detail fetch: new alert, hash change, missing body, or stale refresh (24h)
 - Command marks missing alerts as `is_active = false`
 - Scheduled every 5 minutes in `routes/console.php`
 
@@ -291,7 +299,7 @@ See `docs/` for detailed architecture:
 - `docs/backend/production-scheduler.md` - Scheduler container, ScheduledFetchJobDispatcher, resilience guardrails
 - `docs/backend/security-headers.md` - EnsureSecurityHeaders middleware, CSP nonce and hot-mode extension
 - `docs/deployment/production-seeding.md` - Forge-safe SQL export/import transfer runbook
-- `docs/sources/` - Individual data source documentation (Toronto Fire, Police, TTC, GO Transit, MiWay)
+- `docs/sources/` - Individual data source documentation (Toronto Fire, Police, TTC, GO Transit, MiWay, YRT)
 - `docs/architecture/provider-adapter-pattern.md` - Provider pattern explanation
 - `docs/backend/notification-system.md` - In-app notification system (IMPLEMENTED)
 - `docs/backend/saved-alerts.md` - Saved Alerts system: API contract, guest/auth storage, hydration path, unresolved-ID handling (IMPLEMENTED)

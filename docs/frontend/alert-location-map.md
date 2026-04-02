@@ -1,6 +1,6 @@
 # Alert Location Map
 
-Renders a Leaflet + OpenStreetMap map inside the alert details view when valid coordinates are available. When coordinates are absent or ineligible, an explicit unavailable state is shown. The feature is shared across all four alert source types. v1 is frontend-only with no geocoding or coordinate enrichment.
+Renders a Leaflet + OpenStreetMap map inside the alert details view when valid coordinates are available. When coordinates are absent or ineligible, an explicit unavailable state is shown. The feature is shared across all alert source types. v1 is frontend-only with no geocoding or coordinate enrichment.
 
 ## Architecture
 
@@ -82,7 +82,7 @@ Leaflet's default marker images are referenced via relative paths that Vite does
 
 ## Integration in AlertDetailsView
 
-`resources/js/features/gta-alerts/components/AlertDetailsView.tsx` renders a "Location Map" section in the common details layout immediately after the "Official Briefing" section, for all four alert source types.
+`resources/js/features/gta-alerts/components/AlertDetailsView.tsx` renders a "Location Map" section in the common details layout immediately after the "Official Briefing" section, for all alert source types.
 
 The conditional rendering logic:
 
@@ -120,6 +120,7 @@ The conditional rendering logic:
 | TTC Transit | No (v1) | Text location only; geocoding deferred |
 | GO Transit | No (v1) | Corridor/route text only; geocoding deferred |
 | MiWay | No (v1) | Route/stop text only; geocoding deferred |
+| YRT | No (v1) | Route text only; geocoding deferred |
 
 ## v1 Scope Limits
 

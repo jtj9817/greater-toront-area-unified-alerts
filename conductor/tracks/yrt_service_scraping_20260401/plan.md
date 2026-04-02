@@ -146,36 +146,46 @@
 
 ## Phase 9: Documentation Phase
 
-- [ ] Task: Build a docs impact matrix from implemented YRT behavior
-    - [ ] Verify which docs already mention source enums/provider coverage and require `yrt` expansion.
-    - [ ] Classify each doc as `update existing` vs `create new` and record rationale directly in this plan/spec closeout notes.
-    - [ ] Confirm no unrelated docs are changed.
-- [ ] Task: Create new source documentation for YRT
-    - [ ] Create `docs/sources/yrt.md` as the canonical YRT integration reference.
-    - [ ] Document upstream endpoints (JSON list + detail page enrichment), normalization contract, conditional detail-fetch rules, sync semantics, and scheduler/job behavior.
-    - [ ] Include operational usage commands (`yrt:fetch-alerts`, schedule visibility, active-record checks).
-- [ ] Task: Update docs index and source catalog surfaces
-    - [ ] Update `docs/README.md` documentation tree to include `sources/yrt.md`.
-    - [ ] Update `docs/README.md` "Current System Scope", "Source Integration Docs", and "Implementation Status" to include YRT as implemented.
-- [ ] Task: Update backend architecture and contract docs for YRT source parity
-    - [ ] Update `docs/backend/unified-alerts-system.md` source coverage and feed-filter enum values to include `yrt`.
-    - [ ] Update `docs/backend/enums.md` `AlertSource` snippets/value lists to include `Yrt = 'yrt'`.
-    - [ ] Update `docs/backend/dtos.md` source allow-list references to include `yrt`.
-    - [ ] Update `docs/backend/architecture-walkthrough.md` topology sections (feed service/command/job/provider/tagged provider list/scheduler examples) for YRT.
-    - [ ] Update `docs/backend/unified-alerts-qa.md` source-set language and "add a new source" checklist to reflect YRT as now implemented.
-- [ ] Task: Update backend persistence and operations docs for YRT
-    - [ ] Update `docs/backend/database-schema.md` with `yrt_alerts` table schema, indexes, provider/timestamp notes, migration history entries, and related-doc links.
-    - [ ] Update `docs/backend/production-scheduler.md` fetch cadence/examples where source lists are enumerated explicitly so YRT appears consistently.
-    - [ ] Update `docs/backend/notification-system.md` transit-family subscription matching notes if YRT route metadata participates in subscription matching.
-- [ ] Task: Update frontend docs for YRT domain/presentation coverage
-    - [ ] Update `docs/frontend/alert-service.md` source-dispatch list to include `yrt`.
-    - [ ] Update `docs/frontend/types.md` domain union and source-specific type sections to include YRT schema/mapper/meta expectations.
-    - [ ] Update `docs/frontend/alert-location-map.md` source-coverage table for YRT no-coordinate behavior (unless implementation adds coordinates).
-- [ ] Task: Update docs change log and cross-doc consistency
-    - [ ] Add a dated `docs/CHANGELOG.md` entry summarizing all YRT documentation additions/updates.
-    - [ ] Run a consistency sweep to ensure source sets align across docs (`fire`, `police`, `transit`, `go_transit`, `miway`, `yrt`) wherever applicable.
-    - [ ] Validate internal doc links for any newly added `yrt` references.
-- [ ] Task: Prepare conductor artifacts for closeout
-    - [ ] Add final implementation notes and deviations to this track's `spec.md`/`plan.md`, including any docs deliberately deferred.
-    - [ ] Update `metadata.json` (`updated_at`, status when appropriate) and prep archive handoff checklist.
+- [x] Task: Build a docs impact matrix from implemented YRT behavior
+    - [x] Verify which docs already mention source enums/provider coverage and require `yrt` expansion.
+    - [x] Classify each doc as `update existing` vs `create new` and record rationale directly in this plan/spec closeout notes.
+    - [x] Confirm no unrelated docs are changed.
+- [x] Task: Create new source documentation for YRT
+    - [x] Create `docs/sources/yrt.md` as the canonical YRT integration reference.
+    - [x] Document upstream endpoints (JSON list + detail page enrichment), normalization contract, conditional detail-fetch rules, sync semantics, and scheduler/job behavior.
+    - [x] Include operational usage commands (`yrt:fetch-alerts`, schedule visibility, active-record checks).
+- [x] Task: Update docs index and source catalog surfaces
+    - [x] Update `docs/README.md` documentation tree to include `sources/yrt.md`.
+    - [x] Update `docs/README.md` "Current System Scope", "Source Integration Docs", and "Implementation Status" to include YRT as implemented.
+- [x] Task: Update backend architecture and contract docs for YRT source parity
+    - [x] Update `docs/backend/unified-alerts-system.md` source coverage and feed-filter enum values to include `yrt`.
+    - [x] Update `docs/backend/enums.md` `AlertSource` snippets/value lists to include `Yrt = 'yrt'`.
+    - [x] Update `docs/backend/dtos.md` source allow-list references to include `yrt`.
+    - [x] Update `docs/backend/architecture-walkthrough.md` topology sections (feed service/command/job/provider/tagged provider list/scheduler examples) for YRT.
+    - [x] Update `docs/backend/unified-alerts-qa.md` source-set language and "add a new source" checklist to reflect YRT as now implemented.
+- [x] Task: Update backend persistence and operations docs for YRT
+    - [x] Update `docs/backend/database-schema.md` with `yrt_alerts` table schema, indexes, provider/timestamp notes, migration history entries, and related-doc links.
+    - [x] Update `docs/backend/production-scheduler.md` fetch cadence/examples where source lists are enumerated explicitly so YRT appears consistently.
+    - [x] Update `docs/backend/notification-system.md` transit-family subscription matching notes if YRT route metadata participates in subscription matching.
+- [x] Task: Update frontend docs for YRT domain/presentation coverage
+    - [x] Update `docs/frontend/alert-service.md` source-dispatch list to include `yrt`.
+    - [x] Update `docs/frontend/types.md` domain union and source-specific type sections to include YRT schema/mapper/meta expectations.
+    - [x] Update `docs/frontend/alert-location-map.md` source-coverage table for YRT no-coordinate behavior (unless implementation adds coordinates).
+- [x] Task: Update docs change log and cross-doc consistency
+    - [x] Add a dated `docs/CHANGELOG.md` entry summarizing all YRT documentation additions/updates.
+    - [x] Run a consistency sweep to ensure source sets align across docs (`fire`, `police`, `transit`, `go_transit`, `miway`, `yrt`) wherever applicable.
+    - [x] Validate internal doc links for any newly added `yrt` references.
+- [x] Task: Prepare conductor artifacts for closeout
+    - [x] Add final implementation notes and deviations to this track's `spec.md`/`plan.md`, including any docs deliberately deferred.
+    - [x] Update `metadata.json` (`updated_at`, status when appropriate) and prep archive handoff checklist.
 - [ ] Task: Conductor - User Manual Verification 'Phase 9: Documentation Phase' (Protocol in workflow.md)
+
+### Phase 9 Closeout Notes
+
+**Docs deliberately deferred:** None. All documentation surfaces specified in the Phase 9 task list have been updated.
+
+**Docs impact classification:**
+- `create new`: `docs/sources/yrt.md`
+- `update existing`: All 12 other docs listed in the spec deliverables section
+
+**Consistency verification:** Source set (`fire`, `police`, `transit`, `go_transit`, `miway`, `yrt`) confirmed aligned across all updated docs. Historical "all four" references in archived tickets, closed tickets, and migration descriptions are accurate for their time period and were not modified.
