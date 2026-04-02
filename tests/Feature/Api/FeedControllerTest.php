@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Models\FireIncident;
 use App\Models\MiwayAlert;
 use App\Models\PoliceCall;
+use App\Models\YrtAlert;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
@@ -197,6 +198,52 @@ test('source filter returns empty for miway when no miway alerts exist', functio
 
     $data = $response->json('data');
     expect($data)->toHaveCount(0);
+});
+
+test('the feed api respects source and status filters for yrt without affecting existing sources', function () {
+    Carbon::setTestNow(Carbon::parse('2026-02-03 12:00:00'));
+
+    FireIncident::factory()->create([
+        'event_num' => 'F1',
+        'is_active' => true,
+        'dispatch_time' => Carbon::now()->subMinutes(2),
+    ]);
+
+    YrtAlert::factory()->create([
+        'external_id' => '91001',
+        'is_active' => true,
+        'posted_at' => Carbon::now()->subMinutes(1),
+    ]);
+
+    YrtAlert::factory()->create([
+        'external_id' => '91002',
+        'is_active' => false,
+        'posted_at' => Carbon::now()->subMinutes(3),
+    ]);
+
+    $yrtResponse = $this->getJson(route('api.feed', ['source' => 'yrt']));
+    $yrtResponse->assertOk();
+    $yrtData = $yrtResponse->json('data');
+
+    expect($yrtData)->toHaveCount(2)
+        ->and(collect($yrtData)->every(fn (array $row): bool => $row['source'] === 'yrt'))->toBeTrue();
+
+    $yrtActiveResponse = $this->getJson(route('api.feed', ['source' => 'yrt', 'status' => 'active']));
+    $yrtActiveResponse->assertOk();
+    $yrtActiveData = $yrtActiveResponse->json('data');
+
+    expect($yrtActiveData)->toHaveCount(1)
+        ->and($yrtActiveData[0]['source'])->toBe('yrt')
+        ->and($yrtActiveData[0]['external_id'])->toBe('91001')
+        ->and($yrtActiveData[0]['is_active'])->toBeTrue();
+
+    $fireResponse = $this->getJson(route('api.feed', ['source' => 'fire']));
+    $fireResponse->assertOk();
+    $fireData = $fireResponse->json('data');
+
+    expect($fireData)->toHaveCount(1)
+        ->and($fireData[0]['source'])->toBe('fire')
+        ->and($fireData[0]['external_id'])->toBe('F1');
 });
 
 test('the feed api respects since filter', function () {

@@ -7,6 +7,7 @@ use App\Models\PoliceCall;
 use App\Models\SavedAlert;
 use App\Models\TransitAlert;
 use App\Models\User;
+use App\Models\YrtAlert;
 use App\Services\Alerts\DTOs\UnifiedAlertsCursor;
 use Illuminate\Support\Carbon;
 use Inertia\Testing\AssertableInertia as Assert;
@@ -389,6 +390,29 @@ test('the home page sets latest_feed_updated_at from miway when it is most recen
     $this->get(route('home'))
         ->assertInertia(fn (Assert $page) => $page
             ->where('latest_feed_updated_at', $miwayLatest->toIso8601String())
+        );
+});
+
+test('the home page sets latest_feed_updated_at from yrt when it is most recent', function () {
+    Carbon::setTestNow(Carbon::parse('2026-02-05 18:00:00'));
+
+    $miwayLatest = Carbon::now()->subMinutes(5);
+    MiwayAlert::factory()->create([
+        'external_id' => 'miway:test:001',
+        'is_active' => true,
+        'feed_updated_at' => $miwayLatest,
+    ]);
+
+    $yrtLatest = Carbon::now()->subMinute();
+    YrtAlert::factory()->create([
+        'external_id' => '91001',
+        'is_active' => true,
+        'feed_updated_at' => $yrtLatest,
+    ]);
+
+    $this->get(route('home'))
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('latest_feed_updated_at', $yrtLatest->toIso8601String())
         );
 });
 

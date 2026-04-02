@@ -11,6 +11,7 @@ use App\Models\MiwayAlert;
 use App\Models\PoliceCall;
 use App\Models\SavedAlert;
 use App\Models\TransitAlert;
+use App\Models\YrtAlert;
 use App\Rules\UnifiedAlertsCursorRule;
 use App\Services\Alerts\DTOs\UnifiedAlertsCriteria;
 use App\Services\Alerts\UnifiedAlertsQuery;
@@ -21,6 +22,18 @@ use Inertia\Response;
 
 class GtaAlertsController extends Controller
 {
+    /**
+     * @var array<int, class-string<\Illuminate\Database\Eloquent\Model>>
+     */
+    private const array FEED_TIMESTAMP_MODELS = [
+        FireIncident::class,
+        PoliceCall::class,
+        TransitAlert::class,
+        GoTransitAlert::class,
+        MiwayAlert::class,
+        YrtAlert::class,
+    ];
+
     public function __invoke(Request $request, UnifiedAlertsQuery $alerts): Response
     {
         $validated = $request->validate([
@@ -109,13 +122,8 @@ class GtaAlertsController extends Controller
 
     private function latestFeedUpdatedAt(): ?\Carbon\CarbonInterface
     {
-        return collect([
-            $this->latestFeedTimestamp(FireIncident::class),
-            $this->latestFeedTimestamp(PoliceCall::class),
-            $this->latestFeedTimestamp(TransitAlert::class),
-            $this->latestFeedTimestamp(GoTransitAlert::class),
-            $this->latestFeedTimestamp(MiwayAlert::class),
-        ])
+        return collect(self::FEED_TIMESTAMP_MODELS)
+            ->map(fn (string $modelClass): ?\Carbon\CarbonInterface => $this->latestFeedTimestamp($modelClass))
             ->filter()
             ->sortDesc()
             ->first();
