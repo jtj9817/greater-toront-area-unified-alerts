@@ -133,12 +133,12 @@
 
 ## Phase 8: QA Phase
 
-- [ ] Task: Red - Execute quality gates and capture all failures
+- [~] Task: Red - Execute quality gates and capture all failures
     - [ ] Run targeted suites added in phases 1-7 and record failing tests first.
     - [ ] Run full backend quality gates via Sail (`artisan test`, coverage threshold, audits).
     - [ ] Run full frontend quality gates via Sail (`pnpm test`, `pnpm types`, `pnpm lint:check`, `pnpm format:check`).
     - [ ] Capture and classify failures by root cause before fixing.
-- [ ] Task: Green - Resolve failures and reach releasable state
+- [~] Task: Green - Resolve failures and reach releasable state
     - [ ] Fix backend/frontend regressions with minimal scope changes.
     - [ ] Re-run only impacted suites after each fix, then re-run full gates.
     - [ ] Confirm all mandatory gates pass, including coverage threshold.
