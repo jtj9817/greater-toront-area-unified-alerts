@@ -9,10 +9,10 @@ This file tracks all major tracks for the project. Each track has its own detail
 - [ ] **Track: Weather Feature (GTA Alerts) (FEED-015)**
       _Link: [./tracks/weather_feature_20260327/](./tracks/weather_feature_20260327/)_
 
-- [ ] **Track: YRT Service Advisories Integration**
-      _Link: [./tracks/yrt_service_scraping_20260401/](./tracks/yrt_service_scraping_20260401/)_
-
 ## Archived Tracks
+
+- [x] **Track: YRT Service Advisories Integration**
+      _Link: [./archive/yrt_service_scraping_20260401/](./archive/yrt_service_scraping_20260401/)_
 
 - [x] **Track: MiWay Service Alerts (GTFS-RT) Integration**
       _Link: [./archive/miway_service_scraping_20260331/](./archive/miway_service_scraping_20260331/)_
