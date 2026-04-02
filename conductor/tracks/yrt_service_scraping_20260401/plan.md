@@ -94,7 +94,7 @@
     - [x] Extract shared SQL expression building where local duplication appears.
     - [x] Keep provider-specific behavior isolated to YRT-only metadata logic.
     - [x] Re-run focused suite and verify no regression.
-- [ ] Task: Conductor - User Manual Verification 'Phase 5: Unified Alerts Provider' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 5: Unified Alerts Provider' (Protocol in workflow.md)
 
 ## Phase 6: Source Enum + Backend Contract Plumbing
 
