@@ -129,7 +129,7 @@
     - [x] Deduplicate shared transit metadata formatting where possible.
     - [x] Keep YRT-specific parsing isolated from shared rendering helpers.
     - [x] Re-run focused frontend suite and verify no regression.
-- [ ] Task: Conductor - User Manual Verification 'Phase 7: Frontend Domain + Presentation Integration' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 7: Frontend Domain + Presentation Integration' (Protocol in workflow.md) (8bd05a8)
 
 ## Phase 8: QA Phase
 
