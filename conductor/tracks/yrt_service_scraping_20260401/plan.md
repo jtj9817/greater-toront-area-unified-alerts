@@ -98,7 +98,7 @@
 
 ## Phase 6: Source Enum + Backend Contract Plumbing
 
-- [x] Task: Red - Write failing backend contract tests for  (4163978)`yrt`
+- [x] Task: Red - Write failing backend contract tests for `yrt` (4163978)
     - [x] Extend `tests/Unit/Enums/AlertSourceTest.php` to require `yrt` in enum values and validation paths.
     - [x] Add/extend feed API contract tests for `source=yrt` filtering and status behavior.
     - [x] Add regression tests proving existing sources remain unaffected.
