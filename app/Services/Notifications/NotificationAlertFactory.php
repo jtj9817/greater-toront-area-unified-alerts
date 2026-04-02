@@ -7,6 +7,8 @@ use App\Models\GoTransitAlert;
 use App\Models\MiwayAlert;
 use App\Models\PoliceCall;
 use App\Models\TransitAlert;
+use App\Models\YrtAlert;
+use Carbon\CarbonImmutable;
 
 class NotificationAlertFactory
 {
@@ -121,6 +123,24 @@ class NotificationAlertFactory
                 'cause' => $alert->cause,
                 'effect' => $alert->effect,
                 'description_text' => $alert->description_text,
+            ],
+        );
+    }
+
+    public function fromYrtAlert(YrtAlert $alert): NotificationAlert
+    {
+        return new NotificationAlert(
+            alertId: "yrt:{$alert->external_id}",
+            source: 'yrt',
+            severity: NotificationSeverity::MAJOR,
+            summary: $alert->title,
+            occurredAt: CarbonImmutable::instance($alert->posted_at ?? $alert->created_at),
+            routes: $this->splitRoutes($alert->route_text),
+            metadata: [
+                'details_url' => $alert->details_url,
+                'description_excerpt' => $alert->description_excerpt,
+                'body_text' => $alert->body_text,
+                'route_text' => $alert->route_text,
             ],
         );
     }
