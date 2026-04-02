@@ -56,7 +56,7 @@
     - [x] Consolidate field assignment/update logic to avoid divergence between create/update paths.
     - [x] Improve command output/summary messaging for operational debugging.
     - [x] Re-run focused suite and verify no regression.
-- [ ] Task: Conductor - User Manual Verification 'Phase 3: Fetch Command (Sync + Notifications)' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 3: Fetch Command (Sync + Notifications)' (Protocol in workflow.md) (8f75fd5)
 
 ## Phase 4: Queue Job Wrapper + Scheduler
 
