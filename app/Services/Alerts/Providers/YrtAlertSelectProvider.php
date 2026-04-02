@@ -2,6 +2,7 @@
 
 namespace App\Services\Alerts\Providers;
 
+use App\Enums\AlertSource;
 use App\Enums\AlertStatus;
 use App\Models\YrtAlert;
 use App\Services\Alerts\Contracts\AlertSelectProvider;
@@ -13,7 +14,7 @@ class YrtAlertSelectProvider implements AlertSelectProvider
 {
     public function source(): string
     {
-        return 'yrt';
+        return AlertSource::Yrt->value;
     }
 
     public function select(UnifiedAlertsCriteria $criteria): Builder
@@ -108,4 +109,3 @@ class YrtAlertSelectProvider implements AlertSelectProvider
         return $query->toBase();
     }
 }
-

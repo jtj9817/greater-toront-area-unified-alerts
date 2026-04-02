@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\AlertSource;
 use App\Models\YrtAlert;
 use App\Services\Alerts\DTOs\UnifiedAlertsCriteria;
 use App\Services\Alerts\Mappers\UnifiedAlertMapper;
@@ -9,6 +10,10 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 
 uses(Tests\TestCase::class, RefreshDatabase::class);
+
+test('yrt alert select provider exposes yrt source enum value', function () {
+    expect((new YrtAlertSelectProvider)->source())->toBe(AlertSource::Yrt->value);
+});
 
 test('yrt alert select provider maps unified columns', function () {
     $postedAt = CarbonImmutable::parse('2026-04-01 14:20:00');
@@ -30,7 +35,7 @@ test('yrt alert select provider maps unified columns', function () {
 
     expect($row)->not->toBeNull();
     expect($row->id)->toBe('yrt:a1234');
-    expect($row->source)->toBe('yrt');
+    expect($row->source)->toBe(AlertSource::Yrt->value);
     expect($row->external_id)->toBe('a1234');
     expect((int) $row->is_active)->toBe(1);
     expect((string) $row->timestamp)->toBe($alert->posted_at->format('Y-m-d H:i:s'));
@@ -68,6 +73,7 @@ test('yrt alert select provider includes null-safe metadata keys', function () {
         'posted_at',
         'feed_updated_at',
     ]);
+    expect((string) $row->external_id)->not->toStartWith('yrt:');
     expect($meta['description_excerpt'])->toBeNull();
     expect($meta['body_text'])->toBeNull();
     expect($meta['feed_updated_at'])->toBeNull();

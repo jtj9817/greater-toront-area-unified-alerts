@@ -99,6 +99,12 @@ test('unified alerts criteria accepts miway source filter', function () {
     expect($criteria->source)->toBe('miway');
 });
 
+test('unified alerts criteria accepts yrt source filter', function () {
+    $criteria = new UnifiedAlertsCriteria(source: 'yrt');
+
+    expect($criteria->source)->toBe('yrt');
+});
+
 test('unified alerts criteria rejects invalid since', function () {
     expect(fn () => new UnifiedAlertsCriteria(since: '2h'))
         ->toThrow(\InvalidArgumentException::class);

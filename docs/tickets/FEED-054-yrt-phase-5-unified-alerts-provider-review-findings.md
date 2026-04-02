@@ -3,7 +3,7 @@
 ## Meta
 - **Issue Type:** Bug
 - **Priority:** Mixed (`P1`/`P3`)
-- **Status:** Open
+- **Status:** Closed
 - **Labels:** `alerts`, `yrt`, `unified-alerts`, `review`, `backend`, `criteria`
 - **Reviewed Commit:** `d2236fac300967c0054f587f5104515d311b7d13`
 
@@ -56,8 +56,23 @@ This review found one high-severity contract mismatch (`yrt` provider exists, bu
 - Update the factory default to generate a bare external id (no `yrt:` prefix) consistent with the provider tests and feed storage intent.
 
 ## Acceptance Criteria
-- [ ] `AlertSource` includes `yrt` and criteria normalization accepts `source=yrt`.
-- [ ] Provider emits `AlertSource::Yrt->value` (no magic string).
-- [ ] `YrtAlertFactory` default `external_id` is unprefixed and consistent with mapping expectations.
-- [ ] Targeted tests pass for enum/criteria/provider mapping.
+- [x] `AlertSource` includes `yrt` and criteria normalization accepts `source=yrt`.
+- [x] Provider emits `AlertSource::Yrt->value` (no magic string).
+- [x] `YrtAlertFactory` default `external_id` is unprefixed and consistent with mapping expectations.
+- [x] Targeted tests pass for enum/criteria/provider mapping.
 
+## Resolution (2026-04-02)
+- Added `AlertSource::Yrt = 'yrt'` and updated `YrtAlertSelectProvider::source()` to use `AlertSource::Yrt->value`.
+- Updated `YrtAlertFactory` default `external_id` generation to produce unprefixed identifiers.
+- Updated shared frontend transport contract source enum to include `yrt` (`UnifiedAlertResourceSchema`).
+- Added focused tests for enum values/validation, criteria source normalization, provider source wiring, factory-id shape guard, and frontend source-enum acceptance.
+- Verification passed:
+  - `./vendor/bin/sail artisan test --compact tests/Unit/Enums/AlertSourceTest.php tests/Unit/Services/Alerts/UnifiedAlertsCriteriaTest.php tests/Unit/Services/Alerts/Providers/YrtAlertSelectProviderTest.php`
+  - `./vendor/bin/sail pnpm run test -- resources/js/features/gta-alerts/domain/alerts/resource.test.ts`
+  - `./vendor/bin/sail composer test`
+  - `./vendor/bin/sail composer lint`
+  - `./vendor/bin/sail pnpm run lint`
+  - `./vendor/bin/sail pnpm run format`
+  - `./vendor/bin/sail pnpm run types`
+
+These fixes are part of Phase 5: Unified Alerts Provider.

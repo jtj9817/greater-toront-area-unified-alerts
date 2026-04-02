@@ -22,7 +22,7 @@ class YrtAlertFactory extends Factory
         $postedAt = fake()->dateTimeBetween('-6 hours', 'now');
 
         return [
-            'external_id' => 'yrt:'.fake()->unique()->numerify('#####'),
+            'external_id' => fake()->unique()->numerify('#####'),
             'title' => fake()->sentence(),
             'posted_at' => $postedAt,
             'details_url' => fake()->url(),

@@ -176,5 +176,4 @@ class ScheduledFetchJobDispatcher
             ->where('payload', 'like', "%{$needle}%")
             ->exists();
     }
-
 }
