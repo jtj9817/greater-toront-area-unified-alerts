@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Manual Test: YRT Phase 1 Database + Model
  * Generated: 2026-04-01
@@ -27,7 +28,7 @@ if (app()->environment('production')) {
 $testRunId = 'yrt_phase1_'.Carbon::now()->format('Y_m_d_His');
 $logFile = storage_path("logs/manual_tests/{$testRunId}.log");
 
-if (!is_dir(dirname($logFile))) {
+if (! is_dir(dirname($logFile))) {
     mkdir(dirname($logFile), 0755, true);
 }
 

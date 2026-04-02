@@ -182,6 +182,38 @@ test('it fetches detail when details_fetched_at is stale', function () {
     expect($result['alerts'][0]['body_text'])->toContain('Service Advisory');
 });
 
+test('it preserves existing details when refresh is required but detail fetch fails', function () {
+    config(['feeds.yrt.details_refresh_hours' => 24]);
+
+    $item = yrtListItem();
+    $hash = sha1(implode('|', [
+        $item['title'],
+        $item['description'],
+        $item['postedDate'],
+        $item['postedTime'],
+        $item['link'],
+    ]));
+    $detailsFetchedAt = Carbon::now()->subHours(25);
+
+    YrtAlert::factory()->create([
+        'external_id' => '52-holland-landing-detour',
+        'details_url' => 'https://www.yrt.ca/en/news/52-holland-landing-detour.aspx',
+        'list_hash' => $hash,
+        'body_text' => 'Persisted body text',
+        'details_fetched_at' => $detailsFetchedAt,
+    ]);
+
+    Http::fake([
+        yrtListUrl() => Http::response([$item], 200),
+        'https://www.yrt.ca/en/news/*' => Http::failedConnection(),
+    ]);
+
+    $result = app(YrtServiceAdvisoriesFeedService::class)->fetch();
+
+    expect($result['alerts'][0]['body_text'])->toBe('Persisted body text');
+    expect($result['alerts'][0]['details_fetched_at']?->toDateTimeString())->toBe($detailsFetchedAt->toDateTimeString());
+});
+
 test('it skips detail fetch when hash is unchanged and body is fresh', function () {
     config(['feeds.yrt.details_refresh_hours' => 24]);
 

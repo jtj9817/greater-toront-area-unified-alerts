@@ -65,11 +65,12 @@ class YrtServiceAdvisoriesFeedService
 
     protected function httpClient(): PendingRequest
     {
-        return Http::timeout(15)
+        return Http::connectTimeout(5)
+            ->timeout(15)
             ->retry(2, 200, throw: false)
             ->withHeaders([
                 'User-Agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36',
-                'Accept-Language' => 'en-US,en;q=0.9',
+                'Accept-Language' => 'en-CA,en;q=0.9',
                 'Referer' => 'https://www.yrt.ca/',
             ]);
     }
@@ -120,8 +121,15 @@ class YrtServiceAdvisoriesFeedService
             $existing = $existingByExternalId->get($alert['external_id']);
 
             if ($this->shouldFetchDetails($alert, $existing, $now)) {
-                $alert['body_text'] = $this->fetchDetailBodyText($alert['details_url']);
-                $alert['details_fetched_at'] = $now;
+                $detailBodyText = $this->fetchDetailBodyText($alert['details_url']);
+
+                if ($detailBodyText === null) {
+                    $alert['body_text'] = $existing?->body_text;
+                    $alert['details_fetched_at'] = $existing?->details_fetched_at;
+                } else {
+                    $alert['body_text'] = $detailBodyText;
+                    $alert['details_fetched_at'] = $now;
+                }
 
                 if ($alert['route_text'] === null) {
                     $alert['route_text'] = $this->extractRouteFromText($alert['body_text']);
@@ -137,6 +145,7 @@ class YrtServiceAdvisoriesFeedService
                 $alert['route_text'] = $existing?->route_text;
             }
         }
+        unset($alert);
 
         return $normalized;
     }
@@ -325,7 +334,7 @@ class YrtServiceAdvisoriesFeedService
         }
 
         $segment = trim((string) ($matches[1] ?? ''));
-        $segment = preg_split('/[\.|;|]/', $segment)[0] ?? '';
+        $segment = preg_split('/[.;|]/', $segment, 2)[0] ?? '';
 
         return $this->normalizeText($segment);
     }

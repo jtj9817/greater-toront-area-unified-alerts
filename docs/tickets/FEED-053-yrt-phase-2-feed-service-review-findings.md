@@ -4,11 +4,11 @@
 
 - **Issue Type:** Bug
 - **Priority:** Mixed (`P1`/`P3`)
-- **Status:** Open
+- **Status:** Closed
 - **Labels:** `alerts`, `yrt`, `review`, `backend`, `feed-service`
 - **Reviewed Commit:** `baf2145f4e738a5245480acc88e9716a29e02360`
 - **Context Source:** `20260401_yrt_service_scraping_audit.md` (untracked local audit file)
-- **Verification:** `./vendor/bin/sail artisan test --compact tests/Feature/YrtServiceAdvisoriesFeedServiceTest.php` (12 passed, 36 assertions)
+- **Verification:** `php artisan test --filter=YrtServiceAdvisoriesFeedServiceTest --compact` (13 passed, 38 assertions), `php artisan test --filter=FetchYrtAlertsCommandTest --compact` (5 passed, 27 assertions), `composer test`, `composer lint`, `pnpm run lint`, `pnpm run format`, `pnpm run types`
 
 ## Summary
 
@@ -106,3 +106,12 @@ This review found one high-severity integration risk where transient detail-fetc
 - Consider adding `connectTimeout(...)` for external calls.
 - `Accept-Language` currently uses `en-US`; if the intent is Canadian English, consider `en-CA` (not required for correctness if YRT ignores it).
 
+## Resolution
+
+- `P1` fixed in `YrtServiceAdvisoriesFeedService`: failed detail refresh now preserves existing `body_text` and `details_fetched_at` instead of overwriting with `null`.
+- Regression coverage added: stale refresh + failed detail request now asserts details are preserved.
+- `P3` fixed: added `unset($alert)` after by-reference loop.
+- `P3` fixed: route segment split pattern updated to `preg_split('/[.;|]/', ..., 2)` for readability.
+- `P3` fixed: HTTP client now sets `connectTimeout(5)` and uses `Accept-Language: en-CA,en;q=0.9`.
+
+These fixes are part of Phase 2 - Feed Service (List JSON + Conditional Detail HTML).

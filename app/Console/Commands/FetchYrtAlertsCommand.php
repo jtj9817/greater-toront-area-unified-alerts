@@ -20,8 +20,7 @@ class FetchYrtAlertsCommand extends Command
     public function handle(
         YrtServiceAdvisoriesFeedService $feedService,
         NotificationAlertFactory $notificationAlertFactory,
-    ): int
-    {
+    ): int {
         $this->info('Fetching YRT service advisories...');
 
         try {

@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Manual Test: YRT Phase 2 Feed Service (List JSON + Conditional Detail HTML)
  * Generated: 2026-04-01
