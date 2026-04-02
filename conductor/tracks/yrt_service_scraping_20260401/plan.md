@@ -178,7 +178,7 @@
 - [x] Task: Prepare conductor artifacts for closeout
     - [x] Add final implementation notes and deviations to this track's `spec.md`/`plan.md`, including any docs deliberately deferred.
     - [x] Update `metadata.json` (`updated_at`, status when appropriate) and prep archive handoff checklist.
-- [ ] Task: Conductor - User Manual Verification 'Phase 9: Documentation Phase' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 9: Documentation Phase' (Protocol in workflow.md)
 
 ### Phase 9 Closeout Notes
 
