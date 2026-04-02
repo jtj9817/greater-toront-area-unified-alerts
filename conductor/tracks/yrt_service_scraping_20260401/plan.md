@@ -75,7 +75,7 @@
     - [x] Match job naming and middleware ordering with existing TTC/GO/MiWay wrappers.
     - [x] Remove duplicated scheduler configuration logic where possible.
     - [x] Re-run focused suite and verify no regression.
-- [ ] Task: Conductor - User Manual Verification 'Phase 4: Queue Job Wrapper + Scheduler' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 4: Queue Job Wrapper + Scheduler' (Protocol in workflow.md) (d3b050e)
 
 ## Phase 5: Unified Alerts Provider
 
