@@ -148,6 +148,7 @@ describe('FeedView', () => {
         expect(screen.getByText('TTC')).toBeInTheDocument();
         expect(screen.getByText('GO Transit')).toBeInTheDocument();
         expect(screen.getByText('MiWay')).toBeInTheDocument();
+        expect(screen.getByText('YRT')).toBeInTheDocument();
     });
 
     it('collapses status and category wrapper rows in minimal mode', () => {

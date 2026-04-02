@@ -6,6 +6,7 @@ use App\Models\GoTransitAlert;
 use App\Models\MiwayAlert;
 use App\Models\PoliceCall;
 use App\Models\TransitAlert;
+use App\Models\YrtAlert;
 use App\Services\Alerts\DTOs\UnifiedAlertsCriteria;
 use App\Services\Alerts\UnifiedAlertsQuery;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -197,6 +198,18 @@ function seedFrontendContractFixtureDataset(): void
         'is_active' => false,
         'feed_updated_at' => $base->copy()->subHours(2),
     ]);
+
+    YrtAlert::factory()->create([
+        'external_id' => '91001',
+        'title' => '52 - Holland Landing detour',
+        'route_text' => '52',
+        'details_url' => 'https://www.yrt.ca/en/service-updates/91001.aspx',
+        'description_excerpt' => 'Temporary detour in effect near Green Lane.',
+        'body_text' => 'Routes affected: 52, 58. Expect 15 minute delays.',
+        'posted_at' => $base->copy()->subHours(5)->subMinutes(15),
+        'feed_updated_at' => $base->copy()->subMinutes(16),
+        'is_active' => true,
+    ]);
 }
 
 /**
@@ -251,8 +264,8 @@ test('unified alert resource payload matches the frontend contract fixture', fun
         ->values()
         ->all();
 
-    expect($sources)->toBe(['fire', 'go_transit', 'miway', 'police', 'transit']);
-    expect($actual['alerts'])->toHaveCount(10);
+    expect($sources)->toBe(['fire', 'go_transit', 'miway', 'police', 'transit', 'yrt']);
+    expect($actual['alerts'])->toHaveCount(11);
 
     $fixturePath = frontendContractFixturePath();
     $refreshHint = 'UPDATE_CONTRACT_FIXTURES=1 ./vendor/bin/pest --filter=UnifiedAlertsFrontendContractFixtureTest';

@@ -152,4 +152,30 @@ describe('AlertTableView', () => {
         expect(saveBtn).toBeDisabled();
         expect(saveBtn.querySelector('.animate-spin')).toBeInTheDocument();
     });
+
+    it('renders YRT source label for yrt table rows', () => {
+        const yrtRow = AlertService.mapUnifiedAlertToDomainAlert({
+            id: 'yrt:a1234',
+            source: 'yrt',
+            external_id: 'a1234',
+            is_active: true,
+            timestamp,
+            title: '52 - Holland Landing detour',
+            location: { name: 'Route 52', lat: null, lng: null },
+            meta: {
+                details_url: 'https://www.yrt.ca/en/news/52-detour.aspx',
+                description_excerpt: 'Detour in effect near Green Lane.',
+                body_text: 'Routes affected: 52 and 58.',
+                posted_at: '2026-04-01 10:20:00',
+                feed_updated_at: '2026-04-01 10:25:00',
+            },
+        });
+        if (!yrtRow) {
+            throw new Error('Expected YRT DomainAlert row');
+        }
+
+        render(<AlertTableView {...defaultProps} items={[yrtRow]} />);
+
+        expect(screen.getByText('YRT')).toBeInTheDocument();
+    });
 });
