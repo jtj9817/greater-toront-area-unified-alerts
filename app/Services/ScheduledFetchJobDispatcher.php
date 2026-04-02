@@ -7,6 +7,7 @@ use App\Jobs\FetchGoTransitAlertsJob;
 use App\Jobs\FetchMiwayAlertsJob;
 use App\Jobs\FetchPoliceCallsJob;
 use App\Jobs\FetchTransitAlertsJob;
+use App\Jobs\FetchYrtAlertsJob;
 use BackedEnum;
 use Illuminate\Bus\UniqueLock;
 use Illuminate\Contracts\Bus\QueueingDispatcher;
@@ -44,6 +45,16 @@ class ScheduledFetchJobDispatcher
     public function dispatchGoTransitAlerts(): bool
     {
         return $this->dispatchUnique('go-transit:fetch-alerts', new FetchGoTransitAlertsJob);
+    }
+
+    public function dispatchMiwayAlerts(): bool
+    {
+        return $this->dispatchUnique('miway:fetch-alerts', new FetchMiwayAlertsJob);
+    }
+
+    public function dispatchYrtAlerts(): bool
+    {
+        return $this->dispatchUnique('yrt:fetch-alerts', new FetchYrtAlertsJob);
     }
 
     private function dispatchUnique(string $source, ShouldQueue&ShouldBeUnique $job): bool
@@ -166,8 +177,4 @@ class ScheduledFetchJobDispatcher
             ->exists();
     }
 
-    public function dispatchMiwayAlerts(): bool
-    {
-        return $this->dispatchUnique('miway:fetch-alerts', new FetchMiwayAlertsJob);
-    }
 }

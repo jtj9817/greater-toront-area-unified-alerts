@@ -18,6 +18,8 @@ test('scheduled fetch commands use short overlap mutex expiry', function () {
         'police:fetch-calls' => 10,
         'transit:fetch-alerts' => 10,
         'go-transit:fetch-alerts' => 10,
+        'miway:fetch-alerts' => 10,
+        'yrt:fetch-alerts' => 10,
     ];
 
     foreach ($expected as $eventName => $expiresAtMinutes) {
@@ -29,6 +31,17 @@ test('scheduled fetch commands use short overlap mutex expiry', function () {
         expect($event->withoutOverlapping)->toBeTrue();
         expect($event->expiresAt)->toBe($expiresAtMinutes);
     }
+});
+
+test('yrt fetch schedule runs every five minutes', function () {
+    $schedule = app(Schedule::class);
+
+    $event = collect($schedule->events())->first(function ($event) {
+        return is_string($event->description) && $event->description === 'yrt:fetch-alerts';
+    });
+
+    expect($event)->not->toBeNull();
+    expect($event->expression)->toBe('*/5 * * * *');
 });
 
 test('scheduler cache store is configurable via cache.schedule_store', function () {
