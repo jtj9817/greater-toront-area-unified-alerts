@@ -110,7 +110,7 @@
 - [x] Task: Refactor - Consolidate source handling consistency (4163978)
     - [x] Remove duplicated source checks where a shared enum/path can be reused.
     - [x] Re-run focused suite and verify no regression.
-- [ ] Task: Conductor - User Manual Verification 'Phase 6: Source Enum + Backend Contract Plumbing' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 6: Source Enum + Backend Contract Plumbing' (Protocol in workflow.md) (5f4e232)
 
 ## Phase 7: Frontend Domain + Presentation Integration
 
