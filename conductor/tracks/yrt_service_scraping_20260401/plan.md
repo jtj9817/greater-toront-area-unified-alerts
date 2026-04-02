@@ -79,21 +79,21 @@
 
 ## Phase 5: Unified Alerts Provider
 
-- [ ] Task: Red - Write failing provider contract tests
-    - [ ] Create `tests/Unit/Services/Alerts/Providers/YrtAlertSelectProviderTest.php` for unified column contract.
-    - [ ] Add tests for source-prefixed id expression across sqlite/pgsql/mysql query paths.
-    - [ ] Add tests for criteria filtering (`source`, `status`, `sinceCutoff`, `query`).
-    - [ ] Add tests asserting `meta` contains expected YRT keys and null-safe values.
-    - [ ] Run focused tests and confirm red state.
-- [ ] Task: Green - Implement and register `YrtAlertSelectProvider`
-    - [ ] Add `app/Services/Alerts/Providers/YrtAlertSelectProvider.php` with driver-safe SQL expressions.
-    - [ ] Tag provider in `app/Providers/AppServiceProvider.php` under `alerts.select-providers`.
-    - [ ] Ensure timestamp and nullable location semantics match unified contract.
-    - [ ] Re-run focused tests until green.
-- [ ] Task: Refactor - Reduce query complexity and improve maintainability
-    - [ ] Extract shared SQL expression building where local duplication appears.
-    - [ ] Keep provider-specific behavior isolated to YRT-only metadata logic.
-    - [ ] Re-run focused suite and verify no regression.
+- [x] Task: Red - Write failing provider contract tests (d2236fa)
+    - [x] Create `tests/Unit/Services/Alerts/Providers/YrtAlertSelectProviderTest.php` for unified column contract.
+    - [x] Add tests for source-prefixed id expression across sqlite/pgsql/mysql query paths.
+    - [x] Add tests for criteria filtering (`source`, `status`, `sinceCutoff`, `query`).
+    - [x] Add tests asserting `meta` contains expected YRT keys and null-safe values.
+    - [x] Run focused tests and confirm red state.
+- [x] Task: Green - Implement and register `YrtAlertSelectProvider` (d2236fa)
+    - [x] Add `app/Services/Alerts/Providers/YrtAlertSelectProvider.php` with driver-safe SQL expressions.
+    - [x] Tag provider in `app/Providers/AppServiceProvider.php` under `alerts.select-providers`.
+    - [x] Ensure timestamp and nullable location semantics match unified contract.
+    - [x] Re-run focused tests until green.
+- [x] Task: Refactor - Reduce query complexity and improve maintainability (d2236fa)
+    - [x] Extract shared SQL expression building where local duplication appears.
+    - [x] Keep provider-specific behavior isolated to YRT-only metadata logic.
+    - [x] Re-run focused suite and verify no regression.
 - [ ] Task: Conductor - User Manual Verification 'Phase 5: Unified Alerts Provider' (Protocol in workflow.md)
 
 ## Phase 6: Source Enum + Backend Contract Plumbing
