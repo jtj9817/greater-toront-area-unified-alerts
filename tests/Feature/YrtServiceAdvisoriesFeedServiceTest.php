@@ -351,8 +351,9 @@ test('it skips items with unparseable url slug', function () {
     $result = app(YrtServiceAdvisoriesFeedService::class)->fetch();
 
     $ids = array_column($result['alerts'], 'external_id');
+    expect($result['alerts'])->toHaveCount(1);
     expect($ids)->not->toContain('not-a-url');
-    expect($ids)->toContain('52-holland-landing-detour');
+    expect($ids)->toBe(['52-holland-landing-detour']);
 });
 
 test('it fetches detail when existing alert has null details_fetched_at', function () {
@@ -441,7 +442,7 @@ test('it carries forward existing route text when details are skipped and alert 
     expect($result['alerts'][0]['route_text'])->toBe('Route 99');
 });
 
-test('it extracts route from body text when title prefix is absent', function () {
+test('it extracts singular route segment from body text and trims trailing details', function () {
     Http::fake([
         yrtListUrl() => Http::response([
             yrtListItem([
@@ -449,7 +450,7 @@ test('it extracts route from body text when title prefix is absent', function ()
                 'description' => 'Minor update.',
             ]),
         ], 200),
-        'https://www.yrt.ca/en/news/*' => Http::response('<html><body><article><p>Routes affected: 15, 85A. Check schedules.</p></article></body></html>', 200),
+        'https://www.yrt.ca/en/news/*' => Http::response('<html><body><article><p>Route affected: 15, 85A; Check schedules.</p></article></body></html>', 200),
     ]);
 
     $result = app(YrtServiceAdvisoriesFeedService::class)->fetch();
@@ -536,15 +537,15 @@ test('it strips script and style tags from detail html', function () {
     expect($result['alerts'][0]['body_text'])->not->toContain('fallback');
 });
 
-test('it falls back to document text content when no semantic container exists', function () {
+test('it falls back to document text content when semantic candidates are empty', function () {
     Http::fake([
         yrtListUrl() => Http::response([yrtListItem()], 200),
-        'https://www.yrt.ca/en/news/*' => Http::response('<html><body><div>Simple text content without article or main.</div></body></html>', 200),
+        'https://www.yrt.ca/en/news/*' => Http::response('<html><head><title>Fallback title marker</title></head><body><script>ignored</script><style>.x{color:red}</style><noscript>ignored</noscript></body></html>', 200),
     ]);
 
     $result = app(YrtServiceAdvisoriesFeedService::class)->fetch();
 
-    expect($result['alerts'][0]['body_text'])->toContain('Simple text content');
+    expect($result['alerts'][0]['body_text'])->toContain('Fallback title marker');
 });
 
 test('it returns null body text for empty detail html', function () {

@@ -3,7 +3,7 @@
 ## Meta
 - **Issue Type:** Bug
 - **Priority:** `P1`
-- **Status:** Open
+- **Status:** Closed
 - **Labels:** `alerts`, `yrt`, `backend`, `review`, `tests`, `qa`, `regression-risk`
 - **Reviewed Commit:** `00e2b686dd7443b4faa752684feeffc2e1b677d2`
 
@@ -75,9 +75,31 @@ be replaced by a distinct edge condition.
   plural path.
 
 ## Acceptance Criteria
-- [ ] P1 test is updated to prove true document-level fallback behavior.
-- [ ] P2 test verifies slug-parse skip behavior with stronger assertions.
-- [ ] P3 duplicate case is replaced with a distinct parser edge case.
-- [ ] Targeted YRT feed-service test suite passes.
-- [ ] Full backend and frontend quality gates pass with no new lint/format/type errors.
-- [ ] No Laravel→Inertia→React data-shape changes are introduced.
+- [x] P1 test is updated to prove true document-level fallback behavior.
+- [x] P2 test verifies slug-parse skip behavior with stronger assertions.
+- [x] P3 duplicate case is replaced with a distinct parser edge case.
+- [x] Targeted YRT feed-service test suite passes.
+- [x] Full backend and frontend quality gates pass with no new lint/format/type errors.
+- [x] No Laravel→Inertia→React data-shape changes are introduced.
+
+## Resolution
+- Updated `tests/Feature/YrtServiceAdvisoriesFeedServiceTest.php` to resolve all findings:
+  - P1: Changed fallback test fixture so `main/article/body` candidates normalize to empty,
+    then asserted document-level fallback text is returned.
+  - P2: Strengthened URL-slug test with exact surviving alert count/ID assertions.
+  - P3: Replaced duplicate route-from-body test with singular `Route affected:` plus
+    delimiter truncation coverage.
+- Confirmed no serialization or transport shape changes were made (test-only changes).
+
+## Verification Notes
+- Targeted:
+  - `vendor/bin/sail artisan test --compact --filter=YrtServiceAdvisoriesFeedServiceTest`
+- Full suite and gates:
+  - `vendor/bin/sail composer test`
+  - `vendor/bin/sail bin pint --dirty --format agent`
+  - `vendor/bin/sail composer lint`
+  - `vendor/bin/sail pnpm run lint`
+  - `vendor/bin/sail pnpm run format`
+  - `vendor/bin/sail pnpm run types`
+
+These fixes are part of Phase 8: QA Phase.
