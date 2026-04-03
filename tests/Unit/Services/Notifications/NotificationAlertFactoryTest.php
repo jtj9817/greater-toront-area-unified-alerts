@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\MiwayAlert;
+use App\Models\DrtAlert;
 use App\Models\YrtAlert;
 use App\Services\Notifications\NotificationAlertFactory;
 use App\Services\Notifications\NotificationSeverity;
@@ -57,5 +58,34 @@ test('it maps yrt alerts to notification alert contract', function () {
             'description_excerpt' => 'Delay due to construction.',
             'body_text' => 'Expect delays for 20 minutes.',
             'route_text' => '99 - Yonge',
+        ]);
+});
+
+test('it maps drt alerts to notification alert contract', function () {
+    $factory = app(NotificationAlertFactory::class);
+
+    $alert = DrtAlert::factory()->make([
+        'external_id' => 'conlin-grandview-detour',
+        'title' => 'Conlin / Grandview detour',
+        'posted_at' => CarbonImmutable::parse('2026-04-03T12:00:00Z'),
+        'when_text' => 'Apr 3, 2026 8:00 AM - Until further notice',
+        'route_text' => 'Route 920 and 921',
+        'details_url' => 'https://www.durhamregiontransit.com/en/news/conlin-grandview-detour.aspx',
+        'body_text' => 'Buses are detouring due to road work.',
+    ]);
+
+    $notificationAlert = $factory->fromDrtAlert($alert);
+
+    expect($notificationAlert->alertId)->toBe('drt:conlin-grandview-detour')
+        ->and($notificationAlert->source)->toBe('drt')
+        ->and($notificationAlert->severity)->toBe(NotificationSeverity::MAJOR)
+        ->and($notificationAlert->summary)->toBe('Conlin / Grandview detour')
+        ->and($notificationAlert->occurredAt->toIso8601String())->toBe('2026-04-03T12:00:00+00:00')
+        ->and($notificationAlert->routes)->toBe(['Route 920 and 921'])
+        ->and($notificationAlert->metadata)->toMatchArray([
+            'details_url' => 'https://www.durhamregiontransit.com/en/news/conlin-grandview-detour.aspx',
+            'when_text' => 'Apr 3, 2026 8:00 AM - Until further notice',
+            'route_text' => 'Route 920 and 921',
+            'body_text' => 'Buses are detouring due to road work.',
         ]);
 });

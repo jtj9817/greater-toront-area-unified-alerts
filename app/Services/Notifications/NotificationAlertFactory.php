@@ -6,6 +6,7 @@ use App\Models\FireIncident;
 use App\Models\GoTransitAlert;
 use App\Models\MiwayAlert;
 use App\Models\PoliceCall;
+use App\Models\DrtAlert;
 use App\Models\TransitAlert;
 use App\Models\YrtAlert;
 use Carbon\CarbonImmutable;
@@ -141,6 +142,24 @@ class NotificationAlertFactory
                 'description_excerpt' => $alert->description_excerpt,
                 'body_text' => $alert->body_text,
                 'route_text' => $alert->route_text,
+            ],
+        );
+    }
+
+    public function fromDrtAlert(DrtAlert $alert): NotificationAlert
+    {
+        return new NotificationAlert(
+            alertId: "drt:{$alert->external_id}",
+            source: 'drt',
+            severity: NotificationSeverity::MAJOR,
+            summary: $alert->title,
+            occurredAt: CarbonImmutable::instance($alert->posted_at ?? $alert->created_at),
+            routes: $this->splitRoutes($alert->route_text),
+            metadata: [
+                'details_url' => $alert->details_url,
+                'when_text' => $alert->when_text,
+                'route_text' => $alert->route_text,
+                'body_text' => $alert->body_text,
             ],
         );
     }
