@@ -33,7 +33,7 @@
     - `tests/fixtures/drt/detail-route-singular-conlin-grandview.html`
     - `tests/fixtures/drt/detail-routes-bullets-odd-whitespace.html`
 
-## Phase 1: Database + Model
+## Phase 1: Database + Model [checkpoint: 15e6ae9]
 
 - [x] Task: Red - Write failing persistence and model tests for DRT (124a8bd)
   - [x] Create `tests/Unit/Models/DrtAlertTest.php` with schema expectations for required columns.
@@ -49,7 +49,7 @@
   - [x] Align naming/cast conventions with existing transit alert models.
   - [x] Remove duplicate setup code from tests using datasets/helpers.
   - [x] Re-run focused suite and verify no regression.
-- [ ] Task: Conductor - User Manual Verification 'Phase 1: Database + Model' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 1: Database + Model' (Protocol in workflow.md) (15e6ae9)
 
 ## Phase 2: Feed Service (HTML List + Conditional Detail HTML)
 
