@@ -124,22 +124,22 @@
   - [x] Re-run focused suite and verify no regression.
 - [x] Task: Conductor - User Manual Verification 'Phase 4: Queue Job Wrapper + Scheduler' (Protocol in workflow.md) (f679c79)
 
-## Phase 5: Unified Alerts Provider
+## Phase 5: Unified Alerts Provider [checkpoint: b15d8b4]
 
-- [ ] Task: Red - Write failing provider/query contract tests for DRT
-  - [ ] Add tests for `DrtAlertSelectProvider` unified select columns and `id` composition.
-  - [ ] Add tests for criteria filters (`source`, `status`, `sinceCutoff`, `query`) matching existing provider semantics.
-  - [ ] Add tests validating `meta` payload fields expected by downstream resources.
-  - [ ] Run focused tests and confirm red state.
-- [ ] Task: Green - Implement `DrtAlertSelectProvider` and provider registration
-  - [ ] Create `app/Services/Alerts/Providers/DrtAlertSelectProvider.php`.
-  - [ ] Implement driver-safe `id` concat and unified timestamp selection.
-  - [ ] Tag provider in `app/Providers/AppServiceProvider.php` under `alerts.select-providers`.
-  - [ ] Re-run focused tests until green.
-- [ ] Task: Refactor - Keep provider parity with other sources
-  - [ ] Ensure meta JSON shape and criteria semantics match existing providers.
-  - [ ] Re-run focused suite and verify no regression.
-- [ ] Task: Conductor - User Manual Verification 'Phase 5: Unified Alerts Provider' (Protocol in workflow.md)
+- [x] Task: Red - Write failing provider/query contract tests for DRT (b15d8b4)
+  - [x] Add tests for `DrtAlertSelectProvider` unified select columns and `id` composition.
+  - [x] Add tests for criteria filters (`source`, `status`, `sinceCutoff`, `query`) matching existing provider semantics.
+  - [x] Add tests validating `meta` payload fields expected by downstream resources.
+  - [x] Run focused tests and confirm red state.
+- [x] Task: Green - Implement `DrtAlertSelectProvider` and provider registration (b15d8b4)
+  - [x] Create `app/Services/Alerts/Providers/DrtAlertSelectProvider.php`.
+  - [x] Implement driver-safe `id` concat and unified timestamp selection.
+  - [x] Tag provider in `app/Providers/AppServiceProvider.php` under `alerts.select-providers`.
+  - [x] Re-run focused tests until green.
+- [x] Task: Refactor - Keep provider parity with other sources (b15d8b4)
+  - [x] Ensure meta JSON shape and criteria semantics match existing providers.
+  - [x] Re-run focused suite and verify no regression.
+- [x] Task: Conductor - User Manual Verification 'Phase 5: Unified Alerts Provider' (Protocol in workflow.md) (b15d8b4)
 
 ## Phase 6: Alert Source + Backend Contract Plumbing
 
