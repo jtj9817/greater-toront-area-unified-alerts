@@ -141,7 +141,7 @@
     - [x] Re-run focused suite and verify no regression.
 - [x] Task: Conductor - User Manual Verification 'Phase 5: Unified Alerts Provider' (Protocol in workflow.md) (b15d8b4)
 
-## Phase 6: Alert Source + Backend Contract Plumbing
+## Phase 6: Alert Source + Backend Contract Plumbing [checkpoint: 5b527a0]
 
 - [x] Task: Red - Write failing backend contract tests for DRT source identity (62349d8)
     - [x] Add tests ensuring unified resources expose source as `drt`.
@@ -155,7 +155,7 @@
 - [x] Task: Refactor - Reduce duplication in source-registration paths (62349d8)
     - [x] Deduplicate any repeated allow-list logic where safe and already patterned.
     - [x] Re-run focused suite and verify no regression.
-- [ ] Task: Conductor - User Manual Verification 'Phase 6: Alert Source + Backend Contract Plumbing' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 6: Alert Source + Backend Contract Plumbing' (Protocol in workflow.md) (5b527a0)
 
 ## Phase 7: Frontend Domain + Presentation Integration
 
