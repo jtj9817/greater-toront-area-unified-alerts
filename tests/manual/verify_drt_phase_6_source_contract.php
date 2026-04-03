@@ -19,7 +19,11 @@ use App\Enums\AlertSource;
 use App\Http\Middleware\HandleInertiaRequests;
 use App\Models\DrtAlert;
 use App\Models\FireIncident;
+use App\Models\GoTransitAlert;
 use App\Models\MiwayAlert;
+use App\Models\PoliceCall;
+use App\Models\TransitAlert;
+use App\Models\YrtAlert;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\Http\Kernel as HttpKernel;
 use Illuminate\Http\Request;
@@ -148,7 +152,11 @@ try {
     logInfo('Phase 1: Setup deterministic dataset');
 
     FireIncident::query()->delete();
+    PoliceCall::query()->delete();
+    TransitAlert::query()->delete();
+    GoTransitAlert::query()->delete();
     MiwayAlert::query()->delete();
+    YrtAlert::query()->delete();
     DrtAlert::query()->delete();
 
     FireIncident::factory()->create([
