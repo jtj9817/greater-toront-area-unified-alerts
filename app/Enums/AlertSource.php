@@ -10,6 +10,7 @@ enum AlertSource: string
     case GoTransit = 'go_transit';
     case Miway = 'miway';
     case Yrt = 'yrt';
+    case Drt = 'drt';
 
     /**
      * @return array<int, string>
