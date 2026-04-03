@@ -2,22 +2,36 @@
 
 ## Phase 0: Source Re-Validation + Fixture Capture (Pre-Implementation)
 
-- [ ] Task: Confirm upstream source shape and endpoints (2026-04-03 baseline)
-  - [ ] Confirm list URL and pagination: `.../ServiceAlertsandDetours?page=N`.
-  - [ ] Confirm list entry fields and labels are present: `Posted on`, `When:`, `Route:` / `Routes:`, `Read more`.
-  - [ ] Confirm detail page contains the canonical full text and stable content boundaries (`Back to Search` and `Subscribe`).
-  - [ ] Inspect network requests to verify whether any JSON endpoint serves the Service Alerts/Detours list:
-    - [ ] If a stable unauthenticated JSON/RSS feed is found, record it here and update Phase 2 to prefer it.
-    - [ ] Otherwise, explicitly proceed with HTML list + detail scraping.
-  - [ ] Record the current behavior of `GET /Modules/NewsModule/services/getAlertBannerFeeds.ashx` (banner feed only; must not be used as the list source).
-- [ ] Task: Create HTML fixtures used by tests (resilience to site refactors)
-  - [ ] Save list page fixtures for `page=1` and `page=2`.
-  - [ ] Save at least two detail page fixtures:
-    - [ ] one with `Route:` (singular)
-    - [ ] one with `Routes:` and bullet/stop lists
-  - [ ] Ensure fixtures cover common edge cases observed in the wild:
-    - [ ] missing/odd whitespace (e.g. `Routes: 920and 921`)
-    - [ ] non-breaking spaces and bullet lists
+- [x] Task: Confirm upstream source shape and endpoints (2026-04-03 baseline) (42df34f)
+  - [x] Confirm list URL and pagination: `.../ServiceAlertsandDetours?page=N`.
+  - [x] Confirm list entry fields and labels are present: `Posted on`, `When:`, `Route:` / `Routes:`, `Read more`.
+  - [x] Confirm detail page contains the canonical full text and stable content boundaries (`Back to Search` and `Subscribe`).
+  - [x] Inspect network requests to verify whether any JSON endpoint serves the Service Alerts/Detours list:
+    - [x] If a stable unauthenticated JSON/RSS feed is found, record it here and update Phase 2 to prefer it.
+    - [x] Otherwise, explicitly proceed with HTML list + detail scraping.
+  - [x] Record the current behavior of `GET /Modules/NewsModule/services/getAlertBannerFeeds.ashx` (banner feed only; must not be used as the list source).
+  - Re-validation outcome (captured 2026-04-03):
+    - HTML source remains canonical: `GET /Modules/News/en/ServiceAlertsandDetours?page=N`.
+    - Page 1 and page 2 both expose `Posted on`, `When:`, `Route:` / `Routes:`, and `Read more` entries.
+    - Detail pages still include `Back to Search` + `Subscribe` boundaries around the canonical content block.
+    - `GET /Modules/NewsModule/services/getAlertBannerFeeds.ashx` currently returns a 200 JSON banner payload (`Content-Type: application/javascript`, body length 684); this is banner-only and not the Service Alerts list source.
+    - No stable unauthenticated JSON/RSS endpoint for Service Alerts + Detours was confirmed:
+      - `GET /Modules/NewsModule/services/getTopFiveNews.ashx?limit=5&lang=en` returns generic news JSON (not scoped to active Service Alerts list).
+      - `GET /Modules/NewsModule/services/getTopFiveNews.ashx?...&categories=Service%20Alerts%20and%20Detours` returned an empty body on 2026-04-03.
+      - Proceed with HTML list + detail scraping in Phase 2.
+- [x] Task: Create HTML fixtures used by tests (resilience to site refactors) (42df34f)
+  - [x] Save list page fixtures for `page=1` and `page=2`.
+  - [x] Save at least two detail page fixtures:
+    - [x] one with `Route:` (singular)
+    - [x] one with `Routes:` and bullet/stop lists
+  - [x] Ensure fixtures cover common edge cases observed in the wild:
+    - [x] missing/odd whitespace (e.g. `Routes: 920and 921`)
+    - [x] non-breaking spaces and bullet lists
+  - Fixture files captured:
+    - `tests/fixtures/drt/list-page-1.html`
+    - `tests/fixtures/drt/list-page-2.html`
+    - `tests/fixtures/drt/detail-route-singular-conlin-grandview.html`
+    - `tests/fixtures/drt/detail-routes-bullets-odd-whitespace.html`
 
 ## Phase 1: Database + Model
 
