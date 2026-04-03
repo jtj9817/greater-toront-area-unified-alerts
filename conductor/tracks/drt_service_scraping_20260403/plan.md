@@ -1,5 +1,24 @@
 # Implementation Plan: DRT Service Alerts Scraping Integration
 
+## Phase 0: Source Re-Validation + Fixture Capture (Pre-Implementation)
+
+- [ ] Task: Confirm upstream source shape and endpoints (2026-04-03 baseline)
+  - [ ] Confirm list URL and pagination: `.../ServiceAlertsandDetours?page=N`.
+  - [ ] Confirm list entry fields and labels are present: `Posted on`, `When:`, `Route:` / `Routes:`, `Read more`.
+  - [ ] Confirm detail page contains the canonical full text and stable content boundaries (`Back to Search` and `Subscribe`).
+  - [ ] Inspect network requests to verify whether any JSON endpoint serves the Service Alerts/Detours list:
+    - [ ] If a stable unauthenticated JSON/RSS feed is found, record it here and update Phase 2 to prefer it.
+    - [ ] Otherwise, explicitly proceed with HTML list + detail scraping.
+  - [ ] Record the current behavior of `GET /Modules/NewsModule/services/getAlertBannerFeeds.ashx` (banner feed only; must not be used as the list source).
+- [ ] Task: Create HTML fixtures used by tests (resilience to site refactors)
+  - [ ] Save list page fixtures for `page=1` and `page=2`.
+  - [ ] Save at least two detail page fixtures:
+    - [ ] one with `Route:` (singular)
+    - [ ] one with `Routes:` and bullet/stop lists
+  - [ ] Ensure fixtures cover common edge cases observed in the wild:
+    - [ ] missing/odd whitespace (e.g. `Routes: 920and 921`)
+    - [ ] non-breaking spaces and bullet lists
+
 ## Phase 1: Database + Model
 
 - [ ] Task: Red - Write failing persistence and model tests for DRT
@@ -22,20 +41,30 @@
 
 - [ ] Task: Red - Write failing feed-service tests for normalization and resilience
   - [ ] Create `tests/Feature/DrtServiceAlertsFeedServiceTest.php` covering:
-    - [ ] list-page parsing (title, details_url, posted_at, when_text, route_text).
+    - [ ] list-page parsing (title, details_url, posted_at, when_text, route_text, excerpt text).
     - [ ] slug extraction into `external_id`.
     - [ ] Toronto-to-UTC timestamp parsing.
-    - [ ] deterministic `list_hash` generation based on list signals.
+    - [ ] label and whitespace normalization:
+      - [ ] tolerate `Route:` vs `Routes:`.
+      - [ ] tolerate non-breaking spaces and odd spacing around colons/values.
+    - [ ] deterministic `list_hash` generation based on list signals (include `details_url`) with stable separators and deterministic handling when optional fields are missing.
     - [ ] pagination behavior + max page cap.
+    - [ ] URL normalization:
+      - [ ] relative links become absolute.
+      - [ ] non-canonical hostnames (if present) normalize to `www.durhamregiontransit.com` for persisted `details_url`.
+    - [ ] DOM refactor resistance:
+      - [ ] tests must pass when CSS classes are removed/renamed in fixtures (parser relies on URL patterns + label text, not classes).
   - [ ] Add conditional detail-fetch decision tests (new alert, changed hash, missing body, stale `details_fetched_at`, and skip path).
   - [ ] Add failure-mode tests for network errors, malformed HTML, and empty list behavior (respecting `feeds.allow_empty_feeds`).
   - [ ] Add circuit-breaker success/failure recording behavior tests.
   - [ ] Run focused tests and confirm red state.
 - [ ] Task: Green - Implement `DrtServiceAlertsFeedService`
   - [ ] Add `app/Services/DrtServiceAlertsFeedService.php` with timeout/retry and browser-ish headers.
-  - [ ] Implement list fetch + DOM parsing into deterministic alert array contract.
+  - [ ] Implement list fetch + DOM parsing into deterministic alert array contract without coupling to fragile CSS classes.
   - [ ] Implement pagination traversal with a hard max page guard.
-  - [ ] Implement conditional detail fetch + content-block text extraction with defensive parsing.
+  - [ ] Implement conditional detail fetch + full content-block text extraction with defensive parsing:
+    - [ ] `body_text` must include `When:` and `Route(s):` and any bullet/stop lists (not just the list excerpt).
+    - [ ] `body_text` must exclude navigation/footer noise when possible (use stable content boundaries; fall back safely).
   - [ ] Return normalized shape: `updated_at` (UTC) and `alerts`.
   - [ ] Re-run focused tests until green.
 - [ ] Task: Refactor - Extract parsing and decision helpers
@@ -155,4 +184,3 @@
   - [ ] Add final implementation notes and deviations to this track's `spec.md`/`plan.md`.
   - [ ] Update `metadata.json` fields (`updated_at`, status when appropriate) and prep archive handoff checklist.
 - [ ] Task: Conductor - User Manual Verification 'Phase 9: Documentation Phase' (Protocol in workflow.md)
-

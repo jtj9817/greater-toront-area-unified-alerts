@@ -14,9 +14,12 @@ Add DRT as a first-class transit source in the same operational and UX pathways 
   - Pagination uses `?page=N`.
 - Canonical detail page pattern:
   - `https://www.durhamregiontransit.com/en/news/{slug}.aspx`
-- Not an ingestion source:
-  - `/Modules/NewsModule/services/getAlertBannerFeeds.ashx` (observed 404 body error; treat as unreliable).
-- No reliable RSS/JSON feed for Service Alerts/Detours was identified as of 2026-03-30; ingestion is HTML scraping only.
+- Confirmed list/detail rendering shape (revalidated 2026-04-03):
+  - Listing entries include a title link, a `Posted on ...` timestamp line, `When:` line, and `Route:` / `Routes:` line, followed by an excerpt and a `Read more` link.
+  - Detail pages contain the canonical full-text block including `When:` and `Route(s):` and any stop lists/bullets.
+- Not used for ingestion (informational only):
+  - `GET /Modules/NewsModule/services/getAlertBannerFeeds.ashx` returns a small JSON array used for site-wide banner messaging (not the Service Alerts + Detours listing). It also appears to rely on site-issued cookies such as `__RequestVerificationToken`, so we must not build ingestion logic on it.
+- No public JSON/RSS endpoint for Service Alerts/Detours has been confirmed as of 2026-04-03; ingestion is HTML scraping only unless Phase 0 discovers a stable unauthenticated alternative.
 
 ## Architecture Direction
 Preserve the current unified alerts architecture:
@@ -26,6 +29,16 @@ Preserve the current unified alerts architecture:
 - existing API resource and frontend domain mapping flow
 
 Keep source identity explicit as `drt`. Persist coordinates as `NULL` (`lat`, `lng`) for all DRT rows. Follow existing feed resilience patterns already used by transit providers.
+
+## Scraping Resilience Strategy (Resistant to Frontend Refactors)
+The scraper must avoid coupling to fragile CSS classes and instead rely on stable semantics:
+- Identify list entries by anchoring on the detail URL pattern (`/en/news/*.aspx`) plus nearby `Posted on` text, rather than specific class names.
+- Extract `posted_at` from the human-readable `Posted on {DayOfWeek}, {Month} {dd}, {yyyy} {hh:mm} {AM|PM}` string (tolerant parsing; timezone `America/Toronto` to UTC).
+- Extract `when_text` and `route_text` by matching the label prefixes `When:`, `Route:`, and `Routes:` (case-insensitive, whitespace normalized).
+- Extract `body_text` from the detail page by selecting the content between the `Back to Search` affordance and the `Subscribe` link block, falling back to a conservative “main content” container selection if those anchors are absent.
+- Canonicalize URLs:
+  - Accept relative detail URLs.
+  - Accept alternative hostnames occasionally present in site navigation (e.g. `durhamregiontransit.icreate7.esolutionsgroup.ca`), but normalize persisted `details_url` to `https://www.durhamregiontransit.com/...` when possible.
 
 ## Scraping Optimizations and Guard Rails
 - List-first, detail-on-demand:
@@ -76,7 +89,7 @@ For each scraped item, normalization must produce a deterministic record:
 - `posted_at`: parsed from list timestamp in `America/Toronto`, stored in UTC.
 - `when_text` / `route_text`: best-effort extraction from labeled list/detail blocks; store raw, human-readable text.
 - `details_url`: absolute URL; reject empty/non-URL values.
-- `list_hash`: `sha1` of stable concatenation of list fields (title + posted timestamp + when/route + excerpt text).
+- `list_hash`: `sha1` of stable concatenation of list fields (title + posted timestamp + when/route + excerpt text + details_url), with stable separators and deterministic handling when optional fields are missing.
 - `feed_updated_at`: current UTC time for this scrape run.
 
 ## Detail Enrichment Rules
@@ -154,15 +167,16 @@ Provider must obey existing criteria semantics:
 - Avoid unrelated API schema, UI redesign, or cross-domain refactors in this track.
 
 ## Implementation Phases
-1. Phase 1: Database + Model
-2. Phase 2: Feed Service (HTML List + Conditional Detail HTML)
-3. Phase 3: Fetch Command (Sync + Notifications)
-4. Phase 4: Queue Job Wrapper + Scheduler
-5. Phase 5: Unified Alerts Provider
-6. Phase 6: Source Enum + Backend Contract Plumbing
-7. Phase 7: Frontend Domain + Presentation Integration
-8. Phase 8: QA Phase
-9. Phase 9: Documentation Phase (if required)
+1. Phase 0: Source Re-Validation + Fixture Capture (pre-implementation)
+2. Phase 1: Database + Model
+3. Phase 2: Feed Service (HTML List + Conditional Detail HTML)
+4. Phase 3: Fetch Command (Sync + Notifications)
+5. Phase 4: Queue Job Wrapper + Scheduler
+6. Phase 5: Unified Alerts Provider
+7. Phase 6: Source Enum + Backend Contract Plumbing
+8. Phase 7: Frontend Domain + Presentation Integration
+9. Phase 8: QA Phase
+10. Phase 9: Documentation Phase (if required)
 
 ## Acceptance Criteria
 1. `vendor/bin/sail artisan drt:fetch-alerts` ingests items into `drt_alerts` with correct active-state synchronization.
@@ -170,4 +184,3 @@ Provider must obey existing criteria semantics:
 3. Frontend renders DRT items with correct title/timestamp/route metadata and a working details URL.
 4. Scheduled job dispatch runs every 5 minutes without overlaps and failures are observable via existing logging paths.
 5. Targeted backend/frontend tests covering parsing, sync, and mapping are added and pass.
-
