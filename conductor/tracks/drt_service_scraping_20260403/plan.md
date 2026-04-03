@@ -108,20 +108,20 @@
 
 ## Phase 4: Queue Job Wrapper + Scheduler
 
-- [ ] Task: Red - Write failing job and scheduler tests
-  - [ ] Create `tests/Feature/Jobs/FetchDrtAlertsJobTest.php` for command invocation and non-zero exit failure behavior.
-  - [ ] Extend/cover `tests/Feature/Console/ScheduledFetchJobDispatcherTest.php` for `dispatchDrtAlerts()`.
-  - [ ] Add scheduler registration assertions for five-minute cadence and overlap protection.
-  - [ ] Run focused tests and confirm red state.
-- [ ] Task: Green - Implement DRT job and schedule wiring
-  - [ ] Add `app/Jobs/FetchDrtAlertsJob.php` implementing queue, unique, and overlap middleware contracts.
-  - [ ] Update `app/Services/ScheduledFetchJobDispatcher.php` with `dispatchDrtAlerts()`.
-  - [ ] Update `routes/console.php` schedule callback for the DRT dispatcher path.
-  - [ ] Re-run focused tests until green.
-- [ ] Task: Refactor - Align scheduler ergonomics with transit patterns
-  - [ ] Match job naming and middleware ordering with existing transit wrappers.
-  - [ ] Remove duplicated scheduler configuration logic where possible.
-  - [ ] Re-run focused suite and verify no regression.
+- [x] Task: Red - Write failing job and scheduler tests (e2d7c65)
+  - [x] Create `tests/Feature/Jobs/FetchDrtAlertsJobTest.php` for command invocation and non-zero exit failure behavior.
+  - [x] Extend/cover `tests/Feature/Console/ScheduledFetchJobDispatcherTest.php` for `dispatchDrtAlerts()`.
+  - [x] Add scheduler registration assertions for five-minute cadence and overlap protection.
+  - [x] Run focused tests and confirm red state.
+- [x] Task: Green - Implement DRT job and schedule wiring (e2d7c65)
+  - [x] Add `app/Jobs/FetchDrtAlertsJob.php` implementing queue, unique, and overlap middleware contracts.
+  - [x] Update `app/Services/ScheduledFetchJobDispatcher.php` with `dispatchDrtAlerts()`.
+  - [x] Update `routes/console.php` schedule callback for the DRT dispatcher path.
+  - [x] Re-run focused tests until green.
+- [x] Task: Refactor - Align scheduler ergonomics with transit patterns (e2d7c65)
+  - [x] Match job naming and middleware ordering with existing transit wrappers.
+  - [x] Remove duplicated scheduler configuration logic where possible.
+  - [x] Re-run focused suite and verify no regression.
 - [ ] Task: Conductor - User Manual Verification 'Phase 4: Queue Job Wrapper + Scheduler' (Protocol in workflow.md)
 
 ## Phase 5: Unified Alerts Provider
