@@ -87,7 +87,7 @@
   - [x] Re-run focused suite and verify no regression.
 - [x] Task: Conductor - User Manual Verification 'Phase 2: Feed Service (HTML List + Conditional Detail HTML)' (Protocol in workflow.md) (e6c4204)
 
-## Phase 3: Fetch Command (Sync + Notifications)
+## Phase 3: Fetch Command (Sync + Notifications) [checkpoint: babaad7]
 
 - [x] Task: Red - Write failing command tests for sync lifecycle (b6112ac)
   - [x] Create `tests/Feature/Commands/FetchDrtAlertsCommandTest.php` with upsert expectations for active alerts.
@@ -104,7 +104,7 @@
   - [x] Consolidate field assignment/update logic to avoid divergence between create/update paths.
   - [x] Improve command output/summary messaging for operational debugging.
   - [x] Re-run focused suite and verify no regression.
-- [ ] Task: Conductor - User Manual Verification 'Phase 3: Fetch Command (Sync + Notifications)' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 3: Fetch Command (Sync + Notifications)' (Protocol in workflow.md) (babaad7)
 
 ## Phase 4: Queue Job Wrapper + Scheduler
 
