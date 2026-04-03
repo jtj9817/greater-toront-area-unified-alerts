@@ -251,6 +251,19 @@ class YrtServiceAdvisoriesFeedService
                 $node->parentNode?->removeChild($node);
             }
 
+            // YRT uses div.ge-content for the actual article body — prefer it
+            // over <main>/<article> which include nav, footer, and sidebar noise.
+            $articleContent = $xpath->query('//div[contains(@class, "ge-content")]');
+
+            if ($articleContent !== false && $articleContent->length > 0) {
+                $text = $this->normalizeText($articleContent->item(0)->textContent);
+
+                if ($text !== null) {
+                    return $text;
+                }
+            }
+
+            // Fallback: largest content among semantic containers
             $candidates = $xpath->query('//main|//article|//body');
             $bestText = null;
 
