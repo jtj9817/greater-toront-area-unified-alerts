@@ -1,5 +1,6 @@
 <?php
 
+use App\Jobs\FetchDrtAlertsJob;
 use App\Jobs\FetchFireIncidentsJob;
 use App\Jobs\FetchGoTransitAlertsJob;
 use App\Jobs\FetchMiwayAlertsJob;
@@ -48,6 +49,7 @@ test('dispatch methods enqueue one scheduled fetch job per source', function () 
     expect($dispatcher->dispatchGoTransitAlerts())->toBeTrue();
     expect($dispatcher->dispatchMiwayAlerts())->toBeTrue();
     expect($dispatcher->dispatchYrtAlerts())->toBeTrue();
+    expect($dispatcher->dispatchDrtAlerts())->toBeTrue();
 
     expect(queuedJobCount(FetchFireIncidentsJob::class))->toBe(1);
     expect(queuedJobCount(FetchPoliceCallsJob::class))->toBe(1);
@@ -55,6 +57,7 @@ test('dispatch methods enqueue one scheduled fetch job per source', function () 
     expect(queuedJobCount(FetchGoTransitAlertsJob::class))->toBe(1);
     expect(queuedJobCount(FetchMiwayAlertsJob::class))->toBe(1);
     expect(queuedJobCount(FetchYrtAlertsJob::class))->toBe(1);
+    expect(queuedJobCount(FetchDrtAlertsJob::class))->toBe(1);
 });
 
 test('dispatch skips duplicate enqueue when an equivalent job is already queued', function () {
@@ -90,6 +93,25 @@ test('dispatch yrt alerts skips duplicate enqueue when an equivalent job is alre
         ->withArgs(function (string $message, array $context): bool {
             return $message === 'Scheduled fetch job skipped'
                 && ($context['job_class'] ?? null) === FetchYrtAlertsJob::class
+                && ($context['reason'] ?? null) === 'outstanding_queue_row_exists';
+        })
+        ->once();
+});
+
+test('dispatch drt alerts skips duplicate enqueue when an equivalent job is already queued', function () {
+    Log::spy();
+
+    $dispatcher = app(ScheduledFetchJobDispatcher::class);
+
+    expect($dispatcher->dispatchDrtAlerts())->toBeTrue();
+    expect($dispatcher->dispatchDrtAlerts())->toBeFalse();
+
+    expect(queuedJobCount(FetchDrtAlertsJob::class))->toBe(1);
+
+    Log::shouldHaveReceived('info')
+        ->withArgs(function (string $message, array $context): bool {
+            return $message === 'Scheduled fetch job skipped'
+                && ($context['job_class'] ?? null) === FetchDrtAlertsJob::class
                 && ($context['reason'] ?? null) === 'outstanding_queue_row_exists';
         })
         ->once();
@@ -176,6 +198,7 @@ test('dispatch methods use the configured unique lock store instead of the defau
     expect($dispatcher->dispatchGoTransitAlerts())->toBeTrue();
     expect($dispatcher->dispatchMiwayAlerts())->toBeTrue();
     expect($dispatcher->dispatchYrtAlerts())->toBeTrue();
+    expect($dispatcher->dispatchDrtAlerts())->toBeTrue();
 
     expect(DB::table('cache_locks')->count())->toBe(0);
 });

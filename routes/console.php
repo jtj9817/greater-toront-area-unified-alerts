@@ -31,6 +31,9 @@ Schedule::call(function (ScheduledFetchJobDispatcher $dispatcher): void {
 Schedule::call(function (ScheduledFetchJobDispatcher $dispatcher): void {
     $dispatcher->dispatchYrtAlerts();
 })->name('yrt:fetch-alerts')->everyFiveMinutes()->withoutOverlapping(10);
+Schedule::call(function (ScheduledFetchJobDispatcher $dispatcher): void {
+    $dispatcher->dispatchDrtAlerts();
+})->name('drt:fetch-alerts')->everyFiveMinutes()->withoutOverlapping(10);
 Schedule::job(new GenerateDailyDigestJob)->dailyAt('00:10')->withoutOverlapping();
 Schedule::command('notifications:prune')->daily()->withoutOverlapping();
 Schedule::command('queue:prune-failed', ['--hours' => 168])->daily()->withoutOverlapping();

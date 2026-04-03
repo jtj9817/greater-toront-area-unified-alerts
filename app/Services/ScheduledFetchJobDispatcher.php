@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Jobs\FetchDrtAlertsJob;
 use App\Jobs\FetchFireIncidentsJob;
 use App\Jobs\FetchGoTransitAlertsJob;
 use App\Jobs\FetchMiwayAlertsJob;
@@ -55,6 +56,11 @@ class ScheduledFetchJobDispatcher
     public function dispatchYrtAlerts(): bool
     {
         return $this->dispatchUnique('yrt:fetch-alerts', new FetchYrtAlertsJob);
+    }
+
+    public function dispatchDrtAlerts(): bool
+    {
+        return $this->dispatchUnique('drt:fetch-alerts', new FetchDrtAlertsJob);
     }
 
     private function dispatchUnique(string $source, ShouldQueue&ShouldBeUnique $job): bool
