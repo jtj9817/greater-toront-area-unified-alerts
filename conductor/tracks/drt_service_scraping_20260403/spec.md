@@ -18,8 +18,18 @@ Add DRT as a first-class transit source in the same operational and UX pathways 
   - Listing entries include a title link, a `Posted on ...` timestamp line, `When:` line, and `Route:` / `Routes:` line, followed by an excerpt and a `Read more` link.
   - Detail pages contain the canonical full-text block including `When:` and `Route(s):` and any stop lists/bullets.
 - Not used for ingestion (informational only):
-  - `GET /Modules/NewsModule/services/getAlertBannerFeeds.ashx` returns a small JSON array used for site-wide banner messaging (not the Service Alerts + Detours listing). It also appears to rely on site-issued cookies such as `__RequestVerificationToken`, so we must not build ingestion logic on it.
-- No public JSON/RSS endpoint for Service Alerts/Detours has been confirmed as of 2026-04-03; ingestion is HTML scraping only unless Phase 0 discovers a stable unauthenticated alternative.
+  - `GET /Modules/NewsModule/services/getAlertBannerFeeds.ashx` returned HTTP 200 on 2026-04-03 with `Content-Type: application/javascript` and a small JSON banner array (body length 684). It is banner-only and must not be used as the Service Alerts + Detours list source.
+  - `GET /Modules/NewsModule/services/getTopFiveNews.ashx?limit=5&lang=en` returned general news JSON (not the Service Alerts list contract).
+  - `GET /Modules/NewsModule/services/getTopFiveNews.ashx?...&categories=Service%20Alerts%20and%20Detours` returned an empty body on 2026-04-03.
+- No stable unauthenticated JSON/RSS endpoint for Service Alerts/Detours has been confirmed as of 2026-04-03; ingestion remains HTML list + detail scraping.
+
+### Phase 0 Fixture Capture (2026-04-03)
+- Captured list fixtures:
+  - `tests/fixtures/drt/list-page-1.html`
+  - `tests/fixtures/drt/list-page-2.html`
+- Captured detail fixtures:
+  - `tests/fixtures/drt/detail-route-singular-conlin-grandview.html` (`Route:` singular + non-breaking spaces + bullet stop lines)
+  - `tests/fixtures/drt/detail-routes-bullets-odd-whitespace.html` (`Routes:` variant with odd spacing `Routes: 920and 921` + `<ul>/<li>` stop list)
 
 ## Architecture Direction
 Preserve the current unified alerts architecture:
