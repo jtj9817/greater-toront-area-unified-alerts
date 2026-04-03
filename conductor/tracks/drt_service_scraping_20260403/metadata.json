@@ -1,0 +1,9 @@
+{
+  "track_id": "drt_service_scraping_20260403",
+  "type": "feature",
+  "status": "new",
+  "created_at": "2026-04-03T00:00:00Z",
+  "updated_at": "2026-04-03T00:00:00Z",
+  "description": "Integrate Durham Region Transit (DRT) Service Alerts and Detours into the unified alerts pipeline based on docs/plans/DRT_Scraping_Implementation_Plan.md."
+}
+
