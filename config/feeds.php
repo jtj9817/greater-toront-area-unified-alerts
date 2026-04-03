@@ -33,6 +33,11 @@ return [
         'details_refresh_hours' => 24,
     ],
 
+    'drt' => [
+        'max_pages' => 10,
+        'details_refresh_hours' => 24,
+    ],
+
     'sanity' => [
         // Warn when timestamps that should be "near now" drift too far into the future.
         'future_timestamp_grace_seconds' => 15 * 60,
