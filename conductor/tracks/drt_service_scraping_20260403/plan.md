@@ -89,21 +89,21 @@
 
 ## Phase 3: Fetch Command (Sync + Notifications)
 
-- [ ] Task: Red - Write failing command tests for sync lifecycle
-  - [ ] Create `tests/Feature/Commands/FetchDrtAlertsCommandTest.php` with upsert expectations for active alerts.
-  - [ ] Add stale deactivation tests (missing ids from latest scrape become inactive).
-  - [ ] Add idempotency tests for repeated unchanged runs.
-  - [ ] Add tests for `AlertCreated` dispatch only on create/reactivate transitions.
-  - [ ] Run focused tests and confirm red state.
-- [ ] Task: Green - Implement `drt:fetch-alerts` command path
-  - [ ] Add `app/Console/Commands/FetchDrtAlertsCommand.php` wired to `DrtServiceAlertsFeedService`.
-  - [ ] Implement upsert/deactivation logic and UTC `feed_updated_at` persistence.
-  - [ ] Extend `NotificationAlertFactory` with `fromDrtAlert()` mapping if missing.
-  - [ ] Re-run focused tests until green.
-- [ ] Task: Refactor - Tighten command safety and readability
-  - [ ] Consolidate field assignment/update logic to avoid divergence between create/update paths.
-  - [ ] Improve command output/summary messaging for operational debugging.
-  - [ ] Re-run focused suite and verify no regression.
+- [x] Task: Red - Write failing command tests for sync lifecycle (b6112ac)
+  - [x] Create `tests/Feature/Commands/FetchDrtAlertsCommandTest.php` with upsert expectations for active alerts.
+  - [x] Add stale deactivation tests (missing ids from latest scrape become inactive).
+  - [x] Add idempotency tests for repeated unchanged runs.
+  - [x] Add tests for `AlertCreated` dispatch only on create/reactivate transitions.
+  - [x] Run focused tests and confirm red state.
+- [x] Task: Green - Implement `drt:fetch-alerts` command path (b6112ac)
+  - [x] Add `app/Console/Commands/FetchDrtAlertsCommand.php` wired to `DrtServiceAlertsFeedService`.
+  - [x] Implement upsert/deactivation logic and UTC `feed_updated_at` persistence.
+  - [x] Extend `NotificationAlertFactory` with `fromDrtAlert()` mapping if missing.
+  - [x] Re-run focused tests until green.
+- [x] Task: Refactor - Tighten command safety and readability (b6112ac)
+  - [x] Consolidate field assignment/update logic to avoid divergence between create/update paths.
+  - [x] Improve command output/summary messaging for operational debugging.
+  - [x] Re-run focused suite and verify no regression.
 - [ ] Task: Conductor - User Manual Verification 'Phase 3: Fetch Command (Sync + Notifications)' (Protocol in workflow.md)
 
 ## Phase 4: Queue Job Wrapper + Scheduler
