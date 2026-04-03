@@ -143,16 +143,16 @@
 
 ## Phase 6: Alert Source + Backend Contract Plumbing
 
-- [x] Task: Red - Write failing backend contract tests for DRT source identity
+- [x] Task: Red - Write failing backend contract tests for DRT source identity (62349d8)
     - [x] Add tests ensuring unified resources expose source as `drt`.
     - [x] Add tests ensuring DRT records pass through existing unified endpoint/resource flow.
     - [x] Confirm no regressions for existing source enum values.
     - [x] Run focused tests and confirm red state.
-- [x] Task: Green - Implement enum and backend source plumbing
+- [x] Task: Green - Implement enum and backend source plumbing (62349d8)
     - [x] Add `Drt` case to `app/Enums/AlertSource.php`.
     - [x] Update any backend switch/validation paths that require explicit source registration.
     - [x] Re-run focused tests until green.
-- [x] Task: Refactor - Reduce duplication in source-registration paths
+- [x] Task: Refactor - Reduce duplication in source-registration paths (62349d8)
     - [x] Deduplicate any repeated allow-list logic where safe and already patterned.
     - [x] Re-run focused suite and verify no regression.
 - [ ] Task: Conductor - User Manual Verification 'Phase 6: Alert Source + Backend Contract Plumbing' (Protocol in workflow.md)
