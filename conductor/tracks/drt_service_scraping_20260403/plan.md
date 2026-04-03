@@ -35,20 +35,20 @@
 
 ## Phase 1: Database + Model
 
-- [ ] Task: Red - Write failing persistence and model tests for DRT
-  - [ ] Create `tests/Unit/Models/DrtAlertTest.php` with schema expectations for required columns.
-  - [ ] Add assertions for unique `external_id` and indexes on `posted_at` and (`is_active`, `posted_at`).
-  - [ ] Add model behavior tests for `fillable`, casts, and `scopeActive()` filtering.
-  - [ ] Run focused tests and confirm red state before implementation.
-- [ ] Task: Green - Implement `drt_alerts` migration and `DrtAlert` model
-  - [ ] Add migration for `drt_alerts` with exact spec fields and index definitions.
-  - [ ] Add `app/Models/DrtAlert.php` with required fillable/casts/scope contracts.
-  - [ ] Add/update factory support if needed for deterministic tests.
-  - [ ] Re-run focused tests until green.
-- [ ] Task: Refactor - Normalize model and schema conventions
-  - [ ] Align naming/cast conventions with existing transit alert models.
-  - [ ] Remove duplicate setup code from tests using datasets/helpers.
-  - [ ] Re-run focused suite and verify no regression.
+- [x] Task: Red - Write failing persistence and model tests for DRT (124a8bd)
+  - [x] Create `tests/Unit/Models/DrtAlertTest.php` with schema expectations for required columns.
+  - [x] Add assertions for unique `external_id` and indexes on `posted_at` and (`is_active`, `posted_at`).
+  - [x] Add model behavior tests for `fillable`, casts, and `scopeActive()` filtering.
+  - [x] Run focused tests and confirm red state before implementation.
+- [x] Task: Green - Implement `drt_alerts` migration and `DrtAlert` model (124a8bd)
+  - [x] Add migration for `drt_alerts` with exact spec fields and index definitions.
+  - [x] Add `app/Models/DrtAlert.php` with required fillable/casts/scope contracts.
+  - [x] Add/update factory support if needed for deterministic tests.
+  - [x] Re-run focused tests until green.
+- [x] Task: Refactor - Normalize model and schema conventions (124a8bd)
+  - [x] Align naming/cast conventions with existing transit alert models.
+  - [x] Remove duplicate setup code from tests using datasets/helpers.
+  - [x] Re-run focused suite and verify no regression.
 - [ ] Task: Conductor - User Manual Verification 'Phase 1: Database + Model' (Protocol in workflow.md)
 
 ## Phase 2: Feed Service (HTML List + Conditional Detail HTML)
