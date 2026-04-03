@@ -106,7 +106,7 @@
   - [x] Re-run focused suite and verify no regression.
 - [x] Task: Conductor - User Manual Verification 'Phase 3: Fetch Command (Sync + Notifications)' (Protocol in workflow.md) (babaad7)
 
-## Phase 4: Queue Job Wrapper + Scheduler
+## Phase 4: Queue Job Wrapper + Scheduler [checkpoint: f679c79]
 
 - [x] Task: Red - Write failing job and scheduler tests (e2d7c65)
   - [x] Create `tests/Feature/Jobs/FetchDrtAlertsJobTest.php` for command invocation and non-zero exit failure behavior.
@@ -122,7 +122,7 @@
   - [x] Match job naming and middleware ordering with existing transit wrappers.
   - [x] Remove duplicated scheduler configuration logic where possible.
   - [x] Re-run focused suite and verify no regression.
-- [ ] Task: Conductor - User Manual Verification 'Phase 4: Queue Job Wrapper + Scheduler' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 4: Queue Job Wrapper + Scheduler' (Protocol in workflow.md) (f679c79)
 
 ## Phase 5: Unified Alerts Provider
 
