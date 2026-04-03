@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Models\DrtAlert;
 use App\Models\FireIncident;
 use App\Models\MiwayAlert;
 use App\Models\PoliceCall;
@@ -514,4 +515,132 @@ test('the feed api returns empty array for short search query', function () {
     $response = $this->getJson(route('api.feed', ['q' => 'a']));
     $response->assertOk()
         ->assertJsonCount(0, 'data');
+});
+
+test('the feed api respects source and status filters for drt without affecting existing sources', function () {
+    Carbon::setTestNow(Carbon::parse('2026-04-03 12:00:00'));
+
+    FireIncident::factory()->create([
+        'event_num' => 'F1',
+        'is_active' => true,
+        'dispatch_time' => Carbon::now()->subMinutes(2),
+    ]);
+
+    DrtAlert::factory()->create([
+        'external_id' => 'conlin-grandview-detour',
+        'title' => 'Conlin Grandview Detour',
+        'is_active' => true,
+        'posted_at' => Carbon::now()->subMinutes(1),
+    ]);
+
+    DrtAlert::factory()->create([
+        'external_id' => 'route-920-921-detour',
+        'title' => 'Route 920/921 Detour',
+        'is_active' => false,
+        'posted_at' => Carbon::now()->subMinutes(3),
+    ]);
+
+    // source=drt returns both DRT rows
+    $drtResponse = $this->getJson(route('api.feed', ['source' => 'drt']));
+    $drtResponse->assertOk();
+    $drtData = $drtResponse->json('data');
+
+    expect($drtData)->toHaveCount(2)
+        ->and(collect($drtData)->every(fn (array $row): bool => $row['source'] === 'drt'))->toBeTrue();
+
+    // source=drt&status=active returns only active DRT row
+    $drtActiveResponse = $this->getJson(route('api.feed', ['source' => 'drt', 'status' => 'active']));
+    $drtActiveResponse->assertOk();
+    $drtActiveData = $drtActiveResponse->json('data');
+
+    expect($drtActiveData)->toHaveCount(1)
+        ->and($drtActiveData[0]['source'])->toBe('drt')
+        ->and($drtActiveData[0]['external_id'])->toBe('conlin-grandview-detour')
+        ->and($drtActiveData[0]['is_active'])->toBeTrue();
+
+    // source=drt&status=cleared returns only inactive DRT row
+    $drtClearedResponse = $this->getJson(route('api.feed', ['source' => 'drt', 'status' => 'cleared']));
+    $drtClearedResponse->assertOk();
+    $drtClearedData = $drtClearedResponse->json('data');
+
+    expect($drtClearedData)->toHaveCount(1)
+        ->and($drtClearedData[0]['source'])->toBe('drt')
+        ->and($drtClearedData[0]['external_id'])->toBe('route-920-921-detour')
+        ->and($drtClearedData[0]['is_active'])->toBeFalse();
+
+    // source=fire still works correctly (regression guard)
+    $fireResponse = $this->getJson(route('api.feed', ['source' => 'fire']));
+    $fireResponse->assertOk();
+    $fireData = $fireResponse->json('data');
+
+    expect($fireData)->toHaveCount(1)
+        ->and($fireData[0]['source'])->toBe('fire')
+        ->and($fireData[0]['external_id'])->toBe('F1');
+});
+
+test('drt alerts appear in unified feed with correct structure', function () {
+    Carbon::setTestNow(Carbon::parse('2026-04-03 12:00:00'));
+
+    DrtAlert::factory()->create([
+        'external_id' => 'conlin-grandview-detour',
+        'title' => 'Conlin Grandview Detour',
+        'route_text' => 'Route 920',
+        'is_active' => true,
+        'posted_at' => Carbon::now()->subMinutes(5),
+        'details_url' => 'https://www.durhamregiontransit.com/en/news/conlin-grandview-detour.aspx',
+        'when_text' => 'Effective until further notice',
+        'body_text' => 'Full detour details for Conlin and Grandview.',
+    ]);
+
+    $response = $this->getJson(route('api.feed'));
+
+    $response->assertOk()
+        ->assertJsonStructure([
+            'data' => [
+                '*' => [
+                    'id',
+                    'source',
+                    'external_id',
+                    'is_active',
+                    'timestamp',
+                    'title',
+                    'location',
+                    'meta',
+                ],
+            ],
+            'next_cursor',
+        ]);
+
+    $data = $response->json('data');
+    expect($data)->toHaveCount(1);
+
+    $alert = $data[0];
+    expect($alert['source'])->toBe('drt');
+    expect($alert['external_id'])->toBe('conlin-grandview-detour');
+    expect($alert['is_active'])->toBeTrue();
+    expect($alert['title'])->toBe('Conlin Grandview Detour');
+    expect($alert['location'])->toBeArray();
+    expect($alert['location']['name'])->toBe('Route 920');
+    expect($alert['location']['lat'])->toBeNull();
+    expect($alert['location']['lng'])->toBeNull();
+
+    // Verify meta contains DRT-specific fields
+    expect($alert['meta'])->toBeArray();
+    expect($alert['meta']['details_url'])->toBe('https://www.durhamregiontransit.com/en/news/conlin-grandview-detour.aspx');
+    expect($alert['meta']['when_text'])->toBe('Effective until further notice');
+    expect($alert['meta']['route_text'])->toBe('Route 920');
+    expect($alert['meta']['body_text'])->toBe('Full detour details for Conlin and Grandview.');
+});
+
+test('source filter returns empty for drt when no drt alerts exist', function () {
+    FireIncident::factory()->create([
+        'event_num' => 'F1',
+        'is_active' => true,
+    ]);
+
+    $response = $this->getJson(route('api.feed', ['source' => 'drt']));
+    $response->assertOk();
+
+    $data = $response->json('data');
+    expect($data)->toHaveCount(0);
 });

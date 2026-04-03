@@ -15,6 +15,7 @@ test('alert source validates expected values', function (string $value) {
     'go_transit' => ['go_transit'],
     'miway' => ['miway'],
     'yrt' => ['yrt'],
+    'drt' => ['drt'],
 ]);
 
 test('alert source rejects unexpected values', function (mixed $value) {

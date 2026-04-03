@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\DrtAlert;
 use App\Models\FireIncident;
 use App\Models\GoTransitAlert;
 use App\Models\MiwayAlert;
@@ -715,4 +716,80 @@ test('alerts prop supports partial reload via reloadOnly', function () {
             ->missing('latest_feed_updated_at')
         )
     );
+});
+
+test('the home page sets latest_feed_updated_at from drt when it is most recent', function () {
+    Carbon::setTestNow(Carbon::parse('2026-04-03 12:00:00'));
+
+    $miwayLatest = Carbon::now()->subMinutes(5);
+    MiwayAlert::factory()->create([
+        'external_id' => 'miway:test:001',
+        'is_active' => true,
+        'feed_updated_at' => $miwayLatest,
+    ]);
+
+    $drtLatest = Carbon::now()->subMinute();
+    DrtAlert::factory()->create([
+        'external_id' => 'conlin-grandview-detour',
+        'is_active' => true,
+        'posted_at' => Carbon::now()->subMinutes(2),
+        'feed_updated_at' => $drtLatest,
+    ]);
+
+    $this->get(route('home'))
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('latest_feed_updated_at', $drtLatest->toIso8601String())
+        );
+});
+
+test('drt alerts appear in unified home page feed with correct source identity', function () {
+    Carbon::setTestNow(Carbon::parse('2026-04-03 12:00:00'));
+
+    DrtAlert::factory()->create([
+        'external_id' => 'conlin-grandview-detour',
+        'title' => 'Conlin Grandview Detour',
+        'route_text' => 'Route 920',
+        'is_active' => true,
+        'posted_at' => Carbon::now()->subMinutes(5),
+        'feed_updated_at' => Carbon::now()->subMinutes(4),
+    ]);
+
+    $this->get(route('home'))
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('gta-alerts')
+            ->has('alerts.data', 1)
+            ->where('alerts.data.0.id', 'drt:conlin-grandview-detour')
+            ->where('alerts.data.0.source', 'drt')
+            ->where('alerts.data.0.title', 'Conlin Grandview Detour')
+        );
+});
+
+test('the home page filters drt source correctly', function () {
+    Carbon::setTestNow(Carbon::parse('2026-04-03 12:00:00'));
+
+    FireIncident::factory()->create([
+        'event_num' => 'F1',
+        'is_active' => true,
+        'dispatch_time' => Carbon::now()->subMinutes(2),
+    ]);
+
+    DrtAlert::factory()->create([
+        'external_id' => 'conlin-grandview-detour',
+        'is_active' => true,
+        'posted_at' => Carbon::now()->subMinutes(1),
+    ]);
+
+    // source=drt returns only DRT rows
+    $this->get(route('home', ['source' => 'drt']))
+        ->assertInertia(fn (Assert $page) => $page
+            ->has('alerts.data', 1)
+            ->where('alerts.data.0.source', 'drt')
+        );
+
+    // source=fire returns only fire rows (regression guard)
+    $this->get(route('home', ['source' => 'fire']))
+        ->assertInertia(fn (Assert $page) => $page
+            ->has('alerts.data', 1)
+            ->where('alerts.data.0.source', 'fire')
+        );
 });

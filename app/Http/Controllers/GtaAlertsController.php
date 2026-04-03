@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Enums\AlertSource;
 use App\Enums\AlertStatus;
 use App\Http\Resources\UnifiedAlertResource;
+use App\Models\DrtAlert;
 use App\Models\FireIncident;
 use App\Models\GoTransitAlert;
 use App\Models\MiwayAlert;
@@ -32,6 +33,7 @@ class GtaAlertsController extends Controller
         GoTransitAlert::class,
         MiwayAlert::class,
         YrtAlert::class,
+        DrtAlert::class,
     ];
 
     public function __invoke(Request $request, UnifiedAlertsQuery $alerts): Response
