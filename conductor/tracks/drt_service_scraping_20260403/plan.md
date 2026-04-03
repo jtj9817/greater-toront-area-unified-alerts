@@ -53,38 +53,38 @@
 
 ## Phase 2: Feed Service (HTML List + Conditional Detail HTML)
 
-- [ ] Task: Red - Write failing feed-service tests for normalization and resilience
-  - [ ] Create `tests/Feature/DrtServiceAlertsFeedServiceTest.php` covering:
-    - [ ] list-page parsing (title, details_url, posted_at, when_text, route_text, excerpt text).
-    - [ ] slug extraction into `external_id`.
-    - [ ] Toronto-to-UTC timestamp parsing.
-    - [ ] label and whitespace normalization:
-      - [ ] tolerate `Route:` vs `Routes:`.
-      - [ ] tolerate non-breaking spaces and odd spacing around colons/values.
-    - [ ] deterministic `list_hash` generation based on list signals (include `details_url`) with stable separators and deterministic handling when optional fields are missing.
-    - [ ] pagination behavior + max page cap.
-    - [ ] URL normalization:
-      - [ ] relative links become absolute.
-      - [ ] non-canonical hostnames (if present) normalize to `www.durhamregiontransit.com` for persisted `details_url`.
-    - [ ] DOM refactor resistance:
-      - [ ] tests must pass when CSS classes are removed/renamed in fixtures (parser relies on URL patterns + label text, not classes).
-  - [ ] Add conditional detail-fetch decision tests (new alert, changed hash, missing body, stale `details_fetched_at`, and skip path).
-  - [ ] Add failure-mode tests for network errors, malformed HTML, and empty list behavior (respecting `feeds.allow_empty_feeds`).
-  - [ ] Add circuit-breaker success/failure recording behavior tests.
-  - [ ] Run focused tests and confirm red state.
-- [ ] Task: Green - Implement `DrtServiceAlertsFeedService`
-  - [ ] Add `app/Services/DrtServiceAlertsFeedService.php` with timeout/retry and browser-ish headers.
-  - [ ] Implement list fetch + DOM parsing into deterministic alert array contract without coupling to fragile CSS classes.
-  - [ ] Implement pagination traversal with a hard max page guard.
-  - [ ] Implement conditional detail fetch + full content-block text extraction with defensive parsing:
-    - [ ] `body_text` must include `When:` and `Route(s):` and any bullet/stop lists (not just the list excerpt).
-    - [ ] `body_text` must exclude navigation/footer noise when possible (use stable content boundaries; fall back safely).
-  - [ ] Return normalized shape: `updated_at` (UTC) and `alerts`.
-  - [ ] Re-run focused tests until green.
-- [ ] Task: Refactor - Extract parsing and decision helpers
-  - [ ] Extract helper methods for timestamp parsing, text normalization, `list_hash`, and detail fetch eligibility.
-  - [ ] Ensure skip/fetch decision logic remains fully covered.
-  - [ ] Re-run focused suite and verify no regression.
+- [x] Task: Red - Write failing feed-service tests for normalization and resilience (1b81508)
+  - [x] Create `tests/Feature/DrtServiceAlertsFeedServiceTest.php` covering:
+    - [x] list-page parsing (title, details_url, posted_at, when_text, route_text, excerpt text).
+    - [x] slug extraction into `external_id`.
+    - [x] Toronto-to-UTC timestamp parsing.
+    - [x] label and whitespace normalization:
+      - [x] tolerate `Route:` vs `Routes:`.
+      - [x] tolerate non-breaking spaces and odd spacing around colons/values.
+    - [x] deterministic `list_hash` generation based on list signals (include `details_url`) with stable separators and deterministic handling when optional fields are missing.
+    - [x] pagination behavior + max page cap.
+    - [x] URL normalization:
+      - [x] relative links become absolute.
+      - [x] non-canonical hostnames (if present) normalize to `www.durhamregiontransit.com` for persisted `details_url`.
+    - [x] DOM refactor resistance:
+      - [x] tests must pass when CSS classes are removed/renamed in fixtures (parser relies on URL patterns + label text, not classes).
+  - [x] Add conditional detail-fetch decision tests (new alert, changed hash, missing body, stale `details_fetched_at`, and skip path).
+  - [x] Add failure-mode tests for network errors, malformed HTML, and empty list behavior (respecting `feeds.allow_empty_feeds`).
+  - [x] Add circuit-breaker success/failure recording behavior tests.
+  - [x] Run focused tests and confirm red state.
+- [x] Task: Green - Implement `DrtServiceAlertsFeedService` (1b81508)
+  - [x] Add `app/Services/DrtServiceAlertsFeedService.php` with timeout/retry and browser-ish headers.
+  - [x] Implement list fetch + DOM parsing into deterministic alert array contract without coupling to fragile CSS classes.
+  - [x] Implement pagination traversal with a hard max page guard.
+  - [x] Implement conditional detail fetch + full content-block text extraction with defensive parsing:
+    - [x] `body_text` must include `When:` and `Route(s):` and any bullet/stop lists (not just the list excerpt).
+    - [x] `body_text` must exclude navigation/footer noise when possible (use stable content boundaries; fall back safely).
+  - [x] Return normalized shape: `updated_at` (UTC) and `alerts`.
+  - [x] Re-run focused tests until green.
+- [x] Task: Refactor - Extract parsing and decision helpers (1b81508)
+  - [x] Extract helper methods for timestamp parsing, text normalization, `list_hash`, and detail fetch eligibility.
+  - [x] Ensure skip/fetch decision logic remains fully covered.
+  - [x] Re-run focused suite and verify no regression.
 - [ ] Task: Conductor - User Manual Verification 'Phase 2: Feed Service (HTML List + Conditional Detail HTML)' (Protocol in workflow.md)
 
 ## Phase 3: Fetch Command (Sync + Notifications)
