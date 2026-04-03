@@ -51,7 +51,7 @@
   - [x] Re-run focused suite and verify no regression.
 - [x] Task: Conductor - User Manual Verification 'Phase 1: Database + Model' (Protocol in workflow.md) (15e6ae9)
 
-## Phase 2: Feed Service (HTML List + Conditional Detail HTML)
+## Phase 2: Feed Service (HTML List + Conditional Detail HTML) [checkpoint: e6c4204]
 
 - [x] Task: Red - Write failing feed-service tests for normalization and resilience (1b81508)
   - [x] Create `tests/Feature/DrtServiceAlertsFeedServiceTest.php` covering:
@@ -85,7 +85,7 @@
   - [x] Extract helper methods for timestamp parsing, text normalization, `list_hash`, and detail fetch eligibility.
   - [x] Ensure skip/fetch decision logic remains fully covered.
   - [x] Re-run focused suite and verify no regression.
-- [ ] Task: Conductor - User Manual Verification 'Phase 2: Feed Service (HTML List + Conditional Detail HTML)' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 2: Feed Service (HTML List + Conditional Detail HTML)' (Protocol in workflow.md) (e6c4204)
 
 ## Phase 3: Fetch Command (Sync + Notifications)
 
