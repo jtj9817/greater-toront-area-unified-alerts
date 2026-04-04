@@ -178,4 +178,33 @@ describe('AlertTableView', () => {
 
         expect(screen.getByText('YRT')).toBeInTheDocument();
     });
+
+    it('renders DRT source label for drt table rows', () => {
+        const drtRow = AlertService.mapUnifiedAlertToDomainAlert({
+            id: 'drt:conlin-grandview-detour',
+            source: 'drt',
+            external_id: 'conlin-grandview-detour',
+            is_active: true,
+            timestamp,
+            title: 'Conlin Grandview Detour',
+            location: { name: '900, 920', lat: null, lng: null },
+            meta: {
+                details_url:
+                    'https://www.durhamregiontransit.com/en/news/conlin-grandview-detour.aspx',
+                when_text: 'Effective until further notice',
+                route_text: '900, 920',
+                body_text:
+                    'Routes 900 and 920 are detoured via Grandview Drive.',
+                posted_at: '2026-04-03 10:20:00',
+                feed_updated_at: '2026-04-03 10:25:00',
+            },
+        });
+        if (!drtRow) {
+            throw new Error('Expected DRT DomainAlert row');
+        }
+
+        render(<AlertTableView {...defaultProps} items={[drtRow]} />);
+
+        expect(screen.getByText('DRT')).toBeInTheDocument();
+    });
 });

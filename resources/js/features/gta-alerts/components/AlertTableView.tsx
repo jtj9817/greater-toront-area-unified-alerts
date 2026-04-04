@@ -34,6 +34,8 @@ function getSourceLabel(alert: DomainAlert): string {
             return 'MiWay';
         case 'yrt':
             return 'YRT';
+        case 'drt':
+            return 'DRT';
     }
 }
 

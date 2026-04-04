@@ -610,6 +610,59 @@ function buildYrtSections(alert: PresentationAlert): DetailSections {
     };
 }
 
+function buildDrtSections(alert: PresentationAlert): DetailSections {
+    return {
+        header: (
+            <div className="relative flex flex-col items-center gap-6 overflow-hidden rounded-3xl border border-teal-500/20 bg-teal-950/20 p-8 md:flex-row">
+                <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-teal-600 text-white shadow-2xl shadow-teal-500/40">
+                    <Icon name="directions_bus" className="text-4xl" />
+                </div>
+                <div>
+                    <span className="mb-2 inline-block rounded-md bg-teal-600 px-2 py-1 text-[10px] font-bold text-white uppercase">
+                        DRT Service Advisory
+                    </span>
+                    <h1 className="text-3xl font-bold tracking-tight text-white md:text-4xl">
+                        {alert.title}
+                    </h1>
+                </div>
+            </div>
+        ),
+        metadata: (
+            <>
+                <div className="rounded-xl bg-white/5 p-4">
+                    <p className="mb-1 text-[10px] font-bold text-text-secondary uppercase">
+                        Alert Source
+                    </p>
+                    <p className="text-sm text-white">
+                        {alert.metadata?.source || 'DRT'}
+                    </p>
+                </div>
+                {alert.metadata?.route && (
+                    <div className="rounded-xl bg-white/5 p-4">
+                        <p className="mb-1 text-[10px] font-bold text-text-secondary uppercase">
+                            Route
+                        </p>
+                        <p className="text-sm text-white">
+                            {alert.metadata.route}
+                        </p>
+                    </div>
+                )}
+            </>
+        ),
+        specializedContent: (
+            <div className="rounded-2xl border border-teal-500/20 bg-teal-500/5 p-6">
+                <h4 className="mb-4 flex items-center gap-2 text-xs font-bold text-teal-400 uppercase">
+                    <Icon name="info" className="text-sm" /> DRT Notice
+                </h4>
+                <p className="text-sm text-teal-100">
+                    For route-level updates, check the Durham Region Transit
+                    advisory page or contact DRT customer service.
+                </p>
+            </div>
+        ),
+    };
+}
+
 export const AlertDetailsView: React.FC<DetailsProps> = ({
     alert,
     onBack,
@@ -637,6 +690,8 @@ export const AlertDetailsView: React.FC<DetailsProps> = ({
                 return buildMiwaySections(presentation);
             case 'yrt':
                 return buildYrtSections(presentation);
+            case 'drt':
+                return buildDrtSections(presentation);
         }
     }, [alert.kind, presentation]);
 
