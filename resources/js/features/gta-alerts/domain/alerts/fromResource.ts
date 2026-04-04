@@ -2,6 +2,7 @@ import { mapFireAlert } from './fire/mapper';
 import { mapMiwayAlert } from './miway/mapper';
 import { mapPoliceAlert } from './police/mapper';
 import { UnifiedAlertResourceSchema } from './resource';
+import { mapDrtAlert } from './transit/drt/mapper';
 import { mapGoTransitAlert } from './transit/go/mapper';
 import { mapTtcTransitAlert } from './transit/ttc/mapper';
 import { mapYrtAlert } from './transit/yrt/mapper';
@@ -49,6 +50,9 @@ export function fromResource(resource: unknown): DomainAlert | null {
         }
         case 'yrt': {
             return mapYrtAlert(validated);
+        }
+        case 'drt': {
+            return mapDrtAlert(validated);
         }
         default: {
             console.warn(

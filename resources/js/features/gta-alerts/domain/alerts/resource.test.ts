@@ -17,4 +17,19 @@ describe('UnifiedAlertResourceSchema', () => {
 
         expect(result.success).toBe(true);
     });
+
+    it('accepts drt as a valid source value', () => {
+        const result = UnifiedAlertResourceSchema.safeParse({
+            id: 'drt:conlin-grandview-detour',
+            source: 'drt',
+            external_id: 'conlin-grandview-detour',
+            is_active: true,
+            timestamp: '2026-04-03T14:20:00Z',
+            title: 'Conlin Grandview Detour',
+            location: null,
+            meta: {},
+        });
+
+        expect(result.success).toBe(true);
+    });
 });

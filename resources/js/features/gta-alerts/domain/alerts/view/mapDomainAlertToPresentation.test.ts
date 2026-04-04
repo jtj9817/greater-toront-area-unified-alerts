@@ -3,6 +3,7 @@ import { formatTimeAgo } from '@/lib/utils';
 
 import type { FireAlert } from '../fire/schema';
 import type { PoliceAlert } from '../police/schema';
+import type { DrtAlert } from '../transit/drt/schema';
 import type { GoTransitAlert } from '../transit/go/schema';
 import type { TtcTransitAlert } from '../transit/ttc/schema';
 import type { YrtAlert } from '../transit/yrt/schema';
@@ -113,6 +114,27 @@ function makeYrtAlert(): YrtAlert {
     };
 }
 
+function makeDrtAlert(): DrtAlert {
+    return {
+        kind: 'drt',
+        id: 'drt:conlin-grandview-detour',
+        externalId: 'conlin-grandview-detour',
+        isActive: true,
+        timestamp: new Date('2026-04-03T12:00:00Z').toISOString(),
+        title: 'Conlin Grandview Detour',
+        location: { name: '900, 920', lat: null, lng: null },
+        meta: {
+            details_url:
+                'https://www.durhamregiontransit.com/en/news/conlin-grandview-detour.aspx',
+            when_text: 'Effective until further notice',
+            route_text: '900, 920',
+            body_text: 'Routes 900 and 920 are detoured via Grandview Drive.',
+            posted_at: '2026-04-03 10:20:00',
+            feed_updated_at: '2026-04-03 10:25:00',
+        },
+    };
+}
+
 describe('mapDomainAlertToPresentation', () => {
     it('maps fire domain alert using derived hazard type and high severity styling', () => {
         const alertItem = mapDomainAlertToPresentation(makeFireAlert());
@@ -161,6 +183,18 @@ describe('mapDomainAlertToPresentation', () => {
         expect(alertItem.severity).toBe('medium');
         expect(alertItem.iconName).toBe('directions_bus');
         expect(alertItem.metadata?.source).toBe('YRT');
+    });
+
+    it('maps DRT domain alert through shared transit presentation styling', () => {
+        const alertItem = mapDomainAlertToPresentation(makeDrtAlert());
+
+        expect(alertItem.type).toBe('transit');
+        expect(alertItem.severity).toBe('medium');
+        expect(alertItem.iconName).toBe('directions_bus');
+        expect(alertItem.metadata?.source).toBe('DRT');
+        expect(alertItem.description).toContain(
+            'Routes 900 and 920 are detoured',
+        );
     });
 
     it('falls back to Unknown location when domain alert location is null', () => {

@@ -15,7 +15,15 @@ export const AlertLocationResourceSchema = z.object({
  */
 export const UnifiedAlertResourceSchema = z.object({
     id: z.string(),
-    source: z.enum(['fire', 'police', 'transit', 'go_transit', 'miway', 'yrt']),
+    source: z.enum([
+        'fire',
+        'police',
+        'transit',
+        'go_transit',
+        'miway',
+        'yrt',
+        'drt',
+    ]),
     external_id: z.string(),
     is_active: z.boolean(),
     timestamp: z.string(),

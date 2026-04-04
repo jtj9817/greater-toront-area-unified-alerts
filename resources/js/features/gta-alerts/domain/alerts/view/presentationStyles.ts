@@ -20,6 +20,10 @@ export function deriveIconName(
         return 'directions_bus';
     }
 
+    if (type === 'transit' && alert.kind === 'drt') {
+        return 'directions_bus';
+    }
+
     if (type === 'transit' && alert.kind === 'transit') {
         return deriveTtcIconName(alert);
     }

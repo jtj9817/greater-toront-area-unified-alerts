@@ -1,5 +1,6 @@
 import type { MiwayAlert } from '../miway/schema';
 import type { AlertPresentation } from '../view/types';
+import type { DrtAlert } from './drt/schema';
 import type { GoTransitAlert } from './go/schema';
 import type { TtcTransitAlert } from './ttc/schema';
 import type { YrtAlert } from './yrt/schema';
@@ -311,6 +312,63 @@ export function buildYrtDescriptionAndMetadata(
             unitsDispatched: null,
             beat: null,
             source: 'YRT',
+            routeType: undefined,
+            route: routeLabel,
+            effect: undefined,
+            direction: undefined,
+            sourceFeed: detailsUrl,
+            estimatedDelay: undefined,
+        },
+    };
+}
+
+export function deriveDrtSeverity(
+    alert: DrtAlert,
+): AlertPresentation['severity'] {
+    const content = [
+        alert.title,
+        alert.meta.when_text ?? '',
+        alert.meta.route_text ?? '',
+        alert.meta.body_text ?? '',
+    ]
+        .join(' ')
+        .toUpperCase();
+
+    if (
+        content.includes('CANCEL') ||
+        content.includes('SUSPEND') ||
+        content.includes('NO SERVICE') ||
+        content.includes('CLOSED')
+    ) {
+        return 'high';
+    }
+
+    if (
+        content.includes('DETOUR') ||
+        content.includes('DELAY') ||
+        content.includes('REDUCED SERVICE')
+    ) {
+        return 'medium';
+    }
+
+    return 'low';
+}
+
+export function buildDrtDescriptionAndMetadata(
+    alert: DrtAlert,
+): Pick<AlertPresentation, 'description' | 'metadata'> {
+    const bodyText = alert.meta.body_text ?? undefined;
+    const routeLabel = alert.location?.name ?? undefined;
+    const detailsUrl = alert.meta.details_url;
+
+    return {
+        description: bodyText || alert.title || 'DRT service alert.',
+        metadata: {
+            eventNum: alert.externalId,
+            alarmLevel: 0,
+            unitsDispatched: null,
+            beat: null,
+            source: 'DRT',
             routeType: undefined,
             route: routeLabel,
             effect: undefined,

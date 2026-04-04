@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Resources\UnifiedAlertResource;
+use App\Models\DrtAlert;
 use App\Models\FireIncident;
 use App\Models\GoTransitAlert;
 use App\Models\MiwayAlert;
@@ -210,6 +211,18 @@ function seedFrontendContractFixtureDataset(): void
         'feed_updated_at' => $base->copy()->subMinutes(16),
         'is_active' => true,
     ]);
+
+    DrtAlert::factory()->create([
+        'external_id' => 'conlin-grandview-detour',
+        'title' => 'Conlin Grandview Detour',
+        'route_text' => '900, 920',
+        'details_url' => 'https://www.durhamregiontransit.com/en/news/conlin-grandview-detour.aspx',
+        'when_text' => 'Effective until further notice',
+        'body_text' => 'Routes 900 and 920 are detoured via Grandview Drive.',
+        'posted_at' => $base->copy()->subHours(3)->subMinutes(40),
+        'feed_updated_at' => $base->copy()->subHours(3)->subMinutes(35),
+        'is_active' => true,
+    ]);
 }
 
 /**
@@ -264,8 +277,8 @@ test('unified alert resource payload matches the frontend contract fixture', fun
         ->values()
         ->all();
 
-    expect($sources)->toBe(['fire', 'go_transit', 'miway', 'police', 'transit', 'yrt']);
-    expect($actual['alerts'])->toHaveCount(11);
+    expect($sources)->toBe(['drt', 'fire', 'go_transit', 'miway', 'police', 'transit', 'yrt']);
+    expect($actual['alerts'])->toHaveCount(12);
 
     $fixturePath = frontendContractFixturePath();
     $refreshHint = 'UPDATE_CONTRACT_FIXTURES=1 ./vendor/bin/pest --filter=UnifiedAlertsFrontendContractFixtureTest';

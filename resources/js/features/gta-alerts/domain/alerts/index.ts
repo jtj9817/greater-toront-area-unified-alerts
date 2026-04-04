@@ -43,6 +43,10 @@ export type { GoTransitAlert, GoTransitMeta } from './transit/go/schema';
 export { YrtAlertSchema, YrtMetaSchema } from './transit/yrt/schema';
 export type { YrtAlert, YrtMeta } from './transit/yrt/schema';
 
+// Transit - DRT
+export { DrtAlertSchema, DrtMetaSchema } from './transit/drt/schema';
+export type { DrtAlert, DrtMeta } from './transit/drt/schema';
+
 // MiWay
 export { MiwayAlertSchema, MiwayMetaSchema } from './miway/schema';
 export type { MiwayAlert, MiwayMeta } from './miway/schema';

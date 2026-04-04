@@ -10,10 +10,12 @@ import {
     derivePoliceSeverity,
 } from '../police/presentation';
 import {
+    buildDrtDescriptionAndMetadata,
     buildGoTransitDescriptionAndMetadata,
     buildMiwayDescriptionAndMetadata,
     buildTtcDescriptionAndMetadata,
     buildYrtDescriptionAndMetadata,
+    deriveDrtSeverity,
     deriveGoTransitSeverity,
     deriveMiwaySeverity,
     deriveTtcSeverity,
@@ -90,6 +92,12 @@ export function mapDomainAlertToPresentation(
             type = 'transit';
             severity = deriveYrtSeverity(alert);
             details = buildYrtDescriptionAndMetadata(alert);
+            break;
+        }
+        case 'drt': {
+            type = 'transit';
+            severity = deriveDrtSeverity(alert);
+            details = buildDrtDescriptionAndMetadata(alert);
             break;
         }
     }

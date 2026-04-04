@@ -211,6 +211,27 @@
             }
         },
         {
+            "id": "drt:conlin-grandview-detour",
+            "source": "drt",
+            "external_id": "conlin-grandview-detour",
+            "is_active": true,
+            "timestamp": "2026-02-06T10:20:00+00:00",
+            "title": "Conlin Grandview Detour",
+            "location": {
+                "name": "900, 920",
+                "lat": null,
+                "lng": null
+            },
+            "meta": {
+                "details_url": "https://www.durhamregiontransit.com/en/news/conlin-grandview-detour.aspx",
+                "when_text": "Effective until further notice",
+                "route_text": "900, 920",
+                "body_text": "Routes 900 and 920 are detoured via Grandview Drive.",
+                "feed_updated_at": "2026-02-06 10:25:00",
+                "posted_at": "2026-02-06 10:20:00"
+            }
+        },
+        {
             "id": "yrt:91001",
             "source": "yrt",
             "external_id": "91001",
