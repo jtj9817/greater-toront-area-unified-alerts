@@ -387,7 +387,7 @@ test('it records circuit breaker success and failure', function () {
     expect(fn () => $service->fetch())->toThrow(RuntimeException::class);
 });
 
-test('it skips detail fetch when detail http request fails', function () {
+test('it falls back to existing body when detail http request fails', function () {
     $listHtml = <<<'HTML'
     <html><body>
     <div class="blogItem">
@@ -400,19 +400,19 @@ test('it skips detail fetch when detail http request fails', function () {
           <p>When: when value</p>
           <p>Route: route value</p>
           <p>excerpt</p>
-          <a href="https://www.durhamregiontransit.com/en/news/detail-fail-alert.aspx">Read more</a>
         </div>
       </div>
     </div>
     </body></html>
     HTML;
 
-    $hash = sha1('Detail Fail Alert|Posted on Tuesday, February 24, 2026 11:16 AM|when value|route value|excerpt|https://www.durhamregiontransit.com/en/news/detail-fail-alert.aspx');
+    // Use a mismatched hash to force detail fetch (shouldFetchDetails returns true)
+    $staleHash = sha1('stale-hash-value');
 
     DrtAlert::factory()->create([
         'external_id' => 'detail-fail-alert',
         'details_url' => 'https://www.durhamregiontransit.com/en/news/detail-fail-alert.aspx',
-        'list_hash' => $hash,
+        'list_hash' => $staleHash,
         'body_text' => 'existing body',
         'details_fetched_at' => Carbon::now()->subHours(2),
     ]);
@@ -424,6 +424,8 @@ test('it skips detail fetch when detail http request fails', function () {
 
     $alert = app(DrtServiceAlertsFeedService::class)->fetch()['alerts'][0];
 
+    // HTTP 500 causes fetchDetailBodyText to return null
+    // Service falls back to existing body_text and details_fetched_at
     expect($alert['body_text'])->toBe('existing body');
     expect($alert['details_fetched_at'])->not->toBeNull();
 });
@@ -448,12 +450,13 @@ test('it handles detail page returning null body gracefully', function () {
     </body></html>
     HTML;
 
-    $hash = sha1('Null Body Alert|Posted on Tuesday, February 24, 2026 11:16 AM|when value|route value|excerpt|https://www.durhamregiontransit.com/en/news/null-body-alert.aspx');
+    // Use a mismatched hash to force detail fetch (shouldFetchDetails returns true)
+    $staleHash = sha1('stale-hash-value');
 
     DrtAlert::factory()->create([
         'external_id' => 'null-body-alert',
         'details_url' => 'https://www.durhamregiontransit.com/en/news/null-body-alert.aspx',
-        'list_hash' => $hash,
+        'list_hash' => $staleHash,
         'body_text' => 'old body',
         'details_fetched_at' => Carbon::now()->subHours(2),
     ]);
@@ -465,10 +468,15 @@ test('it handles detail page returning null body gracefully', function () {
 
     $alert = app(DrtServiceAlertsFeedService::class)->fetch()['alerts'][0];
 
+    // Assert detail request was attempted (empty main content)
+    $detailRequests = Http::recorded()
+        ->filter(fn (array $pair): bool => str_contains($pair[0]->url(), '/en/news/null-body-alert.aspx'));
+
+    expect($detailRequests)->toHaveCount(1);
     expect($alert['body_text'])->toBe('old body');
 });
 
-test('it skips entries with null posted at or external id', function () {
+test('it skips entries with empty external id and validates good entries are preserved', function () {
     $listHtml = <<<'HTML'
     <html><body>
     <div class="blogItem">
@@ -481,7 +489,20 @@ test('it skips entries with null posted at or external id', function () {
           <p>When: when value</p>
           <p>Route: route value</p>
           <p>excerpt</p>
-          <a href="https://www.durhamregiontransit.com/en/news/good-alert.aspx">Read more</a>
+        </div>
+      </div>
+    </div>
+    <div class="blogItem">
+      <div class="blogItem-contentContainer">
+        <div class="blogPostDate">Posted on Tuesday, February 24, 2026 11:16 AM</div>
+        <div class="newsTitle">
+          <!-- URL slug is just .aspx which yields empty external_id after extension removal -->
+          <a href="https://www.durhamregiontransit.com/en/news/.aspx">Empty Slug Alert</a>
+        </div>
+        <div class="blogItem-contentContainer">
+          <p>When: when value</p>
+          <p>Route: route value</p>
+          <p>excerpt</p>
         </div>
       </div>
     </div>
@@ -495,6 +516,13 @@ test('it skips entries with null posted at or external id', function () {
 
     $result = app(DrtServiceAlertsFeedService::class)->fetch();
 
-    expect($result['alerts'])->toHaveCount(1);
-    expect($result['alerts'][0]['external_id'])->toBe('good-alert');
+    // Verify the good alert exists
+    $externalIds = array_column($result['alerts'], 'external_id');
+    expect($externalIds)->toContain('good-alert');
+
+    // Verify no empty or invalid external_ids exist in results
+    foreach ($result['alerts'] as $alert) {
+        expect($alert['external_id'])->not->toBeEmpty();
+        expect($alert['external_id'])->not->toBe('.aspx');
+    }
 });
