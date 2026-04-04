@@ -110,6 +110,64 @@ test('it tolerates route and routes labels plus odd whitespace and nbsp text', f
     expect($routeVariant['body_text'])->toContain('Stop #93998');
 });
 
+test('it preserves utf8 punctuation in detail body text', function () {
+    $listHtml = <<<'HTML'
+    <html><body>
+    <div>
+      <h2><a href="https://www.durhamregiontransit.com/en/news/utf8-alert.aspx">UTF-8 Alert</a></h2>
+      <p>Posted on Tuesday, February 24, 2026 11:16 AM</p>
+      <p><strong>When:</strong> when value</p>
+      <p><strong>Route:</strong> route value</p>
+      <p>excerpt</p>
+      <a href="https://www.durhamregiontransit.com/en/news/utf8-alert.aspx">Read more</a>
+    </div>
+    </body></html>
+    HTML;
+
+    $detailHtml = <<<'HTML'
+    <html><body>
+      <div class="iCreateDynaToken">
+        <p>DRT’s temporary detour • use Stop #123.</p>
+      </div>
+    </body></html>
+    HTML;
+
+    Http::fake([
+        drtListUrl().'*' => Http::response($listHtml, 200),
+        'https://www.durhamregiontransit.com/en/news/utf8-alert.aspx' => Http::response($detailHtml, 200),
+    ]);
+
+    $alert = app(DrtServiceAlertsFeedService::class)->fetch()['alerts'][0];
+
+    expect($alert['body_text'])->toContain('DRT’s temporary detour • use Stop #123.');
+    expect($alert['body_text'])->not->toContain('â');
+    expect($alert['body_text'])->not->toContain('â¢');
+});
+
+test('it parses posted on values with non-zero-padded day values', function () {
+    $listHtml = <<<'HTML'
+    <html><body>
+    <div>
+      <h2><a href="https://www.durhamregiontransit.com/en/news/non-padded-day-alert.aspx">Non-Padded Day Alert</a></h2>
+      <p>Posted on Monday, February 9, 2026 09:14 AM</p>
+      <p><strong>When:</strong> when value</p>
+      <p><strong>Route:</strong> route value</p>
+      <p>excerpt</p>
+      <a href="https://www.durhamregiontransit.com/en/news/non-padded-day-alert.aspx">Read more</a>
+    </div>
+    </body></html>
+    HTML;
+
+    Http::fake([
+        drtListUrl().'*' => Http::response($listHtml, 200),
+        'https://www.durhamregiontransit.com/en/news/non-padded-day-alert.aspx' => Http::response('<html><body><main>detail</main></body></html>', 200),
+    ]);
+
+    $alert = app(DrtServiceAlertsFeedService::class)->fetch()['alerts'][0];
+
+    expect($alert['posted_at']->toDateTimeString())->toBe('2026-02-09 14:14:00');
+});
+
 test('it normalizes relative and non-canonical host detail urls to canonical host', function () {
     $listHtml = <<<'HTML'
     <html><body>

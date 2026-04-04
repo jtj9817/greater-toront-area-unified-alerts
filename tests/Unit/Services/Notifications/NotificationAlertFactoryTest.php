@@ -1,7 +1,7 @@
 <?php
 
-use App\Models\MiwayAlert;
 use App\Models\DrtAlert;
+use App\Models\MiwayAlert;
 use App\Models\YrtAlert;
 use App\Services\Notifications\NotificationAlertFactory;
 use App\Services\Notifications\NotificationSeverity;

@@ -4,7 +4,7 @@
 
 - **Issue Type:** Bug
 - **Priority:** `P1`
-- **Status:** Open
+- **Status:** Closed
 - **Labels:** `alerts`, `drt`, `scraping`, `data-integrity`, `backend`, `review`
 - **Scope Note:** Production uses `pgsql`. MySQL-specific FULLTEXT concerns are out of scope for this ticket.
 
@@ -69,10 +69,19 @@ Post-implementation review found two integrity issues in DRT scraping:
 
 ## Acceptance Criteria
 
-- [ ] DRT detail body text persists UTF-8 characters correctly (no mojibake tokens in normalized output).
-- [ ] Date parsing supports both zero-padded and non-zero-padded day variants.
-- [ ] New regression tests fail before fix and pass after fix for both issues.
-- [ ] Existing DRT feed-service and command/provider suites remain green.
+- [x] DRT detail body text persists UTF-8 characters correctly (no mojibake tokens in normalized output).
+- [x] Date parsing supports both zero-padded and non-zero-padded day variants.
+- [x] New regression tests fail before fix and pass after fix for both issues.
+- [x] Existing DRT feed-service and command/provider suites remain green.
+
+## Resolution
+
+- Updated `DrtServiceAlertsFeedService::loadDomDocument()` to force UTF-8 HTML parsing input before `DOMDocument::loadHTML()`.
+- Added targeted mojibake normalization in `normalizeText()` for common corrupted punctuation sequences.
+- Hardened `parsePostedAt()` to parse both padded (`d`) and non-padded (`j`) day formats.
+- Added regression tests in `DrtServiceAlertsFeedServiceTest`:
+  - UTF-8 punctuation persistence in detail body text.
+  - non-zero-padded day parsing in posted timestamp extraction.
 
 ## Validation Notes
 

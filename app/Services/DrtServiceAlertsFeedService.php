@@ -414,11 +414,15 @@ class DrtServiceAlertsFeedService
             return null;
         }
 
-        try {
-            return Carbon::createFromFormat('l, F d, Y h:i A', trim($value), 'America/Toronto')->utc();
-        } catch (Throwable) {
-            return null;
+        foreach (['l, F d, Y h:i A', 'l, F j, Y h:i A'] as $format) {
+            try {
+                return Carbon::createFromFormat($format, trim($value), 'America/Toronto')->utc();
+            } catch (Throwable) {
+                continue;
+            }
         }
+
+        return null;
     }
 
     protected function extractPostedOnLine(string $contextText): ?string
@@ -524,6 +528,11 @@ class DrtServiceAlertsFeedService
         }
 
         $normalized = (string) $value;
+        $normalized = str_replace(
+            ['â', 'â', 'â', 'â¢', 'â', 'â', 'â¦'],
+            ['’', '–', '—', '•', '“', '”', '…'],
+            $normalized,
+        );
         $normalized = str_replace("\xc2\xa0", ' ', $normalized);
         $normalized = str_replace("\u{00A0}", ' ', $normalized);
         $normalized = preg_replace('/\s+/u', ' ', $normalized);
@@ -596,8 +605,9 @@ class DrtServiceAlertsFeedService
 
         try {
             $document = new DOMDocument;
+            $normalizedHtml = '<?xml encoding="UTF-8">'.$html;
 
-            if (! @$document->loadHTML($html, LIBXML_NOWARNING | LIBXML_NOERROR | LIBXML_NONET)) {
+            if (! @$document->loadHTML($normalizedHtml, LIBXML_NOWARNING | LIBXML_NOERROR | LIBXML_NONET)) {
                 return null;
             }
 

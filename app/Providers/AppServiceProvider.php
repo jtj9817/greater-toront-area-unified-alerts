@@ -3,12 +3,12 @@
 namespace App\Providers;
 
 use App\Models\User;
+use App\Services\Alerts\Providers\DrtAlertSelectProvider;
 use App\Services\Alerts\Providers\FireAlertSelectProvider;
 use App\Services\Alerts\Providers\GoTransitAlertSelectProvider;
 use App\Services\Alerts\Providers\MiwayAlertSelectProvider;
 use App\Services\Alerts\Providers\PoliceAlertSelectProvider;
 use App\Services\Alerts\Providers\TransitAlertSelectProvider;
-use App\Services\Alerts\Providers\DrtAlertSelectProvider;
 use App\Services\Alerts\Providers\YrtAlertSelectProvider;
 use App\Services\Weather\WeatherCacheService;
 use App\Services\Weather\WeatherFetchService;

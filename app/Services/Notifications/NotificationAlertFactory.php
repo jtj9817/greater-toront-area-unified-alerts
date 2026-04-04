@@ -2,11 +2,11 @@
 
 namespace App\Services\Notifications;
 
+use App\Models\DrtAlert;
 use App\Models\FireIncident;
 use App\Models\GoTransitAlert;
 use App\Models\MiwayAlert;
 use App\Models\PoliceCall;
-use App\Models\DrtAlert;
 use App\Models\TransitAlert;
 use App\Models\YrtAlert;
 use Carbon\CarbonImmutable;
