@@ -159,19 +159,19 @@
 
 ## Phase 7: Frontend Domain + Presentation Integration
 
-- [ ] Task: Red - Write failing frontend domain tests for DRT mapping
-    - [ ] Add mapper tests ensuring `fromResource()` handles `source: 'drt'`.
-    - [ ] Add tests for `mapDrtAlert()` output shape and metadata fallbacks.
-    - [ ] Add tests ensuring existing source mappers remain unchanged.
-    - [ ] Run focused frontend tests and confirm red state.
-- [ ] Task: Green - Implement DRT frontend domain and wiring
-    - [ ] Add `schema.ts` and `mapper.ts` under `resources/js/features/gta-alerts/domain/alerts/transit/drt/`.
-    - [ ] Register `drt` in `resource.ts`, domain unions (`types.ts`), and `fromResource.ts`.
-    - [ ] Update presentation mapping to include DRT using shared transit presentation logic.
-    - [ ] Re-run focused frontend tests until green.
-- [ ] Task: Refactor - Unify transit-domain ergonomics
-    - [ ] Keep DRT-specific parsing isolated from shared rendering helpers.
-    - [ ] Re-run focused frontend suite and verify no regression.
+- [x] Task: Red - Write failing frontend domain tests for DRT mapping
+    - [x] Add mapper tests ensuring `fromResource()` handles `source: 'drt'`.
+    - [x] Add tests for `mapDrtAlert()` output shape and metadata fallbacks.
+    - [x] Add tests ensuring existing source mappers remain unchanged.
+    - [x] Run focused frontend tests and confirm red state.
+- [x] Task: Green - Implement DRT frontend domain and wiring
+    - [x] Add `schema.ts` and `mapper.ts` under `resources/js/features/gta-alerts/domain/alerts/transit/drt/`.
+    - [x] Register `drt` in `resource.ts`, domain unions (`types.ts`), and `fromResource.ts`.
+    - [x] Update presentation mapping to include DRT using shared transit presentation logic.
+    - [x] Re-run focused frontend tests until green.
+- [x] Task: Refactor - Unify transit-domain ergonomics
+    - [x] Keep DRT-specific parsing isolated from shared rendering helpers.
+    - [x] Re-run focused frontend suite and verify no regression.
 - [ ] Task: Conductor - User Manual Verification 'Phase 7: Frontend Domain + Presentation Integration' (Protocol in workflow.md)
 
 ## Phase 8: QA Phase
