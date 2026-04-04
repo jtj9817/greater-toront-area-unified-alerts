@@ -341,7 +341,7 @@ test('it skips detail fetch when hash unchanged body exists and details fetched 
 });
 
 test('it throws on list network failure', function () {
-    Http::fake(['*' => Http::failedConnection()]);
+    Http::fake(['*' => Http::response('', 500)]);
 
     expect(fn () => app(DrtServiceAlertsFeedService::class)->fetch())
         ->toThrow(RuntimeException::class, 'DRT service alerts feed request failed');
@@ -385,4 +385,116 @@ test('it records circuit breaker success and failure', function () {
     $service = new DrtServiceAlertsFeedService($breaker);
 
     expect(fn () => $service->fetch())->toThrow(RuntimeException::class);
+});
+
+test('it skips detail fetch when detail http request fails', function () {
+    $listHtml = <<<'HTML'
+    <html><body>
+    <div class="blogItem">
+      <div class="blogItem-contentContainer">
+        <div class="blogPostDate">Posted on Tuesday, February 24, 2026 11:16 AM</div>
+        <div class="newsTitle">
+          <a href="https://www.durhamregiontransit.com/en/news/detail-fail-alert.aspx">Detail Fail Alert</a>
+        </div>
+        <div class="blogItem-contentContainer">
+          <p>When: when value</p>
+          <p>Route: route value</p>
+          <p>excerpt</p>
+          <a href="https://www.durhamregiontransit.com/en/news/detail-fail-alert.aspx">Read more</a>
+        </div>
+      </div>
+    </div>
+    </body></html>
+    HTML;
+
+    $hash = sha1('Detail Fail Alert|Posted on Tuesday, February 24, 2026 11:16 AM|when value|route value|excerpt|https://www.durhamregiontransit.com/en/news/detail-fail-alert.aspx');
+
+    DrtAlert::factory()->create([
+        'external_id' => 'detail-fail-alert',
+        'details_url' => 'https://www.durhamregiontransit.com/en/news/detail-fail-alert.aspx',
+        'list_hash' => $hash,
+        'body_text' => 'existing body',
+        'details_fetched_at' => Carbon::now()->subHours(2),
+    ]);
+
+    Http::fake([
+        drtListUrl().'*' => Http::response($listHtml, 200),
+        'https://www.durhamregiontransit.com/en/news/detail-fail-alert.aspx' => Http::response('', 500),
+    ]);
+
+    $alert = app(DrtServiceAlertsFeedService::class)->fetch()['alerts'][0];
+
+    expect($alert['body_text'])->toBe('existing body');
+    expect($alert['details_fetched_at'])->not->toBeNull();
+});
+
+test('it handles detail page returning null body gracefully', function () {
+    $listHtml = <<<'HTML'
+    <html><body>
+    <div class="blogItem">
+      <div class="blogItem-contentContainer">
+        <div class="blogPostDate">Posted on Tuesday, February 24, 2026 11:16 AM</div>
+        <div class="newsTitle">
+          <a href="https://www.durhamregiontransit.com/en/news/null-body-alert.aspx">Null Body Alert</a>
+        </div>
+        <div class="blogItem-contentContainer">
+          <p>When: when value</p>
+          <p>Route: route value</p>
+          <p>excerpt</p>
+          <a href="https://www.durhamregiontransit.com/en/news/null-body-alert.aspx">Read more</a>
+        </div>
+      </div>
+    </div>
+    </body></html>
+    HTML;
+
+    $hash = sha1('Null Body Alert|Posted on Tuesday, February 24, 2026 11:16 AM|when value|route value|excerpt|https://www.durhamregiontransit.com/en/news/null-body-alert.aspx');
+
+    DrtAlert::factory()->create([
+        'external_id' => 'null-body-alert',
+        'details_url' => 'https://www.durhamregiontransit.com/en/news/null-body-alert.aspx',
+        'list_hash' => $hash,
+        'body_text' => 'old body',
+        'details_fetched_at' => Carbon::now()->subHours(2),
+    ]);
+
+    Http::fake([
+        drtListUrl().'*' => Http::response($listHtml, 200),
+        'https://www.durhamregiontransit.com/en/news/null-body-alert.aspx' => Http::response('<html><body><main></main></body></html>', 200),
+    ]);
+
+    $alert = app(DrtServiceAlertsFeedService::class)->fetch()['alerts'][0];
+
+    expect($alert['body_text'])->toBe('old body');
+});
+
+test('it skips entries with null posted at or external id', function () {
+    $listHtml = <<<'HTML'
+    <html><body>
+    <div class="blogItem">
+      <div class="blogItem-contentContainer">
+        <div class="blogPostDate">Posted on Tuesday, February 24, 2026 11:16 AM</div>
+        <div class="newsTitle">
+          <a href="https://www.durhamregiontransit.com/en/news/good-alert.aspx">Good Alert</a>
+        </div>
+        <div class="blogItem-contentContainer">
+          <p>When: when value</p>
+          <p>Route: route value</p>
+          <p>excerpt</p>
+          <a href="https://www.durhamregiontransit.com/en/news/good-alert.aspx">Read more</a>
+        </div>
+      </div>
+    </div>
+    </body></html>
+    HTML;
+
+    Http::fake([
+        drtListUrl().'*' => Http::response($listHtml, 200),
+        'https://www.durhamregiontransit.com/en/news/good-alert.aspx' => Http::response('<html><body><main><p>When: when value</p><p>Route: route value</p></main></body></html>', 200),
+    ]);
+
+    $result = app(DrtServiceAlertsFeedService::class)->fetch();
+
+    expect($result['alerts'])->toHaveCount(1);
+    expect($result['alerts'][0]['external_id'])->toBe('good-alert');
 });
