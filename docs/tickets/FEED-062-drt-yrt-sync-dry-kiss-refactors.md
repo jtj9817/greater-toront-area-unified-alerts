@@ -4,7 +4,7 @@
 
 - **Issue Type:** Refactor / Tech Debt
 - **Priority:** `P2`
-- **Status:** Open
+- **Status:** Closed
 - **Labels:** `alerts`, `drt`, `yrt`, `backend`, `performance`, `dry`, `kiss`, `laravel`
 - **Scope Note:** No Laravel→Inertia→React contract shape changes intended.
 
@@ -85,11 +85,31 @@ Post-implementation review of the **DRT Service Alerts Scraping Integration** id
 
 ## Acceptance Criteria
 
-- [ ] No per-row `first()` queries remain in DRT/YRT sync loops.
-- [ ] `DrtServiceAlertsFeedService::hydrateDetails()` only selects required columns.
-- [ ] DRT and YRT sync commands share one simple sync helper (no over-abstraction).
-- [ ] All existing command/feed tests remain green, including:
+- [x] No per-row `first()` queries remain in DRT/YRT sync loops.
+- [x] `DrtServiceAlertsFeedService::hydrateDetails()` only selects required columns.
+- [x] DRT and YRT sync commands share one simple sync helper (no over-abstraction).
+- [x] All existing command/feed tests remain green, including:
   - `tests/Feature/Commands/FetchDrtAlertsCommandTest.php`
   - `tests/Feature/Commands/FetchYrtAlertsCommandTest.php`
   - `tests/Feature/DrtServiceAlertsFeedServiceTest.php`
 
+## Resolution
+
+- Extracted shared sync transaction logic into `ServiceAdvisoriesSyncService` and updated both DRT/YRT commands to use it.
+- Removed per-alert “existing row” lookups (`first()`) by using post-persist model state (`wasRecentlyCreated` / `wasChanged('is_active')`) to detect new/reactivated records.
+- Reduced the `DrtServiceAlertsFeedService::hydrateDetails()` preload query to only required columns.
+
+## Validation Notes
+
+- Targeted:
+  - `./vendor/bin/sail artisan test --compact tests/Feature/Commands/FetchDrtAlertsCommandTest.php`
+  - `./vendor/bin/sail artisan test --compact tests/Feature/Commands/FetchYrtAlertsCommandTest.php`
+  - `./vendor/bin/sail artisan test --compact tests/Feature/DrtServiceAlertsFeedServiceTest.php`
+- Quality gates:
+  - `./vendor/bin/sail bin pint --dirty --format agent`
+  - `./vendor/bin/sail composer lint`
+  - `./vendor/bin/sail pnpm run lint`
+  - `./vendor/bin/sail pnpm run format`
+  - `./vendor/bin/sail pnpm run types`
+- Full suite:
+  - `./vendor/bin/sail composer test`

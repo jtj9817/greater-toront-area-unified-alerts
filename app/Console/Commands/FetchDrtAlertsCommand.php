@@ -6,9 +6,9 @@ use App\Events\AlertCreated;
 use App\Models\DrtAlert;
 use App\Services\DrtServiceAlertsFeedService;
 use App\Services\Notifications\NotificationAlertFactory;
+use App\Services\ServiceAdvisoriesSyncService;
 use Carbon\CarbonImmutable;
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\DB;
 use Throwable;
 
 class FetchDrtAlertsCommand extends Command
@@ -20,6 +20,7 @@ class FetchDrtAlertsCommand extends Command
     public function handle(
         DrtServiceAlertsFeedService $feedService,
         NotificationAlertFactory $notificationAlertFactory,
+        ServiceAdvisoriesSyncService $syncService,
     ): int {
         $this->info('Fetching DRT service alerts...');
 
@@ -28,48 +29,16 @@ class FetchDrtAlertsCommand extends Command
             $updatedAt = CarbonImmutable::parse($feedResult['updated_at'])->utc();
             $alerts = $feedResult['alerts'];
 
-            $syncedExternalIds = [];
-            $newOrReactivatedAlerts = [];
-            $deactivatedCount = 0;
+            $syncResult = $syncService->sync(DrtAlert::class, $alerts, $updatedAt);
 
-            DB::transaction(function () use ($alerts, $updatedAt, &$syncedExternalIds, &$newOrReactivatedAlerts, &$deactivatedCount): void {
-                foreach ($alerts as $alertData) {
-                    $externalId = (string) $alertData['external_id'];
-                    $syncedExternalIds[] = $externalId;
-
-                    $existing = DrtAlert::query()->where('external_id', $externalId)->first();
-                    $wasInactiveOrNew = $existing === null || ! $existing->is_active;
-
-                    $alertData['is_active'] = true;
-                    $alertData['feed_updated_at'] = $updatedAt;
-
-                    $alert = DrtAlert::query()->updateOrCreate(
-                        ['external_id' => $externalId],
-                        $alertData,
-                    );
-
-                    if ($wasInactiveOrNew) {
-                        $newOrReactivatedAlerts[] = $alert;
-                    }
-                }
-
-                $deactivationQuery = DrtAlert::query()->where('is_active', true);
-
-                if ($syncedExternalIds !== []) {
-                    $deactivationQuery->whereNotIn('external_id', $syncedExternalIds);
-                }
-
-                $deactivatedCount = $deactivationQuery->update(['is_active' => false]);
-            });
-
-            foreach ($newOrReactivatedAlerts as $alert) {
+            foreach ($syncResult['new_or_reactivated'] as $alert) {
                 event(new AlertCreated($notificationAlertFactory->fromDrtAlert($alert)));
             }
 
             $this->info(sprintf(
                 'Done. %d active alerts synced, %d marked inactive. Feed time: %s',
-                count($syncedExternalIds),
-                $deactivatedCount,
+                count($syncResult['synced_external_ids']),
+                $syncResult['deactivated_count'],
                 $updatedAt->toDateTimeString(),
             ));
         } catch (Throwable $exception) {

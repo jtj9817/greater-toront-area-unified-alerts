@@ -230,7 +230,7 @@ class DrtServiceAlertsFeedService
 
         $existingByExternalId = DrtAlert::query()
             ->whereIn('external_id', array_column($alerts, 'external_id'))
-            ->get()
+            ->get(['external_id', 'list_hash', 'body_text', 'details_fetched_at'])
             ->keyBy('external_id');
 
         $now = Carbon::now()->utc();
