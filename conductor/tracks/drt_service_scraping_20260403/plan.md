@@ -157,7 +157,7 @@
     - [x] Re-run focused suite and verify no regression.
 - [x] Task: Conductor - User Manual Verification 'Phase 6: Alert Source + Backend Contract Plumbing' (Protocol in workflow.md) (5b527a0)
 
-## Phase 7: Frontend Domain + Presentation Integration
+## Phase 7: Frontend Domain + Presentation Integration [checkpoint: 3b1c9a9]
 
 - [x] Task: Red - Write failing frontend domain tests for DRT mapping
     - [x] Add mapper tests ensuring `fromResource()` handles `source: 'drt'`.
@@ -172,7 +172,7 @@
 - [x] Task: Refactor - Unify transit-domain ergonomics
     - [x] Keep DRT-specific parsing isolated from shared rendering helpers.
     - [x] Re-run focused frontend suite and verify no regression.
-- [ ] Task: Conductor - User Manual Verification 'Phase 7: Frontend Domain + Presentation Integration' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 7: Frontend Domain + Presentation Integration' (Protocol in workflow.md) (3b1c9a9)
 
 ## Phase 8: QA Phase
 
