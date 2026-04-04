@@ -199,12 +199,12 @@
 
 ## Phase 9: Documentation Phase (If Required)
 
-- [ ] Task: Create/update source documentation for DRT
-    - [ ] Document upstream endpoints (HTML list + detail), normalization contract, and conditional detail-fetch rules.
-    - [ ] Document operational usage commands (`drt:fetch-alerts`, schedule visibility, active-record checks).
-- [ ] Task: Update docs indexes/scope tables if source lists are enumerated explicitly
-    - [ ] Update `docs/README.md` (or other source catalog surfaces) to include `drt` once implemented.
-- [ ] Task: Prepare conductor artifacts for closeout
-    - [ ] Add final implementation notes and deviations to this track's `spec.md`/`plan.md`.
-    - [ ] Update `metadata.json` fields (`updated_at`, status when appropriate) and prep archive handoff checklist.
+- [x] Task: Create/update source documentation for DRT (1ccf705)
+    - [x] Document upstream endpoints (HTML list + detail), normalization contract, and conditional detail-fetch rules.
+    - [x] Document operational usage commands (`drt:fetch-alerts`, schedule visibility, active-record checks).
+- [x] Task: Update docs indexes/scope tables if source lists are enumerated explicitly (1ccf705)
+    - [x] Update `docs/README.md` (or other source catalog surfaces) to include `drt` once implemented.
+- [x] Task: Prepare conductor artifacts for closeout (1ccf705)
+    - [x] Add final implementation notes and deviations to this track's `spec.md`/`plan.md`.
+    - [x] Update `metadata.json` fields (`updated_at`, status when appropriate) and prep archive handoff checklist.
 - [ ] Task: Conductor - User Manual Verification 'Phase 9: Documentation Phase' (Protocol in workflow.md)
