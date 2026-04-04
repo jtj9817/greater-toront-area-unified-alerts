@@ -71,7 +71,7 @@ docs/
 
 ## Current System Scope
 
-The unified feed currently aggregates six source types:
+The unified feed currently aggregates seven source types:
 
 - `fire` (Toronto Fire CAD)
 - `police` (Toronto Police ArcGIS)
@@ -79,6 +79,7 @@ The unified feed currently aggregates six source types:
 - `go_transit` (Metrolinx GO Transit service updates)
 - `miway` (MiWay GTFS-RT service alerts)
 - `yrt` (YRT service advisories)
+- `drt` (Durham Region Transit Service Alerts and Detours)
 
 ## Recommended Reading Order
 
@@ -101,6 +102,7 @@ The unified feed currently aggregates six source types:
 - **[sources/go-transit.md](sources/go-transit.md)**
 - **[sources/miway.md](sources/miway.md)**
 - **[sources/yrt.md](sources/yrt.md)**
+- **[sources/drt.md](sources/drt.md)**
 
 ## Deployment Docs
 
@@ -143,6 +145,7 @@ Active work items and feature proposals:
 | GO Transit Integration | Implemented | [sources/go-transit.md](sources/go-transit.md) |
 | MiWay Integration | Implemented | [sources/miway.md](sources/miway.md) |
 | YRT Integration | Implemented | [sources/yrt.md](sources/yrt.md) |
+| DRT Integration | Implemented | [sources/drt.md](sources/drt.md) |
 | Unified Alerts Query | Implemented | [backend/unified-alerts-system.md](backend/unified-alerts-system.md) |
 | Server-Side Feed Filters + Infinite Scroll (FEED-001) | Implemented | [backend/unified-alerts-system.md](backend/unified-alerts-system.md) |
 | Sort Direction Toggle (FEED-004) | Implemented | [tickets/FEED-004-sort-direction-toggle.md](tickets/FEED-004-sort-direction-toggle.md) |
