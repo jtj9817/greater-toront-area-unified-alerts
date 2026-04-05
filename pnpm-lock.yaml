@@ -11,6 +11,7 @@ overrides:
   brace-expansion@1.1.12: 1.1.13
   brace-expansion@5.0.4: 5.0.5
   socket.io-parser: 4.2.6
+  lodash-es: ^4.18.0
 
 importers:
 
@@ -2630,8 +2631,8 @@ packages:
     resolution: {integrity: sha512-iPZK6eYjbxRu3uB4/WZ3EsEIMJFMqAoopl3R+zuq0UjcAm/MO6KCweDgPfP3elTztoKP3KtnVHxTn2NHBSDVUw==}
     engines: {node: '>=10'}
 
-  lodash-es@4.17.23:
-    resolution: {integrity: sha512-kVI48u3PZr38HdYz98UmfPnXl2DXrpdctLrFLCd3kOx1xUkOmpFPx7gCWWM5MPkL/fD8zb+Ph0QzjGFs4+hHWg==}
+  lodash-es@4.18.1:
+    resolution: {integrity: sha512-J8xewKD/Gk22OZbhpOVSwcs60zhd95ESDwezOFuA3/099925PdHJ7OFHNTGtajL3AlZkykD32HykiMo+BIBI8A==}
 
   lodash.merge@4.6.2:
     resolution: {integrity: sha512-0KpjqXRVvrYyCsX1swR/XTK0va6VQkQM6MNo7PqW77ByjAhoARA8EfrP1N4+KlKj8YS0ZUCtRT/YUuhyYDujIQ==}
@@ -3842,7 +3843,7 @@ snapshots:
       '@types/lodash-es': 4.17.12
       axios: 1.13.6
       laravel-precognition: 1.0.2
-      lodash-es: 4.17.23
+      lodash-es: 4.18.1
       qs: 6.15.0
     transitivePeerDependencies:
       - debug
@@ -3852,7 +3853,7 @@ snapshots:
       '@inertiajs/core': 2.3.17
       '@types/lodash-es': 4.17.12
       laravel-precognition: 1.0.2
-      lodash-es: 4.17.23
+      lodash-es: 4.18.1
       react: 19.2.4
       react-dom: 19.2.4(react@19.2.4)
     transitivePeerDependencies:
@@ -5937,7 +5938,7 @@ snapshots:
   laravel-precognition@1.0.2:
     dependencies:
       axios: 1.13.6
-      lodash-es: 4.17.23
+      lodash-es: 4.18.1
     transitivePeerDependencies:
       - debug
 
@@ -6007,7 +6008,7 @@ snapshots:
     dependencies:
       p-locate: 5.0.0
 
-  lodash-es@4.17.23: {}
+  lodash-es@4.18.1: {}
 
   lodash.merge@4.6.2: {}
 
