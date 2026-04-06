@@ -121,6 +121,7 @@ The conditional rendering logic:
 | GO Transit | No (v1) | Corridor/route text only; geocoding deferred |
 | MiWay | No (v1) | Route/stop text only; geocoding deferred |
 | YRT | No (v1) | Route text only; geocoding deferred |
+| DRT | No (v1) | Route text only; geocoding deferred |
 
 ## v1 Scope Limits
 

@@ -60,6 +60,7 @@ transit_alerts
 go_transit_alerts
 miway_alerts
 yrt_alerts
+drt_alerts
 
 -- Laravel infrastructure (no application-level relations) --
 sessions
@@ -112,6 +113,14 @@ subscriptions   read_at · dismissed_at
 │        yrt_alerts             │
 │  external_id · title          │
 │  posted_at · route_text       │
+│  body_text · is_active        │
+└───────────────────────────────┘
+
+┌───────────────────────────────┐
+│        drt_alerts             │
+│  external_id · title          │
+│  posted_at · when_text        │
+│  route_text · details_url    │
 │  body_text · is_active        │
 └───────────────────────────────┘
 ```
@@ -246,7 +255,7 @@ Pruning policy: entries older than 7 days are deleted by `queue:prune-failed --h
 
 ### Alert Source Tables
 
-All six alert tables share the same structural conventions:
+All seven alert tables share the same structural conventions:
 
 - `id` — bigint auto-increment primary key
 - A natural-key column with a `UNIQUE` index (the upsert key used by fetch commands)
@@ -507,6 +516,45 @@ Backing table for YRT (York Region Transit) service advisories. Upserted by `Fet
 **Timestamp note:** The unified query uses `posted_at` as the `timestamp` column.
 
 **Source docs:** [sources/yrt.md](../sources/yrt.md)
+
+---
+
+#### `drt_alerts`
+
+Backing table for DRT (Durham Region Transit) service advisories. Upserted by `FetchDrtAlertsCommand` via `external_id`.
+
+| Column | Type | Nullable | Default | Notes |
+|---|---|---|---|---|
+| `id` | bigint unsigned | No | auto | Primary key |
+| `external_id` | varchar(255) | No | | Unique identifier from DRT feed; unique |
+| `title` | text | No | | Advisory headline |
+| `posted_at` | datetime | No | | When advisory was posted (stored as UTC) |
+| `when_text` | varchar(255) | Yes | NULL | Human-readable active period |
+| `route_text` | varchar(255) | Yes | NULL | Affected route description |
+| `details_url` | varchar(255) | No | | Absolute URL to advisory detail page |
+| `body_text` | text | Yes | NULL | Full advisory body |
+| `list_hash` | varchar(40) | Yes | NULL | SHA-1 hash for change detection |
+| `details_fetched_at` | timestamp | Yes | NULL | Timestamp of last successful detail fetch |
+| `is_active` | boolean | No | true | False when absent from feed |
+| `feed_updated_at` | timestamp | Yes | NULL | Last feed sync timestamp; indexed |
+| `created_at` | timestamp | Yes | NULL | |
+| `updated_at` | timestamp | Yes | NULL | |
+
+**Indexes:**
+
+| Name | Columns | Type |
+|---|---|---|
+| (unique) | `external_id` | Unique |
+| `drt_alerts_posted_at_index` | `posted_at` | B-tree |
+| `drt_alerts_is_active_posted_at_index` | `(is_active, posted_at)` | B-tree |
+
+**Notes on full-text search:** `drt_alerts` does not have a dedicated FULLTEXT or GIN index migration. The provider falls back to `ILIKE` on PostgreSQL and `LIKE` on MySQL for the `q` search parameter.
+
+**Model:** `App\Models\DrtAlert`
+
+**Provider:** `App\Services\Alerts\Providers\DrtAlertSelectProvider`
+
+**Timestamp note:** The unified query uses `posted_at` as the `timestamp` column.
 
 ---
 
@@ -796,7 +844,7 @@ Each index covers a concatenated tsvector across the columns listed below:
 | `transit_alerts` | `transit_alerts_fulltext` | `title`, `description`, `stop_start`, `stop_end`, `route`, `route_type` |
 | `go_transit_alerts` | `go_transit_alerts_fulltext` | `message_subject`, `message_body`, `corridor_or_route`, `corridor_code`, `service_mode` |
 
-**Note:** `miway_alerts` and `yrt_alerts` do not have GIN index migrations for PostgreSQL. Their providers fall back to `ILIKE` when the driver is PostgreSQL.
+**Note:** `miway_alerts`, `yrt_alerts`, and `drt_alerts` do not have GIN index migrations for PostgreSQL. Their providers fall back to `ILIKE` when the driver is PostgreSQL.
 
 Query expression used by providers:
 
@@ -827,7 +875,7 @@ No FTS indexes. The outer query in `UnifiedAlertsQuery` applies a case-insensiti
 | `incident_updates` | `created_at < now() - 90 days` | 90 days | `model:prune --model=App\Models\IncidentUpdate` | Daily 00:00 |
 | `failed_jobs` | `failed_at < now() - 7 days` | 7 days | `queue:prune-failed --hours=168` | Daily 00:00 |
 
-All other tables have no automated pruning. Alert source tables (`fire_incidents`, `police_calls`, `transit_alerts`, `go_transit_alerts`, `miway_alerts`, `yrt_alerts`) are append-only; rows are deactivated (soft-flagged) rather than deleted when they disappear from the feed.
+All other tables have no automated pruning. Alert source tables (`fire_incidents`, `police_calls`, `transit_alerts`, `go_transit_alerts`, `miway_alerts`, `yrt_alerts`, `drt_alerts`) are append-only; rows are deactivated (soft-flagged) rather than deleted when they disappear from the feed.
 
 Full policy detail and scheduler verification: [maintenance.md](maintenance.md).
 
@@ -866,6 +914,7 @@ All migrations in chronological run order:
 | `2026_03_31_040514_create_miway_alerts_table.php` | Creates `miway_alerts` |
 | `2026_03_31_082123_add_fulltext_index_to_miway_alerts_table.php` | Adds MySQL/MariaDB FULLTEXT index on `(header_text, description_text)` in `miway_alerts` (no-op on other drivers) |
 | `2026_04_01_221138_create_yrt_alerts_table.php` | Creates `yrt_alerts` |
+| `2026_04_03_174048_create_drt_alerts_table.php` | Creates `drt_alerts` |
 
 ---
 

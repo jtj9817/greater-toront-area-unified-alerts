@@ -33,6 +33,8 @@ Every provider must project the same columns:
 - `app/Services/Alerts/Providers/TransitAlertSelectProvider.php`
 - `app/Services/Alerts/Providers/GoTransitAlertSelectProvider.php`
 - `app/Services/Alerts/Providers/MiwayAlertSelectProvider.php`
+- `app/Services/Alerts/Providers/YrtAlertSelectProvider.php`
+- `app/Services/Alerts/Providers/DrtAlertSelectProvider.php`
 
 Tag registration is in `app/Providers/AppServiceProvider.php` under `alerts.select-providers`.
 

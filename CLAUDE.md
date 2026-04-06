@@ -13,6 +13,7 @@ GTA Alerts is a real-time dashboard for emergency services and transit alerts ac
 - **GO Transit** - Metrolinx JSON API (`api.metrolinx.com/external/go/serviceupdate/en/all`, every 5 minutes)
 - **MiWay Service Alerts** - GTFS-RT protobuf feed from `miapp.ca` (every 5 minutes)
 - **YRT Service Advisories** - JSON list + conditional HTML detail enrichment from `yrt.ca` (every 5 minutes)
+- **DRT Service Advisories** - HTML list pages from `durhamregiontransit.com` (every 5 minutes)
 - **Weather (Environment Canada)** - Live weather data by FSA (30-min cache, location picker)
 
 ## Commands
@@ -64,6 +65,7 @@ php artisan police:fetch-calls         # Manually sync Toronto Police feed
 php artisan go-transit:fetch-alerts    # Manually sync GO Transit feed
 php artisan miway:fetch-alerts         # Manually sync MiWay feed
 php artisan yrt:fetch-alerts           # Manually sync YRT feed
+php artisan drt:fetch-alerts          # Manually sync DRT feed
 php artisan db:export-sql              # Export alert tables as SQL UPSERT statements
 php artisan db:import-sql --file=... --force  # Import SQL dump through psql
 ./scripts/export-alert-data.sh --sail  # Orchestrate SQL export with transfer guidance
@@ -86,7 +88,7 @@ php artisan scheduler:report         # Show schedule configuration
 The system uses a **Provider & Adapter** pattern to unify divergent data sources:
 
 ```
-Source Models (FireIncident, PoliceCall, TransitAlert, GoTransitAlert, MiwayAlert)
+Source Models (FireIncident, PoliceCall, GoTransitAlert, MiwayAlert, YrtAlert, DrtAlert)
     ↓
 Select Providers (AlertSelectProvider implementations)
     ↓
@@ -109,7 +111,7 @@ AlertPresentation (frontend view model)
 - `App\Services\Alerts\DTOs\UnifiedAlertsCursor` - Opaque cursor `(ts,id)` encoder/decoder
 
 **Enums:**
-- `App\Enums\AlertSource` - Fire, Police, Transit, GoTransit, Miway (type-safe)
+- `App\Enums\AlertSource` - Fire, Police, Transit, GoTransit, Miway, Yrt, Drt (type-safe)
 - `App\Enums\AlertStatus` - All, Active, Cleared (with `normalize()` method)
 
 **Providers (Tagged Injection):**
@@ -119,6 +121,7 @@ AlertPresentation (frontend view model)
 - `App\Services\Alerts\Providers\TransitAlertSelectProvider` - TTC transit alerts adapter
 - `App\Services\Alerts\Providers\GoTransitAlertSelectProvider` - GO Transit alerts adapter
 - `App\Services\Alerts\Providers\MiwayAlertSelectProvider` - MiWay transit alerts adapter
+- `App\Services\Alerts\Providers\DrtAlertSelectProvider` - DRT transit alerts adapter
 
 **Query & Mapper:**
 - `App\Services\Alerts\UnifiedAlertsQuery` - UNION ALL query with tagged provider injection
@@ -164,6 +167,11 @@ AlertPresentation (frontend view model)
 **YRT:**
 - JSON list + conditional HTML detail from `yrt.ca` → `YrtServiceAdvisoriesFeedService` (fetch/parse) → `FetchYrtAlertsCommand` (upsert via `external_id`) → `YrtAlert` model
 - Conditional detail fetch: new alert, hash change, missing body, or stale refresh (24h)
+- Command marks missing alerts as `is_active = false`
+- Scheduled every 5 minutes in `routes/console.php`
+
+**DRT:**
+- HTML list pages from `durhamregiontransit.com` → `DrtServiceAlertsFeedService` (fetch/parse) → `FetchDrtAlertsCommand` (upsert via `external_id`) → `DrtAlert` model
 - Command marks missing alerts as `is_active = false`
 - Scheduled every 5 minutes in `routes/console.php`
 
@@ -280,7 +288,7 @@ Dedicated scheduler container (`docker/scheduler/`) runs `php artisan scheduler:
 
 ## Adding New Alert Sources
 
-1. Create model and migration (follow `FireIncident`/`PoliceCall` pattern)
+1. Create model and migration (follow `DrtAlert`/`FireIncident` pattern)
 2. Create feed service and fetch command
 3. Create `*AlertSelectProvider` implementing `AlertSelectProvider`
 4. Register provider in `AppServiceProvider` with tag `alerts.select-providers`
@@ -299,7 +307,7 @@ See `docs/` for detailed architecture:
 - `docs/backend/production-scheduler.md` - Scheduler container, ScheduledFetchJobDispatcher, resilience guardrails
 - `docs/backend/security-headers.md` - EnsureSecurityHeaders middleware, CSP nonce and hot-mode extension
 - `docs/deployment/production-seeding.md` - Forge-safe SQL export/import transfer runbook
-- `docs/sources/` - Individual data source documentation (Toronto Fire, Police, TTC, GO Transit, MiWay, YRT)
+- `docs/sources/` - Individual data source documentation (Toronto Fire, Police, TTC, GO Transit, MiWay, YRT, DRT)
 - `docs/architecture/provider-adapter-pattern.md` - Provider pattern explanation
 - `docs/backend/notification-system.md` - In-app notification system (IMPLEMENTED)
 - `docs/backend/saved-alerts.md` - Saved Alerts system: API contract, guest/auth storage, hydration path, unresolved-ID handling (IMPLEMENTED)

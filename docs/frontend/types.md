@@ -19,6 +19,7 @@ Transport shape is validated at the frontend boundary with Zod:
 - `kind: 'go_transit'`
 - `kind: 'miway'`
 - `kind: 'yrt'`
+- `kind: 'drt'`
 
 Defined in: `resources/js/features/gta-alerts/domain/alerts/types.ts`
 
@@ -61,6 +62,74 @@ Derived in `deriveMiwaySeverity(meta)` in `transit/presentation.ts` (case-insens
 ### MiWay Presentation Mapping
 
 In `mapDomainAlertToPresentation`, MiWay alerts map to `type: 'transit'` (same visual treatment as TTC). Description is built from `effect` label + `cause` + `description_text` with a fallback chain: `header_text` → `title` → `'MiWay service alert.'`.
+
+## YRT Domain Types
+
+- Schema: `resources/js/features/gta-alerts/domain/alerts/transit/yrt/schema.ts`
+- Mapper: `resources/js/features/gta-alerts/domain/alerts/transit/yrt/mapper.ts`
+
+### YrtAlert
+
+Domain type for YRT (York Region Transit) service advisories. `kind: 'yrt'`.
+
+Fields mirror the base domain shape plus a `meta: YrtMeta` block. Location fields (`lat`, `lng`) are always `null` — YRT advisories carry no geographic coordinates.
+
+### YrtMeta
+
+Fields surfaced from `YrtAlertSelectProvider`:
+
+| Field | Type | Notes |
+|---|---|---|
+| `details_url` | `string \| null` | Link to YRT advisory detail page |
+| `description_excerpt` | `string \| null` | Short summary from feed |
+| `body_text` | `string \| null` | Full advisory body from detail HTML |
+| `route_text` | `string \| null` | Route numbers/names affected |
+| `posted_at` | `string \| null` | ISO 8601 posted timestamp |
+| `feed_updated_at` | `string \| null` | Feed-level sync timestamp |
+
+### YRT Severity Rules
+
+YRT alerts use shared transit presentation helpers. Severity defaults to `low` unless presentation logic derives otherwise.
+
+### YRT Presentation Mapping
+
+YRT alerts map to `type: 'transit'` (same visual treatment as TTC/GO Transit/MiWay). Description is built from `route_text` + `description_excerpt` + `body_text`.
+
+## DRT Domain Types
+
+- Schema: `resources/js/features/gta-alerts/domain/alerts/transit/drt/schema.ts`
+- Mapper: `resources/js/features/gta-alerts/domain/alerts/transit/drt/mapper.ts`
+
+### DrtAlert
+
+Domain type for DRT (Durham Region Transit) service advisories. `kind: 'drt'`.
+
+Fields mirror the base domain shape plus a `meta: DrtMeta` block. Location fields (`lat`, `lng`) are always `null` — DRT advisories carry no geographic coordinates.
+
+### DrtMeta
+
+Fields surfaced from `DrtAlertSelectProvider`:
+
+| Field | Type | Notes |
+|---|---|---|
+| `details_url` | `string \| null` | Link to DRT advisory detail page |
+| `when_text` | `string \| null` | Human-readable schedule/when info |
+| `route_text` | `string \| null` | Route numbers/names affected |
+| `body_text` | `string \| null` | Full advisory body from detail HTML |
+| `feed_updated_at` | `string \| null` | Feed-level sync timestamp |
+| `posted_at` | `string \| null` | ISO 8601 posted timestamp |
+
+### DRT Severity Rules
+
+Derived in `deriveDrtSeverity(meta)` in `transit/presentation.ts`:
+
+- Keywords `CANCEL`, `SUSPEND`, `NO SERVICE`, `CLOSED` → `high`
+- Keywords `DETOUR`, `DELAY`, `REDUCED SERVICE` → `medium`
+- All others → `low`
+
+### DRT Presentation Mapping
+
+DRT alerts map to `type: 'transit'` (same visual treatment as TTC/GO Transit/MiWay/YRT). Description is built from `when_text` + `route_text` + `body_text`.
 
 ## GO Transit Severity Rules
 
