@@ -2,33 +2,41 @@
 
 ## Project Structure & Module Organization
 - `app/`: Laravel application code (controllers, models, services).
-- `app/Services/TorontoFireFeedService.php`: Fetches Toronto Fire CAD XML feed.
-- `app/Console/Commands/FetchFireIncidentsCommand.php`: Syncs feed data into `fire_incidents`.
-- `app/Jobs/FetchFireIncidentsJob.php`: Queue wrapper for scheduled fetches.
-- `app/Models/FireIncident.php`: Incident model + `active()` scope.
+- `app/Services/Alerts/`: Unified alerts system (DTOs, Providers, Query, Mappers).
+- `app/Services/Alerts/Providers/`: AlertSelectProvider implementations (Fire, Police, Transit, GoTransit, Miway, Yrt, Drt).
+- `app/Services/`: Feed services (TorontoFireFeedService, TorontoPoliceFeedService, TtcAlertsFeedService, GoTransitFeedService, MiwayGtfsRtAlertsFeedService, YrtServiceAdvisoriesFeedService, DrtServiceAlertsFeedService).
+- `app/Console/Commands/`: Fetch commands for each source (Fetch*AlertsCommand, Fetch*IncidentsCommand).
+- `app/Jobs/`: Queue wrapper jobs for scheduled fetches (Fetch*DrtAlertsJob, etc.).
+- `app/Models/`: Eloquent models (FireIncident, PoliceCall, TransitAlert, GoTransitAlert, MiwayAlert, YrtAlert, DrtAlert, etc.).
 - `routes/`: HTTP routes; start with `routes/web.php`.
 - `routes/web.php`: Home route renders the GTA Alerts Inertia page.
-- `resources/`: Frontend assets (Inertia + React components, CSS, JS/TS).
-- `resources/js/features/gta-alerts/`: GTA Alerts UI, services, and mock data.
+- `routes/console.php`: Scheduled commands (all 7 feed-fetchers + daily digest + queue pruning).
+- `resources/js/features/gta-alerts/`: GTA Alerts UI (React components, domain layer, hooks, services).
+- `resources/js/features/gta-alerts/domain/alerts/`: Typed domain layer with source-specific subdirectories (fire/, police/, transit/).
 - `database/`: Migrations, seeders, and factories.
-- `database/migrations/*create_fire_incidents_table.php`: Incident storage and indexes.
 - `tests/`: Pest tests for application and feature coverage.
 
 ## Build, Test, and Development Commands
 - `composer setup`: One-time setup (installs deps, creates `.env`, generates key, migrates, builds assets).
-- `composer dev`: Runs Laravel server, queue, log tailing, and Vite dev server concurrently.
+- `composer dev`: Runs Laravel server, supervised queue worker, log tailing (pail), Vite, and scheduler concurrently.
 - `pnpm run dev`: Frontend hot-reload only (Vite).
 - `pnpm run build`: Production asset build.
-- `composer test`: Clears config, runs Pint in test mode, then runs `php artisan test`.
+- `composer test`: Config clear + Pint lint check + `php artisan test`.
 - `pnpm run lint`: ESLint with auto-fix across the repo.
 - `pnpm run format`: Prettier formatting for `resources/`.
-- `php artisan fire:fetch-incidents`: Manually syncs Toronto Fire feed to the database.
+- `php artisan fire:fetch-incidents`: Manually sync Toronto Fire feed.
+- `php artisan police:fetch-calls`: Manually sync Toronto Police feed.
+- `php artisan transit:fetch-alerts`: Manually sync TTC Transit feed.
+- `php artisan go-transit:fetch-alerts`: Manually sync GO Transit feed.
+- `php artisan miway:fetch-alerts`: Manually sync MiWay feed.
+- `php artisan yrt:fetch-alerts`: Manually sync YRT feed.
+- `php artisan drt:fetch-alerts`: Manually sync DRT feed.
 
 ## Coding Style & Naming Conventions
 - Indentation: 4 spaces (see `.editorconfig`). YAML uses 2 spaces.
-- PHP: Follow Laravel conventions; format with `pint` (`composer lint`).
+- PHP: Follow Laravel conventions; format with `pint` (`composer run lint`).
 - Frontend: Format with Prettier; lint with ESLint.
-- Names: Use clear, descriptive names; React components in `PascalCase` (e.g., `AlertCard.tsx`), hooks in `camelCase` (e.g., `useAlerts.ts`).
+- Names: Use clear, descriptive names; React components in `PascalCase` (e.g., `AlertCard.tsx`), hooks in `camelCase` (e.g., `useInfiniteScroll.ts`).
 
 ## Testing Guidelines
 - Framework: Pest (`php artisan test`).
@@ -47,8 +55,10 @@
 
 ## Domain Notes: GTA Alerts
 - Landing page: `resources/js/pages/gta-alerts.tsx` mounts `resources/js/features/gta-alerts/App.tsx`.
-- Feed UI uses mock data in `resources/js/features/gta-alerts/constants.ts`.
-- Filtering/search lives in `resources/js/features/gta-alerts/services/AlertService.ts`.
+- Backend feed data flows through `AlertService` in `services/AlertService.ts` (domain boundary mapping).
+- Filtering/search lives in `AlertService.ts` and is server-authoritative via `/api/feed`.
+- Domain layer under `domain/alerts/` maps each source (fire, police, transit subdirectories) from transport to typed DomainAlert.
+- Presentation layer under `domain/alerts/view/` derives AlertPresentation from DomainAlert.
 
 ===
 
@@ -78,7 +88,7 @@ This application is a Laravel application and its main Laravel ecosystems packag
 - phpunit/phpunit (PHPUNIT) - v12
 - @inertiajs/react (INERTIA_REACT) - v2
 - laravel-echo (ECHO) - v2
-- react (REACT) - v19
+- react (REACT) - 19
 - tailwindcss (TAILWINDCSS) - v4
 - @laravel/vite-plugin-wayfinder (WAYFINDER_VITE) - v0
 - eslint (ESLINT) - v9
@@ -86,7 +96,7 @@ This application is a Laravel application and its main Laravel ecosystems packag
 
 ## Skills Activation
 
-This project has domain-specific skills available. You MUST activate the relevant skill whenever you work in that domain—don't wait until you're stuck.
+This application has domain-specific skills available. You MUST activate the relevant skill whenever you work in that domain—don't wait until you're stuck.
 
 - `laravel-best-practices` — Apply this skill whenever writing, reviewing, or refactoring Laravel PHP code. This includes creating or modifying controllers, models, migrations, form requests, policies, jobs, scheduled commands, service classes, and Eloquent queries. Triggers for N+1 and query performance issues, caching strategies, authorization and security patterns, validation, error handling, queue and job configuration, route definitions, and architectural decisions. Also use for Laravel code reviews and refactoring existing Laravel code to follow best practices. Covers any task involving Laravel backend PHP code patterns.
 - `wayfinder-development` — Activates whenever referencing backend routes in frontend components. Use when importing from @/actions or @/routes, calling Laravel routes from TypeScript, or working with Wayfinder route functions.
@@ -135,7 +145,7 @@ This project has domain-specific skills available. You MUST activate the relevan
 
 ## Searching Documentation (IMPORTANT)
 
-- Always use `search-docs` before making code changes. Do not skip this step. It returns version-specific docs based on installed packages automatically.
+- Always use `search-docs` tool for version-specific documentation and updated code examples before making code changes.
 - Pass a `packages` array to scope results when you know which packages are relevant.
 - Use multiple broad, topic-based queries: `['rate limiting', 'routing rate limiting', 'routing']`. Expect the most relevant results first.
 - Do not add package names to queries because package info is already shared. Use `test resource table`, not `filament 4 test resource table`.
@@ -175,7 +185,7 @@ This project has domain-specific skills available. You MUST activate the relevan
 
 # Laravel Sail
 
-- This project runs inside Laravel Sail's Docker containers. You MUST execute all commands through Sail.
+- This application runs inside Laravel Sail's Docker containers. You MUST execute all commands through Sail.
 - Start services using `vendor/bin/sail up -d` and stop them with `vendor/bin/sail stop`.
 - Open the application in the browser by running `vendor/bin/sail open`.
 - Always prefix PHP, Artisan, Composer, and Node commands with `vendor/bin/sail`. Examples:
@@ -205,7 +215,7 @@ This project has domain-specific skills available. You MUST activate the relevan
 
 - Use all Inertia features from v1 and v2. Check the documentation before making changes to ensure the correct approach.
 - New features: deferred props, infinite scrolling (merging props + `WhenVisible`), lazy loading on scroll, polling, prefetching.
-- When using deferred props, add an empty state with a pulsing or animated skeleton.
+- When using deferred props, add an empty state with a pulsed or animated skeleton.
 
 === laravel/core rules ===
 
@@ -242,7 +252,7 @@ This project has domain-specific skills available. You MUST activate the relevan
 # Laravel 12
 
 - CRITICAL: ALWAYS use `search-docs` tool for version-specific Laravel documentation and updated code examples.
-- Since Laravel 11, Laravel has a new streamlined file structure which this project uses.
+- Since Laravel 11, Laravel has a new streamlined file structure which this application uses.
 
 ## Laravel 12 Structure
 
@@ -285,7 +295,7 @@ Wayfinder generates TypeScript functions for Laravel routes. Import from `@/acti
 
 ## Pest
 
-- This project uses Pest for testing. Create tests: `vendor/bin/sail artisan make:test --pest {name}`.
+- This application uses Pest for testing. Create tests: `vendor/bin/sail artisan make:test --pest {name}`.
 - Run tests: `vendor/bin/sail artisan test --compact` or filter: `vendor/bin/sail artisan test --compact --filter=testName`.
 - Do NOT delete tests without approval.
 
@@ -295,4 +305,3 @@ Wayfinder generates TypeScript functions for Laravel routes. Import from `@/acti
 
 - IMPORTANT: Activate `inertia-react-development` when working with Inertia React client-side patterns.
 
-</laravel-boost-guidelines>
