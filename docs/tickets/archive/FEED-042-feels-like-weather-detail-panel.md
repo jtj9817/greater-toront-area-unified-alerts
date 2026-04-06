@@ -1,5 +1,11 @@
 # FEED-042 — Feels Like Algorithm + Weather Detail Panel
 
+**Date:** 2026-03-28
+**Status:** Closed
+**Priority:** Medium
+**Components:** Backend, Frontend
+**Implemented By:** commit `fd9ec535` ("feat(weather): FEED-042 — Feels Like algorithm, extended observations, detail panel")
+
 ## Summary
 
 Add a computed **Feels Like** temperature to the weather feature using standard meteorological formulas (Wind Chill, Humidex), expose all non-empty Environment Canada observation fields through the API, and surface them in a click-triggered detail panel anchored to the footer weather bar.
@@ -16,43 +22,43 @@ The footer weather bar (`id="gta-alerts-footer-weather"`) currently shows temper
 
 ### Algorithm
 
-- [ ] **Wind Chill** is applied when `T ≤ 10 °C` and wind speed `> 4.8 km/h`:
+- [x] **Wind Chill** is applied when `T ≤ 10 °C` and wind speed `> 4.8 km/h`:
   ```
   Wind Chill = 13.12 + 0.6215·T − 11.37·W^0.16 + 0.3965·T·W^0.16
   ```
   where `T` = temperature (°C), `W` = wind speed (km/h).
-- [ ] **Humidex** is applied when `T ≥ 20 °C` and dewpoint is available:
+- [x] **Humidex** is applied when `T ≥ 20 °C` and dewpoint is available:
   ```
   Humidex = T + 0.5555 × (6.11 × exp(5417.753 × (1/273.16 − 1/(273.15 + Td))) − 10)
   ```
   where `Td` = dewpoint (°C).
-- [ ] Returns `null` when neither condition is met (e.g., `10 < T < 20 °C`).
-- [ ] Result is rounded to one decimal place.
+- [x] Returns `null` when neither condition is met (e.g., `10 < T < 20 °C`).
+- [x] Result is rounded to one decimal place.
 
 ### Backend
 
-- [ ] `WeatherData` DTO gains fields: `feelsLike`, `dewpoint`, `pressure`, `visibility`, `windGust`, `tendency`, `observedAt` (all nullable).
-- [ ] `EnvironmentCanadaWeatherProvider` parses all new fields from `observation` and computes `feelsLike`.
-- [ ] `WeatherCacheService` persists and hydrates all new fields through the DB payload column.
-- [ ] `WeatherResource` exposes all new fields in the JSON response (snake_case keys).
-- [ ] Raw numeric wind speed (km/h) is used internally for the Wind Chill calculation; it is not added as a separate public DTO field.
+- [x] `WeatherData` DTO gains fields: `feelsLike`, `dewpoint`, `pressure`, `visibility`, `windGust`, `tendency`, `observedAt` (all nullable).
+- [x] `EnvironmentCanadaWeatherProvider` parses all new fields from `observation` and computes `feelsLike`.
+- [x] `WeatherCacheService` persists and hydrates all new fields through the DB payload column.
+- [x] `WeatherResource` exposes all new fields in the JSON response (snake_case keys).
+- [x] Raw numeric wind speed (km/h) is used internally for the Wind Chill calculation; it is not added as a separate public DTO field.
 
 ### Frontend
 
-- [ ] `WeatherData` domain type and `WeatherResourceSchema` include all new fields.
-- [ ] `fromWeatherResource` maps all new fields (snake_case → camelCase).
-- [ ] Clicking the `id="gta-alerts-footer-weather"` element opens a detail panel anchored above the footer.
-- [ ] The panel lists every field that is non-null **and** non-empty string, excluding the timestamp (`fetchedAt`).
-- [ ] `feelsLike` is shown prominently at the top of the panel when available.
-- [ ] The panel closes on click-outside and on `Escape`, consistent with the `MinimalModeToggle` pattern.
-- [ ] The footer weather bar shows a visual affordance (cursor pointer, subtle indicator) that it is clickable.
-- [ ] All new fields have correct `id` attributes for testability.
+- [x] `WeatherData` domain type and `WeatherResourceSchema` include all new fields.
+- [x] `fromWeatherResource` maps all new fields (snake_case → camelCase).
+- [x] Clicking the `id="gta-alerts-footer-weather"` element opens a detail panel anchored above the footer.
+- [x] The panel lists every field that is non-null **and** non-empty string, excluding the timestamp (`fetchedAt`).
+- [x] `feelsLike` is shown prominently at the top of the panel when available.
+- [x] The panel closes on click-outside and on `Escape`, consistent with the `MinimalModeToggle` pattern.
+- [x] The footer weather bar shows a visual affordance (cursor pointer, subtle indicator) that it is clickable.
+- [x] All new fields have correct `id` attributes for testability.
 
 ### Tests
 
-- [ ] PHP unit tests cover Wind Chill and Humidex across boundary cases (at-threshold, above, below, null inputs).
-- [ ] Updated provider fixture includes dewpoint, pressure, visibility, windGust, tendency, observedAt.
-- [ ] Frontend Footer tests cover: panel opens on click, panel closes on outside click / Escape, `feelsLike` is shown, null/empty fields are omitted from panel.
+- [x] PHP unit tests cover Wind Chill and Humidex across boundary cases (at-threshold, above, below, null inputs).
+- [x] Updated provider fixture includes dewpoint, pressure, visibility, windGust, tendency, observedAt.
+- [x] Frontend Footer tests cover: panel opens on click, panel closes on outside click / Escape, `feelsLike` is shown, null/empty fields are omitted from panel.
 
 ---
 

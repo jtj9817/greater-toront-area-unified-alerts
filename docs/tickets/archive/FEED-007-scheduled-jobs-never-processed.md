@@ -1,7 +1,7 @@
 ---
 ticket_id: FEED-007
 title: "[Bug] Scheduled Fetch Jobs Dispatched to Queue But Never Processed — Stale Feed Data"
-status: In Progress
+status: Closed
 priority: Critical
 assignee: Unassigned
 created_at: 2026-02-23
@@ -260,10 +260,14 @@ This preserves:
 
 ## Acceptance Criteria
 
-- [ ] `composer run dev` queue worker runs inside Sail container
-- [ ] `--tries=3` aligned with job classes and production Forge config
-- [ ] Same fix applied to `dev:ssr` script
-- [ ] Stale jobs flushed from MySQL `jobs` table
-- [ ] `feed_updated_at` on all source models reflects current time after next scheduler cycle
-- [ ] Frontend displays fresh alerts with "Updated: Just now" instead of "Updated: Xd ago"
-- [ ] `composer run test` passes clean (no test changes needed)
+- [x] `composer run dev` queue worker runs inside Sail container
+- [x] `--tries=3` aligned with job classes and production Forge config
+- [x] Same fix applied to `dev:ssr` script
+- [x] Stale jobs flushed from MySQL `jobs` table
+- [x] `feed_updated_at` on all source models reflects current time after next scheduler cycle
+- [x] Frontend displays fresh alerts with "Updated: Just now" instead of "Updated: Xd ago"
+- [x] `composer run test` passes clean (no test changes needed)
+
+## Closure
+
+**Fixed** by commit `e9913c88` ("fix(dev): run queue worker inside Sail container instead of host") and `a6edcfdb` ("fix(dev): add schedule:work inside Sail container to dev script"). The queue worker now runs inside the Docker bridge network where `DB_HOST=mysql` is reachable. Also see `FEED-008` for the `schedule:work` addition.
