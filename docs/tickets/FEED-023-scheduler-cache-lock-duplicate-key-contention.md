@@ -1,7 +1,7 @@
 ---
 ticket_id: FEED-023
 title: "[Bug] Resolve scheduler cache_locks duplicate-key contention on PostgreSQL"
-status: In Progress
+status: Closed
 priority: High
 assignee: Unassigned
 created_at: 2026-03-12

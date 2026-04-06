@@ -1,7 +1,7 @@
 ---
 ticket_id: FEED-005
 title: "[Tests] Stabilize Infinite Scroll Test Harness"
-status: In Progress
+status: Closed
 priority: Medium
 assignee: Unassigned
 created_at: 2026-02-21

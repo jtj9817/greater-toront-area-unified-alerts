@@ -1,7 +1,7 @@
 ---
 ticket_id: FEED-022
 title: "[Deployment] Harden Forge queue and scheduler production configuration"
-status: In Progress
+status: Closed
 priority: Critical
 assignee: Unassigned
 created_at: 2026-03-10

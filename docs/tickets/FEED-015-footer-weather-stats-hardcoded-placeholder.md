@@ -1,7 +1,7 @@
 ---
 ticket_id: FEED-015
 title: "[Tech Debt] Wire Footer Weather Stats to Live or Static Data Source"
-status: Open
+status: Closed
 priority: Low
 assignee: Unassigned
 created_at: 2026-03-04
