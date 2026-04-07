@@ -17,14 +17,14 @@ This track is executed as **test expansion only** to recover the coverage gate. 
 
 ## Phase 0: Baseline + Coverage Map (Pre-Implementation)
 
-- [ ] Task: Confirm the baseline failure mode in the current environment (MySQL testing)
+- [x] Task: Confirm the baseline failure mode in the current environment (MySQL testing)
   - Command: `vendor/bin/sail up -d --profile testing`
-  - Command: `vendor/bin/sail artisan test --coverage --min=90`
-  - If coverage collection requires Xdebug: `SAIL_XDEBUG_MODE=coverage vendor/bin/sail artisan test --coverage --min=90`
-  - Record the observed suite coverage percent and the top uncovered modules in this track folder (add a short note at the bottom of this `plan.md` after running).
-- [ ] Task: Confirm optional Postgres testing profile is available for QA later
-  - Verify `pgsql-testing` container can start: `vendor/bin/sail up -d --profile testing`
-  - Do not run full PG suite yet; just ensure the dependency exists for Phase 9.
+  - Command: `SAIL_XDEBUG_MODE=coverage vendor/bin/sail artisan test --coverage --min=90`
+  - **Observed: 87.8% total suite coverage — gate FAIL (min 90%).**
+  - Top uncovered modules recorded in Phase 0 Notes below.
+- [x] Task: Confirm optional Postgres testing profile is available for QA later
+  - Verified: `docker compose --profile testing up -d pgsql-testing` starts successfully.
+  - Container `pgsql-testing` is healthy and available for Phase 9 QA.
 
 ## Phase 1: SavedAlert Model (0% -> >= 90% Module Coverage)
 
@@ -256,5 +256,23 @@ This track is executed as **test expansion only** to recover the coverage gate. 
   - If your workflow archives completed tracks, move this track under `conductor/archive/` and update `conductor/tracks.md` accordingly (leave as active otherwise).
 
 ### Phase 0 Notes (Fill In During Execution)
-- Baseline suite coverage:
+
+**Baseline suite coverage: 87.8%** (recorded 2026-04-06)
+
+**Top uncovered modules (< 90% coverage, excluding Protobuf auto-generated code):**
+
+| Module | Coverage | Gap Lines |
+|---|---|---|
+| `Models/SavedAlert` | 0.0% | Entire file |
+| `Http/Controllers/Weather/WeatherController` | 73.3% | 24-27, 26 |
+| `Http/Middleware/EnsureSecurityHeaders` | 81.7% | 111, 134, 140, 151, 157, 162, 173, 177, 184, 193-201, 207, 211, 215, 228, 236, 242, 258 |
+| `Providers/QueueEnqueueDebugServiceProvider` | 67.9% | 34-53, 101, 128-134, 46-55 |
+| `Services/ScheduledFetchJobDispatcher` | 83.7% | 94-100, 150, 159-161, 165, 169, 173 |
+| `Services/Weather/Providers/EnvironmentCanadaWeatherProvider` | 88.6% | 34-35, 49, 87, 112, 120-121, 156, 230-234, 249, 264, 279, 328, 347, 353, 359, 370 |
+| `Services/DrtServiceAlertsFeedService` | 89.3% | 121, 131, 136, 148, 154, 160, 281, 297-298, 307, 332, 361, 366, 375, 379, 393, 408, 414, 420-425, 443, 451, 458, 518-521, 553, 563, 601, 611 |
+| `Providers/QueueExecutionDebugServiceProvider` | 93.9% | 24, 32, 40, 107 |
+
+**Protobuf auto-generated code (excluded from scope — not app code):**
+- `Protobuf/Google/Transit/Realtime/*` — Multiple 0% files, 50-78% files. These are auto-generated from `.proto` definitions and should not be covered by app-level tests.
+
 - Remaining lowest modules after Phase 1-7:
