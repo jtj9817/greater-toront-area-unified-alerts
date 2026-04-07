@@ -78,7 +78,7 @@ The Cards/Table toggle is purely presentational and should remain client-side.
 
 | Ticket | Description | Priority |
 |--------|-------------|----------|
-| [FEED-002](./FEED-002-real-time-push.md) | Real-time push updates for the alert feed via WebSocket/SSE | Medium |
+| [FEED-064](./FEED-064-real-time-feed-push-updates.md) | Real-time push updates for the alert feed via WebSocket/SSE | Medium |
 | [FEED-003](./FEED-003-saved-filter-presets.md) | Saved filter presets for quick-access filter combinations | Low |
 | [FEED-004](./FEED-004-sort-direction-toggle.md) | Sort direction toggle (newest/oldest first) | Low |
 

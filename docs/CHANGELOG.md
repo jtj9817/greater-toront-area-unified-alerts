@@ -141,7 +141,6 @@ All notable documentation-relevant changes are tracked here.
     - `docs/backend/unified-alerts-qa.md`
     - `CLAUDE.md`
 - Updated dependent/open ticket current-state language to reflect FEED-001 being shipped:
-    - `docs/tickets/FEED-002-real-time-push.md`
     - `docs/tickets/FEED-003-saved-filter-presets.md`
     - `docs/tickets/FEED-004-sort-direction-toggle.md`
 - Corrected frontend service docs to match current `AlertService` responsibilities:
@@ -178,7 +177,7 @@ All notable documentation-relevant changes are tracked here.
 
 - Created four open feed improvement tickets in `docs/tickets/`:
     - `FEED-001-server-side-filters-infinite-scroll.md` - Move category/search/time filters server-side, replace pagination with cursor-based infinite scroll
-    - `FEED-002-real-time-push.md` - Real-time push updates for the alert feed (depends on FEED-001)
+    - `FEED-064-real-time-feed-push-updates.md` - Real-time push updates for the alert feed (depends on FEED-001)
     - `FEED-003-saved-filter-presets.md` - Saved filter presets (depends on FEED-001)
     - `FEED-004-sort-direction-toggle.md` - Sort direction toggle (depends on FEED-001)
 - Archived 16 closed tickets from `docs/tickets/` to `docs/tickets/archive/`.

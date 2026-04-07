@@ -58,8 +58,8 @@ docs/
 │   ├── production-data-migration.md
 │   └── scene-intel-feature-plan.md
 ├── tickets/
-│   ├── FEED-002-real-time-push.md            (Open)
 │   ├── FEED-003-saved-filter-presets.md      (Open)
+│   ├── FEED-064-real-time-feed-push-updates.md (Open)
 │   ├── FEED-015-footer-weather-stats-hardcoded-placeholder.md  (Open)
 │   ├── FEED-001 through FEED-021             (all others Closed/Done — not archived to subdirectory)
 │   └── archive/  (older closed tickets moved here)
@@ -121,7 +121,7 @@ The unified feed currently aggregates seven source types:
 
 Active work items and feature proposals:
 
-- **[tickets/FEED-002-real-time-push.md](tickets/FEED-002-real-time-push.md)** - Real-time push updates for the alert feed (depends on FEED-001)
+- **[tickets/FEED-064-real-time-feed-push-updates.md](tickets/FEED-064-real-time-feed-push-updates.md)** - Real-time push updates for the alert feed (depends on FEED-001)
 - **[tickets/FEED-003-saved-filter-presets.md](tickets/FEED-003-saved-filter-presets.md)** - Saved filter presets for quick-access filter combinations (depends on FEED-001)
 
 ## Resolved Tickets
@@ -156,7 +156,7 @@ Active work items and feature proposals:
 | Scene Intel (Fire) | Implemented | [backend/scene-intel.md](backend/scene-intel.md) |
 | Weather Feature | Implemented | [backend/weather.md](backend/weather.md) |
 | Alert Location Map (Leaflet + OSM) | Implemented | [frontend/alert-location-map.md](frontend/alert-location-map.md) |
-| Real-Time Feed Push | Planned | [tickets/FEED-002-real-time-push.md](tickets/FEED-002-real-time-push.md) |
+| Real-Time Feed Push | Planned | [tickets/FEED-064-real-time-feed-push-updates.md](tickets/FEED-064-real-time-feed-push-updates.md) |
 | Dynamic Zones | Planned | [architecture/dynamic-zones.md](architecture/dynamic-zones.md) |
 
 ## Runbooks

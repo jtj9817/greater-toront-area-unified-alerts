@@ -107,5 +107,5 @@ All added WHERE clauses and ordering must work on both sqlite and mysql (consist
 
 ## 7. Out of Scope (Per Ticket)
 
-- Real-time push updates for filtered views (see `docs/tickets/FEED-002-real-time-push.md`).
+- Real-time push updates for filtered views (see `docs/tickets/FEED-064-real-time-feed-push-updates.md`).
 - Advanced geospatial filtering (separate track).
