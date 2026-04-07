@@ -1,10 +1,12 @@
 ---
 ticket_id: FEED-012
 title: "[Deployment] Forge + Hetzner PostgreSQL Go-Live Pre-Flight Checklist"
-status: Open
+status: Closed
 priority: Critical
 assignee: Unassigned
 created_at: 2026-03-02
+closed_at: 2026-04-06
+resolution: "Production has been running on PostgreSQL without interruption. All phases validated in production."
 tags: [deployment, forge, hetzner, postgresql, preflight, runbook]
 related_files:
   - docs/plans/hetzner-forge-deployment-preflight.md
@@ -323,8 +325,8 @@ Additional pre-switch checks were executed before local PostgreSQL cutover:
 
 ## Acceptance Criteria
 
-- [ ] All 7 phases complete with no failed go/no-go gate.
-- [ ] First production deploy succeeds without manual hotfix.
-- [ ] No `SQLSTATE` driver-specific query errors observed after cutover.
-- [ ] Queue and scheduler are both processing normally in Forge.
-- [ ] Backup and rollback evidence is documented in deployment notes.
+- [x] All 7 phases complete with no failed go/no-go gate.
+- [x] First production deploy succeeds without manual hotfix.
+- [x] No `SQLSTATE` driver-specific query errors observed after cutover.
+- [x] Queue and scheduler are both processing normally in Forge.
+- [x] Backup and rollback evidence is documented in deployment notes.
