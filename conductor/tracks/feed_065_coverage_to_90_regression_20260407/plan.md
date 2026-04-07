@@ -155,16 +155,16 @@ This track is executed as **test expansion only** to recover the coverage gate. 
 
 **Test design (logic)**
 
-- [ ] Task: Empty response body throws `WeatherFetchException`
+- [x] Task: Empty response body throws `WeatherFetchException`
     - Arrange: `Http::fake()` returns status 200 with `''`.
-    - Assert exception message contains “empty response body”.
-- [ ] Task: Generic Throwable during request is wrapped as `WeatherFetchException`
+    - Assert exception message contains "empty response body".
+- [x] Task: Generic Throwable during request is wrapped as `WeatherFetchException`
     - Arrange: `Http::fake()` throws a generic `RuntimeException`.
-    - Assert exception message contains “HTTP request error”.
-- [ ] Task: Non-2xx failure message includes status code (stable string)
+    - Assert exception message contains "HTTP request error".
+- [x] Task: Non-2xx failure message includes status code (stable string)
     - Arrange: `Http::fake()` returns 503 (or 404).
     - Assert exception message contains the status code string.
-- [ ] Task: Alert parsing edge cases (branch completion)
+- [x] Task: Alert parsing edge cases (branch completion)
     - Add fixture-derived payload variants to cover:
         - `alert` present but `mostSevere` missing/non-string.
         - `alerts` present but empty or first entry not an array.

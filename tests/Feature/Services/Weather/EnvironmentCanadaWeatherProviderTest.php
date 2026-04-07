@@ -355,3 +355,121 @@ test('new fields are null when not present in observation payload', function () 
     expect($data->tendency)->toBeNull();
     expect($data->stationName)->toBeNull();
 });
+
+// ============================================================================
+// Phase 5: Failure Modes + Edge Parsing
+// ============================================================================
+
+// --- Task 1: Empty response body ---
+
+test('empty response body throws WeatherFetchException', function () {
+    Http::fake(['*' => Http::response('', 200)]);
+
+    GtaPostalCode::firstOrCreate(['fsa' => 'M5V'], ['municipality' => 'Toronto', 'neighbourhood' => 'Liberty Village', 'lat' => 43.6406, 'lng' => -79.3961]);
+
+    $provider = new EnvironmentCanadaWeatherProvider;
+
+    expect(fn () => $provider->fetch('M5V'))
+        ->toThrow(WeatherFetchException::class, 'empty response body');
+});
+
+// --- Task 2: Generic Throwable wrapped as WeatherFetchException ---
+
+test('generic throwable during HTTP request is wrapped as WeatherFetchException', function () {
+    Http::fake(['*' => function () {
+        throw new RuntimeException('underlying transport failure');
+    }]);
+
+    GtaPostalCode::firstOrCreate(['fsa' => 'M5V'], ['municipality' => 'Toronto', 'neighbourhood' => 'Liberty Village', 'lat' => 43.6406, 'lng' => -79.3961]);
+
+    $provider = new EnvironmentCanadaWeatherProvider;
+
+    expect(fn () => $provider->fetch('M5V'))
+        ->toThrow(WeatherFetchException::class, 'HTTP request error');
+});
+
+// --- Task 3: Non-2xx failure includes status code ---
+
+test('non-2xx failure message includes status code', function () {
+    Http::fake(['*' => Http::response('Service Unavailable', 503)]);
+
+    GtaPostalCode::firstOrCreate(['fsa' => 'M5V'], ['municipality' => 'Toronto', 'neighbourhood' => 'Liberty Village', 'lat' => 43.6406, 'lng' => -79.3961]);
+
+    $provider = new EnvironmentCanadaWeatherProvider;
+
+    expect(fn () => $provider->fetch('M5V'))
+        ->toThrow(WeatherFetchException::class, 'HTTP 503');
+});
+
+// --- Task 4: Alert parsing edge cases ---
+
+test('alert with missing mostSevere key returns null alert level', function () {
+    $payload = json_decode(ecJsonFixture('yellow-alert'), true);
+    unset($payload['alert']['mostSevere']);
+    Http::fake(['*' => Http::response(json_encode($payload), 200)]);
+
+    GtaPostalCode::firstOrCreate(['fsa' => 'M5V'], ['municipality' => 'Toronto', 'neighbourhood' => 'Liberty Village', 'lat' => 43.6406, 'lng' => -79.3961]);
+
+    $provider = new EnvironmentCanadaWeatherProvider;
+    $data = $provider->fetch('M5V');
+
+    expect($data->alertLevel)->toBeNull();
+    expect($data->alertText)->toBeNull();
+});
+
+test('alert with non-string mostSevere returns null alert level', function () {
+    $payload = json_decode(ecJsonFixture('yellow-alert'), true);
+    $payload['alert']['mostSevere'] = 42;
+    Http::fake(['*' => Http::response(json_encode($payload), 200)]);
+
+    GtaPostalCode::firstOrCreate(['fsa' => 'M5V'], ['municipality' => 'Toronto', 'neighbourhood' => 'Liberty Village', 'lat' => 43.6406, 'lng' => -79.3961]);
+
+    $provider = new EnvironmentCanadaWeatherProvider;
+    $data = $provider->fetch('M5V');
+
+    expect($data->alertLevel)->toBeNull();
+    expect($data->alertText)->toBeNull();
+});
+
+test('alert with empty alerts array returns null alert text', function () {
+    $payload = json_decode(ecJsonFixture('yellow-alert'), true);
+    $payload['alert']['alerts'] = [];
+    Http::fake(['*' => Http::response(json_encode($payload), 200)]);
+
+    GtaPostalCode::firstOrCreate(['fsa' => 'M5V'], ['municipality' => 'Toronto', 'neighbourhood' => 'Liberty Village', 'lat' => 43.6406, 'lng' => -79.3961]);
+
+    $provider = new EnvironmentCanadaWeatherProvider;
+    $data = $provider->fetch('M5V');
+
+    expect($data->alertLevel)->toBe('yellow');
+    expect($data->alertText)->toBeNull();
+});
+
+test('alert with non-array first alerts entry returns null alert text', function () {
+    $payload = json_decode(ecJsonFixture('yellow-alert'), true);
+    $payload['alert']['alerts'] = ['not an array'];
+    Http::fake(['*' => Http::response(json_encode($payload), 200)]);
+
+    GtaPostalCode::firstOrCreate(['fsa' => 'M5V'], ['municipality' => 'Toronto', 'neighbourhood' => 'Liberty Village', 'lat' => 43.6406, 'lng' => -79.3961]);
+
+    $provider = new EnvironmentCanadaWeatherProvider;
+    $data = $provider->fetch('M5V');
+
+    expect($data->alertLevel)->toBe('yellow');
+    expect($data->alertText)->toBeNull();
+});
+
+test('alert with empty bannerText and alertHeaderText returns null alert text', function () {
+    $payload = json_decode(ecJsonFixture('yellow-alert'), true);
+    $payload['alert']['alerts'][0]['bannerText'] = '';
+    $payload['alert']['alerts'][0]['alertHeaderText'] = '';
+    Http::fake(['*' => Http::response(json_encode($payload), 200)]);
+
+    GtaPostalCode::firstOrCreate(['fsa' => 'M5V'], ['municipality' => 'Toronto', 'neighbourhood' => 'Liberty Village', 'lat' => 43.6406, 'lng' => -79.3961]);
+
+    $provider = new EnvironmentCanadaWeatherProvider;
+    $data = $provider->fetch('M5V');
+
+    expect($data->alertLevel)->toBe('yellow');
+    expect($data->alertText)->toBeNull();
+});
