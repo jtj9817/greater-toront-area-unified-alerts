@@ -204,7 +204,7 @@ This track is executed as **test expansion only** to recover the coverage gate. 
 
 **Test design (logic)**
 
-- [ ] Task: QueueEnqueueDebugServiceProvider logs info for matching jobs
+- [x] Task: QueueEnqueueDebugServiceProvider logs info for matching jobs
     - Arrange:
         - Enable debug env vars.
         - Configure matcher `*` and a valid JSON payload containing `displayName`.
@@ -214,17 +214,17 @@ This track is executed as **test expansion only** to recover the coverage gate. 
         - `Log::channel('queue_enqueues')->info(...)` called with expected keys.
         - `payload_meta` excludes null values (exercise `payloadMeta()` filter).
         - `stack` is null unless stack env is enabled; when enabled, `compactStack()` output is bounded and frame-shape tolerant.
-- [ ] Task: QueueEnqueueDebugServiceProvider stack toggle is respected
+- [x] Task: QueueEnqueueDebugServiceProvider stack toggle is respected
     - With `QUEUE_DEBUG_ENQUEUES_STACK=false`: assert `stack` is null in log context.
     - With `QUEUE_DEBUG_ENQUEUES_STACK=true`: assert `stack` is a list with at most the requested frame limit and frames missing file/line are skipped.
-- [ ] Task: QueueEnqueueDebugServiceProvider produces no log for non-matching jobs
+- [x] Task: QueueEnqueueDebugServiceProvider produces no log for non-matching jobs
     - Arrange matcher list that should not match the payload display name.
     - Assert no `info` call.
-- [ ] Task: QueueExecutionDebugServiceProvider no-log path for non-matching jobs
+- [x] Task: QueueExecutionDebugServiceProvider no-log path for non-matching jobs
     - Arrange debug enabled but matcher list excludes the job display name.
     - Act: dispatch `JobProcessing`/`JobProcessed`/`JobFailed`.
     - Assert no log calls.
-- [ ] Task: QueueExecutionDebugServiceProvider covers remaining jobContext shape branches
+- [x] Task: QueueExecutionDebugServiceProvider covers remaining jobContext shape branches
     - Assert `job_connection` is present and differs from event connection name when overridden in the mock job.
 
 ## Phase 8: Final Gap Sweep (Only If Suite Still < 90%)
