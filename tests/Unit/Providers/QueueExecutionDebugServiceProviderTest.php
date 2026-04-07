@@ -102,6 +102,61 @@ test('queue execution debug provider logs processing processed and failed events
     app('events')->dispatch(new JobFailed('database', $job, new RuntimeException('boom')));
 });
 
+test('queue execution debug provider produces no log for non-matching jobs', function () {
+    putenv('QUEUE_DEBUG_EXECUTION=true');
+    putenv('QUEUE_DEBUG_EXECUTION_MATCH=App\\Jobs\\OnlyThisJob');
+    $_ENV['QUEUE_DEBUG_EXECUTION'] = 'true';
+    $_ENV['QUEUE_DEBUG_EXECUTION_MATCH'] = 'App\\Jobs\\OnlyThisJob';
+
+    Log::shouldReceive('channel')->never();
+
+    (new QueueExecutionDebugServiceProvider(app()))->boot();
+
+    $job = mockQueueJob(['display_name' => 'App\\Jobs\\DifferentJob']);
+
+    app('events')->dispatch(new JobProcessing('database', $job));
+    app('events')->dispatch(new JobProcessed('database', $job));
+    app('events')->dispatch(new JobFailed('database', $job, new RuntimeException('no-log')));
+});
+
+test('queue execution debug provider job context includes distinct job connection', function () {
+    putenv('QUEUE_DEBUG_EXECUTION=true');
+    putenv('QUEUE_DEBUG_EXECUTION_MATCH=*');
+    $_ENV['QUEUE_DEBUG_EXECUTION'] = 'true';
+    $_ENV['QUEUE_DEBUG_EXECUTION_MATCH'] = '*';
+
+    $logger = \Mockery::mock();
+    $logger->shouldReceive('info')
+        ->once()
+        ->withArgs(function (string $message, array $context): bool {
+            // Event connection is 'database', but job reports 'redis' as its actual connection
+            return $context['connection'] === 'database'
+                && $context['job_connection'] === 'redis'
+                && $context['connection'] !== $context['job_connection'];
+        });
+
+    Log::shouldReceive('channel')
+        ->once()
+        ->with('queue_execution')
+        ->andReturn($logger);
+
+    (new QueueExecutionDebugServiceProvider(app()))->boot();
+
+    $job = mockQueueJob(['connection' => 'redis']);
+
+    app('events')->dispatch(new JobProcessing('database', $job));
+});
+
+test('queue execution debug provider matches method skips empty matcher strings', function () {
+    $provider = new QueueExecutionDebugServiceProvider(app());
+
+    // Empty string matcher should be skipped — no match
+    expect(invokeQueueExecutionDebugPrivate($provider, 'matches', 'App\\Jobs\\SomeJob', ['']))->toBeFalse();
+
+    // Empty string mixed with valid matcher — empty is skipped, valid matches
+    expect(invokeQueueExecutionDebugPrivate($provider, 'matches', 'App\\Jobs\\SomeJob', ['', 'SomeJob']))->toBeTrue();
+});
+
 /**
  * @param  array<string, mixed>  $overrides
  */
