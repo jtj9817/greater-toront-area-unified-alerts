@@ -179,18 +179,18 @@ This track is executed as **test expansion only** to recover the coverage gate. 
 
 **Test design (logic)**
 
-- [ ] Task: Cover list fetch failure/exception path deterministically
+- [x] Task: Cover list fetch failure/exception path deterministically
     - Arrange: `Http::fake()` returns a non-2xx list response and assert `fetch()` throws with status in message.
     - Arrange: `Http::fake()` throws (connection failure) and assert `fetch()` throws the wrapped `RuntimeException` message.
-- [ ] Task: Cover “empty HTML” parse behavior for list/detail
+- [x] Task: Cover “empty HTML” parse behavior for list/detail
     - List parse: return an empty body and assert the service returns zero alerts and throws unless `feeds.allow_empty_feeds=true`.
     - Detail parse: return an empty/whitespace-only detail HTML and assert the service falls back to existing `body_text` as designed.
-- [ ] Task: Cover URL normalization rejection paths
+- [x] Task: Cover URL normalization rejection paths
     - Provide a list fixture containing links that match the XPath query but normalize to invalid origins/paths (for example, missing `/en/news/` or missing `.aspx`) and assert they are skipped without failing the whole fetch.
-- [ ] Task: Cover normalizeText() non-scalar guard (defensive branch)
+- [x] Task: Cover normalizeText() non-scalar guard (defensive branch)
     - Force code paths that call `normalizeText()` with non-scalar inputs (for example by calling helper methods via a test-only subclass that passes arrays/objects).
     - Assert it returns null and the parser continues without throwing.
-- [ ] Task: Circuit breaker open propagates (no swallowing)
+- [x] Task: Circuit breaker open propagates (no swallowing)
     - Mock `FeedCircuitBreaker::throwIfOpen('drt')` to throw a deterministic exception.
     - Assert the exception is surfaced (and no HTTP calls were attempted).
     - Note: `throwIfOpen()` occurs before the service’s try/catch; `recordFailure()` is not expected to be called in this path.

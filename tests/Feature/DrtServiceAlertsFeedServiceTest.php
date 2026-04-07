@@ -3,7 +3,9 @@
 use App\Models\DrtAlert;
 use App\Services\DrtServiceAlertsFeedService;
 use App\Services\FeedCircuitBreaker;
+use App\Services\FeedCircuitBreakerOpenException;
 use Carbon\Carbon;
+use Carbon\CarbonInterface;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
 use Mockery\MockInterface;
@@ -70,6 +72,67 @@ function drtFakeListAndDetailFixtures(): void
 
         return Http::response('', 404);
     });
+}
+
+class TestableDrtServiceAlertsFeedService extends DrtServiceAlertsFeedService
+{
+    public function normalizeText(mixed $value): ?string
+    {
+        return parent::normalizeText($value);
+    }
+
+    public function normalizeDetailUrl(?string $url): ?string
+    {
+        return parent::normalizeDetailUrl($url);
+    }
+
+    public function extractExternalIdFromUrl(string $url): ?string
+    {
+        return parent::extractExternalIdFromUrl($url);
+    }
+
+    public function parsePostedAt(?string $postedOnLine): ?CarbonInterface
+    {
+        return parent::parsePostedAt($postedOnLine);
+    }
+
+    public function loadDomDocument(string $html): ?DOMDocument
+    {
+        return parent::loadDomDocument($html);
+    }
+
+    public function extractDetailBodyTextFromHtml(string $html): ?string
+    {
+        return parent::extractDetailBodyTextFromHtml($html);
+    }
+
+    public function extractTextBetweenMarkers(string $text, string $startMarker, string $endMarker): ?string
+    {
+        return parent::extractTextBetweenMarkers($text, $startMarker, $endMarker);
+    }
+
+    public function findListContextNode(DOMNode $node): ?DOMNode
+    {
+        return parent::findListContextNode($node);
+    }
+
+    public function extractLabelValue(string $contextText, string $label): ?string
+    {
+        return parent::extractLabelValue($contextText, $label);
+    }
+
+    public function extractLabelValueFromContextNode(DOMNode $contextNode, string $label): ?string
+    {
+        return parent::extractLabelValueFromContextNode($contextNode, $label);
+    }
+}
+
+function drtTestableService(): TestableDrtServiceAlertsFeedService
+{
+    $breaker = mock(FeedCircuitBreaker::class);
+    $breaker->shouldIgnoreMissing();
+
+    return new TestableDrtServiceAlertsFeedService($breaker);
 }
 
 test('it fetches and normalizes DRT list pages with details parsing', function () {
@@ -583,4 +646,342 @@ test('it skips entries with empty external id and validates good entries are pre
         expect($alert['external_id'])->not->toBeEmpty();
         expect($alert['external_id'])->not->toBe('.aspx');
     }
+});
+
+/*
+ * Phase 6: DrtServiceAlertsFeedService Remaining Branch Coverage
+ *
+ * Gap lines targeted: 121, 148, 154, 281, 297-298, 307, 332, 361,
+ * 366, 375, 379, 393, 408, 414, 420-425, 443, 451, 518-521, 553,
+ * 563, 601.
+ */
+
+// Task 5: Circuit breaker open propagates (no swallowing)
+test('circuit breaker open propagates without HTTP calls', function () {
+    $breaker = mock(FeedCircuitBreaker::class, function (MockInterface $mock): void {
+        $mock->shouldReceive('throwIfOpen')
+            ->once()
+            ->with('drt')
+            ->andThrow(new FeedCircuitBreakerOpenException("Circuit breaker open for feed 'drt'"));
+        $mock->shouldReceive('recordFailure')->never();
+        $mock->shouldReceive('recordSuccess')->never();
+    });
+
+    Http::fake();
+
+    $service = new DrtServiceAlertsFeedService($breaker);
+
+    expect(fn () => $service->fetch())
+        ->toThrow(FeedCircuitBreakerOpenException::class, "Circuit breaker open for feed 'drt'");
+
+    expect(Http::recorded())->toHaveCount(0);
+});
+
+// Task 1: Cover list fetch failure/exception path deterministically
+test('non-2xx list response includes status code in exception message', function () {
+    Http::fake([drtListUrl().'*' => Http::response('', 503)]);
+
+    expect(fn () => app(DrtServiceAlertsFeedService::class)->fetch())
+        ->toThrow(RuntimeException::class, 'DRT service alerts feed request failed: 503');
+});
+
+test('detail fetch connection exception falls back to existing body text', function () {
+    $listHtml = <<<'HTML'
+    <html><body>
+    <div class="blogItem">
+      <div class="blogItem-contentContainer">
+        <div class="blogPostDate">Posted on Tuesday, February 24, 2026 11:16 AM</div>
+        <div class="newsTitle">
+          <a href="https://www.durhamregiontransit.com/en/news/exception-detail-alert.aspx">Exception Detail Alert</a>
+        </div>
+        <div class="blogItem-contentContainer">
+          <p>When: when value</p>
+          <p>Route: route value</p>
+          <p>excerpt</p>
+        </div>
+      </div>
+    </div>
+    </body></html>
+    HTML;
+
+    DrtAlert::factory()->create([
+        'external_id' => 'exception-detail-alert',
+        'details_url' => 'https://www.durhamregiontransit.com/en/news/exception-detail-alert.aspx',
+        'list_hash' => sha1('old-hash'),
+        'body_text' => 'preserved body',
+        'details_fetched_at' => Carbon::now()->subHours(2),
+    ]);
+
+    Http::fake([
+        drtListUrl().'*' => Http::response($listHtml, 200),
+        'https://www.durhamregiontransit.com/en/news/exception-detail-alert.aspx' => Http::failedConnection(),
+    ]);
+
+    $alert = app(DrtServiceAlertsFeedService::class)->fetch()['alerts'][0];
+    expect($alert['body_text'])->toBe('preserved body');
+});
+
+// Task 2: Cover "empty HTML" parse behavior for list/detail
+test('empty list response body returns zero alerts and throws without allow empty feeds', function () {
+    Http::fake([drtListUrl().'*' => Http::response('   ', 200)]);
+
+    expect(fn () => app(DrtServiceAlertsFeedService::class)->fetch())
+        ->toThrow(RuntimeException::class, 'DRT service alerts feed returned zero alerts');
+
+    config(['feeds.allow_empty_feeds' => true]);
+
+    $result = app(DrtServiceAlertsFeedService::class)->fetch();
+    expect($result['alerts'])->toBe([]);
+});
+
+test('empty detail response falls back to existing body text', function () {
+    $listHtml = <<<'HTML'
+    <html><body>
+    <div class="blogItem">
+      <div class="blogItem-contentContainer">
+        <div class="blogPostDate">Posted on Tuesday, February 24, 2026 11:16 AM</div>
+        <div class="newsTitle">
+          <a href="https://www.durhamregiontransit.com/en/news/empty-detail-alert.aspx">Empty Detail Alert</a>
+        </div>
+        <div class="blogItem-contentContainer">
+          <p>When: when value</p>
+          <p>Route: route value</p>
+          <p>excerpt</p>
+        </div>
+      </div>
+    </div>
+    </body></html>
+    HTML;
+
+    DrtAlert::factory()->create([
+        'external_id' => 'empty-detail-alert',
+        'details_url' => 'https://www.durhamregiontransit.com/en/news/empty-detail-alert.aspx',
+        'list_hash' => sha1('old-hash'),
+        'body_text' => 'existing body',
+        'details_fetched_at' => Carbon::now()->subHours(2),
+    ]);
+
+    Http::fake([
+        drtListUrl().'*' => Http::response($listHtml, 200),
+        'https://www.durhamregiontransit.com/en/news/empty-detail-alert.aspx' => Http::response('   ', 200),
+    ]);
+
+    $alert = app(DrtServiceAlertsFeedService::class)->fetch()['alerts'][0];
+    expect($alert['body_text'])->toBe('existing body');
+});
+
+// Task 3: Cover URL normalization rejection paths
+test('URL normalization rejects various invalid URLs', function (?string $url) {
+    expect(drtTestableService()->normalizeDetailUrl($url))->toBeNull();
+})->with([
+    'null' => null,
+    'empty string' => '',
+    'missing en-news path' => 'https://www.durhamregiontransit.com/other/path.aspx',
+    'missing aspx extension' => 'https://www.durhamregiontransit.com/en/news/some-alert.html',
+    'completely invalid URL' => '://not-a-url',
+]);
+
+test('URL normalization prepends slash to relative URL without leading slash', function () {
+    $result = drtTestableService()->normalizeDetailUrl('en/news/test-alert.aspx');
+    expect($result)->toBe('https://www.durhamregiontransit.com/en/news/test-alert.aspx');
+});
+
+test('list parsing skips links that normalize to invalid URLs without failing the whole fetch', function () {
+    $listHtml = <<<'HTML'
+    <html><body>
+    <div>
+      <h2><a href="https://www.durhamregiontransit.com/en/news/valid-alert.aspx">Valid Alert</a></h2>
+      <p>Posted on Tuesday, February 24, 2026 11:16 AM</p>
+      <p><strong>When:</strong> when value</p>
+      <p><strong>Route:</strong> route value</p>
+      <p>excerpt</p>
+      <a href="https://www.durhamregiontransit.com/en/news/valid-alert.aspx">Read more</a>
+    </div>
+    <div>
+      <h2><a href="https://www.durhamregiontransit.com/other/invalid-path.aspx">Invalid Path Alert</a></h2>
+      <p>Posted on Tuesday, February 24, 2026 11:16 AM</p>
+      <p><strong>When:</strong> when value</p>
+      <p><strong>Route:</strong> route value</p>
+      <p>excerpt</p>
+      <a href="https://www.durhamregiontransit.com/other/invalid-path.aspx">Read more</a>
+    </div>
+    </body></html>
+    HTML;
+
+    Http::fake([
+        drtListUrl().'*' => Http::response($listHtml, 200),
+        'https://www.durhamregiontransit.com/en/news/*' => Http::response('<html><body><main>detail</main></body></html>', 200),
+    ]);
+
+    $result = app(DrtServiceAlertsFeedService::class)->fetch();
+    expect($result['alerts'])->toHaveCount(1);
+    expect($result['alerts'][0]['external_id'])->toBe('valid-alert');
+});
+
+// Task 4: Cover normalizeText() non-scalar guard (defensive branch)
+test('normalizeText returns null for non-scalar inputs', function (mixed $value) {
+    expect(drtTestableService()->normalizeText($value))->toBeNull();
+})->with([
+    'array' => [['foo', 'bar']],
+    'object' => [new stdClass],
+]);
+
+// Additional branch coverage: shouldFetchDetails when details_fetched_at is null
+test('shouldFetchDetails returns true when details fetched at is null', function () {
+    $listHtml = <<<'HTML'
+    <html><body>
+    <div>
+      <h2><a href="https://www.durhamregiontransit.com/en/news/no-fetched-at-alert.aspx">No Fetched At Alert</a></h2>
+      <p>Posted on Tuesday, February 24, 2026 11:16 AM</p>
+      <p><strong>When:</strong> when value</p>
+      <p><strong>Route:</strong> route value</p>
+      <p>excerpt</p>
+      <a href="https://www.durhamregiontransit.com/en/news/no-fetched-at-alert.aspx">Read more</a>
+    </div>
+    </body></html>
+    HTML;
+
+    $hash = sha1('No Fetched At Alert|Posted on Tuesday, February 24, 2026 11:16 AM|when value|route value|excerpt|https://www.durhamregiontransit.com/en/news/no-fetched-at-alert.aspx');
+
+    DrtAlert::factory()->create([
+        'external_id' => 'no-fetched-at-alert',
+        'details_url' => 'https://www.durhamregiontransit.com/en/news/no-fetched-at-alert.aspx',
+        'list_hash' => $hash,
+        'body_text' => 'existing body',
+        'details_fetched_at' => null,
+    ]);
+
+    Http::fake([
+        drtListUrl().'*' => Http::response($listHtml, 200),
+        'https://www.durhamregiontransit.com/en/news/no-fetched-at-alert.aspx' => Http::response('<html><body><main><p>Refreshed body.</p></main></body></html>', 200),
+    ]);
+
+    $alert = app(DrtServiceAlertsFeedService::class)->fetch()['alerts'][0];
+    expect($alert['body_text'])->toContain('Refreshed body');
+    expect($alert['details_fetched_at'])->not->toBeNull();
+});
+
+// parsePostedAt branch coverage: lines 408, 414, 420-425
+test('parsePostedAt returns null for various invalid inputs', function (?string $input) {
+    expect(drtTestableService()->parsePostedAt($input))->toBeNull();
+})->with([
+    'null' => null,
+    'empty string' => '',
+    'whitespace only' => '   ',
+    'text without posted on prefix' => 'Not a date at all',
+    'posted on without date after prefix' => 'Posted on ',
+    'date without time component' => 'Posted on Monday, February 24, 2026',
+]);
+
+// extractExternalIdFromUrl: line 393
+test('extractExternalIdFromUrl returns null for empty path', function () {
+    expect(drtTestableService()->extractExternalIdFromUrl('https://example.com/'))->toBeNull();
+    expect(drtTestableService()->extractExternalIdFromUrl('https://example.com'))->toBeNull();
+});
+
+// extractTextBetweenMarkers: lines 518-521, 332
+test('extractTextBetweenMarkers returns null when markers are missing or misordered', function (string $text) {
+    expect(drtTestableService()->extractTextBetweenMarkers($text, 'Start', 'End'))->toBeNull();
+})->with([
+    'missing start marker' => 'Some text End more text',
+    'missing end marker' => 'Start some text more text',
+    'end before start' => 'End comes before Start marker',
+]);
+
+test('extractTextBetweenMarkers returns text between found markers', function () {
+    $result = drtTestableService()->extractTextBetweenMarkers('Before Start middle text End after', 'Start', 'End');
+    expect($result)->toBe('middle text');
+});
+
+// findListContextNode: lines 553, 563
+test('findListContextNode returns null when cursor reaches root without Posted on text', function () {
+    $doc = new DOMDocument;
+    $doc->loadHTML('<html><body><div><a href="/en/news/test.aspx">Link</a></div></body></html>', LIBXML_NOWARNING | LIBXML_NOERROR);
+    $link = (new DOMXPath($doc))->query('//a')->item(0);
+
+    expect(drtTestableService()->findListContextNode($link))->toBeNull();
+});
+
+test('findListContextNode returns null for deeply nested node exceeding max depth', function () {
+    $html = '<html><body>';
+    for ($i = 0; $i < 10; $i++) {
+        $html .= '<div>';
+    }
+    $html .= '<a href="/en/news/test.aspx">Link</a>';
+    for ($i = 0; $i < 10; $i++) {
+        $html .= '</div>';
+    }
+    $html .= '</body></html>';
+
+    $doc = new DOMDocument;
+    $doc->loadHTML($html, LIBXML_NOWARNING | LIBXML_NOERROR);
+    $link = (new DOMXPath($doc))->query('//a')->item(0);
+
+    expect(drtTestableService()->findListContextNode($link))->toBeNull();
+});
+
+// loadDomDocument: line 601
+test('loadDomDocument returns null for empty or whitespace-only HTML', function () {
+    expect(drtTestableService()->loadDomDocument(''))->toBeNull();
+    expect(drtTestableService()->loadDomDocument('   '))->toBeNull();
+    expect(drtTestableService()->loadDomDocument("\n\t"))->toBeNull();
+});
+
+// extractDetailBodyTextFromHtml: line 332 (text between markers path)
+test('extractDetailBodyTextFromHtml extracts text between Back to Search and Subscribe markers', function () {
+    $html = '<html><body>
+        <p>Back to Search</p>
+        <p>This is the alert detail content that should be extracted.</p>
+        <p>Subscribe</p>
+    </body></html>';
+
+    $result = drtTestableService()->extractDetailBodyTextFromHtml($html);
+    expect($result)->toContain('This is the alert detail content that should be extracted');
+});
+
+// extractLabelValue: line 443
+test('extractLabelValue returns trimmed value when label is found', function () {
+    $context = "Route: 900 and N1\nWhen: until further notice\nRead more";
+    expect(drtTestableService()->extractLabelValue($context, 'Route'))->toBe('900 and N1');
+});
+
+// extractLabelValueFromContextNode: line 451
+test('extractLabelValueFromContextNode returns null when context node has no owner document', function () {
+    $detachedNode = new DOMElement('p');
+    expect(drtTestableService()->extractLabelValueFromContextNode($detachedNode, 'Route'))->toBeNull();
+});
+
+// List parse edge cases: lines 148, 154
+test('list parsing skips links with empty text or missing context', function () {
+    $deepWrap = str_repeat('<div>', 10);
+    $deepClose = str_repeat('</div>', 10);
+
+    $listHtml = <<<HTML
+    <html><body>
+    <div>
+      <h2><a href="https://www.durhamregiontransit.com/en/news/valid-alert.aspx">Valid Alert</a></h2>
+      <p>Posted on Tuesday, February 24, 2026 11:16 AM</p>
+      <p><strong>When:</strong> when value</p>
+      <p><strong>Route:</strong> route value</p>
+      <p>excerpt</p>
+      <a href="https://www.durhamregiontransit.com/en/news/valid-alert.aspx">Read more</a>
+    </div>
+    <div>
+      <h2><a href="https://www.durhamregiontransit.com/en/news/empty-text-alert.aspx">   </a></h2>
+      <p>Posted on Tuesday, February 24, 2026 11:16 AM</p>
+    </div>
+    <div>
+      {$deepWrap}<a href="https://www.durhamregiontransit.com/en/news/no-context-alert.aspx">No Context Alert</a>{$deepClose}
+    </div>
+    </body></html>
+    HTML;
+
+    Http::fake([
+        drtListUrl().'*' => Http::response($listHtml, 200),
+        'https://www.durhamregiontransit.com/en/news/*' => Http::response('<html><body><main>detail</main></body></html>', 200),
+    ]);
+
+    $result = app(DrtServiceAlertsFeedService::class)->fetch();
+    expect($result['alerts'])->toHaveCount(1);
+    expect($result['alerts'][0]['external_id'])->toBe('valid-alert');
 });
