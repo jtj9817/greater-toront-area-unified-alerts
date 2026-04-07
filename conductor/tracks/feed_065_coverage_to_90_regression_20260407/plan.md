@@ -229,11 +229,16 @@ This track is executed as **test expansion only** to recover the coverage gate. 
 
 ## Phase 8: Final Gap Sweep (Only If Suite Still < 90%)
 
-- [ ] Task: Re-run coverage and target only the remaining uncovered lines/modules
+- [x] Task: Re-run coverage and target only the remaining uncovered lines/modules
     - Command: `vendor/bin/sail artisan test --coverage --min=90`
-    - If still failing:
-        - Identify the remaining lowest-coverage module(s) (for example `SavedPlace`, `UnifiedAlertsQuery`, small job/service gaps).
-        - Add the smallest tests needed to cover only those remaining branches (no broad refactors).
+    - **Observed: 89.2% after Phase 7 — gate still FAIL.**
+    - Targeted the following modules with smallest tests needed:
+        - `GoTransitFeedService` (91.4% → 100.0%): 8 tests for non-array type guards, empty PostedDateTime, empty HeadSign fallback.
+        - `EnvironmentCanadaWeatherProvider` (92.8% → 99.4%): 8 tests for scalar JSON, empty list payload, array error, missing observation fields.
+        - `TorontoFireFeedService` (90.6% → 100.0%): 1 test for events with missing required fields.
+        - `WeatherFetchService` (93.8% → 100.0%): 1 test for getProviders() method.
+        - `TtcAlertsFeedService` (90.3% → 96.0%): 11 tests for missing lastUpdated, non-array buckets/records, SXA failure, null id/title, invalid timestamps, static containers with no heading.
+    - **Final: 90.0% — gate PASS (min 90%).**
 
 ## Phase 9: QA Phase
 
@@ -291,3 +296,19 @@ This track is executed as **test expansion only** to recover the coverage gate. 
 - `Protobuf/Google/Transit/Realtime/*` — Multiple 0% files, 50-78% files. These are auto-generated from `.proto` definitions and should not be covered by app-level tests.
 
 - Remaining lowest modules after Phase 1-7:
+
+### Phase 8 Notes (Fill In During Execution)
+
+**Post-Phase 7 suite coverage: 89.2%** (still below 90% gate)
+
+**Phase 8 targeted modules and outcomes:**
+
+| Module                                                        | Before | After  | Tests Added |
+| ------------------------------------------------------------- | ------ | ------ | ----------- |
+| `Services/GoTransitFeedService`                               | 91.4%  | 100.0% | 8 tests     |
+| `Services/Weather/Providers/EnvironmentCanadaWeatherProvider` | 92.8%  | 99.4%  | 8 tests     |
+| `Services/TorontoFireFeedService`                             | 90.6%  | 100.0% | 1 test      |
+| `Services/Weather/WeatherFetchService`                        | 93.8%  | 100.0% | 1 test      |
+| `Services/TtcAlertsFeedService`                               | 90.3%  | 96.0%  | 11 tests    |
+
+**Final suite coverage: 90.0% — gate PASS (min 90%).**
