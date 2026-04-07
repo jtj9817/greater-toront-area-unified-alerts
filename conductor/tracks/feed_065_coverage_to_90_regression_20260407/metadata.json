@@ -1,0 +1,9 @@
+{
+  "track_id": "feed_065_coverage_to_90_regression_20260407",
+  "type": "quality",
+  "status": "new",
+  "created_at": "2026-04-07T00:00:00Z",
+  "updated_at": "2026-04-07T00:00:00Z",
+  "description": "Restore >=90% suite coverage after regression to 87.8% by closing targeted module gaps with deterministic unit/component/feature tests (FEED-065)."
+}
+

@@ -9,6 +9,9 @@ This file tracks all major tracks for the project. Each track has its own detail
 - [ ] **Track: Weather Feature (GTA Alerts) (FEED-015)**
       _Link: [./tracks/weather_feature_20260327/](./tracks/weather_feature_20260327/)_
 
+- [ ] **Track: Coverage Regression Recovery (>=90%) (FEED-065)**
+      _Link: [./tracks/feed_065_coverage_to_90_regression_20260407/](./tracks/feed_065_coverage_to_90_regression_20260407/)_
+
 ## Archived Tracks
 
 - [x] **Track: DRT Service Alerts Scraping Integration**
