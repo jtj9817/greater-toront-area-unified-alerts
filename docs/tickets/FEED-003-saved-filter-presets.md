@@ -1,10 +1,11 @@
 # [FEED-003] Saved Filter Presets
 
 **Date:** 2026-02-18
-**Status:** Open
+**Status:** Closed
 **Priority:** Low
-**Components:** Backend, Frontend, UX
+**Components:** Frontend, UX
 **Depends On:** [FEED-001](./FEED-001-server-side-filters-infinite-scroll.md)
+**Resolved In:** `a7948bd` feat(feed): add client-side saved filter presets (FEED-003)
 
 ## Problem
 

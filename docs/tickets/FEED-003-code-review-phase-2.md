@@ -9,6 +9,15 @@ tags: [frontend, ux, review, feed-001]
 related_files:
   - resources/js/features/gta-alerts/components/FeedView.tsx
   - resources/js/features/gta-alerts/App.tsx
+  - resources/js/features/gta-alerts/hooks/useFilterPresets.ts
+resolved_note: |
+  FEED-003 (Saved Filter Presets) was implemented in `a7948bd` as a
+  client-side-only feature using localStorage. The `useFilterPresets` hook
+  provides save/delete/rename/apply with schema validation on load. A preset
+  chip bar was added to FeedView.tsx between the category row and the loading
+  indicator. 41 unit tests cover the hook. No backend changes were needed;
+  the originally proposed database-backed storage for authenticated users is
+  deferred to a future phase.
 ---
 
 ## Overview
