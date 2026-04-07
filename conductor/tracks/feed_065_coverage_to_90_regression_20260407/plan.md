@@ -78,13 +78,13 @@ This track is executed as **test expansion only** to recover the coverage gate. 
 
 **Test design (logic)**
 
-- [ ] Task: Hot mode invalid/empty hot file yields no extra CSP origins
+- [x] Task: Hot mode invalid/empty hot file yields no extra CSP origins
     - Arrange: write `public/hot` with invalid content (example: `not a url`) and with an empty string.
     - Act: `GET /`.
     - Assert:
         - CSP does not include `unsafe-eval`/`unsafe-inline`.
         - CSP does not include hot-mode connect origins when origin parsing fails.
-- [ ] Task: Broadcast Echo connect-src origin building covers host/scheme/port edge cases
+- [x] Task: Broadcast Echo connect-src origin building covers host/scheme/port edge cases
     - Arrange: set `broadcasting.frontend.echo` to:
         - `key` non-empty
         - explicit `host` including a URL form (to exercise `normalizeConfiguredHost()`)
@@ -94,7 +94,7 @@ This track is executed as **test expansion only** to recover the coverage gate. 
         - `connect-src` includes the correct `https://...` origin and its websocket variant.
         - Default ports are omitted (80/443) and non-default ports are included.
         - IPv6-style hosts are bracketed in the origin.
-- [ ] Task: HSTS header presence/absence is consistent across secure/non-secure and production/non-production
+- [x] Task: HSTS header presence/absence is consistent across secure/non-secure and production/non-production
     - Secure request path: assert HSTS is present for `https://localhost/`.
     - Non-secure request path: assert HSTS is absent for `http://localhost/`.
     - Production override path:
