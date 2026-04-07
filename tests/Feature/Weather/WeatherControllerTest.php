@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Models\GtaPostalCode;
 use App\Services\Weather\DTOs\WeatherData;
 use App\Services\Weather\Exceptions\WeatherFetchException;
 use App\Services\Weather\Providers\EnvironmentCanadaWeatherProvider;
@@ -125,4 +126,34 @@ test('weather resource includes alert fields when present', function () {
     $response->assertOk();
     expect($response->json('data.alert_level'))->toBe('orange');
     expect($response->json('data.alert_text'))->toBe('Freezing rain warning in effect.');
+});
+
+test('returns 422 with GTA-specific message when fsa passes regex but is not in GTA allowlist', function () {
+    // K1A matches the postal code regex but is not a GTA postal code (Ottawa)
+    $this->getJson('/api/weather?fsa=K1A')
+        ->assertUnprocessable()
+        ->assertJson([
+            'message' => 'The given data was invalid.',
+            'errors' => ['fsa' => ['The fsa must be a valid GTA postal code.']],
+        ]);
+});
+
+test('returns 503 when weather provider fails with explicit postal code row', function () {
+    // Insert a single row for determinism — do not rely on seeded migration data
+    GtaPostalCode::create([
+        'fsa' => 'X1X',
+        'municipality' => 'Test City',
+        'neighbourhood' => 'Test Neighbourhood',
+        'lat' => 43.7000,
+        'lng' => -79.4000,
+    ]);
+
+    $this->mock(WeatherCacheService::class)
+        ->shouldReceive('get')
+        ->with('X1X')
+        ->andThrow(new WeatherFetchException('X1X', 'environment_canada', 'connection timeout'));
+
+    $this->getJson('/api/weather?fsa=X1X')
+        ->assertStatus(503)
+        ->assertJsonFragment(['message' => 'Weather data is temporarily unavailable.']);
 });
