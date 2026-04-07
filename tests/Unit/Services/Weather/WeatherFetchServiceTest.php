@@ -146,3 +146,20 @@ test('thrown exception wraps the last provider exception as previous', function 
         expect($e->getPrevious())->toBe($inner);
     }
 });
+
+/*
+ * Phase 8: WeatherFetchService Remaining Branch Coverage
+ *
+ * Gap lines targeted: 53 (getProviders method).
+ */
+
+test('getProviders returns the injected provider list', function () {
+    $p1 = successProvider('provider_one', stubWeatherData());
+    $p2 = successProvider('provider_two', stubWeatherData());
+
+    $service = new WeatherFetchService([$p1, $p2]);
+
+    expect($service->getProviders())->toHaveCount(2);
+    expect($service->getProviders()[0])->toBe($p1);
+    expect($service->getProviders()[1])->toBe($p2);
+});

@@ -473,3 +473,131 @@ test('alert with empty bannerText and alertHeaderText returns null alert text', 
     expect($data->alertLevel)->toBe('yellow');
     expect($data->alertText)->toBeNull();
 });
+
+/*
+ * Phase 8: EnvironmentCanadaWeatherProvider Remaining Branch Coverage
+ *
+ * Gap lines targeted: 87, 112, 120-121, 156, 230-234, 249, 264, 279.
+ */
+
+// Line 87: JSON decodes to a non-array scalar (e.g. a bare number)
+test('throws WeatherFetchException when JSON decodes to a scalar value', function () {
+    Http::fake(['*' => Http::response('42', 200)]);
+
+    GtaPostalCode::firstOrCreate(['fsa' => 'M5V'], ['municipality' => 'Toronto', 'neighbourhood' => 'Liberty Village', 'lat' => 43.6406, 'lng' => -79.3961]);
+
+    $provider = new EnvironmentCanadaWeatherProvider;
+
+    expect(fn () => $provider->fetch('M5V'))
+        ->toThrow(WeatherFetchException::class, 'Expected JSON object, got integer');
+});
+
+// Line 112: List payload with empty first element
+test('throws WeatherFetchException when list payload has empty first element', function () {
+    Http::fake(['*' => Http::response('[{}]', 200)]);
+
+    GtaPostalCode::firstOrCreate(['fsa' => 'M5V'], ['municipality' => 'Toronto', 'neighbourhood' => 'Liberty Village', 'lat' => 43.6406, 'lng' => -79.3961]);
+
+    $provider = new EnvironmentCanadaWeatherProvider;
+
+    expect(fn () => $provider->fetch('M5V'))
+        ->toThrow(WeatherFetchException::class, 'API returned empty object');
+});
+
+// Lines 120-121: Error field is an array (not a string)
+test('throws WeatherFetchException when API error field is an array with message', function () {
+    $payload = ['error' => ['message' => 'Service temporarily unavailable', 'code' => 503]];
+    Http::fake(['*' => Http::response(json_encode($payload), 200)]);
+
+    GtaPostalCode::firstOrCreate(['fsa' => 'M5V'], ['municipality' => 'Toronto', 'neighbourhood' => 'Liberty Village', 'lat' => 43.6406, 'lng' => -79.3961]);
+
+    $provider = new EnvironmentCanadaWeatherProvider;
+
+    expect(fn () => $provider->fetch('M5V'))
+        ->toThrow(WeatherFetchException::class, 'API error: Service temporarily unavailable');
+});
+
+// Line 156: Missing temperature key in observation
+test('returns null temperature when observation lacks temperature key', function () {
+    $payload = ['observation' => ['humidity' => 50], 'alert' => []];
+    Http::fake(['*' => Http::response(json_encode($payload), 200)]);
+
+    GtaPostalCode::firstOrCreate(['fsa' => 'M5V'], ['municipality' => 'Toronto', 'neighbourhood' => 'Liberty Village', 'lat' => 43.6406, 'lng' => -79.3961]);
+
+    $provider = new EnvironmentCanadaWeatherProvider;
+    $data = $provider->fetch('M5V');
+
+    expect($data->temperature)->toBeNull();
+    expect($data->feelsLike)->toBeNull();
+});
+
+// Lines 230-234: Dewpoint uses metric fallback when metricUnrounded is absent
+test('uses metric fallback for dewpoint when metricUnrounded is absent', function () {
+    $payload = json_decode(ecJsonFixture('no-alert'), true);
+    unset($payload['observation']['dewpoint']['metricUnrounded']);
+    Http::fake(['*' => Http::response(json_encode($payload), 200)]);
+
+    GtaPostalCode::firstOrCreate(['fsa' => 'M5V'], ['municipality' => 'Toronto', 'neighbourhood' => 'Liberty Village', 'lat' => 43.6406, 'lng' => -79.3961]);
+
+    $provider = new EnvironmentCanadaWeatherProvider;
+    $data = $provider->fetch('M5V');
+
+    expect($data->dewpoint)->toBe(15.0);
+});
+
+// Line 249: Pressure returns null when metric key is absent
+test('returns null pressure when metric key is absent', function () {
+    $payload = json_decode(ecJsonFixture('no-alert'), true);
+    unset($payload['observation']['pressure']['metric']);
+    Http::fake(['*' => Http::response(json_encode($payload), 200)]);
+
+    GtaPostalCode::firstOrCreate(['fsa' => 'M5V'], ['municipality' => 'Toronto', 'neighbourhood' => 'Liberty Village', 'lat' => 43.6406, 'lng' => -79.3961]);
+
+    $provider = new EnvironmentCanadaWeatherProvider;
+    $data = $provider->fetch('M5V');
+
+    expect($data->pressure)->toBeNull();
+});
+
+// Line 264: Visibility returns null when metric key is absent
+test('returns null visibility when metric key is absent', function () {
+    $payload = json_decode(ecJsonFixture('no-alert'), true);
+    unset($payload['observation']['visibility']['metric']);
+    Http::fake(['*' => Http::response(json_encode($payload), 200)]);
+
+    GtaPostalCode::firstOrCreate(['fsa' => 'M5V'], ['municipality' => 'Toronto', 'neighbourhood' => 'Liberty Village', 'lat' => 43.6406, 'lng' => -79.3961]);
+
+    $provider = new EnvironmentCanadaWeatherProvider;
+    $data = $provider->fetch('M5V');
+
+    expect($data->visibility)->toBeNull();
+});
+
+// Line 279: Wind gust returns null when metric key is absent
+test('returns null wind gust when metric key is absent', function () {
+    $payload = json_decode(ecJsonFixture('no-alert'), true);
+    unset($payload['observation']['windGust']['metric']);
+    Http::fake(['*' => Http::response(json_encode($payload), 200)]);
+
+    GtaPostalCode::firstOrCreate(['fsa' => 'M5V'], ['municipality' => 'Toronto', 'neighbourhood' => 'Liberty Village', 'lat' => 43.6406, 'lng' => -79.3961]);
+
+    $provider = new EnvironmentCanadaWeatherProvider;
+    $data = $provider->fetch('M5V');
+
+    expect($data->windGust)->toBeNull();
+});
+
+// Line 234: Dewpoint returns null when both metric fields are absent
+test('returns null dewpoint when both metricUnrounded and metric fields are absent', function () {
+    $payload = json_decode(ecJsonFixture('no-alert'), true);
+    unset($payload['observation']['dewpoint']['metricUnrounded']);
+    unset($payload['observation']['dewpoint']['metric']);
+    Http::fake(['*' => Http::response(json_encode($payload), 200)]);
+
+    GtaPostalCode::firstOrCreate(['fsa' => 'M5V'], ['municipality' => 'Toronto', 'neighbourhood' => 'Liberty Village', 'lat' => 43.6406, 'lng' => -79.3961]);
+
+    $provider = new EnvironmentCanadaWeatherProvider;
+    $data = $provider->fetch('M5V');
+
+    expect($data->dewpoint)->toBeNull();
+});

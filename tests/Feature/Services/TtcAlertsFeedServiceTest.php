@@ -323,3 +323,288 @@ test('it correctly parses "Not in Service" as OUT_OF_SERVICE', function () {
     expect($alert)->not->toBeNull();
     expect($alert['effect'])->toBe('OUT_OF_SERVICE');
 });
+
+/*
+ * Phase 8: TtcAlertsFeedService Remaining Branch Coverage
+ *
+ * Gap lines targeted: 84, 103, 116, 152, 164, 229, 264, 284,
+ * 317, 325, 356, 406, 445-449, 462-467, 475, 517, 521, 530.
+ */
+
+function ttcBaseResponse(): array
+{
+    return [
+        'lastUpdated' => '2026-02-03T04:41:06.633Z',
+        'routes' => [],
+        'accessibility' => [],
+        'siteWideCustom' => [],
+        'generalCustom' => [],
+        'stops' => [],
+        'status' => 'success',
+    ];
+}
+
+function ttcFakeSxaEmpty(): array
+{
+    return [
+        '*sxa/search/results*' => Http::sequence()
+            ->push(['Results' => []], 200)
+            ->push(['Results' => []], 200)
+            ->push(['Results' => []], 200)
+            ->push(['Results' => []], 200),
+        'https://www.ttc.ca/service-advisories/Streetcar-Service-Changes*' => Http::response('', 200),
+    ];
+}
+
+// Line 84: Missing lastUpdated field
+test('it throws when live api response is missing lastUpdated field', function () {
+    Http::fake([
+        'https://alerts.ttc.ca/api/alerts/live-alerts*' => Http::response([
+            'routes' => [],
+            'accessibility' => [],
+        ], 200),
+    ]);
+
+    app(TtcAlertsFeedService::class)->fetch();
+})->throws(RuntimeException::class, "TTC live alerts response missing required 'lastUpdated' field");
+
+// Line 84: Non-array response body
+test('it throws when live api response is not an array', function () {
+    Http::fake([
+        'https://alerts.ttc.ca/api/alerts/live-alerts*' => Http::response('a string', 200),
+    ]);
+
+    app(TtcAlertsFeedService::class)->fetch();
+})->throws(RuntimeException::class, "TTC live alerts response missing required 'lastUpdated' field");
+
+// Lines 103, 116: Non-array bucket values and non-array record entries
+test('it skips non-array bucket values and non-array record entries gracefully', function () {
+    config(['feeds.allow_empty_feeds' => true]);
+
+    $response = ttcBaseResponse();
+    $response['routes'] = 'not-an-array';
+    $response['accessibility'] = ['not-an-array-entry'];
+
+    Http::fake([
+        'https://alerts.ttc.ca/api/alerts/live-alerts*' => Http::response($response, 200),
+    ] + ttcFakeSxaEmpty());
+
+    $result = app(TtcAlertsFeedService::class)->fetch();
+
+    $apiAlerts = collect($result['alerts'])->where('source_feed', 'live-api');
+    expect($apiAlerts)->toBeEmpty();
+});
+
+// Line 152: SXA request failure (non-2xx)
+test('it logs warning when SXA endpoint returns non-2xx response', function () {
+    config(['feeds.allow_empty_feeds' => true]);
+    Log::spy();
+
+    Http::fake([
+        'https://alerts.ttc.ca/api/alerts/live-alerts*' => Http::response(ttcBaseResponse(), 200),
+        '*sxa/search/results*' => Http::response('error', 500),
+        'https://www.ttc.ca/service-advisories/Streetcar-Service-Changes*' => Http::response('', 200),
+    ]);
+
+    $result = app(TtcAlertsFeedService::class)->fetch();
+
+    expect($result['alerts'])->toBeEmpty();
+
+    Log::shouldHaveReceived('warning')
+        ->withArgs(fn (string $message): bool => str_contains($message, 'TTC SXA source failed'))
+        ->atLeast()
+        ->once();
+});
+
+// Line 164: Non-array SXA result entries
+test('it skips non-array entries within SXA results', function () {
+    config(['feeds.allow_empty_feeds' => true]);
+
+    Http::fake([
+        'https://alerts.ttc.ca/api/alerts/live-alerts*' => Http::response(ttcBaseResponse(), 200),
+        '*sxa/search/results*' => Http::sequence()
+            ->push([
+                'Results' => [
+                    'not-an-array',
+                    [
+                        'Id' => 'sxa-valid-001',
+                        'Html' => '<div><span class="field-satitle">Valid SXA Alert</span><span class="field-route">501</span><span class="field-starteffectivedate">March 1, 2026</span></div>',
+                    ],
+                ],
+            ], 200)
+            ->push(['Results' => []], 200)
+            ->push(['Results' => []], 200)
+            ->push(['Results' => []], 200),
+        'https://www.ttc.ca/service-advisories/Streetcar-Service-Changes*' => Http::response('', 200),
+    ]);
+
+    $result = app(TtcAlertsFeedService::class)->fetch();
+
+    $sxaAlerts = collect($result['alerts'])->where('source_feed', 'sxa');
+    expect($sxaAlerts)->toHaveCount(1);
+    expect($sxaAlerts[0]['external_id'])->toBe('sxa:sxa-valid-001');
+});
+
+// Line 229: Live API alert missing id or title
+test('it skips live api alerts missing id or title', function () {
+    config(['feeds.allow_empty_feeds' => true]);
+
+    $response = ttcBaseResponse();
+    $response['routes'] = [
+        ['title' => 'Alert without ID', 'activePeriod' => ['start' => '2026-02-02T10:00:00Z']],
+        ['id' => '12345', 'activePeriod' => ['start' => '2026-02-02T10:00:00Z']],
+    ];
+
+    Http::fake([
+        'https://alerts.ttc.ca/api/alerts/live-alerts*' => Http::response($response, 200),
+    ] + ttcFakeSxaEmpty());
+
+    $result = app(TtcAlertsFeedService::class)->fetch();
+
+    $apiAlerts = collect($result['alerts'])->where('source_feed', 'live-api');
+    expect($apiAlerts)->toBeEmpty();
+});
+
+// Line 264: Accessibility alert missing id
+test('it skips accessibility alerts missing id', function () {
+    config(['feeds.allow_empty_feeds' => true]);
+
+    $response = ttcBaseResponse();
+    $response['accessibility'] = [
+        ['stationName' => 'Union', 'deviceType' => 'Elevator', 'status' => 'Out of Service'],
+    ];
+
+    Http::fake([
+        'https://alerts.ttc.ca/api/alerts/live-alerts*' => Http::response($response, 200),
+    ] + ttcFakeSxaEmpty());
+
+    $result = app(TtcAlertsFeedService::class)->fetch();
+
+    $accessibilityAlerts = collect($result['alerts'])->where('source_feed', 'ttc_accessibility');
+    expect($accessibilityAlerts)->toBeEmpty();
+});
+
+// Line 284: Accessibility alert with empty title is effectively unreachable
+// because extractAccessibilityStatus always returns a non-empty string,
+// but we verify that minimal accessibility records still produce valid alerts.
+test('it creates accessibility alert with fallback status when minimal data provided', function () {
+    config(['feeds.allow_empty_feeds' => true]);
+
+    $response = ttcBaseResponse();
+    $response['accessibility'] = [
+        ['id' => 'acc-minimal'],
+    ];
+
+    Http::fake([
+        'https://alerts.ttc.ca/api/alerts/live-alerts*' => Http::response($response, 200),
+    ] + ttcFakeSxaEmpty());
+
+    $result = app(TtcAlertsFeedService::class)->fetch();
+
+    $alert = collect($result['alerts'])->firstWhere('external_id', 'api:accessibility:acc-minimal');
+    expect($alert)->not->toBeNull();
+    expect($alert['effect'])->toBe('UNKNOWN');
+});
+
+// Line 317: SXA result missing Id
+test('it skips SXA results missing Id', function () {
+    config(['feeds.allow_empty_feeds' => true]);
+
+    Http::fake([
+        'https://alerts.ttc.ca/api/alerts/live-alerts*' => Http::response(ttcBaseResponse(), 200),
+        '*sxa/search/results*' => Http::sequence()
+            ->push(['Results' => [['Html' => '<div>content</div>']]], 200)
+            ->push(['Results' => []], 200)
+            ->push(['Results' => []], 200)
+            ->push(['Results' => []], 200),
+        'https://www.ttc.ca/service-advisories/Streetcar-Service-Changes*' => Http::response('', 200),
+    ]);
+
+    $result = app(TtcAlertsFeedService::class)->fetch();
+
+    $sxaAlerts = collect($result['alerts'])->where('source_feed', 'sxa');
+    expect($sxaAlerts)->toBeEmpty();
+});
+
+// Line 325: SXA result with no title after parsing
+test('it skips SXA results with no parseable title', function () {
+    config(['feeds.allow_empty_feeds' => true]);
+
+    Http::fake([
+        'https://alerts.ttc.ca/api/alerts/live-alerts*' => Http::response(ttcBaseResponse(), 200),
+        '*sxa/search/results*' => Http::sequence()
+            ->push(['Results' => [['Id' => 'no-title-id', 'Html' => '<div><span class="field-route">501</span></div>']]], 200)
+            ->push(['Results' => []], 200)
+            ->push(['Results' => []], 200)
+            ->push(['Results' => []], 200),
+        'https://www.ttc.ca/service-advisories/Streetcar-Service-Changes*' => Http::response('', 200),
+    ]);
+
+    $result = app(TtcAlertsFeedService::class)->fetch();
+
+    $sxaAlerts = collect($result['alerts'])->where('source_feed', 'sxa');
+    expect($sxaAlerts)->toBeEmpty();
+});
+
+// Lines 445-449, 462-467: parseIsoTimestamp with null/invalid values (non-strict path)
+test('it handles null and invalid timestamps in non-strict alert fields gracefully', function () {
+    config(['feeds.allow_empty_feeds' => true]);
+
+    $response = ttcBaseResponse();
+    $response['routes'] = [
+        [
+            'id' => '61750',
+            'title' => 'Alert with bad timestamps',
+            'activePeriod' => [
+                'start' => 'not-a-valid-timestamp',
+                'end' => null,
+            ],
+        ],
+    ];
+
+    Http::fake([
+        'https://alerts.ttc.ca/api/alerts/live-alerts*' => Http::response($response, 200),
+    ] + ttcFakeSxaEmpty());
+
+    $result = app(TtcAlertsFeedService::class)->fetch();
+
+    $alert = collect($result['alerts'])->firstWhere('external_id', 'api:61750');
+    expect($alert)->not->toBeNull();
+    expect($alert['title'])->toBe('Alert with bad timestamps');
+    expect($alert['active_period_start'])->toBeNull();
+    expect($alert['active_period_end'])->toBeNull();
+});
+
+// Line 406: Static advisory container with no heading (null title)
+test('it skips static advisory containers with no heading', function () {
+    config(['feeds.allow_empty_feeds' => true]);
+
+    Http::fake([
+        'https://alerts.ttc.ca/api/alerts/live-alerts*' => Http::response(ttcBaseResponse(), 200),
+        '*sxa/search/results*' => Http::sequence()
+            ->push(['Results' => []], 200)
+            ->push(['Results' => []], 200)
+            ->push(['Results' => []], 200)
+            ->push(['Results' => []], 200),
+        'https://www.ttc.ca/service-advisories/Streetcar-Service-Changes*' => Http::response(
+            <<<'HTML'
+            <html><body>
+            <article class="streetcar-advisory">
+              <p>No heading element here</p>
+            </article>
+            <article class="streetcar-advisory">
+              <h3>501 Valid Advisory</h3>
+              <p>Streetcar service change details.</p>
+            </article>
+            </body></html>
+            HTML,
+            200
+        ),
+    ]);
+
+    $result = app(TtcAlertsFeedService::class)->fetch();
+
+    $staticAlerts = collect($result['alerts'])->where('source_feed', 'static');
+    expect($staticAlerts)->toHaveCount(1);
+    expect($staticAlerts[0]['title'])->toBe('501 Valid Advisory');
+});

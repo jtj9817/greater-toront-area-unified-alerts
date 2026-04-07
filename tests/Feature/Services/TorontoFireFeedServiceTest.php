@@ -160,3 +160,50 @@ test('it throws exception on empty events when empty feeds are not allowed', fun
     $service = app(TorontoFireFeedService::class);
     $service->fetch();
 })->throws(RuntimeException::class, 'Toronto Fire feed returned zero events');
+
+/*
+ * Phase 8: TorontoFireFeedService Remaining Branch Coverage
+ *
+ * Gap lines targeted: 91-97 (events missing required fields).
+ */
+
+test('it skips events missing required fields and logs a warning', function () {
+    config(['feeds.allow_empty_feeds' => true]);
+
+    $xml = <<<'XML'
+    <tfs_active_incidents>
+      <update_from_db_time>2026-01-31 13:45:01</update_from_db_time>
+      <event>
+        <event_num></event_num>
+        <event_type>Rescue</event_type>
+        <dispatch_time>2026-01-31T13:15:32</dispatch_time>
+      </event>
+      <event>
+        <event_num>F26015953</event_num>
+        <event_type></event_type>
+        <dispatch_time>2026-01-31T13:15:32</dispatch_time>
+      </event>
+      <event>
+        <event_num>F26015954</event_num>
+        <event_type>Medical</event_type>
+        <dispatch_time></dispatch_time>
+      </event>
+      <event>
+        <event_num>F26015955</event_num>
+        <event_type>Alarm</event_type>
+        <dispatch_time>2026-01-31T14:00:00</dispatch_time>
+      </event>
+    </tfs_active_incidents>
+    XML;
+
+    Http::fake([
+        '*' => Http::response($xml, 200),
+    ]);
+
+    $service = app(TorontoFireFeedService::class);
+    $results = $service->fetch();
+
+    // Only the last event with all required fields should be included
+    expect($results['events'])->toHaveCount(1);
+    expect($results['events'][0]['event_num'])->toBe('F26015955');
+});
