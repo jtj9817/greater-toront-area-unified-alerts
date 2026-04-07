@@ -61,6 +61,8 @@ interface FilterPresetsStorage {
 export interface UseFilterPresetsOptions {
     /** Current active filter params, used for isPresetActive comparison. */
     currentParams: FilterPresetParams;
+    /** Current sort direction from URL so preset apply preserves ordering. */
+    currentSort?: 'asc' | 'desc';
 }
 
 export interface UseFilterPresetsReturn {
@@ -174,10 +176,7 @@ function writeStoredPresets(presets: FilterPreset[]): void {
 // Param comparison
 // ---------------------------------------------------------------------------
 
-function paramsEqual(
-    a: FilterPresetParams,
-    b: FilterPresetParams,
-): boolean {
+function paramsEqual(a: FilterPresetParams, b: FilterPresetParams): boolean {
     return (
         a.status === b.status &&
         a.source === b.source &&
@@ -205,6 +204,7 @@ const DEFAULT_PARAMS: FilterPresetParams = {
  */
 export function useFilterPresets({
     currentParams,
+    currentSort = 'desc',
 }: UseFilterPresetsOptions): UseFilterPresetsReturn {
     const [presets, setPresets] = useState<FilterPreset[]>(() =>
         readStoredPresets(),
@@ -244,24 +244,19 @@ export function useFilterPresets({
         setPresets((prev) => prev.filter((p) => p.id !== id));
     }, []);
 
-    const renamePreset = useCallback(
-        (id: string, newName: string): void => {
-            const trimmed = newName.trim().slice(0, MAX_NAME_LENGTH);
-            if (trimmed.length === 0) return;
+    const renamePreset = useCallback((id: string, newName: string): void => {
+        const trimmed = newName.trim().slice(0, MAX_NAME_LENGTH);
+        if (trimmed.length === 0) return;
 
-            setPresets((prev) =>
-                prev.map((p) =>
-                    p.id === id ? { ...p, name: trimmed } : p,
-                ),
-            );
-        },
-        [],
-    );
+        setPresets((prev) =>
+            prev.map((p) => (p.id === id ? { ...p, name: trimmed } : p)),
+        );
+    }, []);
 
-    const applyPreset = useCallback((id: string): void => {
-        setPresets((prev) => {
-            const preset = prev.find((p) => p.id === id);
-            if (!preset) return prev;
+    const applyPreset = useCallback(
+        (id: string): void => {
+            const preset = presets.find((p) => p.id === id);
+            if (!preset) return;
 
             router.get(
                 home({
@@ -270,6 +265,7 @@ export function useFilterPresets({
                             preset.params.status === 'all'
                                 ? null
                                 : preset.params.status,
+                        sort: currentSort === 'asc' ? 'asc' : null,
                         source: preset.params.source ?? null,
                         q: preset.params.q || null,
                         since: preset.params.since ?? null,
@@ -283,10 +279,9 @@ export function useFilterPresets({
                     only: ['alerts', 'filters'],
                 },
             );
-
-            return prev;
-        });
-    }, []);
+        },
+        [presets, currentSort],
+    );
 
     const isPresetActive = useCallback(
         (id: string): boolean => {

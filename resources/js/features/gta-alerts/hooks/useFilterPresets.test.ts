@@ -1,5 +1,6 @@
+import { router } from '@inertiajs/react';
 import { act, renderHook } from '@testing-library/react';
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { useFilterPresets } from './useFilterPresets';
 import type { FilterPresetParams } from './useFilterPresets';
 
@@ -25,10 +26,7 @@ const makeParams = (
 });
 
 const writeStorage = (presets: unknown[]): void => {
-    localStorage.setItem(
-        STORAGE_KEY,
-        JSON.stringify({ version: 1, presets }),
-    );
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ version: 1, presets }));
 };
 
 const readStorage = (): unknown[] => {
@@ -72,7 +70,12 @@ describe('useFilterPresets', () => {
                 {
                     id: 'abc-123',
                     name: 'My Preset',
-                    params: { status: 'active', source: 'fire', q: null, since: null },
+                    params: {
+                        status: 'active',
+                        source: 'fire',
+                        q: null,
+                        since: null,
+                    },
                     createdAt: 1000,
                 },
             ]);
@@ -90,13 +93,23 @@ describe('useFilterPresets', () => {
                 {
                     id: 'abc-123',
                     name: 'Bad Source',
-                    params: { status: 'active', source: 'invalid_source', q: null, since: null },
+                    params: {
+                        status: 'active',
+                        source: 'invalid_source',
+                        q: null,
+                        since: null,
+                    },
                     createdAt: 1000,
                 },
                 {
                     id: 'def-456',
                     name: 'Valid',
-                    params: { status: 'active', source: 'fire', q: null, since: null },
+                    params: {
+                        status: 'active',
+                        source: 'fire',
+                        q: null,
+                        since: null,
+                    },
                     createdAt: 2000,
                 },
             ]);
@@ -114,7 +127,12 @@ describe('useFilterPresets', () => {
                 {
                     id: 'abc-123',
                     name: 'Bad Status',
-                    params: { status: 'unknown', source: null, q: null, since: null },
+                    params: {
+                        status: 'unknown',
+                        source: null,
+                        q: null,
+                        since: null,
+                    },
                     createdAt: 1000,
                 },
             ]);
@@ -131,7 +149,12 @@ describe('useFilterPresets', () => {
                 {
                     id: 'abc-123',
                     name: 'Bad Since',
-                    params: { status: 'all', source: null, q: null, since: '99d' },
+                    params: {
+                        status: 'all',
+                        source: null,
+                        q: null,
+                        since: '99d',
+                    },
                     createdAt: 1000,
                 },
             ]);
@@ -543,6 +566,35 @@ describe('useFilterPresets', () => {
             });
         });
 
+        it('preserves asc sort when applying a preset', () => {
+            const mockRouterGet = vi.fn();
+            vi.mocked(router).get = mockRouterGet;
+
+            writeStorage([
+                {
+                    id: 'abc-123',
+                    name: 'My Preset',
+                    params: makeParams({ source: 'fire' }),
+                    createdAt: 1000,
+                },
+            ]);
+
+            const { result } = renderHook(() =>
+                useFilterPresets({
+                    currentParams: defaultParams,
+                    currentSort: 'asc',
+                }),
+            );
+
+            act(() => {
+                result.current.applyPreset('abc-123');
+            });
+
+            expect(mockRouterGet).toHaveBeenCalledTimes(1);
+            const [url] = mockRouterGet.mock.calls[0] as [string];
+            expect(url).toContain('sort=asc');
+        });
+
         it('is a no-op for a non-existent preset id', () => {
             const mockRouterGet = vi.fn();
             vi.mocked(router).get = mockRouterGet;
@@ -621,9 +673,6 @@ describe('useFilterPresets', () => {
         });
     });
 });
-
-// router must be imported for the mock below
-import { router } from '@inertiajs/react';
 
 vi.mock('@inertiajs/react', async () => {
     const actual = await vi.importActual('@inertiajs/react');

@@ -53,6 +53,7 @@ vi.mock('@/routes', () => ({
 
 describe('FeedView', () => {
     beforeEach(() => {
+        localStorage.clear();
         inertiaRouterMocks.on.mockClear();
         inertiaRouterMocks.get.mockClear();
     });
@@ -178,6 +179,24 @@ describe('FeedView', () => {
             'py-0',
             'border-transparent',
         );
+    });
+
+    it('hides preset row when filter section is hidden in minimal mode', () => {
+        const { container } = render(
+            <FeedView
+                {...defaultProps}
+                source="fire"
+                hiddenSections={{
+                    status: false,
+                    category: false,
+                    filter: true,
+                }}
+            />,
+        );
+
+        expect(
+            container.querySelector('#gta-alerts-feed-preset-row'),
+        ).not.toBeInTheDocument();
     });
 
     it('renders time window selector with options', () => {

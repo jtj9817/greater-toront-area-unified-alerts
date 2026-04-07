@@ -1,5 +1,11 @@
 import { Link, router } from '@inertiajs/react';
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, {
+    useCallback,
+    useEffect,
+    useMemo,
+    useRef,
+    useState,
+} from 'react';
 import { formatTimeAgo } from '@/lib/utils';
 import { home } from '@/routes';
 import type { UnifiedAlertResource } from '../domain/alerts';
@@ -68,7 +74,10 @@ export const FeedView: React.FC<FeedViewProps> = ({
         isPresetActive,
         hasNonDefaultFilters,
         maxPresetsReached,
-    } = useFilterPresets({ currentParams: currentPresetParams });
+    } = useFilterPresets({
+        currentParams: currentPresetParams,
+        currentSort: sort,
+    });
 
     const [isSavingPreset, setIsSavingPreset] = useState(false);
     const [presetNameInput, setPresetNameInput] = useState('');
@@ -341,91 +350,47 @@ export const FeedView: React.FC<FeedViewProps> = ({
                 </div>
 
                 {/* Row 1.5: Filter Preset Chips */}
-                {(presets.length > 0 || hasNonDefaultFilters) && (
-                    <div
-                        id="gta-alerts-feed-preset-row"
-                        className="flex items-center gap-2 border-b border-[#333333] bg-background-dark px-4 py-2 md:px-6"
-                    >
-                        <span className="mr-1 text-[10px] font-bold tracking-widest text-text-secondary/70 uppercase">
-                            Presets
-                        </span>
+                {!hiddenSections.filter &&
+                    (presets.length > 0 || hasNonDefaultFilters) && (
                         <div
-                            id="gta-alerts-feed-preset-chips"
-                            className="no-scrollbar flex items-center gap-2 overflow-x-auto"
+                            id="gta-alerts-feed-preset-row"
+                            className="flex items-center gap-2 border-b border-[#333333] bg-background-dark px-4 py-2 md:px-6"
                         >
-                            {presets.map((preset) => (
-                                <div
-                                    key={preset.id}
-                                    id={`gta-alerts-feed-preset-chip-${preset.id}`}
-                                    className={`group flex shrink-0 items-center gap-1 rounded-full border px-2.5 py-1 text-[11px] font-bold transition-colors ${
-                                        isPresetActive(preset.id)
-                                            ? 'border-[#FF7F00] bg-[#FF7F00]/15 text-white'
-                                            : 'border-[#333333] bg-[#1a1a1a] text-text-secondary hover:border-primary hover:text-white'
-                                    }`}
-                                >
-                                    <button
-                                        type="button"
-                                        onClick={() => applyPreset(preset.id)}
-                                        disabled={isFilterLoading}
-                                        className="whitespace-nowrap disabled:cursor-not-allowed disabled:opacity-50"
-                                        aria-label={`Apply preset: ${preset.name}`}
+                            <span className="mr-1 text-[10px] font-bold tracking-widest text-text-secondary/70 uppercase">
+                                Presets
+                            </span>
+                            <div
+                                id="gta-alerts-feed-preset-chips"
+                                className="no-scrollbar flex items-center gap-2 overflow-x-auto"
+                            >
+                                {presets.map((preset) => (
+                                    <div
+                                        key={preset.id}
+                                        id={`gta-alerts-feed-preset-chip-${preset.id}`}
+                                        className={`group flex shrink-0 items-center gap-1 rounded-full border px-2.5 py-1 text-[11px] font-bold transition-colors ${
+                                            isPresetActive(preset.id)
+                                                ? 'border-[#FF7F00] bg-[#FF7F00]/15 text-white'
+                                                : 'border-[#333333] bg-[#1a1a1a] text-text-secondary hover:border-primary hover:text-white'
+                                        }`}
                                     >
-                                        {preset.name}
-                                    </button>
-                                    <button
-                                        type="button"
-                                        onClick={() => deletePreset(preset.id)}
-                                        className="ml-0.5 flex h-4 w-4 items-center justify-center rounded-full text-text-secondary/50 transition-colors hover:bg-white/10 hover:text-critical"
-                                        aria-label={`Delete preset: ${preset.name}`}
-                                    >
-                                        <Icon
-                                            name="close"
-                                            className="text-[10px]"
-                                        />
-                                    </button>
-                                </div>
-                            ))}
-
-                            {/* Save Preset Button / Inline Input */}
-                            {hasNonDefaultFilters && !maxPresetsReached && (
-                                isSavingPreset ? (
-                                    <div className="flex shrink-0 items-center gap-1">
-                                        <input
-                                            ref={presetInputRef}
-                                            id="gta-alerts-feed-preset-name-input"
-                                            type="text"
-                                            value={presetNameInput}
-                                            onChange={(e) =>
-                                                setPresetNameInput(
-                                                    e.target.value,
-                                                )
-                                            }
-                                            onKeyDown={(e) => {
-                                                if (e.key === 'Enter')
-                                                    handleConfirmSavePreset();
-                                                if (e.key === 'Escape')
-                                                    handleCancelSavePreset();
-                                            }}
-                                            placeholder="Preset name..."
-                                            maxLength={30}
-                                            className="h-6 w-28 rounded border border-[#333333] bg-[#1a1a1a] px-2 text-[11px] text-white placeholder:text-text-secondary/50 focus:border-primary focus:outline-none"
-                                        />
                                         <button
                                             type="button"
-                                            onClick={handleConfirmSavePreset}
-                                            className="flex h-5 w-5 items-center justify-center rounded-full bg-primary text-black transition-colors hover:bg-white"
-                                            aria-label="Confirm save preset"
+                                            onClick={() =>
+                                                applyPreset(preset.id)
+                                            }
+                                            disabled={isFilterLoading}
+                                            className="whitespace-nowrap disabled:cursor-not-allowed disabled:opacity-50"
+                                            aria-label={`Apply preset: ${preset.name}`}
                                         >
-                                            <Icon
-                                                name="check"
-                                                className="text-[12px]"
-                                            />
+                                            {preset.name}
                                         </button>
                                         <button
                                             type="button"
-                                            onClick={handleCancelSavePreset}
-                                            className="flex h-5 w-5 items-center justify-center rounded-full border border-[#333333] text-text-secondary transition-colors hover:border-critical hover:text-critical"
-                                            aria-label="Cancel save preset"
+                                            onClick={() =>
+                                                deletePreset(preset.id)
+                                            }
+                                            className="ml-0.5 flex h-4 w-4 items-center justify-center rounded-full text-text-secondary/50 transition-colors hover:bg-white/10 hover:text-critical"
+                                            aria-label={`Delete preset: ${preset.name}`}
                                         >
                                             <Icon
                                                 name="close"
@@ -433,25 +398,76 @@ export const FeedView: React.FC<FeedViewProps> = ({
                                             />
                                         </button>
                                     </div>
-                                ) : (
-                                    <button
-                                        id="gta-alerts-feed-preset-save-btn"
-                                        type="button"
-                                        onClick={handleStartSavePreset}
-                                        disabled={isFilterLoading}
-                                        className="flex shrink-0 items-center gap-1 rounded-full border border-dashed border-[#333333] px-2.5 py-1 text-[11px] font-bold text-text-secondary/70 transition-colors hover:border-primary hover:text-primary disabled:cursor-not-allowed disabled:opacity-50"
-                                    >
-                                        <Icon
-                                            name="add"
-                                            className="text-sm"
-                                        />
-                                        Save
-                                    </button>
-                                )
-                            )}
+                                ))}
+
+                                {/* Save Preset Button / Inline Input */}
+                                {hasNonDefaultFilters &&
+                                    !maxPresetsReached &&
+                                    (isSavingPreset ? (
+                                        <div className="flex shrink-0 items-center gap-1">
+                                            <input
+                                                ref={presetInputRef}
+                                                id="gta-alerts-feed-preset-name-input"
+                                                type="text"
+                                                value={presetNameInput}
+                                                onChange={(e) =>
+                                                    setPresetNameInput(
+                                                        e.target.value,
+                                                    )
+                                                }
+                                                onKeyDown={(e) => {
+                                                    if (e.key === 'Enter')
+                                                        handleConfirmSavePreset();
+                                                    if (e.key === 'Escape')
+                                                        handleCancelSavePreset();
+                                                }}
+                                                placeholder="Preset name..."
+                                                maxLength={30}
+                                                className="h-6 w-28 rounded border border-[#333333] bg-[#1a1a1a] px-2 text-[11px] text-white placeholder:text-text-secondary/50 focus:border-primary focus:outline-none"
+                                            />
+                                            <button
+                                                type="button"
+                                                onClick={
+                                                    handleConfirmSavePreset
+                                                }
+                                                className="flex h-5 w-5 items-center justify-center rounded-full bg-primary text-black transition-colors hover:bg-white"
+                                                aria-label="Confirm save preset"
+                                            >
+                                                <Icon
+                                                    name="check"
+                                                    className="text-[12px]"
+                                                />
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={handleCancelSavePreset}
+                                                className="flex h-5 w-5 items-center justify-center rounded-full border border-[#333333] text-text-secondary transition-colors hover:border-critical hover:text-critical"
+                                                aria-label="Cancel save preset"
+                                            >
+                                                <Icon
+                                                    name="close"
+                                                    className="text-[10px]"
+                                                />
+                                            </button>
+                                        </div>
+                                    ) : (
+                                        <button
+                                            id="gta-alerts-feed-preset-save-btn"
+                                            type="button"
+                                            onClick={handleStartSavePreset}
+                                            disabled={isFilterLoading}
+                                            className="flex shrink-0 items-center gap-1 rounded-full border border-dashed border-[#333333] px-2.5 py-1 text-[11px] font-bold text-text-secondary/70 transition-colors hover:border-primary hover:text-primary disabled:cursor-not-allowed disabled:opacity-50"
+                                        >
+                                            <Icon
+                                                name="add"
+                                                className="text-sm"
+                                            />
+                                            Save
+                                        </button>
+                                    ))}
+                            </div>
                         </div>
-                    </div>
-                )}
+                    )}
 
                 {/* Loading Indicator Row */}
                 {isFilterLoading && (

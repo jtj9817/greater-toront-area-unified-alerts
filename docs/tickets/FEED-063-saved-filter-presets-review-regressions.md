@@ -4,7 +4,7 @@
 
 - **Issue Type:** Bug
 - **Priority:** `P2`
-- **Status:** Open
+- **Status:** Closed
 - **Labels:** `alerts`, `frontend`, `inertia`, `review`, `regression`, `filter-presets`
 - **Parent Ticket:** [FEED-003: Saved Filter Presets](./FEED-003-saved-filter-presets.md)
 - **Relationship Note:** This ticket is part of `docs/tickets/FEED-003-saved-filter-presets.md` and is related to fixes for that ticket.
@@ -66,7 +66,18 @@ Preset chips render whenever presets exist or filters are non-default, without c
 
 ## Acceptance Criteria
 
-- [ ] `applyPreset` no longer performs navigation side effects inside `setState` updater callbacks.
-- [ ] Clicking a preset preserves existing `sort` query state unless an explicit sort override is intended.
-- [ ] Preset row visibility respects minimal-mode hidden flags and does not leak hidden controls.
-- [ ] Add regression coverage for: single navigation call on preset apply, sort retention, and minimal-mode preset-row hiding.
+- [x] `applyPreset` no longer performs navigation side effects inside `setState` updater callbacks.
+- [x] Clicking a preset preserves existing `sort` query state unless an explicit sort override is intended.
+- [x] Preset row visibility respects minimal-mode hidden flags and does not leak hidden controls.
+- [x] Add regression coverage for: single navigation call on preset apply, sort retention, and minimal-mode preset-row hiding.
+
+## Resolution
+
+- `useFilterPresets.applyPreset` now resolves presets from state and performs `router.get` outside state-updater callbacks.
+- Preset application now preserves current sort direction (`sort=asc` retained when active).
+- `FeedView` now hides the preset row when minimal-mode filter section is hidden.
+- Regression tests were added/updated in:
+  - `resources/js/features/gta-alerts/hooks/useFilterPresets.test.ts`
+  - `resources/js/features/gta-alerts/components/FeedView.test.tsx`
+
+These fixes are part of FEED-003 follow-up work.
