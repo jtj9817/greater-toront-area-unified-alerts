@@ -40,7 +40,7 @@ QA for this track includes an **optional** Postgres test run via `phpunit.pgsql.
 ### Coverage Gate Execution
 - Primary gate (local MySQL testing):
   - `vendor/bin/sail artisan test --coverage --min=90`
-- Optional gate sanity-check (Postgres testing profile):
+- Mandatory DB-safety smoke (Postgres testing profile):
   - Preferred: `vendor/bin/sail php ./vendor/bin/pest --configuration phpunit.pgsql.xml --compact tests/...`
   - Reason: `php artisan test` option support can vary by Laravel/Pest wrapper; Pest config is explicit.
 
@@ -79,3 +79,4 @@ Primary gaps to close (module -> test surface):
 2. Added/expanded tests are deterministic and do not depend on external network/services.
 3. New test assertions remain driver-agnostic (MySQL vs Postgres) where DB behavior is involved.
 4. Coverage improvements are achieved via focused unit/component/feature tests (no large integration harnesses added).
+5. Postgres smoke subset for DB-sensitive tests passes using `phpunit.pgsql.xml`.

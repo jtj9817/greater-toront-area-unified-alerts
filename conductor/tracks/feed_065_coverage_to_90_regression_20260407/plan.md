@@ -92,7 +92,8 @@ This track is executed as **test expansion only** to recover the coverage gate. 
   - Secure request path: assert HSTS is present for `https://localhost/`.
   - Non-secure request path: assert HSTS is absent for `http://localhost/`.
   - Production override path:
-    - Temporarily set `config(['app.env' => 'production'])` during the test and restore the previous value.
+    - Temporarily set the application environment to `production` during the test (feature-test only):
+      - Prefer `app()->detectEnvironment(fn () => 'production')` in a `try/finally` and then restore to `testing`.
     - Assert HSTS present even when the request is non-secure.
 
 ## Phase 4: ScheduledFetchJobDispatcher Outstanding-Queue Branch Coverage
@@ -125,13 +126,18 @@ This track is executed as **test expansion only** to recover the coverage gate. 
   - Create lightweight test enums in the test file:
     - a `BackedEnum` with string values
     - a `UnitEnum` with named cases
+  - Constraint: create `jobs` rows via `dispatchToQueue(...)` so the payload format is framework-generated.
   - For each queue type (string, BackedEnum, UnitEnum):
-    - Arrange: instantiate `new FetchFireIncidentsJob` and set `$job->queue` to the desired value.
-    - Arrange: insert a `jobs` row in the DB (table `jobs`) with:
-      - `queue` equal to the expected resolved queue name
-      - `payload` containing a JSON string that includes `"displayName":"App\\\\Jobs\\\\FetchFireIncidentsJob"`
-      - required integer columns per the migration (`attempts`, `available_at`, `created_at`)
-    - Assert: `hasOutstanding(...)` returns true only for the matching resolved queue name.
+    - Arrange: create a tiny test job class in the test file implementing `ShouldQueue` and using `Queueable` so `onQueue(...)` is available.
+    - Arrange: dispatch a job instance to the database queue using a *string* queue name:
+      - `$queued = (new TestQueueNameJob)->onQueue('expected-name');`
+      - `app(QueueingDispatcher::class)->dispatchToQueue($queued);`
+    - Assert: `hasOutstanding(...)` returns true when called with a new instance of the same job class whose `$queue` is set to:
+      - `'expected-name'` (string case)
+      - `TestBackedQueue::Expected` (BackedEnum with value `'expected-name'`)
+      - `TestUnitQueue::Expected` (UnitEnum case name `'Expected'`) with the dispatched queue set to `'Expected'`
+  - Negative path:
+    - Dispatch to queue `'other'` and assert `hasOutstanding(...)` returns false when the resolved queue name is `'expected-name'`.
 
 ## Phase 5: EnvironmentCanadaWeatherProvider Failure Modes + Edge Parsing
 
@@ -231,8 +237,9 @@ This track is executed as **test expansion only** to recover the coverage gate. 
 - [ ] Task: Run the coverage gate
   - `vendor/bin/sail artisan test --coverage --min=90`
 - [ ] Task: Optional Postgres QA pass (smoke)
+- [ ] Task: Mandatory Postgres QA smoke (DB-sensitive subset)
   - Start testing profile: `vendor/bin/sail up -d --profile testing`
-  - Run a focused subset under Postgres config using Pest directly:
+  - Run the subset under Postgres config using Pest directly:
     - `vendor/bin/sail php ./vendor/bin/pest --configuration phpunit.pgsql.xml --compact tests/Unit/Models/SavedAlertTest.php`
     - `vendor/bin/sail php ./vendor/bin/pest --configuration phpunit.pgsql.xml --compact tests/Feature/Console/ScheduledFetchJobDispatcherTest.php`
 
