@@ -32,12 +32,12 @@ This track is executed as **test expansion only** to recover the coverage gate. 
 - Create: `tests/Unit/Models/SavedAlertTest.php`
 
 **Test design (logic)**
-- [ ] Task: Add model contract tests for `SavedAlert`
+- [x] Task: Add model contract tests for `SavedAlert`
   - Arrange: instantiate `new SavedAlert([...])` without touching DB where possible.
   - Assert:
     - `getFillable()` exactly matches `['user_id', 'alert_id']`.
     - `user()` relationship returns a `BelongsTo` to `App\Models\User` (relationship type + related model).
-- [ ] Task: Add deterministic factory + DB behavior tests (minimal DB integration)
+- [x] Task: Add deterministic factory + DB behavior tests (minimal DB integration)
   - Use `RefreshDatabase`.
   - Assert:
     - `SavedAlert::factory()->create()` persists and has a non-empty `alert_id` containing a `:` separator.
