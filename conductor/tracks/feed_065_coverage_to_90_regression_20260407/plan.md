@@ -110,7 +110,7 @@ This track is executed as **test expansion only** to recover the coverage gate. 
 
 **Test design (logic)**
 
-- [ ] Task: Cover early-return guard rails in `hasOutstandingDatabaseQueueRow()`
+- [x] Task: Cover early-return guard rails in `hasOutstandingDatabaseQueueRow()`
     - Implementation note:
         - `hasOutstandingDatabaseQueueRow()` is `protected`; test it via a test-only subclass in the test file that exposes a `public hasOutstanding(ShouldQueue $job): bool`.
         - This keeps the tests deterministic and avoids coupling to queue execution side effects.
@@ -124,13 +124,13 @@ This track is executed as **test expansion only** to recover the coverage gate. 
         - Non-existent table:
             - Set `queue.connections.database.table` to `'jobs_missing'` and assert false.
     - Assertion rule: validate boolean outcomes and dispatch behavior, not SQL strings.
-- [ ] Task: Cover post-lock recheck path (first check false, second check true)
+- [x] Task: Cover post-lock recheck path (first check false, second check true)
     - Implement via a test-only subclass of `ScheduledFetchJobDispatcher` overriding `hasOutstandingDatabaseQueueRow()` to return `false` then `true`.
     - Assert:
         - `dispatchFireIncidents()` returns false.
         - Unique lock is released (subsequent acquire succeeds).
         - Log reason is `outstanding_queue_row_exists_after_lock`.
-- [ ] Task: Cover queue name resolution branches (string, BackedEnum, UnitEnum)
+- [x] Task: Cover queue name resolution branches (string, BackedEnum, UnitEnum)
     - Create lightweight test enums in the test file:
         - a `BackedEnum` with string values
         - a `UnitEnum` with named cases
