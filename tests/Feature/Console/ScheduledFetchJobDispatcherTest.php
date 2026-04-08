@@ -74,7 +74,7 @@ test('dispatch skips duplicate enqueue when an equivalent job is already queued'
         ->withArgs(function (string $message, array $context): bool {
             return $message === 'Scheduled fetch job skipped'
                 && ($context['job_class'] ?? null) === FetchFireIncidentsJob::class
-                && in_array(($context['reason'] ?? null), ['outstanding_queue_row_exists', 'unique_lock_held'], true);
+                && ($context['reason'] ?? null) === 'outstanding_queue_row_exists';
         })
         ->once();
 });
@@ -93,7 +93,7 @@ test('dispatch yrt alerts skips duplicate enqueue when an equivalent job is alre
         ->withArgs(function (string $message, array $context): bool {
             return $message === 'Scheduled fetch job skipped'
                 && ($context['job_class'] ?? null) === FetchYrtAlertsJob::class
-                && in_array(($context['reason'] ?? null), ['outstanding_queue_row_exists', 'unique_lock_held'], true);
+                && ($context['reason'] ?? null) === 'outstanding_queue_row_exists';
         })
         ->once();
 });
@@ -112,7 +112,7 @@ test('dispatch drt alerts skips duplicate enqueue when an equivalent job is alre
         ->withArgs(function (string $message, array $context): bool {
             return $message === 'Scheduled fetch job skipped'
                 && ($context['job_class'] ?? null) === FetchDrtAlertsJob::class
-                && in_array(($context['reason'] ?? null), ['outstanding_queue_row_exists', 'unique_lock_held'], true);
+                && ($context['reason'] ?? null) === 'outstanding_queue_row_exists';
         })
         ->once();
 });
@@ -169,7 +169,7 @@ test('dispatch skips when an equivalent queue row exists even if lock is held', 
         ->withArgs(function (string $message, array $context): bool {
             return $message === 'Scheduled fetch job skipped'
                 && ($context['job_class'] ?? null) === FetchFireIncidentsJob::class
-                && in_array(($context['reason'] ?? null), ['outstanding_queue_row_exists', 'unique_lock_held'], true);
+                && ($context['reason'] ?? null) === 'outstanding_queue_row_exists';
         })
         ->once();
 
@@ -391,6 +391,17 @@ test('hasOutstanding resolves string queue name and finds matching row', functio
     $checkJob->onQueue('expected-name');
 
     expect($testable->hasOutstanding($checkJob))->toBeTrue();
+});
+
+test('hasOutstanding finds matching row for namespaced queued job payload', function () {
+    app(QueueingDispatcher::class)->dispatchToQueue(new FetchFireIncidentsJob);
+
+    $testable = new TestableScheduledFetchJobDispatcher(
+        dispatcher: Mockery::mock(QueueingDispatcher::class),
+        cache: app('cache.store'),
+    );
+
+    expect($testable->hasOutstanding(new FetchFireIncidentsJob))->toBeTrue();
 });
 
 test('hasOutstanding resolves BackedEnum queue name and finds matching row', function () {

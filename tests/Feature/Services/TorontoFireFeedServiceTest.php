@@ -2,6 +2,7 @@
 
 use App\Services\TorontoFireFeedService;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 
 test('it parses a valid xml response into normalized records', function () {
     $xml = <<<'XML'
@@ -169,6 +170,7 @@ test('it throws exception on empty events when empty feeds are not allowed', fun
 
 test('it skips events missing required fields and logs a warning', function () {
     config(['feeds.allow_empty_feeds' => true]);
+    Log::spy();
 
     $xml = <<<'XML'
     <tfs_active_incidents>
@@ -206,4 +208,13 @@ test('it skips events missing required fields and logs a warning', function () {
     // Only the last event with all required fields should be included
     expect($results['events'])->toHaveCount(1);
     expect($results['events'][0]['event_num'])->toBe('F26015955');
+
+    Log::shouldHaveReceived('warning')
+        ->withArgs(function (string $message, array $context): bool {
+            return $message === 'Toronto Fire XML feed contains an event missing required fields'
+                && array_key_exists('event_num', $context)
+                && array_key_exists('event_type', $context)
+                && array_key_exists('dispatch_time', $context);
+        })
+        ->times(3);
 });

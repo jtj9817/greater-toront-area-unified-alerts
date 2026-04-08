@@ -3,7 +3,7 @@
 ## Meta
 - **Issue Type:** Bug
 - **Priority:** `P1`
-- **Status:** Open
+- **Status:** Closed
 - **Labels:** `feed-065`, `qa`, `tests`, `backend`, `coverage`, `regression-risk`
 - **Related Track:** `conductor/tracks/feed_065_coverage_to_90_regression_20260407/plan.md`
 
@@ -75,11 +75,35 @@ This ticket tracks fixes in priority order and required verification.
 - Accept `hostname` as nullable string while keeping other assertions strict.
 
 ## Acceptance Criteria
-- [ ] All findings are resolved and verified by tests.
-- [ ] Full test suite passes (`composer test`).
-- [ ] No new lint, format, or TypeScript errors.
-- [ ] No unintended behavior changes outside scoped findings.
-- [ ] No Laravel→Inertia→React boundary shape changes introduced.
+- [x] All findings are resolved and verified by tests.
+- [x] Full test suite passes (`composer test`).
+- [x] No new lint, format, or TypeScript errors.
+- [x] No unintended behavior changes outside scoped findings.
+- [x] No Laravel→Inertia→React boundary shape changes introduced.
+
+## Resolution
+- **P1 fixed:** `ScheduledFetchJobDispatcher` queue-row matching now decodes queued payload JSON and compares `displayName` directly, removing DB-driver/collation-sensitive `LIKE` matching.  
+  Tests now require `outstanding_queue_row_exists` on duplicate queue-row scenarios and include a namespaced queued-job payload detection test.
+- **P2 fixed:** Toronto Fire missing-required-field test now asserts `Log::warning` is emitted for skipped malformed events.
+- **P3 fixed:** Security headers test was renamed to reflect actual fallback behavior; queue enqueue debug hostname assertion now accepts nullable hostname.
+- **Boundary check:** No Laravel→Inertia→React serialization/type contract changed.
+
+## Verification Notes
+- Targeted test filters run and passing:
+  - `php artisan sail --args=artisan --args=test --args=--compact --args=--filter=ScheduledFetchJobDispatcherTest`
+  - `php artisan sail --args=artisan --args=test --args=--compact --args=--filter=TorontoFireFeedServiceTest`
+  - `php artisan sail --args=artisan --args=test --args=--compact --args=--filter=SecurityHeadersTest`
+  - `php artisan sail --args=artisan --args=test --args=--compact --args=--filter=QueueEnqueueDebugServiceProviderTest`
+- Full suite:
+  - `php artisan sail --args=composer --args=test`
+- Formatting and lint/type checks:
+  - `./vendor/bin/sail bin pint`
+  - `php artisan sail --args=composer --args=lint`
+  - `php artisan sail --args=pnpm --args=run --args=lint`
+  - `php artisan sail --args=pnpm --args=run --args=format`
+  - `php artisan sail --args=pnpm --args=run --args=types`
+
+These fixes are part of Phase 9: QA Phase.
 
 ## Notes
 - If any proposed fix requires a data-shape change across Laravel→Inertia→React boundaries, update PHP serialization and TypeScript types together in the same change.

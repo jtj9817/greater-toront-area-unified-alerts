@@ -273,7 +273,7 @@ test('broadcast echo with empty host uses cluster-based default', function () {
     });
 });
 
-test('broadcast echo with non-string host returns no origins', function () {
+test('broadcast echo with non-string host falls back to cluster default origin', function () {
     Config::set('broadcasting.frontend.echo', [
         'key' => 'test-key',
         'cluster' => 'mt1',

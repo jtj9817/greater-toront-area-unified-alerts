@@ -174,7 +174,7 @@ test('queue enqueue debug provider logs info for matching jobs', function () {
 
             // Verify enqueuer shape
             if (! is_int($context['enqueuer']['pid'])
-                || ! is_string($context['enqueuer']['hostname'])) {
+                || (! is_string($context['enqueuer']['hostname']) && $context['enqueuer']['hostname'] !== null)) {
                 return false;
             }
 

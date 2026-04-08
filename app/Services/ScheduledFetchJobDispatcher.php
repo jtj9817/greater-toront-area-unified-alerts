@@ -18,6 +18,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
+use JsonException;
 use Throwable;
 use UnitEnum;
 
@@ -173,13 +174,39 @@ class ScheduledFetchJobDispatcher
             return false;
         }
 
-        $escapedDisplayName = str_replace('\\', '\\\\', $job::class);
-        $needle = "\"displayName\":\"{$escapedDisplayName}\"";
-
-        return DB::connection($databaseConnection)
+        $rows = DB::connection($databaseConnection)
             ->table($table)
             ->where('queue', $queueName)
-            ->where('payload', 'like', "%{$needle}%")
-            ->exists();
+            ->select('payload')
+            ->cursor();
+
+        foreach ($rows as $row) {
+            if ($this->queuedPayloadDisplayName($row->payload ?? null) === $job::class) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private function queuedPayloadDisplayName(mixed $payload): ?string
+    {
+        if (! is_string($payload) || trim($payload) === '') {
+            return null;
+        }
+
+        try {
+            $decoded = json_decode($payload, true, flags: JSON_THROW_ON_ERROR);
+        } catch (JsonException) {
+            return null;
+        }
+
+        $displayName = $decoded['displayName'] ?? null;
+
+        if (! is_string($displayName) || trim($displayName) === '') {
+            return null;
+        }
+
+        return $displayName;
     }
 }
