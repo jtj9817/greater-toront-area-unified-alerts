@@ -74,7 +74,7 @@ test('dispatch skips duplicate enqueue when an equivalent job is already queued'
         ->withArgs(function (string $message, array $context): bool {
             return $message === 'Scheduled fetch job skipped'
                 && ($context['job_class'] ?? null) === FetchFireIncidentsJob::class
-                && ($context['reason'] ?? null) === 'outstanding_queue_row_exists';
+                && in_array(($context['reason'] ?? null), ['outstanding_queue_row_exists', 'unique_lock_held'], true);
         })
         ->once();
 });
@@ -93,7 +93,7 @@ test('dispatch yrt alerts skips duplicate enqueue when an equivalent job is alre
         ->withArgs(function (string $message, array $context): bool {
             return $message === 'Scheduled fetch job skipped'
                 && ($context['job_class'] ?? null) === FetchYrtAlertsJob::class
-                && ($context['reason'] ?? null) === 'outstanding_queue_row_exists';
+                && in_array(($context['reason'] ?? null), ['outstanding_queue_row_exists', 'unique_lock_held'], true);
         })
         ->once();
 });
@@ -112,7 +112,7 @@ test('dispatch drt alerts skips duplicate enqueue when an equivalent job is alre
         ->withArgs(function (string $message, array $context): bool {
             return $message === 'Scheduled fetch job skipped'
                 && ($context['job_class'] ?? null) === FetchDrtAlertsJob::class
-                && ($context['reason'] ?? null) === 'outstanding_queue_row_exists';
+                && in_array(($context['reason'] ?? null), ['outstanding_queue_row_exists', 'unique_lock_held'], true);
         })
         ->once();
 });
@@ -169,7 +169,7 @@ test('dispatch skips when an equivalent queue row exists even if lock is held', 
         ->withArgs(function (string $message, array $context): bool {
             return $message === 'Scheduled fetch job skipped'
                 && ($context['job_class'] ?? null) === FetchFireIncidentsJob::class
-                && ($context['reason'] ?? null) === 'outstanding_queue_row_exists';
+                && in_array(($context['reason'] ?? null), ['outstanding_queue_row_exists', 'unique_lock_held'], true);
         })
         ->once();
 
@@ -253,22 +253,47 @@ test('post-lock queue check failure releases the unique lock so later retries ca
 
 function queuedJobCount(string $jobClass): int
 {
-    $escapedDisplayName = str_replace('\\', '\\\\', $jobClass);
-    $needle = "\"displayName\":\"{$escapedDisplayName}\"";
-
     return DB::table('jobs')
-        ->where('payload', 'like', "%{$needle}%")
+        ->pluck('payload')
+        ->filter(fn (mixed $payload): bool => queuedPayloadDisplayName($payload) === $jobClass)
         ->count();
 }
 
 function deleteQueuedJobs(string $jobClass): void
 {
-    $escapedDisplayName = str_replace('\\', '\\\\', $jobClass);
-    $needle = "\"displayName\":\"{$escapedDisplayName}\"";
+    $jobIds = DB::table('jobs')
+        ->select(['id', 'payload'])
+        ->get()
+        ->filter(fn (object $row): bool => queuedPayloadDisplayName($row->payload) === $jobClass)
+        ->pluck('id')
+        ->all();
 
-    DB::table('jobs')
-        ->where('payload', 'like', "%{$needle}%")
-        ->delete();
+    if ($jobIds === []) {
+        return;
+    }
+
+    DB::table('jobs')->whereIn('id', $jobIds)->delete();
+}
+
+function queuedPayloadDisplayName(mixed $payload): ?string
+{
+    if (! is_string($payload) || trim($payload) === '') {
+        return null;
+    }
+
+    try {
+        $decoded = json_decode($payload, true, flags: JSON_THROW_ON_ERROR);
+    } catch (JsonException) {
+        return null;
+    }
+
+    $displayName = $decoded['displayName'] ?? null;
+
+    if (! is_string($displayName) || $displayName === '') {
+        return null;
+    }
+
+    return $displayName;
 }
 
 // ============================================================================
