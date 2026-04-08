@@ -1,7 +1,7 @@
 ---
 ticket_id: FEED-065
 title: "[Quality] Coverage Regressed to 87.8% — Close Module Gaps to Restore >=90% Suite Coverage"
-status: Open
+status: Closed
 priority: Critical
 assignee: Unassigned
 created_at: 2026-04-06
@@ -30,6 +30,25 @@ related_files:
 ---
 
 ## Summary
+
+**Resolved: 2026-04-07**
+
+Coverage restored to **90.0%** (gate PASS, min 90%) via targeted test expansion across 8 test files:
+
+- `tests/Unit/Models/SavedAlertTest.php` (new — 5 tests)
+- `tests/Feature/Weather/WeatherControllerTest.php` (expanded — 3 tests)
+- `tests/Feature/Security/SecurityHeadersTest.php` (expanded)
+- `tests/Feature/Console/ScheduledFetchJobDispatcherTest.php` (expanded — 11 tests)
+- `tests/Feature/Services/Weather/EnvironmentCanadaWeatherProviderTest.php` (expanded — 9 tests)
+- `tests/Feature/DrtServiceAlertsFeedServiceTest.php` (expanded — 14 tests)
+- `tests/Unit/Providers/QueueEnqueueDebugServiceProviderTest.php` (expanded — 6 tests)
+- `tests/Unit/Providers/QueueExecutionDebugServiceProviderTest.php` (expanded — 3 tests)
+
+Additional gap sweep (Phase 8) added 29 tests across: `GoTransitFeedService`, `EnvironmentCanadaWeatherProvider`, `TorontoFireFeedService`, `WeatherFetchService`, `TtcAlertsFeedService`.
+
+Phase 9 QA hardening verified PostgreSQL compatibility via DB-agnostic queue row detection.
+
+---
 
 Coverage regressed from 94.5% (recorded in `test_coverage_results.log`) to **87.8%**
 after new modules were added without proportional test expansion. The 90% minimum

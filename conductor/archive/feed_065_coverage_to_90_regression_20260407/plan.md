@@ -270,15 +270,13 @@ This track is executed as **test expansion only** to recover the coverage gate. 
 
 ## Phase 10: Documentation Phase
 
-- [ ] Task: Update the ticket to reflect closure and capture final gate evidence
-    - Update front matter `status:` in `docs/tickets/FEED-065-coverage-gap-to-90-threshold-regression.md` to `Closed`.
-    - Add a short “Resolved” note including:
-        - final reported percent from `--coverage --min=90`
-        - date/time of the run
-        - which test files were added/expanded (high-level list)
-- [ ] Task: Close out Conductor metadata for this track
-    - Update `metadata.json` status to `completed` and set `completed_at`/`updated_at`.
-    - If your workflow archives completed tracks, move this track under `conductor/archive/` and update `conductor/tracks.md` accordingly (leave as active otherwise).
+- [x] Task: Update the ticket to reflect closure and capture final gate evidence
+    - Updated front matter `status:` in `docs/tickets/FEED-065-coverage-gap-to-90-threshold-regression.md` to `Closed`.
+    - Added “Resolved: 2026-04-07” note with final coverage 90.0% and test file summary.
+- [x] Task: Close out Conductor metadata for this track
+    - Updated `metadata.json` status to `completed` with `completed_at`/`updated_at`.
+    - Archived track under `conductor/archive/feed_065_coverage_to_90_regression_20260407/`.
+    - Updated `conductor/tracks.md` to move FEED-065 from Active to Archived.
 
 ### Phase 0 Notes (Fill In During Execution)
 
