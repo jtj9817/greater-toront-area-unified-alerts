@@ -242,7 +242,7 @@ This track is executed as **test expansion only** to recover the coverage gate. 
 
 ## Phase 9: QA Phase
 
-- [ ] Task: Run focused test subsets for each changed test file
+- [x] Task: Run focused test subsets for each changed test file
     - `vendor/bin/sail artisan test --compact tests/Unit/Models/SavedAlertTest.php`
     - `vendor/bin/sail artisan test --compact tests/Feature/Weather/WeatherControllerTest.php`
     - `vendor/bin/sail artisan test --compact tests/Feature/Security/SecurityHeadersTest.php`
@@ -251,12 +251,18 @@ This track is executed as **test expansion only** to recover the coverage gate. 
     - `vendor/bin/sail artisan test --compact tests/Feature/DrtServiceAlertsFeedServiceTest.php`
     - `vendor/bin/sail artisan test --compact tests/Unit/Providers/QueueEnqueueDebugServiceProviderTest.php`
     - `vendor/bin/sail artisan test --compact tests/Unit/Providers/QueueExecutionDebugServiceProviderTest.php`
-- [ ] Task: Run Pint on touched PHP files
+    - Result: all focused files passed.
+- [x] Task: Run Pint on touched PHP files
     - `vendor/bin/sail bin pint --dirty --format agent`
-- [ ] Task: Run the coverage gate
+    - Result: pass.
+- [x] Task: Run the coverage gate
     - `vendor/bin/sail artisan test --coverage --min=90`
-- [ ] Task: Optional Postgres QA pass (smoke)
-- [ ] Task: Mandatory Postgres QA smoke (DB-sensitive subset)
+    - Result: **90.0%** total coverage (gate PASS).
+- [x] Task: Optional Postgres QA pass (smoke)
+- [x] Task: Mandatory Postgres QA smoke (DB-sensitive subset)
+    - Note: `vendor/bin/sail up -d --profile testing` is not supported by this Sail wrapper; used `docker compose --profile testing up -d pgsql-testing` to start `pgsql-testing`.
+    - `vendor/bin/sail php ./vendor/bin/pest --configuration phpunit.pgsql.xml --compact tests/Unit/Models/SavedAlertTest.php` → PASS.
+    - `vendor/bin/sail php ./vendor/bin/pest --configuration phpunit.pgsql.xml --compact tests/Feature/Console/ScheduledFetchJobDispatcherTest.php` → PASS.
     - Start testing profile: `vendor/bin/sail up -d --profile testing`
     - Run the subset under Postgres config using Pest directly:
         - `vendor/bin/sail php ./vendor/bin/pest --configuration phpunit.pgsql.xml --compact tests/Unit/Models/SavedAlertTest.php`
