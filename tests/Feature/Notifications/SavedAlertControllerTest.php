@@ -215,6 +215,17 @@ test('store normalizes whitespace around alert_id before validation', function (
         ->assertJsonPath('data.alert_id', 'fire:F26018618');
 });
 
+test('store sanitizes alert_id to prevent Stored XSS', function () {
+    $user = User::factory()->create();
+
+    $response = $this->actingAs($user)->postJson('/api/saved-alerts', [
+        'alert_id' => '  <script></script>yrt:12345  ',
+    ]);
+
+    $response->assertStatus(201)
+        ->assertJsonPath('data.alert_id', 'yrt:12345');
+});
+
 test('authenticated saves are uncapped in this iteration', function () {
     $user = User::factory()->create();
 
