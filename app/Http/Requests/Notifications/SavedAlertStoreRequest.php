@@ -12,7 +12,8 @@ class SavedAlertStoreRequest extends FormRequest
     {
         if ($this->has('alert_id') && is_string($this->input('alert_id'))) {
             $this->merge([
-                'alert_id' => trim($this->input('alert_id')),
+                // Sentinel: Sanitize alert_id to prevent Stored XSS
+                'alert_id' => strip_tags(trim($this->input('alert_id'))),
             ]);
         }
     }
