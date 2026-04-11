@@ -772,6 +772,19 @@ test('UnifiedAlertsCursor coverage is maintained by instantiating it directly', 
     $encoded = $cursor->encode();
     $decoded = \App\Services\Alerts\DTOs\UnifiedAlertsCursor::decode($encoded);
     expect($decoded->id)->toBe('source:id');
+
+    expect(fn () => new \App\Services\Alerts\DTOs\UnifiedAlertsCursor(\Carbon\CarbonImmutable::parse('2023-01-01T00:00:00Z'), ''))
+        ->toThrow(\InvalidArgumentException::class, 'Cursor id is required.');
+    expect(fn () => \App\Services\Alerts\DTOs\UnifiedAlertsCursor::decode(''))
+        ->toThrow(\InvalidArgumentException::class, 'Cursor value is required.');
+    expect(fn () => \App\Services\Alerts\DTOs\UnifiedAlertsCursor::decode('!'))
+        ->toThrow(\InvalidArgumentException::class, 'Cursor value is invalid.');
+    expect(fn () => \App\Services\Alerts\DTOs\UnifiedAlertsCursor::decode(rtrim(strtr(base64_encode('{'), '+/', '-_'), '=')))
+        ->toThrow(\InvalidArgumentException::class, 'Cursor payload is invalid.');
+    expect(fn () => \App\Services\Alerts\DTOs\UnifiedAlertsCursor::decode(rtrim(strtr(base64_encode('123'), '+/', '-_'), '=')))
+        ->toThrow(\InvalidArgumentException::class, 'Cursor payload is invalid.');
+    expect(fn () => \App\Services\Alerts\DTOs\UnifiedAlertsCursor::decode(rtrim(strtr(base64_encode('{"ts": "invalid", "id": "source:id"}'), '+/', '-_'), '=')))
+        ->toThrow(\InvalidArgumentException::class, 'Cursor timestamp is invalid.');
 });
 
 test('unified alerts query throws when timestamp is missing', function () {
